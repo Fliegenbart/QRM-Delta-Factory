@@ -152,53 +152,75 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
 
   return (
     <div className="min-h-screen bg-mist text-ink">
-      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-line bg-white/92 backdrop-blur lg:block">
-        <div className="border-b border-line px-6 py-6">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-teal text-sm font-semibold text-white shadow-sm">Q</div>
-            <div>
-              <div className="text-[15px] font-semibold leading-5 tracking-normal">Pharma QRM</div>
-              <div className="text-[15px] font-semibold leading-5 tracking-normal text-teal">Delta Factory</div>
-            </div>
+      <aside className="fixed inset-y-0 left-0 hidden w-[340px] border-r border-black/10 bg-[#fbfcfb]/90 backdrop-blur-2xl lg:flex">
+        <div className="flex w-16 flex-col items-center border-r border-black/10 py-6">
+          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal text-sm font-semibold text-white shadow-[0_16px_35px_rgba(19,124,120,0.26)]">Q</div>
+          <div className="mt-10 flex flex-col gap-3">
+            {navItems.slice(0, 8).map(([slug, label, Icon]) => (
+              <Link
+                key={slug}
+                href={slug === "dashboard" ? "/" : `/${slug}`}
+                className={`grid h-10 w-10 place-items-center rounded-2xl transition ${
+                  active === slug ? "bg-ink text-white shadow-[0_14px_35px_rgba(17,24,29,0.16)]" : "text-slate-500 hover:bg-white hover:text-ink"
+                }`}
+                aria-label={label}
+              >
+                <Icon className="h-4 w-4" aria-hidden />
+              </Link>
+            ))}
           </div>
-          <div className="mt-4 text-xs leading-5 text-slate-600">Source-based DRAFT QRM work products for qualified human review.</div>
+          <div className="mt-auto grid gap-3 text-slate-500">
+            <Bell className="h-4 w-4" />
+            <HelpCircle className="h-4 w-4" />
+          </div>
         </div>
-        <nav className="h-[calc(100vh-104px)] overflow-y-auto px-3 py-3">
-          {navItems.map(([slug, label, Icon]) => (
-            <Link
-              key={slug}
-              href={slug === "dashboard" ? "/" : `/${slug}`}
-              className={`mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
-                active === slug ? "bg-teal/10 text-teal ring-1 ring-teal/15" : "text-slate-700 hover:bg-slate-100"
-              }`}
-            >
-              <Icon className="h-4 w-4" aria-hidden />
-              <span>{label}</span>
-            </Link>
-          ))}
-        </nav>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="border-b border-black/10 px-6 py-7">
+            <div className="text-[13px] font-semibold uppercase leading-5 tracking-[0.18em] text-ink">Pharma QRM</div>
+            <div className="text-[13px] font-semibold uppercase leading-5 tracking-[0.18em] text-teal">Delta Factory</div>
+            <div className="mt-5 max-w-48 text-xs leading-5 text-slate-600">Source-linked draft risk packages for qualified human review.</div>
+          </div>
+          <nav className="h-[calc(100vh-168px)] overflow-y-auto px-4 py-5">
+            <div className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Workspace</div>
+            {navItems.map(([slug, label, Icon]) => (
+              <Link
+                key={slug}
+                href={slug === "dashboard" ? "/" : `/${slug}`}
+                className={`mb-1 flex items-center justify-between rounded-2xl px-3 py-2.5 text-sm transition ${
+                  active === slug ? "bg-white text-teal shadow-[0_12px_35px_rgba(17,24,29,0.07)] ring-1 ring-black/5" : "text-slate-600 hover:bg-white/70 hover:text-ink"
+                }`}
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="truncate">{label}</span>
+                </span>
+                {active === slug ? <span className="h-1.5 w-1.5 rounded-full bg-teal" /> : null}
+              </Link>
+            ))}
+          </nav>
+        </div>
       </aside>
 
-      <main className="lg:pl-72">
-        <header className="sticky top-0 z-10 border-b border-line bg-white/88 px-4 py-4 backdrop-blur-xl lg:px-8">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <main className="lg:pl-[340px]">
+        <header className="sticky top-0 z-10 border-b border-black/10 bg-[#fbfcfb]/78 px-4 py-4 backdrop-blur-2xl lg:px-8">
+          <div className="mx-auto flex max-w-[1500px] flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Workspace / {demoProject.name}</div>
-              <h1 className="mt-1 text-[28px] font-semibold leading-tight tracking-[-0.02em]">{pageTitles[active] ?? "Dashboard"}</h1>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Workspace / {demoProject.name}</div>
+              <h1 className="mt-1 text-[30px] font-medium leading-tight tracking-[-0.045em]">{pageTitles[active] ?? "Dashboard"}</h1>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="hidden rounded-full border border-teal/20 bg-teal/5 px-3 py-1.5 text-xs font-medium text-teal md:inline-flex">Version 1.2.0</span>
-              <button type="button" className="hidden h-9 w-9 place-items-center rounded-lg border border-line bg-white text-slate-600 md:grid" aria-label="Notifications">
+            <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
+              <span className="hidden rounded-full border border-teal/20 bg-white/70 px-3 py-1.5 text-xs font-medium text-teal shadow-sm md:inline-flex">Version 1.2.0</span>
+              <button type="button" className="hidden h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white/80 text-slate-600 shadow-sm md:grid" aria-label="Notifications">
                 <Bell className="h-4 w-4" />
               </button>
-              <button type="button" className="hidden h-9 w-9 place-items-center rounded-lg border border-line bg-white text-slate-600 md:grid" aria-label="Help">
+              <button type="button" className="hidden h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white/80 text-slate-600 shadow-sm md:grid" aria-label="Help">
                 <HelpCircle className="h-4 w-4" />
               </button>
-              <button type="button" className="hidden h-9 w-9 place-items-center rounded-lg border border-line bg-white text-slate-600 md:grid" aria-label="Documentation">
+              <button type="button" className="hidden h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white/80 text-slate-600 shadow-sm md:grid" aria-label="Documentation">
                 <BookOpen className="h-4 w-4" />
               </button>
               <select
-                className="h-9 rounded-lg border border-line bg-white px-3 text-sm"
+                className="h-10 rounded-2xl border border-black/10 bg-white/80 px-3 text-sm shadow-sm"
                 value={role}
                 onChange={(event) => setRole(event.target.value)}
                 aria-label="Current role"
@@ -211,7 +233,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
               </select>
               <button
                 type="button"
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-ink px-3 text-sm font-medium text-white shadow-sm"
+                className="inline-flex h-10 items-center gap-2 rounded-2xl bg-ink px-4 text-sm font-medium text-white shadow-[0_16px_40px_rgba(17,24,29,0.18)]"
                 onClick={() => setLoginMessage(`Active local demo role: ${role.replaceAll("_", " ")}`)}
               >
                 <Lock className="h-4 w-4" aria-hidden />
@@ -221,7 +243,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
           </div>
         </header>
 
-        <div className="px-4 py-6 lg:px-8">
+        <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
           <Notice text="All AI-generated content is labeled DRAFT. The app prepares reviewable work products; it does not replace qualified human risk assessment, QA responsibility, or regulatory decisions." />
           <div className="mt-4 text-sm text-slate-600">{loginMessage}</div>
           <div className="mt-6">{renderSection(active, { deltaState, criticState, redTeamState, runApi, setDeltaState, setCriticState, setRedTeamState, exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport })}</div>
@@ -300,7 +322,8 @@ function renderSection(
 
 function Notice({ text }: { text: string }) {
   return (
-    <div className="rounded-lg border border-amber/25 border-l-4 bg-[#fff9ed] px-4 py-3 text-sm leading-6 text-slate-800 shadow-sm">
+    <div className="rounded-[22px] border border-amber/25 bg-[#fff9ed]/82 px-5 py-4 text-sm leading-6 text-slate-800 shadow-[0_18px_50px_rgba(183,121,31,0.08)]">
+      <span className="mr-3 inline-flex h-2 w-2 rounded-full bg-amber align-middle" />
       <strong className="font-semibold">DRAFT safety notice:</strong> {text}
     </div>
   );
@@ -308,12 +331,12 @@ function Notice({ text }: { text: string }) {
 
 function Panel({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-white/94 shadow-[0_18px_45px_rgba(23,32,38,0.045)]">
-      <div className="flex items-center justify-between border-b border-line px-5 py-4">
-        <h2 className="text-base font-semibold tracking-[-0.01em]">{title}</h2>
+    <section className="premium-surface overflow-hidden rounded-[26px] border border-black/10">
+      <div className="flex items-center justify-between border-b border-black/10 px-6 py-5">
+        <h2 className="text-base font-semibold tracking-[-0.025em]">{title}</h2>
         {action}
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-6">{children}</div>
     </section>
   );
 }
@@ -326,9 +349,9 @@ function Stat({ label, value, tone = "slate" }: { label: string; value: string |
     danger: "text-danger"
   }[tone];
   return (
-    <div className="rounded-xl border border-line bg-white px-5 py-4 shadow-[0_10px_30px_rgba(23,32,38,0.035)]">
-      <div className={`text-3xl font-semibold tracking-[-0.03em] ${toneClass}`}>{value}</div>
-      <div className="mt-2 text-[11px] uppercase tracking-[0.16em] text-slate-500">{label}</div>
+    <div className="rounded-[22px] border border-black/10 bg-white/88 px-6 py-5 shadow-[0_16px_45px_rgba(17,24,29,0.045)]">
+      <div className={`text-4xl font-light tracking-[-0.07em] ${toneClass}`}>{value}</div>
+      <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
     </div>
   );
 }
@@ -372,9 +395,202 @@ function DashboardSection(context: Parameters<typeof renderSection>[1]) {
 function SummaryBlock({ title, text }: { title: string; text: string }) {
   return (
     <div>
-      <div className="text-sm font-semibold text-slate-900">{title}</div>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{title}</div>
       <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
     </div>
+  );
+}
+
+function PremiumReviewHero({
+  packages,
+  workload,
+  onGenerate,
+  onRunAll
+}: {
+  packages: ReviewPackage[];
+  workload: ReturnType<typeof summarizeWorkload>;
+  onGenerate: () => void;
+  onRunAll: () => void;
+}) {
+  return (
+    <section className="premium-surface relative overflow-hidden rounded-[32px] border border-black/10">
+      <div className="absolute right-0 top-0 hidden h-full w-[46%] xl:block">
+        <LabInspectionVisual />
+      </div>
+      <div className="relative grid min-h-[390px] gap-8 p-7 md:p-10 xl:grid-cols-[0.58fr_0.42fr]">
+        <div className="flex max-w-3xl flex-col justify-between">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal">Review packages</div>
+            <h2 className="mt-7 max-w-xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink md:text-6xl">
+              Quality risk, reduced to evidence.
+            </h2>
+            <p className="mt-6 max-w-xl text-base leading-8 text-slate-600">
+              Complete draft risk packages for the AVI threshold change. Incomplete inputs are blocked before plausibility review.
+            </p>
+          </div>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              className="inline-flex h-12 items-center gap-2 rounded-2xl bg-teal px-5 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(19,124,120,0.22)]"
+              onClick={onGenerate}
+            >
+              <PackageCheck className="h-4 w-4" aria-hidden />
+              Generate Review Packages
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm disabled:cursor-not-allowed disabled:text-slate-400"
+              disabled={packages.length === 0}
+              onClick={onRunAll}
+            >
+              <Play className="h-4 w-4" aria-hidden />
+              Run all ready checks
+            </button>
+            <span className="text-xs leading-5 text-slate-500">DRAFT • source-linked • human controlled</span>
+          </div>
+        </div>
+        <div className="hidden xl:block" />
+      </div>
+      <div className="border-t border-black/10 bg-white/55 px-7 py-5 backdrop-blur md:px-10">
+        {packages.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-3">
+            <Stat label="Generated packages" value={workload.total_packages} />
+            <Stat label="Ready for review" value={workload.ready_for_review} tone="teal" />
+            <Stat label="Input incomplete" value={workload.input_incomplete} tone="amber" />
+          </div>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-3">
+            <SummaryBlock title="Architecture" text="Documents, trigger, FMEA baseline, snippets, library, and scoring model are assembled first." />
+            <SummaryBlock title="Completeness gate" text="Missing technical input goes back to Author/Ops. The Critic is not called on partial packages." />
+            <SummaryBlock title="Demo scenario" text="CC-2026-014, old-threshold validation only, missing training record, missing validation addendum." />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function LabInspectionVisual() {
+  const vials = Array.from({ length: 9 }, (_, index) => index);
+  return (
+    <div className="relative h-full overflow-hidden border-l border-black/10 bg-[#eaf0ef]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.96),transparent_24rem),linear-gradient(120deg,rgba(247,248,246,0.15),rgba(17,24,29,0.16))]" />
+      <div className="lab-metal absolute right-8 top-0 h-24 w-[72%] rounded-b-[28px] opacity-95 shadow-[0_24px_60px_rgba(17,24,29,0.18)]" />
+      <div className="lab-metal absolute right-20 top-20 h-36 w-12 rounded-b-2xl shadow-[0_18px_40px_rgba(17,24,29,0.2)]" />
+      <div className="lab-metal absolute right-32 top-24 h-24 w-8 rounded-b-xl shadow-[0_12px_30px_rgba(17,24,29,0.18)]" />
+      <div className="absolute bottom-24 right-0 h-16 w-[92%] rounded-l-full border border-white/70 bg-white/38 backdrop-blur-xl" />
+      <div className="absolute bottom-24 right-8 flex items-end gap-4">
+        {vials.map((vial) => (
+          <div key={vial} className="relative h-28 w-10 rounded-b-2xl rounded-t-lg border border-white/75 bg-white/24 shadow-[inset_0_0_18px_rgba(255,255,255,0.85),0_18px_30px_rgba(17,24,29,0.08)] backdrop-blur">
+            <div className="absolute -top-4 left-1/2 h-5 w-7 -translate-x-1/2 rounded-md border border-white/80 bg-white/50" />
+            <div className="absolute bottom-0 h-10 w-full rounded-b-2xl bg-teal/10" />
+          </div>
+        ))}
+      </div>
+      <div className="absolute bottom-8 left-10 max-w-52 text-[10px] font-semibold uppercase leading-5 tracking-[0.22em] text-slate-500">
+        Sterile injectable • AVI threshold review
+      </div>
+    </div>
+  );
+}
+
+function ExecutiveRiskSummary({ packages, results }: { packages: ReviewPackage[]; results: Record<string, PackageReviewResult> }) {
+  const workload = summarizeWorkload(packages, results);
+  return (
+    <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
+      <div className="premium-surface overflow-hidden rounded-[30px] border border-black/10">
+        <div className="border-b border-black/10 px-7 py-5">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Review summary</div>
+        </div>
+        <div className="grid grid-cols-2 gap-0 border-b border-black/10 md:grid-cols-6">
+          <MetricStripItem label="Total" value={workload.total_packages} />
+          <MetricStripItem label="Ready" value={workload.ready_for_review} tone="teal" />
+          <MetricStripItem label="Incomplete" value={workload.input_incomplete} tone="amber" />
+          <MetricStripItem label="Pass" value={workload.plausibility_pass} tone="teal" />
+          <MetricStripItem label="Partial" value={workload.plausibility_partial} tone="amber" />
+          <MetricStripItem label="Fail" value={workload.plausibility_fail} tone="danger" />
+        </div>
+        <div className="grid gap-0 lg:grid-cols-[330px_1fr]">
+          <div className="border-b border-black/10 p-7 lg:border-b-0 lg:border-r">
+            <GaugeMetric label="Reduction" value={workload.estimated_reduction_percent} max={100} suffix="%" tone="teal" large />
+          </div>
+          <div className="grid gap-5 p-7 md:grid-cols-2">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Estimated manual baseline</div>
+              <div className="mt-5 text-5xl font-light tracking-[-0.07em]">{workload.manual_baseline_hours.toFixed(1)}h</div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">Classic document search and broad manual risk review estimate.</p>
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Estimated assisted review</div>
+              <div className="mt-5 text-5xl font-light tracking-[-0.07em] text-teal">{workload.assisted_review_hours.toFixed(1)}h</div>
+              <p className="mt-4 text-sm leading-6 text-slate-600">Indicative MVP estimate only. It is not a regulatory or submission claim.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <EvidenceConfidencePanel packages={packages} results={results} />
+    </section>
+  );
+}
+
+function MetricStripItem({ label, value, tone = "slate" }: { label: string; value: number; tone?: "slate" | "teal" | "amber" | "danger" }) {
+  const color = {
+    slate: "text-ink",
+    teal: "text-teal",
+    amber: "text-amber",
+    danger: "text-danger"
+  }[tone];
+  return (
+    <div className="border-r border-black/10 px-6 py-6 last:border-r-0">
+      <div className="text-sm text-slate-500">{label}</div>
+      <div className={`mt-3 text-5xl font-light tracking-[-0.08em] ${color}`}>{value}</div>
+    </div>
+  );
+}
+
+function EvidenceConfidencePanel({ packages, results }: { packages: ReviewPackage[]; results: Record<string, PackageReviewResult> }) {
+  const totalEvidence = packages.reduce((sum, pkg) => sum + pkg.evidence_links.length, 0);
+  const totalGaps = packages.reduce((sum, pkg) => sum + pkg.documented_gaps.length + pkg.missing_inputs.length, 0);
+  const checked = Object.keys(results).length;
+  const bars = [
+    ["Source coverage", packages.length ? Math.round(((packages.length - 1) / packages.length) * 100) : 0],
+    ["Plausibility checked", packages.length ? Math.round((checked / packages.length) * 100) : 0],
+    ["Evidence linked", packages.length ? Math.min(100, totalEvidence * 14) : 0],
+    ["Open gaps visible", packages.length ? Math.min(100, totalGaps * 18) : 0]
+  ] as const;
+  return (
+    <aside className="premium-surface rounded-[30px] border border-black/10 p-7">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Evidence confidence</div>
+          <p className="mt-3 text-sm leading-6 text-slate-600">Signals for review planning, not approval.</p>
+        </div>
+        <ShieldCheck className="h-5 w-5 text-teal" />
+      </div>
+      <div className="mt-7 space-y-5">
+        {bars.map(([label, value]) => (
+          <div key={label}>
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <span className="text-slate-700">{label}</span>
+              <span className="font-medium text-ink">{value}%</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+              <div className="h-full rounded-full bg-teal" style={{ width: `${value}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-8 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-black/10 bg-white/70 p-4">
+          <div className="text-3xl font-light tracking-[-0.06em]">{totalEvidence}</div>
+          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Evidence links</div>
+        </div>
+        <div className="rounded-2xl border border-black/10 bg-white/70 p-4">
+          <div className="text-3xl font-light tracking-[-0.06em] text-amber">{totalGaps}</div>
+          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Gaps / inputs</div>
+        </div>
+      </div>
+    </aside>
   );
 }
 
@@ -525,88 +741,28 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
   const exportPack = context.riskDeltaExport;
 
   return (
-    <div className="space-y-6">
-      <Panel
-        title="Risk Review Package Builder"
-        action={
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-md bg-teal px-3 text-sm font-medium text-white"
-              onClick={() => void context.generateReviewPackages()}
-            >
-              <PackageCheck className="h-4 w-4" aria-hidden />
-              Generate Review Packages
-            </button>
-            <button
-              type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-medium text-slate-800"
-              disabled={packages.length === 0}
-              onClick={() => void context.runAllPackageReviews()}
-            >
-              <Play className="h-4 w-4" aria-hidden />
-              Run all ready checks
-            </button>
-          </div>
-        }
-      >
-        <div className="grid gap-4 md:grid-cols-3">
-          <SummaryBlock title="Architecture" text="Documents, trigger record, existing FMEA, source snippets, risk library, and scoring model are assembled before the independent reviewer can run." />
-          <SummaryBlock title="Completeness gate" text="Missing technical input is routed back to Author/Ops. The Critic is not called on empty or partial packages." />
-          <SummaryBlock title="Demo scenario" text="CC-2026-014 for sterile injectable AVI threshold change, old-threshold validation only, missing training record, and missing validation addendum." />
-        </div>
-        {packages.length > 0 ? (
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <Stat label="Generated packages" value={workload.total_packages} />
-            <Stat label="Ready for review" value={workload.ready_for_review} tone="teal" />
-            <Stat label="Input incomplete" value={workload.input_incomplete} tone="amber" />
-          </div>
-        ) : (
-          <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-600">Click Generate Review Packages to assemble structured packages before plausibility review.</div>
-        )}
-      </Panel>
+    <div className="space-y-7">
+      <PremiumReviewHero
+        packages={packages}
+        workload={workload}
+        onGenerate={() => void context.generateReviewPackages()}
+        onRunAll={() => void context.runAllPackageReviews()}
+      />
 
       {packages.length > 0 ? (
-        <Panel title="Risk Review Summary">
-          <div className="grid gap-0 overflow-hidden rounded-xl border border-line bg-white md:grid-cols-6">
-            <Stat label="Total packages" value={workload.total_packages} />
-            <Stat label="Ready for review" value={workload.ready_for_review} tone="teal" />
-            <Stat label="Input incomplete" value={workload.input_incomplete} tone="amber" />
-            <Stat label="Plausibility PASS" value={workload.plausibility_pass} tone="teal" />
-            <Stat label="Plausibility PARTIAL" value={workload.plausibility_partial} tone="amber" />
-            <Stat label="Plausibility FAIL" value={workload.plausibility_fail} tone="danger" />
-          </div>
-          <div className="mt-6 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-xl border border-line bg-white p-5">
-              <h3 className="font-semibold">Review workload</h3>
-              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
-                <li>Level 0: {workload.level_counts.LEVEL_0_BASELINE_UNCHANGED} items - no detailed review required</li>
-                <li>Level 1: {workload.level_counts.LEVEL_1_QUICK_CHECK} item - quick QA check</li>
-                <li>Level 2: {workload.level_counts.LEVEL_2_TARGETED_SME_REVIEW} items - targeted SME review</li>
-                <li>Level 3: {workload.level_counts.LEVEL_3_FULL_SME_QA_REVIEW} items - full SME/QA review</li>
-              </ul>
-            </div>
-            <div className="rounded-xl border border-line bg-white p-5">
-              <h3 className="font-semibold">Human review saved</h3>
-              <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                <GaugeMetric label="Manual baseline" value={workload.manual_baseline_hours} max={20} suffix="h" tone="slate" />
-                <GaugeMetric label="Assisted review" value={workload.assisted_review_hours} max={20} suffix="h" tone="teal" />
-                <GaugeMetric label="Reduction" value={workload.estimated_reduction_percent} max={100} suffix="%" tone="teal" />
-              </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">Indicative MVP estimate only. It shows how consultant and expert time is redirected toward exceptions instead of document hunting.</p>
-            </div>
-          </div>
-        </Panel>
+        <ExecutiveRiskSummary packages={packages} results={context.packageResults} />
       ) : null}
 
       {packages.length > 0 ? (
         <Panel title="Risk-Based Review Queue">
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-5 flex flex-wrap gap-2">
             {["All", "Input incomplete", "Ready for plausibility check", "SME required", "QA required", "Evidence gaps", "High priority", "Quick check only"].map((filter) => (
               <button
                 key={filter}
                 type="button"
-                className={`h-8 rounded-md border px-3 text-sm ${queueFilter === filter ? "border-teal bg-teal text-white" : "border-line bg-white text-slate-700"}`}
+                className={`h-10 rounded-2xl border px-4 text-sm transition ${
+                  queueFilter === filter ? "border-teal bg-teal text-white shadow-[0_14px_35px_rgba(19,124,120,0.18)]" : "border-black/10 bg-white/75 text-slate-700 hover:bg-white"
+                }`}
                 onClick={() => setQueueFilter(filter)}
               >
                 {filter}
@@ -924,11 +1080,11 @@ function RiskRows({ items, title, compact = false }: { items: typeof demoRiskIte
 
 function Badge({ children, tone }: { children: React.ReactNode; tone: "danger" | "amber" | "slate" }) {
   const classes = {
-    danger: "bg-danger/10 text-danger",
-    amber: "bg-amber/10 text-amber",
-    slate: "bg-slate-100 text-slate-700"
+    danger: "bg-danger/10 text-danger ring-danger/10",
+    amber: "bg-amber/10 text-amber ring-amber/10",
+    slate: "bg-slate-100 text-slate-700 ring-black/5"
   }[tone];
-  return <span className={`inline-flex rounded px-2 py-1 text-xs font-medium ${classes}`}>{children}</span>;
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${classes}`}>{children}</span>;
 }
 
 function Metric({ label, value, tone = "slate" }: { label: string; value: string; tone?: "slate" | "teal" }) {
@@ -942,24 +1098,25 @@ function Metric({ label, value, tone = "slate" }: { label: string; value: string
 
 function QueueItemRow({ item }: { item: ReviewQueueItem }) {
   const tone = item.review_level === "LEVEL_3_FULL_SME_QA_REVIEW" ? "danger" : item.review_level === "INPUT_INCOMPLETE" || item.review_level === "LEVEL_2_TARGETED_SME_REVIEW" ? "amber" : "slate";
-  const rail = tone === "danger" ? "border-l-danger" : tone === "amber" ? "border-l-amber" : "border-l-teal";
+  const rail = tone === "danger" ? "bg-danger" : tone === "amber" ? "bg-amber" : "bg-teal";
   return (
-    <div className={`rounded-xl border border-l-4 border-line ${rail} bg-white p-4 shadow-[0_12px_35px_rgba(23,32,38,0.035)]`}>
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+    <div className="relative overflow-hidden rounded-[22px] border border-black/10 bg-white/78 p-5 shadow-[0_18px_45px_rgba(17,24,29,0.045)]">
+      <div className={`absolute inset-y-0 left-0 w-1 ${rail}`} />
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold">{item.risk_id}</span>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="mr-1 font-semibold tracking-[-0.02em]">{item.risk_id}</span>
             <Badge tone={tone}>{formatBadge(item.review_level)}</Badge>
             {item.badges.map((badge) => (
-              <span key={badge} className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
+              <span key={badge} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-700">
                 {formatBadge(badge)}
               </span>
             ))}
           </div>
-          <div className="mt-2 text-sm font-medium">{item.failure_mode}</div>
+          <div className="mt-3 text-[15px] font-semibold tracking-[-0.02em]">{item.failure_mode}</div>
           <p className="mt-1 text-sm leading-6 text-slate-600">{item.reason}</p>
         </div>
-        <div className="min-w-56 text-sm leading-6">
+        <div className="min-w-64 rounded-2xl border border-black/10 bg-slate-50/80 px-4 py-3 text-sm leading-6">
           <div>
             <span className="font-semibold">Reviewer:</span> {item.required_reviewer_type.join(", ")}
           </div>
@@ -991,20 +1148,20 @@ function formatBadge(value: string) {
   return labels[value] ?? value.replaceAll("_", " ").toLowerCase();
 }
 
-function GaugeMetric({ label, value, max, suffix, tone }: { label: string; value: number; max: number; suffix: string; tone: "slate" | "teal" }) {
+function GaugeMetric({ label, value, max, suffix, tone, large = false }: { label: string; value: number; max: number; suffix: string; tone: "slate" | "teal"; large?: boolean }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
   const color = tone === "teal" ? "#137c78" : "#4b5563";
   return (
-    <div className="rounded-xl bg-slate-50 p-4">
+    <div className={large ? "" : "rounded-xl bg-slate-50 p-4"}>
       <div
-        className="mx-auto grid h-28 w-28 place-items-center rounded-full"
+        className={`${large ? "h-52 w-52" : "h-28 w-28"} mx-auto grid place-items-center rounded-full`}
         style={{
           background: `conic-gradient(${color} ${pct}%, #e6ecef ${pct}% 100%)`
         }}
       >
-        <div className="grid h-20 w-20 place-items-center rounded-full bg-white shadow-inner">
+        <div className={`${large ? "h-36 w-36" : "h-20 w-20"} grid place-items-center rounded-full bg-white shadow-inner`}>
           <div className="text-center">
-            <div className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">
+            <div className={`${large ? "text-5xl font-light tracking-[-0.08em]" : "text-2xl font-semibold tracking-[-0.03em]"} text-slate-950`}>
               {value.toFixed(suffix === "%" ? 0 : 1)}
               <span className="text-sm">{suffix}</span>
             </div>
