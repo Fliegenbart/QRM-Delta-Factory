@@ -1,0 +1,365 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "sqlite"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String
+  createdAt    DateTime @default(now())
+
+  projectsAuthored Project[] @relation("ProjectAuthor")
+  approvals        Approval[]
+  auditLogs        AuditLog[]
+}
+
+model Project {
+  id                   String   @id @default(cuid())
+  name                 String
+  productProcessSystem String
+  gmpArea              String
+  scopeStatement       String
+  outOfScopeStatement  String
+  triggerType          String
+  methodology          String   @default("FMEA")
+  scoringModel         String
+  requiredSmeReviewers String
+  requiredQaApprover   String
+  authorId             String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  author          User?            @relation("ProjectAuthor", fields: [authorId], references: [id])
+  sourceDocuments SourceDocument[]
+  existingFiles    ExistingRiskFile[]
+  changeRecords    ChangeRecord[]
+  deviationRecords DeviationRecord[]
+  capaRecords      CAPARecord[]
+  auditFindings    AuditFinding[]
+  riskItems        RiskItem[]
+  gaps             Gap[]
+  checks           PlausibilityCheck[]
+  redTeamFindings  RedTeamFinding[]
+  comments         ReviewComment[]
+  approvals        Approval[]
+  exports          ExportPackage[]
+  validationDocs   ValidationArtifact[]
+}
+
+model SourceDocument {
+  id           String   @id @default(cuid())
+  projectId    String
+  documentType String
+  fileName     String
+  mimeType     String
+  content      String
+  metadataJson String
+  createdAt    DateTime @default(now())
+  supersededAt DateTime?
+
+  project  Project         @relation(fields: [projectId], references: [id])
+  snippets SourceSnippet[]
+}
+
+model SourceSnippet {
+  id           String   @id @default(cuid())
+  documentId   String
+  documentType String
+  sectionTitle String
+  lineReference String
+  text         String
+  snippetHash  String
+  createdAt    DateTime @default(now())
+  supersededAt DateTime?
+
+  document      SourceDocument  @relation(fields: [documentId], references: [id])
+  riskLinks     RiskSourceLink[]
+  evidenceLinks EvidenceLink[]
+}
+
+model ExistingRiskFile {
+  id        String   @id @default(cuid())
+  projectId String
+  fileName  String
+  content   String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model RiskLibraryItem {
+  id                        String   @id @default(cuid())
+  libraryId                 String   @unique
+  gmpArea                   String
+  processStep               String
+  failureMode               String
+  typicalCauses             String
+  patientSafetyEffect       String
+  productQualityEffect      String
+  dataIntegrityEffect       String
+  gmpComplianceEffect       String
+  commonExistingControls    String
+  typicalAdditionalControls String
+  typicalEvidence           String
+  defaultScoringGuidance    String
+  requiredSmeDiscipline     String
+  approvalStatus            String
+  approvedBy                String?
+  approvedDate              DateTime?
+  version                   Int      @default(1)
+  retired                   Boolean  @default(false)
+
+  riskItems RiskItem[]
+}
+
+model ChangeRecord {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  triggerText String
+  createdAt   DateTime @default(now())
+  project     Project  @relation(fields: [projectId], references: [id])
+}
+
+model DeviationRecord {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  summary   String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id])
+}
+
+model CAPARecord {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  summary   String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id])
+}
+
+model AuditFinding {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  summary   String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id])
+}
+
+model RiskItem {
+  id                         String   @id @default(cuid())
+  projectId                  String
+  riskLibraryItemId          String?
+  riskCode                   String
+  processStep                String
+  gmpArea                    String
+  failureMode                String
+  potentialCause             String
+  potentialEffect            String
+  impactCategories           String
+  existingControls           String
+  severitySuggestion         Int
+  occurrenceSuggestion       Int
+  detectabilitySuggestion    Int
+  initialRpn                 Int
+  initialRiskClass           String
+  humanSeverity              Int?
+  humanOccurrence            Int?
+  humanDetectability         Int?
+  humanInitialRisk           String?
+  proposedAdditionalControls String
+  requiredEvidence           String
+  evidenceQualityStatus      String
+  residualSeverity           Int?
+  residualOccurrence         Int?
+  residualDetectability      Int?
+  residualRpn                Int?
+  residualRiskClass          String?
+  residualRiskRationale      String?
+  aiConfidence               String
+  deterministicGateResult    String
+  plausibilityCheckResult    String
+  redTeamResult              String
+  reviewLevel                Int
+  reviewStatus               String
+  smeReviewer                String?
+  qaApprover                 String?
+  approvalDate               DateTime?
+  status                     String
+  version                    Int      @default(1)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  project         Project           @relation(fields: [projectId], references: [id])
+  libraryItem     RiskLibraryItem?   @relation(fields: [riskLibraryItemId], references: [id])
+  versions        RiskItemVersion[]
+  sourceLinks     RiskSourceLink[]
+  controlMeasures ControlMeasure[]
+  evidenceLinks   EvidenceLink[]
+  gaps            Gap[]
+  comments        ReviewComment[]
+  approvals       Approval[]
+}
+
+model RiskItemVersion {
+  id          String   @id @default(cuid())
+  riskItemId  String
+  version     Int
+  snapshotJson String
+  createdAt   DateTime @default(now())
+
+  riskItem RiskItem @relation(fields: [riskItemId], references: [id])
+}
+
+model RiskSourceLink {
+  id              String   @id @default(cuid())
+  riskItemId      String
+  sourceSnippetId String
+  claimText       String
+  linkType        String
+  createdAt       DateTime @default(now())
+
+  riskItem RiskItem      @relation(fields: [riskItemId], references: [id])
+  snippet  SourceSnippet @relation(fields: [sourceSnippetId], references: [id])
+}
+
+model ControlMeasure {
+  id          String   @id @default(cuid())
+  riskItemId  String
+  description String
+  controlType String
+  status      String
+  createdAt   DateTime @default(now())
+
+  riskItem RiskItem @relation(fields: [riskItemId], references: [id])
+}
+
+model EvidenceLink {
+  id              String   @id @default(cuid())
+  riskItemId      String
+  sourceSnippetId String
+  evidenceType    String
+  qualityStatus   String
+  claimSupported  String
+  createdAt       DateTime @default(now())
+
+  riskItem RiskItem      @relation(fields: [riskItemId], references: [id])
+  snippet  SourceSnippet @relation(fields: [sourceSnippetId], references: [id])
+}
+
+model Gap {
+  id          String   @id @default(cuid())
+  projectId   String
+  riskItemId  String?
+  description String
+  priority    String
+  status      String   @default("OPEN")
+  question    String?
+  createdAt   DateTime @default(now())
+
+  project  Project   @relation(fields: [projectId], references: [id])
+  riskItem RiskItem? @relation(fields: [riskItemId], references: [id])
+}
+
+model PlausibilityCheck {
+  id           String   @id @default(cuid())
+  projectId    String
+  riskItemId   String?
+  result       String
+  reviewerType String
+  comments     String
+  issueList    String
+  createdAt    DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model RedTeamFinding {
+  id          String   @id @default(cuid())
+  projectId   String
+  category    String
+  description String
+  sourceBasis String
+  priority    String
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model ReviewComment {
+  id        String   @id @default(cuid())
+  projectId String
+  riskItemId String?
+  author    String
+  comment   String
+  createdAt DateTime @default(now())
+
+  project  Project   @relation(fields: [projectId], references: [id])
+  riskItem RiskItem? @relation(fields: [riskItemId], references: [id])
+}
+
+model Approval {
+  id        String   @id @default(cuid())
+  projectId String
+  riskItemId String?
+  userId    String
+  decision  String
+  comment   String
+  createdAt DateTime @default(now())
+
+  project  Project   @relation(fields: [projectId], references: [id])
+  riskItem RiskItem? @relation(fields: [riskItemId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id                String   @id @default(cuid())
+  timestamp         DateTime @default(now())
+  userId            String?
+  action            String
+  entityType        String
+  entityId          String
+  beforeValue       String?
+  afterValue        String?
+  reason            String?
+  eventPayloadHash  String
+  previousEventHash String
+
+  user User? @relation(fields: [userId], references: [id])
+}
+
+model ExportPackage {
+  id           String   @id @default(cuid())
+  projectId    String
+  format       String
+  packageName  String
+  content      String
+  generatedBy  String
+  generatedAt  DateTime @default(now())
+  packageHash  String
+
+  project Project @relation(fields: [projectId], references: [id])
+}
+
+model ValidationArtifact {
+  id          String   @id @default(cuid())
+  projectId   String
+  artifactType String
+  title       String
+  content     String
+  status      String   @default("DRAFT_TEMPLATE")
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+}
