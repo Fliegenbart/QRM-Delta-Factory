@@ -6,3 +6,4 @@ prisma/dev.db-journal
 prisma/init.sql
 .env
 .env.local
+.vercel
