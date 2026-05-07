@@ -15,7 +15,7 @@
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 72% 6%, rgba(19, 124, 120, 0.1), transparent 30rem),
+    radial-gradient(circle at 72% 6%, rgba(0, 155, 141, 0.12), transparent 30rem),
     radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.9), transparent 24rem),
     linear-gradient(rgba(17, 24, 29, 0.026) 1px, transparent 1px),
     linear-gradient(90deg, rgba(17, 24, 29, 0.026) 1px, transparent 1px),
@@ -39,13 +39,13 @@ table {
 }
 
 ::selection {
-  background: rgba(19, 124, 120, 0.18);
+  background: rgba(0, 155, 141, 0.2);
 }
 
 .premium-surface {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(250, 252, 251, 0.88)),
-    radial-gradient(circle at 80% 0%, rgba(19, 124, 120, 0.08), transparent 24rem);
+    radial-gradient(circle at 80% 0%, rgba(0, 155, 141, 0.1), transparent 24rem);
   box-shadow: 0 30px 80px rgba(17, 24, 29, 0.07);
 }
 

@@ -8,7 +8,7 @@ const config: Config = {
         ink: "#172026",
         mist: "#f5f7f8",
         line: "#d9e1e5",
-        teal: "#137c78",
+        teal: "#009b8d",
         amber: "#b7791f",
         danger: "#b42318"
       }

@@ -154,7 +154,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
     <div className="min-h-screen bg-mist text-ink">
       <aside className="fixed inset-y-0 left-0 hidden w-[340px] border-r border-black/10 bg-[#fbfcfb]/90 backdrop-blur-2xl lg:flex">
         <div className="flex w-16 flex-col items-center border-r border-black/10 py-6">
-          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal text-sm font-semibold text-white shadow-[0_16px_35px_rgba(19,124,120,0.26)]">Q</div>
+          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal text-sm font-semibold text-white shadow-[0_16px_35px_rgba(0,155,141,0.26)]">Q</div>
           <div className="mt-10 flex flex-col gap-3">
             {navItems.slice(0, 8).map(([slug, label, Icon]) => (
               <Link
@@ -431,7 +431,7 @@ function PremiumReviewHero({
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <button
               type="button"
-              className="inline-flex h-12 items-center gap-2 rounded-2xl bg-teal px-5 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(19,124,120,0.22)]"
+              className="inline-flex h-12 items-center gap-2 rounded-2xl bg-teal px-5 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(0,155,141,0.22)]"
               onClick={onGenerate}
             >
               <PackageCheck className="h-4 w-4" aria-hidden />
@@ -761,7 +761,7 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
                 key={filter}
                 type="button"
                 className={`h-10 rounded-2xl border px-4 text-sm transition ${
-                  queueFilter === filter ? "border-teal bg-teal text-white shadow-[0_14px_35px_rgba(19,124,120,0.18)]" : "border-black/10 bg-white/75 text-slate-700 hover:bg-white"
+                  queueFilter === filter ? "border-teal bg-teal text-white shadow-[0_14px_35px_rgba(0,155,141,0.18)]" : "border-black/10 bg-white/75 text-slate-700 hover:bg-white"
                 }`}
                 onClick={() => setQueueFilter(filter)}
               >
@@ -1150,7 +1150,7 @@ function formatBadge(value: string) {
 
 function GaugeMetric({ label, value, max, suffix, tone, large = false }: { label: string; value: number; max: number; suffix: string; tone: "slate" | "teal"; large?: boolean }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
-  const color = tone === "teal" ? "#137c78" : "#4b5563";
+  const color = tone === "teal" ? "#009b8d" : "#4b5563";
   return (
     <div className={large ? "" : "rounded-xl bg-slate-50 p-4"}>
       <div
