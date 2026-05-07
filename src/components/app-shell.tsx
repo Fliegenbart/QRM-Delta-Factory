@@ -19,6 +19,9 @@ import {
   PackageCheck,
   MessageSquareWarning,
   Play,
+  Bell,
+  BookOpen,
+  HelpCircle,
   ShieldCheck,
   Table2,
   Users
@@ -149,18 +152,24 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
 
   return (
     <div className="min-h-screen bg-mist text-ink">
-      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-line bg-white lg:block">
-        <div className="border-b border-line px-5 py-5">
-          <div className="text-lg font-semibold tracking-normal">Pharma QRM Delta Engine</div>
-          <div className="mt-2 text-xs leading-5 text-slate-600">AI-assisted DRAFT QRM work products for qualified human review.</div>
+      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-line bg-white/92 backdrop-blur lg:block">
+        <div className="border-b border-line px-6 py-6">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-lg bg-teal text-sm font-semibold text-white shadow-sm">Q</div>
+            <div>
+              <div className="text-[15px] font-semibold leading-5 tracking-normal">Pharma QRM</div>
+              <div className="text-[15px] font-semibold leading-5 tracking-normal text-teal">Delta Factory</div>
+            </div>
+          </div>
+          <div className="mt-4 text-xs leading-5 text-slate-600">Source-based DRAFT QRM work products for qualified human review.</div>
         </div>
         <nav className="h-[calc(100vh-104px)] overflow-y-auto px-3 py-3">
           {navItems.map(([slug, label, Icon]) => (
             <Link
               key={slug}
               href={slug === "dashboard" ? "/" : `/${slug}`}
-              className={`mb-1 flex items-center gap-3 rounded-md px-3 py-2 text-sm ${
-                active === slug ? "bg-teal text-white" : "text-slate-700 hover:bg-slate-100"
+              className={`mb-1 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                active === slug ? "bg-teal/10 text-teal ring-1 ring-teal/15" : "text-slate-700 hover:bg-slate-100"
               }`}
             >
               <Icon className="h-4 w-4" aria-hidden />
@@ -171,15 +180,25 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
       </aside>
 
       <main className="lg:pl-72">
-        <header className="sticky top-0 z-10 border-b border-line bg-white/95 px-4 py-3 backdrop-blur lg:px-8">
+        <header className="sticky top-0 z-10 border-b border-line bg-white/88 px-4 py-4 backdrop-blur-xl lg:px-8">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="text-xs uppercase tracking-[0.08em] text-slate-500">{demoProject.name}</div>
-              <h1 className="mt-1 text-2xl font-semibold tracking-normal">{pageTitles[active] ?? "Dashboard"}</h1>
+              <div className="text-xs uppercase tracking-[0.16em] text-slate-500">Workspace / {demoProject.name}</div>
+              <h1 className="mt-1 text-[28px] font-semibold leading-tight tracking-[-0.02em]">{pageTitles[active] ?? "Dashboard"}</h1>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <span className="hidden rounded-full border border-teal/20 bg-teal/5 px-3 py-1.5 text-xs font-medium text-teal md:inline-flex">Version 1.2.0</span>
+              <button type="button" className="hidden h-9 w-9 place-items-center rounded-lg border border-line bg-white text-slate-600 md:grid" aria-label="Notifications">
+                <Bell className="h-4 w-4" />
+              </button>
+              <button type="button" className="hidden h-9 w-9 place-items-center rounded-lg border border-line bg-white text-slate-600 md:grid" aria-label="Help">
+                <HelpCircle className="h-4 w-4" />
+              </button>
+              <button type="button" className="hidden h-9 w-9 place-items-center rounded-lg border border-line bg-white text-slate-600 md:grid" aria-label="Documentation">
+                <BookOpen className="h-4 w-4" />
+              </button>
               <select
-                className="h-9 rounded-md border border-line bg-white px-3 text-sm"
+                className="h-9 rounded-lg border border-line bg-white px-3 text-sm"
                 value={role}
                 onChange={(event) => setRole(event.target.value)}
                 aria-label="Current role"
@@ -192,7 +211,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
               </select>
               <button
                 type="button"
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-ink px-3 text-sm font-medium text-white"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-ink px-3 text-sm font-medium text-white shadow-sm"
                 onClick={() => setLoginMessage(`Active local demo role: ${role.replaceAll("_", " ")}`)}
               >
                 <Lock className="h-4 w-4" aria-hidden />
@@ -281,7 +300,7 @@ function renderSection(
 
 function Notice({ text }: { text: string }) {
   return (
-    <div className="border-l-4 border-amber bg-amber/10 px-4 py-3 text-sm leading-6 text-slate-800">
+    <div className="rounded-lg border border-amber/25 border-l-4 bg-[#fff9ed] px-4 py-3 text-sm leading-6 text-slate-800 shadow-sm">
       <strong className="font-semibold">DRAFT safety notice:</strong> {text}
     </div>
   );
@@ -289,12 +308,12 @@ function Notice({ text }: { text: string }) {
 
 function Panel({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-line bg-white">
-      <div className="flex items-center justify-between border-b border-line px-4 py-3">
-        <h2 className="text-base font-semibold tracking-normal">{title}</h2>
+    <section className="rounded-xl border border-line bg-white/94 shadow-[0_18px_45px_rgba(23,32,38,0.045)]">
+      <div className="flex items-center justify-between border-b border-line px-5 py-4">
+        <h2 className="text-base font-semibold tracking-[-0.01em]">{title}</h2>
         {action}
       </div>
-      <div className="p-4">{children}</div>
+      <div className="p-5">{children}</div>
     </section>
   );
 }
@@ -307,9 +326,9 @@ function Stat({ label, value, tone = "slate" }: { label: string; value: string |
     danger: "text-danger"
   }[tone];
   return (
-    <div className="rounded-lg border border-line bg-white px-4 py-3">
-      <div className={`text-2xl font-semibold ${toneClass}`}>{value}</div>
-      <div className="mt-1 text-xs uppercase tracking-[0.08em] text-slate-500">{label}</div>
+    <div className="rounded-xl border border-line bg-white px-5 py-4 shadow-[0_10px_30px_rgba(23,32,38,0.035)]">
+      <div className={`text-3xl font-semibold tracking-[-0.03em] ${toneClass}`}>{value}</div>
+      <div className="mt-2 text-[11px] uppercase tracking-[0.16em] text-slate-500">{label}</div>
     </div>
   );
 }
@@ -549,7 +568,7 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
 
       {packages.length > 0 ? (
         <Panel title="Risk Review Summary">
-          <div className="grid gap-3 md:grid-cols-6">
+          <div className="grid gap-0 overflow-hidden rounded-xl border border-line bg-white md:grid-cols-6">
             <Stat label="Total packages" value={workload.total_packages} />
             <Stat label="Ready for review" value={workload.ready_for_review} tone="teal" />
             <Stat label="Input incomplete" value={workload.input_incomplete} tone="amber" />
@@ -558,7 +577,7 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
             <Stat label="Plausibility FAIL" value={workload.plausibility_fail} tone="danger" />
           </div>
           <div className="mt-6 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-lg border border-line p-4">
+            <div className="rounded-xl border border-line bg-white p-5">
               <h3 className="font-semibold">Review workload</h3>
               <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-700">
                 <li>Level 0: {workload.level_counts.LEVEL_0_BASELINE_UNCHANGED} items - no detailed review required</li>
@@ -567,12 +586,12 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
                 <li>Level 3: {workload.level_counts.LEVEL_3_FULL_SME_QA_REVIEW} items - full SME/QA review</li>
               </ul>
             </div>
-            <div className="rounded-lg border border-line p-4">
+            <div className="rounded-xl border border-line bg-white p-5">
               <h3 className="font-semibold">Human review saved</h3>
-              <div className="mt-3 grid gap-3 sm:grid-cols-3">
-                <Metric label="Estimated manual baseline" value={`${workload.manual_baseline_hours.toFixed(1)} h`} />
-                <Metric label="Estimated assisted review" value={`${workload.assisted_review_hours.toFixed(1)} h`} />
-                <Metric label="Estimated reduction" value={`${workload.estimated_reduction_percent}%`} tone="teal" />
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                <GaugeMetric label="Manual baseline" value={workload.manual_baseline_hours} max={20} suffix="h" tone="slate" />
+                <GaugeMetric label="Assisted review" value={workload.assisted_review_hours} max={20} suffix="h" tone="teal" />
+                <GaugeMetric label="Reduction" value={workload.estimated_reduction_percent} max={100} suffix="%" tone="teal" />
               </div>
               <p className="mt-3 text-sm leading-6 text-slate-600">Indicative MVP estimate only. It shows how consultant and expert time is redirected toward exceptions instead of document hunting.</p>
             </div>
@@ -923,16 +942,17 @@ function Metric({ label, value, tone = "slate" }: { label: string; value: string
 
 function QueueItemRow({ item }: { item: ReviewQueueItem }) {
   const tone = item.review_level === "LEVEL_3_FULL_SME_QA_REVIEW" ? "danger" : item.review_level === "INPUT_INCOMPLETE" || item.review_level === "LEVEL_2_TARGETED_SME_REVIEW" ? "amber" : "slate";
+  const rail = tone === "danger" ? "border-l-danger" : tone === "amber" ? "border-l-amber" : "border-l-teal";
   return (
-    <div className="rounded-lg border border-line p-4">
+    <div className={`rounded-xl border border-l-4 border-line ${rail} bg-white p-4 shadow-[0_12px_35px_rgba(23,32,38,0.035)]`}>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold">{item.risk_id}</span>
-            <Badge tone={tone}>{item.review_level}</Badge>
+            <Badge tone={tone}>{formatBadge(item.review_level)}</Badge>
             {item.badges.map((badge) => (
               <span key={badge} className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                {badge}
+                {formatBadge(badge)}
               </span>
             ))}
           </div>
@@ -948,6 +968,50 @@ function QueueItemRow({ item }: { item: ReviewQueueItem }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function formatBadge(value: string) {
+  const labels: Record<string, string> = {
+    INPUT_INCOMPLETE: "Input incomplete",
+    READY_FOR_PLAUSIBILITY_CHECK: "Ready for check",
+    PLAUSIBILITY_PASS: "Plausibility pass",
+    PLAUSIBILITY_PARTIAL: "Plausibility partial",
+    PLAUSIBILITY_FAIL: "Plausibility fail",
+    EVIDENCE_MISSING: "Evidence missing",
+    SME_REQUIRED: "SME required",
+    QA_REQUIRED: "QA required",
+    AUTHOR_OPS_ACTION: "Author/Ops action",
+    LEVEL_0_BASELINE_UNCHANGED: "Level 0",
+    LEVEL_1_QUICK_CHECK: "Level 1 quick check",
+    LEVEL_2_TARGETED_SME_REVIEW: "Level 2 targeted SME",
+    LEVEL_3_FULL_SME_QA_REVIEW: "Level 3 full SME/QA"
+  };
+  return labels[value] ?? value.replaceAll("_", " ").toLowerCase();
+}
+
+function GaugeMetric({ label, value, max, suffix, tone }: { label: string; value: number; max: number; suffix: string; tone: "slate" | "teal" }) {
+  const pct = Math.max(0, Math.min(100, (value / max) * 100));
+  const color = tone === "teal" ? "#137c78" : "#4b5563";
+  return (
+    <div className="rounded-xl bg-slate-50 p-4">
+      <div
+        className="mx-auto grid h-28 w-28 place-items-center rounded-full"
+        style={{
+          background: `conic-gradient(${color} ${pct}%, #e6ecef ${pct}% 100%)`
+        }}
+      >
+        <div className="grid h-20 w-20 place-items-center rounded-full bg-white shadow-inner">
+          <div className="text-center">
+            <div className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">
+              {value.toFixed(suffix === "%" ? 0 : 1)}
+              <span className="text-sm">{suffix}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 text-center text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">{label}</div>
     </div>
   );
 }
