@@ -26,7 +26,7 @@ export class GeminiAdapter {
   private client: GoogleGenerativeAI;
   private model: string;
 
-  constructor(apiKey: string, model: string = "gemini-1.5-pro") {
+  constructor(apiKey: string, model: string = "gemini-2.0-flash") {
     this.client = new GoogleGenerativeAI(apiKey);
     this.model = model;
   }

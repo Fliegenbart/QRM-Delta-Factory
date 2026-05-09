@@ -138,7 +138,7 @@ export class EnsembleOrchestrator {
     if (config.geminiApiKey) {
       this.geminiAdapter = new GeminiAdapter(
         config.geminiApiKey,
-        config.geminiModel || "gemini-1.5-pro"
+        config.geminiModel || "gemini-2.0-flash"
       );
     }
 
@@ -179,7 +179,7 @@ export class EnsembleOrchestrator {
       modelPromises.push(this.runModel("anthropic", "claude-sonnet-4-20250514", context));
     }
     if (this.geminiAdapter) {
-      modelPromises.push(this.runModel("gemini", "gemini-1.5-pro", context));
+      modelPromises.push(this.runModel("gemini", "gemini-2.0-flash", context));
     }
 
     const modelResults = await Promise.all(modelPromises);
@@ -495,6 +495,6 @@ export function createEnsembleOrchestrator(): EnsembleOrchestrator {
     geminiApiKey: process.env.GEMINI_API_KEY,
     openaiModel: process.env.OPENAI_MODEL || "gpt-4o",
     anthropicModel: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514",
-    geminiModel: process.env.GEMINI_MODEL || "gemini-1.5-pro",
+    geminiModel: process.env.GEMINI_MODEL || "gemini-2.0-flash",
   });
 }
