@@ -65,6 +65,7 @@ import {
   type ReviewQueueItem
 } from "@/src/lib/risk-review-package-builder";
 import { generateValidationPack } from "@/src/lib/validation-pack";
+import { DocumentUpload, type UploadedDocument } from "@/src/components/document-upload";
 import type { LucideIcon } from "lucide-react";
 
 // Navigation item type - uses translation keys
@@ -208,6 +209,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const [multiAgentState, setMultiAgentState] = useState<"idle" | "running" | "done" | "error">("idle");
   const [multiAgentResult, setMultiAgentResult] = useState<MultiAgentResult | null>(null);
   const [multiAgentError, setMultiAgentError] = useState<string | null>(null);
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
 
   const exportDraft = useMemo(
     () => exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }),
@@ -274,12 +276,26 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
     setMultiAgentResult(null);
 
     try {
+      // Convert uploaded documents to source snippets format if provided
+      const sourceDocuments = uploadedDocuments.length > 0
+        ? uploadedDocuments.map(doc => ({
+            id: doc.id,
+            content: doc.content,
+            documentType: doc.type.includes("pdf") ? "PDF Document"
+              : doc.type.includes("word") ? "Word Document"
+              : doc.name.endsWith(".csv") ? "Data File"
+              : "Text Document",
+            fileName: doc.name,
+          }))
+        : undefined; // Will use realistic mock data on server
+
       const response = await fetch("/api/ai/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           projectId: demoProject.id,
           changeControlId: "CC-2026-014",
+          ...(sourceDocuments && { sourceDocuments }),
         }),
       });
 
@@ -499,7 +515,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
           <Notice text={t("notice.text")} />
           <div className="mt-4 text-sm text-slate-600">{loginMessage}</div>
-          <div className="mt-6">{renderSection(active, { deltaState, criticState, redTeamState, runApi, setDeltaState, setCriticState, setRedTeamState, exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis })}</div>
+          <div className="mt-6">{renderSection(active, { deltaState, criticState, redTeamState, runApi, setDeltaState, setCriticState, setRedTeamState, exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis, uploadedDocuments, setUploadedDocuments })}</div>
         </div>
       </main>
     </div>
@@ -532,6 +548,9 @@ function renderSection(
     multiAgentResult: MultiAgentResult | null;
     multiAgentError: string | null;
     runMultiAgentAnalysis: () => Promise<void>;
+    // Document Upload
+    uploadedDocuments: UploadedDocument[];
+    setUploadedDocuments: (documents: UploadedDocument[]) => void;
   }
 ) {
   switch (section) {
@@ -1025,7 +1044,7 @@ function ProjectDetail({ id }: { id: string }) {
           ))}
         </dl>
       </Panel>
-      <DashboardSection {...({ deltaState: "idle", criticState: "idle", redTeamState: "idle", runApi: async () => undefined, setDeltaState: () => undefined, setCriticState: () => undefined, setRedTeamState: () => undefined, exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null, multiAgentState: "idle", multiAgentResult: null, multiAgentError: null, runMultiAgentAnalysis: async () => undefined } as Parameters<typeof renderSection>[1])} />
+      <DashboardSection {...({ deltaState: "idle", criticState: "idle", redTeamState: "idle", runApi: async () => undefined, setDeltaState: () => undefined, setCriticState: () => undefined, setRedTeamState: () => undefined, exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null, multiAgentState: "idle", multiAgentResult: null, multiAgentError: null, runMultiAgentAnalysis: async () => undefined, uploadedDocuments: [], setUploadedDocuments: () => undefined } as Parameters<typeof renderSection>[1])} />
     </div>
   );
 }
@@ -1091,7 +1110,7 @@ function TriggerSection() {
 }
 
 function DeltaSection(context: Parameters<typeof renderSection>[1]) {
-  const { multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis } = context;
+  const { multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis, uploadedDocuments, setUploadedDocuments } = context;
   const { t } = useI18n();
 
   return (
@@ -1243,6 +1262,16 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
           </div>
         </div>
       </motion.section>
+
+      {/* Document Upload Section */}
+      <Panel title={t("upload.title")}>
+        <DocumentUpload
+          documents={uploadedDocuments}
+          onDocumentsChange={setUploadedDocuments}
+          maxFiles={10}
+          maxSizeMb={5}
+        />
+      </Panel>
 
       {/* Results Section */}
       {multiAgentResult && (

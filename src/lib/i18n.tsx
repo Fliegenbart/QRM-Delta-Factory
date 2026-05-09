@@ -109,6 +109,9 @@ export const translations = {
   "agent.legacyNote": { de: "Fallback zu Demo-Daten ohne echte KI-Analyse. Nutze den Multi-Agent-Button oben für echte GPT-4o + Claude Analyse.", en: "Fallback to demo data without real AI analysis. Use the Multi-Agent button above for real GPT-4o + Claude analysis." },
   "agent.runMockDelta": { de: "Mock Delta ausführen", en: "Run Mock Delta" },
 
+  // Document Upload
+  "upload.title": { de: "Dokumente für Analyse", en: "Documents for Analysis" },
+
   // Risk Items
   "risk.title": { de: "Risiko-Items", en: "Risk Items" },
   "risk.riskItems": { de: "Risk Items", en: "Risk Items" },
