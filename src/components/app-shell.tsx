@@ -690,14 +690,14 @@ function PremiumReviewHero({
   const { t } = useI18n();
   return (
     <section className="premium-surface relative overflow-hidden rounded-[32px] border border-black/10 dark:border-white/10">
-      <div className="absolute right-0 top-0 hidden h-full w-[46%] xl:block">
+      <div className="absolute right-0 top-0 hidden h-full w-[38%] xl:block">
         <LabInspectionVisual />
       </div>
-      <div className="relative grid min-h-[390px] gap-8 p-7 md:p-10 xl:grid-cols-[0.58fr_0.42fr]">
-        <div className="flex max-w-3xl flex-col justify-between">
+      <div className="relative grid min-h-[390px] gap-8 p-7 md:p-10 xl:grid-cols-[0.65fr_0.35fr]">
+        <div className="flex flex-col justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal">{t("premium.reviewPackages")}</div>
-            <h2 className="mt-7 max-w-xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
+            <h2 className="mt-7 pr-4 text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
               {t("premium.headline")}
             </h2>
             <p className="mt-6 max-w-xl text-base leading-8 text-slate-600 dark:text-slate-300">
