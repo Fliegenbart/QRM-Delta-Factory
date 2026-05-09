@@ -19,28 +19,22 @@ import {
   Globe,
   History,
   Library,
-  Loader2,
   Lock,
   Menu,
-  MessageCircle,
   Moon,
   PackageCheck,
-  MessageSquareWarning,
   Play,
   Bell,
   BookOpen,
   HelpCircle,
   ShieldCheck,
-  Sparkles,
   Sun,
-  Table2,
   Users,
-  X,
-  Zap
+  X
 } from "lucide-react";
 import { useI18n, type TranslationKey, translations } from "@/src/lib/i18n";
 import { useTheme } from "@/src/lib/theme";
-import { motion, AnimatePresence, AnimatedButton, AnimatedCard, FadeInUp, StaggerContainer, StaggerItem, AnimatedProgress, FlowStep, FlowConnector, Skeleton } from "@/src/components/ui/motion";
+import { motion, AnimatePresence } from "@/src/components/ui/motion";
 import {
   demoAuditLogs,
   demoDocuments,
@@ -66,7 +60,6 @@ import {
   type ReviewQueueItem
 } from "@/src/lib/risk-review-package-builder";
 import { generateValidationPack } from "@/src/lib/validation-pack";
-import { DocumentUpload, type UploadedDocument } from "@/src/components/document-upload";
 import type { LucideIcon } from "lucide-react";
 
 // Navigation item type - uses translation keys
@@ -141,49 +134,6 @@ function getPageTitle(slug: string, t: (key: TranslationKey) => string): string 
   return t("nav.dashboard");
 }
 
-// Multi-Agent Analysis Types
-interface AgentMessage {
-  role: "AUTHOR" | "CRITIC" | "RESOLVER";
-  timestamp: string;
-  content: string;
-  tokenUsage: { inputTokens: number; outputTokens: number; totalTokens: number; estimatedCostUsd: number };
-}
-
-interface MultiAgentResult {
-  riskItems: Array<{
-    riskId: string;
-    processStep: string;
-    failureMode: string;
-    potentialCause: string;
-    potentialEffect: string;
-    severity: number;
-    occurrence: number;
-    detectability: number;
-    initialRpn: number;
-    confidenceLevel: "HIGH" | "MEDIUM" | "LOW";
-    claims: Array<{ claim: string; confidence: string }>;
-  }>;
-  findings: Array<{
-    riskItemId: string;
-    severity: "BLOCKER" | "CONCERN" | "SUGGESTION";
-    category: string;
-    description: string;
-    suggestedAction: string;
-  }>;
-  gaps: Array<{
-    id: string;
-    priority: string;
-    category: string;
-    description: string;
-    identifiedBy: string;
-  }>;
-  escalatedItems: string[];
-  iterationsUsed: number;
-  conversation: AgentMessage[];
-  tokenUsage: { inputTokens: number; outputTokens: number; totalTokens: number; estimatedCostUsd: number };
-  processingTimeMs: number;
-}
-
 export function AppShell({ section, projectId }: { section: string; projectId?: string }) {
   const active = sectionSlugs.includes(section as (typeof sectionSlugs)[number]) || section === "project-detail" ? section : "dashboard";
   const [role, setRole] = useState("QRM_AUTHOR");
@@ -197,12 +147,6 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navCategories.map(cat => [cat.nameKey, true]))
   );
-
-  // Multi-Agent Analysis State
-  const [multiAgentState, setMultiAgentState] = useState<"idle" | "running" | "done" | "error">("idle");
-  const [multiAgentResult, setMultiAgentResult] = useState<MultiAgentResult | null>(null);
-  const [multiAgentError, setMultiAgentError] = useState<string | null>(null);
-  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
 
   const exportDraft = useMemo(
     () => exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }),
@@ -255,49 +199,6 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
 
   function generateDeltaExport() {
     setRiskDeltaExport(generateRiskDeltaReviewPack({ packages: reviewPackages, results: packageResults, approvedExport: false }));
-  }
-
-  async function runMultiAgentAnalysis() {
-    setMultiAgentState("running");
-    setMultiAgentError(null);
-    setMultiAgentResult(null);
-
-    try {
-      // Convert uploaded documents to source snippets format if provided
-      const sourceDocuments = uploadedDocuments.length > 0
-        ? uploadedDocuments.map(doc => ({
-            id: doc.id,
-            content: doc.content,
-            documentType: doc.type.includes("pdf") ? "PDF Document"
-              : doc.type.includes("word") ? "Word Document"
-              : doc.name.endsWith(".csv") ? "Data File"
-              : "Text Document",
-            fileName: doc.name,
-          }))
-        : undefined; // Will use realistic mock data on server
-
-      const response = await fetch("/api/ai/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId: demoProject.id,
-          changeControlId: "CC-2026-014",
-          ...(sourceDocuments && { sourceDocuments }),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Analysis failed");
-      }
-
-      setMultiAgentResult(data.result);
-      setMultiAgentState("done");
-    } catch (error) {
-      setMultiAgentError(error instanceof Error ? error.message : "Unknown error");
-      setMultiAgentState("error");
-    }
   }
 
   function toggleCategory(categoryName: string) {
@@ -502,7 +403,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
           <Notice text={t("notice.text")} />
           <div className="mt-4 text-sm text-slate-600">{loginMessage}</div>
-          <div className="mt-6">{renderSection(active, { exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis, uploadedDocuments, setUploadedDocuments })}</div>
+          <div className="mt-6">{renderSection(active, { exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport })}</div>
         </div>
       </main>
     </div>
@@ -523,14 +424,6 @@ function renderSection(
     runAllPackageReviews: () => Promise<void>;
     generateDeltaExport: () => void;
     riskDeltaExport: ReturnType<typeof generateRiskDeltaReviewPack> | null;
-    // Multi-Agent Analysis
-    multiAgentState: "idle" | "running" | "done" | "error";
-    multiAgentResult: MultiAgentResult | null;
-    multiAgentError: string | null;
-    runMultiAgentAnalysis: () => Promise<void>;
-    // Document Upload
-    uploadedDocuments: UploadedDocument[];
-    setUploadedDocuments: (documents: UploadedDocument[]) => void;
   }
 ) {
   switch (section) {
@@ -1256,7 +1149,7 @@ function ProjectDetail({ id }: { id: string }) {
           ))}
         </dl>
       </Panel>
-      <DashboardSection {...({ exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null, multiAgentState: "idle", multiAgentResult: null, multiAgentError: null, runMultiAgentAnalysis: async () => undefined, uploadedDocuments: [], setUploadedDocuments: () => undefined } as Parameters<typeof renderSection>[1])} />
+      <DashboardSection {...({ exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null } as Parameters<typeof renderSection>[1])} />
     </div>
   );
 }
@@ -1521,123 +1414,6 @@ function DeltaSection() {
         </div>
       </Panel>
     </div>
-  );
-}
-
-// Agent Card Component
-function AgentCard({
-  name,
-  model,
-  role,
-  description,
-  icon,
-  status,
-  color,
-}: {
-  name: string;
-  model: string;
-  role: string;
-  description: string;
-  icon: React.ReactNode;
-  status: "idle" | "active" | "done";
-  color: "blue" | "purple" | "teal";
-}) {
-  const colorClasses = {
-    blue: {
-      bg: "bg-blue-500/10 dark:bg-blue-500/20",
-      border: "border-blue-500/20 dark:border-blue-400/30",
-      icon: "text-blue-600 dark:text-blue-400",
-      ring: status === "active" ? "ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-slate-900" : "",
-    },
-    purple: {
-      bg: "bg-purple-500/10 dark:bg-purple-500/20",
-      border: "border-purple-500/20 dark:border-purple-400/30",
-      icon: "text-purple-600 dark:text-purple-400",
-      ring: status === "active" ? "ring-2 ring-purple-500 ring-offset-2 dark:ring-offset-slate-900" : "",
-    },
-    teal: {
-      bg: "bg-teal-500/10 dark:bg-teal-500/20",
-      border: "border-teal-500/20 dark:border-teal-400/30",
-      icon: "text-teal-600 dark:text-teal-400",
-      ring: status === "active" ? "ring-2 ring-teal-500 ring-offset-2 dark:ring-offset-slate-900" : "",
-    },
-  };
-
-  const c = colorClasses[color];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.3 }}
-      className={`relative rounded-2xl border ${c.border} ${c.bg} p-5 transition-all ${c.ring}`}
-    >
-      <AnimatePresence>
-        {status === "active" && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center"
-          >
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-teal-500" />
-          </motion.div>
-        )}
-        {status === "done" && (
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            className="absolute -right-1 -top-1"
-          >
-            <CheckCircle2 className="h-5 w-5 text-teal-500" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${c.bg} ${c.icon}`}>
-        {icon}
-      </div>
-      <div className="mt-4">
-        <div className="font-semibold text-slate-900 dark:text-white">{name}</div>
-        <div className="text-xs text-slate-600 dark:text-slate-400">{model} • {role}</div>
-      </div>
-      <p className="mt-2 text-sm leading-5 text-slate-600 dark:text-slate-300">{description}</p>
-    </motion.div>
-  );
-}
-
-// Agent Message Bubble
-function AgentMessageBubble({ message }: { message: AgentMessage }) {
-  const roleConfig = {
-    AUTHOR: { label: "Author (GPT-4o)", color: "bg-blue-500", icon: <Bot className="h-4 w-4" /> },
-    CRITIC: { label: "Critic (Claude)", color: "bg-purple-500", icon: <MessageCircle className="h-4 w-4" /> },
-    RESOLVER: { label: "Resolver (GPT-4o)", color: "bg-teal-500", icon: <Zap className="h-4 w-4" /> },
-  };
-
-  const config = roleConfig[message.role];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="flex gap-4 p-4 rounded-xl bg-white/50 dark:bg-slate-800/50 border border-black/5 dark:border-white/5"
-    >
-      <motion.div
-        whileHover={{ scale: 1.1 }}
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${config.color} text-white shadow-lg`}
-      >
-        {config.icon}
-      </motion.div>
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-slate-900 dark:text-white">{config.label}</span>
-          <span className="text-xs text-slate-500 dark:text-slate-400">{new Date(message.timestamp).toLocaleTimeString()}</span>
-          <span className="text-xs text-slate-500 dark:text-slate-400">• {message.tokenUsage.totalTokens} tokens</span>
-        </div>
-        <p className="mt-1 text-sm leading-6 text-slate-700 dark:text-slate-300">{message.content}</p>
-      </div>
-    </motion.div>
   );
 }
 

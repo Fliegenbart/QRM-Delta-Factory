@@ -110,7 +110,7 @@ when they are missing.
 
 ## Environment Variables
 
-The retired TypeScript agent code still has placeholders for old experiments, but the new backend-first flow does not require real API keys. Backend configuration uses `QRM_*` variables. See:
+The retired TypeScript frontend-agent layer has been removed. The new backend-first flow does not require real API keys for local fixtures or tests; it uses mock providers by default. Backend configuration uses `QRM_*` variables. See:
 
 ```bash
 backend/.env.example
