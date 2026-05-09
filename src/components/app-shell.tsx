@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   Archive,
   Bot,
+  Brain,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -20,6 +21,7 @@ import {
   Loader2,
   Lock,
   Menu,
+  MessageCircle,
   PackageCheck,
   MessageSquareWarning,
   Play,
@@ -27,9 +29,11 @@ import {
   BookOpen,
   HelpCircle,
   ShieldCheck,
+  Sparkles,
   Table2,
   Users,
-  X
+  X,
+  Zap
 } from "lucide-react";
 import {
   demoAuditLogs,
@@ -123,6 +127,49 @@ pageTitles["project-detail"] = "Project detail";
 
 type RunState = "idle" | "running" | "done";
 
+// Multi-Agent Analysis Types
+interface AgentMessage {
+  role: "AUTHOR" | "CRITIC" | "RESOLVER";
+  timestamp: string;
+  content: string;
+  tokenUsage: { inputTokens: number; outputTokens: number; totalTokens: number; estimatedCostUsd: number };
+}
+
+interface MultiAgentResult {
+  riskItems: Array<{
+    riskId: string;
+    processStep: string;
+    failureMode: string;
+    potentialCause: string;
+    potentialEffect: string;
+    severity: number;
+    occurrence: number;
+    detectability: number;
+    initialRpn: number;
+    confidenceLevel: "HIGH" | "MEDIUM" | "LOW";
+    claims: Array<{ claim: string; confidence: string }>;
+  }>;
+  findings: Array<{
+    riskItemId: string;
+    severity: "BLOCKER" | "CONCERN" | "SUGGESTION";
+    category: string;
+    description: string;
+    suggestedAction: string;
+  }>;
+  gaps: Array<{
+    id: string;
+    priority: string;
+    category: string;
+    description: string;
+    identifiedBy: string;
+  }>;
+  escalatedItems: string[];
+  iterationsUsed: number;
+  conversation: AgentMessage[];
+  tokenUsage: { inputTokens: number; outputTokens: number; totalTokens: number; estimatedCostUsd: number };
+  processingTimeMs: number;
+}
+
 export function AppShell({ section, projectId }: { section: string; projectId?: string }) {
   const active = sectionSlugs.includes(section as (typeof sectionSlugs)[number]) || section === "project-detail" ? section : "dashboard";
   const [role, setRole] = useState("QRM_AUTHOR");
@@ -137,6 +184,11 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navCategories.map(cat => [cat.name, true]))
   );
+
+  // Multi-Agent Analysis State
+  const [multiAgentState, setMultiAgentState] = useState<"idle" | "running" | "done" | "error">("idle");
+  const [multiAgentResult, setMultiAgentResult] = useState<MultiAgentResult | null>(null);
+  const [multiAgentError, setMultiAgentError] = useState<string | null>(null);
 
   const exportDraft = useMemo(
     () => exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }),
@@ -195,6 +247,35 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
 
   function generateDeltaExport() {
     setRiskDeltaExport(generateRiskDeltaReviewPack({ packages: reviewPackages, results: packageResults, approvedExport: false }));
+  }
+
+  async function runMultiAgentAnalysis() {
+    setMultiAgentState("running");
+    setMultiAgentError(null);
+    setMultiAgentResult(null);
+
+    try {
+      const response = await fetch("/api/ai/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: demoProject.id,
+          changeControlId: "CC-2026-014",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Analysis failed");
+      }
+
+      setMultiAgentResult(data.result);
+      setMultiAgentState("done");
+    } catch (error) {
+      setMultiAgentError(error instanceof Error ? error.message : "Unknown error");
+      setMultiAgentState("error");
+    }
   }
 
   function toggleCategory(categoryName: string) {
@@ -367,7 +448,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
           <Notice text="All AI-generated content is labeled DRAFT. The app prepares reviewable work products; it does not replace qualified human risk assessment, QA responsibility, or regulatory decisions." />
           <div className="mt-4 text-sm text-slate-600">{loginMessage}</div>
-          <div className="mt-6">{renderSection(active, { deltaState, criticState, redTeamState, runApi, setDeltaState, setCriticState, setRedTeamState, exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport })}</div>
+          <div className="mt-6">{renderSection(active, { deltaState, criticState, redTeamState, runApi, setDeltaState, setCriticState, setRedTeamState, exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis })}</div>
         </div>
       </main>
     </div>
@@ -395,6 +476,11 @@ function renderSection(
     runAllPackageReviews: () => Promise<void>;
     generateDeltaExport: () => void;
     riskDeltaExport: ReturnType<typeof generateRiskDeltaReviewPack> | null;
+    // Multi-Agent Analysis
+    multiAgentState: "idle" | "running" | "done" | "error";
+    multiAgentResult: MultiAgentResult | null;
+    multiAgentError: string | null;
+    runMultiAgentAnalysis: () => Promise<void>;
   }
 ) {
   switch (section) {
@@ -848,7 +934,7 @@ function ProjectDetail({ id }: { id: string }) {
           ))}
         </dl>
       </Panel>
-      <DashboardSection {...({ deltaState: "idle", criticState: "idle", redTeamState: "idle", runApi: async () => undefined, setDeltaState: () => undefined, setCriticState: () => undefined, setRedTeamState: () => undefined, exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null } as Parameters<typeof renderSection>[1])} />
+      <DashboardSection {...({ deltaState: "idle", criticState: "idle", redTeamState: "idle", runApi: async () => undefined, setDeltaState: () => undefined, setCriticState: () => undefined, setRedTeamState: () => undefined, exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null, multiAgentState: "idle", multiAgentResult: null, multiAgentError: null, runMultiAgentAnalysis: async () => undefined } as Parameters<typeof renderSection>[1])} />
     </div>
   );
 }
@@ -910,18 +996,330 @@ function TriggerSection() {
 }
 
 function DeltaSection(context: Parameters<typeof renderSection>[1]) {
+  const { multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis } = context;
+
   return (
     <div className="space-y-6">
-      <Panel
-        title="AI-assisted risk delta generation"
-        action={<RunButton label="Run Author AI delta" state={context.deltaState} onClick={() => context.runApi("/api/ai/delta", context.setDeltaState)} />}
-      >
-        <p className="text-sm leading-6 text-slate-600">Mock Author AI maps the trigger to existing risk items, proposes DRAFT updates, flags missing controls/evidence, and creates SME questions.</p>
-        <Link href="/review-packages" className="mt-3 inline-flex h-9 items-center rounded-md bg-teal px-3 text-sm font-medium text-white">
-          Build review packages
-        </Link>
-      </Panel>
-      <RiskRows items={demoRiskItems} />
+      {/* Multi-Agent Analysis Hero */}
+      <section className="premium-surface relative overflow-hidden rounded-[32px] border border-black/10">
+        <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-teal-500/5 to-transparent" />
+        <div className="relative p-8 md:p-10">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-lg">
+              <Brain className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal-600">Multi-Agent Analysis</div>
+              <h2 className="text-2xl font-medium tracking-tight">GPT-4o + Claude Collaboration</h2>
+            </div>
+          </div>
+
+          <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600">
+            Zwei KI-Systeme arbeiten zusammen: <strong>GPT-4o</strong> erstellt Risk-Drafts, <strong>Claude</strong> prüft kritisch auf Lücken und Fehler, dann überarbeitet <strong>GPT-4o</strong> basierend auf dem Feedback.
+          </p>
+
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <button
+              type="button"
+              onClick={runMultiAgentAnalysis}
+              disabled={multiAgentState === "running"}
+              className={`inline-flex h-12 items-center gap-3 rounded-2xl px-6 text-sm font-semibold transition-all ${
+                multiAgentState === "running"
+                  ? "bg-teal-500/20 text-teal-700 cursor-wait"
+                  : multiAgentState === "done"
+                  ? "bg-teal-500 text-white shadow-[0_20px_45px_rgba(0,155,141,0.25)]"
+                  : "bg-ink text-white shadow-[0_20px_45px_rgba(17,24,29,0.2)] hover:scale-[1.02]"
+              }`}
+            >
+              {multiAgentState === "running" ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Agents arbeiten...
+                </>
+              ) : multiAgentState === "done" ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5" />
+                  Analyse abgeschlossen
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5" />
+                  Multi-Agent Analyse starten
+                </>
+              )}
+            </button>
+
+            {multiAgentState === "done" && (
+              <Link
+                href="/review-packages"
+                className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-6 text-sm font-semibold text-ink shadow-sm hover:bg-white"
+              >
+                <PackageCheck className="h-5 w-5" />
+                Review Packages öffnen
+              </Link>
+            )}
+          </div>
+
+          {multiAgentError && (
+            <div className="mt-6 rounded-xl border border-danger/20 bg-danger/5 p-4 text-sm text-danger">
+              <strong>Fehler:</strong> {multiAgentError}
+            </div>
+          )}
+
+          {/* Agent Architecture Visualization */}
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            <AgentCard
+              name="Author Agent"
+              model="GPT-4o"
+              role="Erstellt Risk-Drafts"
+              description="Analysiert Source-Dokumente, identifiziert Risiken, verlinkt Evidence"
+              icon={<Bot className="h-5 w-5" />}
+              status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
+              color="blue"
+            />
+            <AgentCard
+              name="Critic Agent"
+              model="Claude"
+              role="Prüft kritisch"
+              description="Verifiziert Claims, findet Lücken, hinterfragt Bewertungen"
+              icon={<MessageCircle className="h-5 w-5" />}
+              status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
+              color="purple"
+            />
+            <AgentCard
+              name="Resolver Agent"
+              model="GPT-4o"
+              role="Mediiert & überarbeitet"
+              description="Bewertet Kritik, implementiert Änderungen oder eskaliert"
+              icon={<Zap className="h-5 w-5" />}
+              status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
+              color="teal"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Results Section */}
+      {multiAgentResult && (
+        <>
+          {/* Summary Stats */}
+          <div className="grid gap-4 md:grid-cols-4">
+            <Stat label="Risk Items" value={multiAgentResult.riskItems.length} tone="teal" />
+            <Stat label="Findings" value={multiAgentResult.findings.length} tone={multiAgentResult.findings.some(f => f.severity === "BLOCKER") ? "danger" : "amber"} />
+            <Stat label="Gaps identifiziert" value={multiAgentResult.gaps.length} tone="amber" />
+            <Stat label="Eskaliert" value={multiAgentResult.escalatedItems.length} tone={multiAgentResult.escalatedItems.length > 0 ? "danger" : "slate"} />
+          </div>
+
+          {/* Agent Conversation */}
+          <Panel title="Agent-Konversation" action={<span className="text-sm text-slate-600">{multiAgentResult.iterationsUsed} Iteration(en) • ${multiAgentResult.tokenUsage.estimatedCostUsd.toFixed(4)} • {(multiAgentResult.processingTimeMs / 1000).toFixed(1)}s</span>}>
+            <div className="space-y-4">
+              {multiAgentResult.conversation.map((msg, idx) => (
+                <AgentMessageBubble key={idx} message={msg} />
+              ))}
+            </div>
+          </Panel>
+
+          {/* Findings */}
+          {multiAgentResult.findings.length > 0 && (
+            <Panel title="Critic Findings">
+              <div className="space-y-3">
+                {multiAgentResult.findings.map((finding, idx) => (
+                  <div
+                    key={idx}
+                    className={`rounded-xl border p-4 ${
+                      finding.severity === "BLOCKER"
+                        ? "border-danger/20 bg-danger/5"
+                        : finding.severity === "CONCERN"
+                        ? "border-amber/20 bg-amber/5"
+                        : "border-slate-200 bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <Badge tone={finding.severity === "BLOCKER" ? "danger" : finding.severity === "CONCERN" ? "amber" : "slate"}>
+                            {finding.severity}
+                          </Badge>
+                          <span className="text-xs text-slate-600">{finding.category}</span>
+                          <span className="text-xs font-medium text-slate-800">{finding.riskItemId}</span>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-slate-700">{finding.description}</p>
+                        {finding.suggestedAction && (
+                          <p className="mt-2 text-sm text-teal-700">
+                            <strong>Empfehlung:</strong> {finding.suggestedAction}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          )}
+
+          {/* Generated Risk Items */}
+          <Panel title="Generierte Risk Items">
+            <div className="space-y-4">
+              {multiAgentResult.riskItems.map((item) => (
+                <div key={item.riskId} className="rounded-xl border border-black/10 bg-white/80 p-5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-ink">{item.riskId}</span>
+                        <Badge tone={item.confidenceLevel === "HIGH" ? "slate" : item.confidenceLevel === "MEDIUM" ? "amber" : "danger"}>
+                          {item.confidenceLevel} confidence
+                        </Badge>
+                        <span className="text-sm text-slate-600">RPN: {item.initialRpn}</span>
+                      </div>
+                      <h4 className="mt-2 font-medium text-slate-900">{item.failureMode}</h4>
+                      <p className="mt-1 text-sm text-slate-600">{item.potentialCause}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-slate-600">S×O×D</div>
+                      <div className="font-mono text-lg font-medium">{item.severity}×{item.occurrence}×{item.detectability}</div>
+                    </div>
+                  </div>
+                  {item.claims.length > 0 && (
+                    <div className="mt-4 border-t border-slate-100 pt-4">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">Verifizierte Claims</div>
+                      <ul className="mt-2 space-y-1">
+                        {item.claims.slice(0, 3).map((claim, cidx) => (
+                          <li key={cidx} className="flex items-center gap-2 text-sm">
+                            <span className={`h-2 w-2 rounded-full ${claim.confidence === "VERIFIED" ? "bg-teal-500" : claim.confidence === "INFERRED" ? "bg-amber" : "bg-slate-300"}`} />
+                            <span className="text-slate-700">{claim.claim}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          {/* Gaps */}
+          {multiAgentResult.gaps.length > 0 && (
+            <Panel title="Identifizierte Gaps">
+              <Table
+                headers={["ID", "Priorität", "Kategorie", "Beschreibung", "Identifiziert von"]}
+                rows={multiAgentResult.gaps.map(gap => [
+                  gap.id,
+                  <Badge key={gap.id} tone={gap.priority === "CRITICAL" || gap.priority === "HIGH" ? "danger" : gap.priority === "MEDIUM" ? "amber" : "slate"}>{gap.priority}</Badge>,
+                  gap.category,
+                  gap.description,
+                  gap.identifiedBy,
+                ])}
+              />
+            </Panel>
+          )}
+        </>
+      )}
+
+      {/* Fallback: Demo Risk Items */}
+      {!multiAgentResult && multiAgentState !== "running" && (
+        <>
+          <Panel
+            title="Legacy: Mock AI Delta (Demo)"
+            action={<RunButton label="Run Mock Delta" state={context.deltaState} onClick={() => context.runApi("/api/ai/delta", context.setDeltaState)} />}
+          >
+            <p className="text-sm leading-6 text-slate-600">Fallback zu Demo-Daten ohne echte KI-Analyse. Nutze den Multi-Agent-Button oben für echte GPT-4o + Claude Analyse.</p>
+          </Panel>
+          <RiskRows items={demoRiskItems} />
+        </>
+      )}
+    </div>
+  );
+}
+
+// Agent Card Component
+function AgentCard({
+  name,
+  model,
+  role,
+  description,
+  icon,
+  status,
+  color,
+}: {
+  name: string;
+  model: string;
+  role: string;
+  description: string;
+  icon: React.ReactNode;
+  status: "idle" | "active" | "done";
+  color: "blue" | "purple" | "teal";
+}) {
+  const colorClasses = {
+    blue: {
+      bg: "bg-blue-500/10",
+      border: "border-blue-500/20",
+      icon: "text-blue-600",
+      ring: status === "active" ? "ring-2 ring-blue-500 ring-offset-2" : "",
+    },
+    purple: {
+      bg: "bg-purple-500/10",
+      border: "border-purple-500/20",
+      icon: "text-purple-600",
+      ring: status === "active" ? "ring-2 ring-purple-500 ring-offset-2" : "",
+    },
+    teal: {
+      bg: "bg-teal-500/10",
+      border: "border-teal-500/20",
+      icon: "text-teal-600",
+      ring: status === "active" ? "ring-2 ring-teal-500 ring-offset-2" : "",
+    },
+  };
+
+  const c = colorClasses[color];
+
+  return (
+    <div className={`relative rounded-2xl border ${c.border} ${c.bg} p-5 transition-all ${c.ring}`}>
+      {status === "active" && (
+        <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal-400 opacity-75" />
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-teal-500" />
+        </div>
+      )}
+      {status === "done" && (
+        <div className="absolute -right-1 -top-1">
+          <CheckCircle2 className="h-5 w-5 text-teal-500" />
+        </div>
+      )}
+      <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${c.bg} ${c.icon}`}>
+        {icon}
+      </div>
+      <div className="mt-4">
+        <div className="font-semibold text-slate-900">{name}</div>
+        <div className="text-xs text-slate-600">{model} • {role}</div>
+      </div>
+      <p className="mt-2 text-sm leading-5 text-slate-600">{description}</p>
+    </div>
+  );
+}
+
+// Agent Message Bubble
+function AgentMessageBubble({ message }: { message: AgentMessage }) {
+  const roleConfig = {
+    AUTHOR: { label: "Author (GPT-4o)", color: "bg-blue-500", icon: <Bot className="h-4 w-4" /> },
+    CRITIC: { label: "Critic (Claude)", color: "bg-purple-500", icon: <MessageCircle className="h-4 w-4" /> },
+    RESOLVER: { label: "Resolver (GPT-4o)", color: "bg-teal-500", icon: <Zap className="h-4 w-4" /> },
+  };
+
+  const config = roleConfig[message.role];
+
+  return (
+    <div className="flex gap-4">
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${config.color} text-white`}>
+        {config.icon}
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-slate-900">{config.label}</span>
+          <span className="text-xs text-slate-600">{new Date(message.timestamp).toLocaleTimeString()}</span>
+          <span className="text-xs text-slate-600">• {message.tokenUsage.totalTokens} tokens</span>
+        </div>
+        <p className="mt-1 text-sm leading-6 text-slate-700">{message.content}</p>
+      </div>
     </div>
   );
 }
