@@ -38,7 +38,7 @@ import {
   X,
   Zap
 } from "lucide-react";
-import { useI18n, type TranslationKey } from "@/src/lib/i18n";
+import { useI18n, type TranslationKey, translations } from "@/src/lib/i18n";
 import { useTheme } from "@/src/lib/theme";
 import { motion, AnimatePresence, AnimatedButton, AnimatedCard, FadeInUp, StaggerContainer, StaggerItem, AnimatedProgress, FlowStep, FlowConnector, Skeleton } from "@/src/components/ui/motion";
 import {
@@ -67,58 +67,59 @@ import {
 import { generateValidationPack } from "@/src/lib/validation-pack";
 import type { LucideIcon } from "lucide-react";
 
-// Navigation item type
-type NavItem = [slug: string, label: string, icon: LucideIcon];
+// Navigation item type - uses translation keys
+type NavItem = [slug: string, labelKey: TranslationKey, icon: LucideIcon];
+type NavCategory = { nameKey: TranslationKey; items: NavItem[] };
 
 // Navigation organized by categories for better UX
-const navCategories: Array<{ name: string; items: NavItem[] }> = [
+const navCategories: NavCategory[] = [
   {
-    name: "Workspace",
+    nameKey: "nav.category.workspace",
     items: [
-      ["dashboard", "Dashboard", Gauge],
-      ["projects", "Projects", Archive],
-      ["documents", "Documents", FileText],
-      ["source-snippets", "Source Snippets", Database],
+      ["dashboard", "nav.dashboard", Gauge],
+      ["projects", "nav.projects", Archive],
+      ["documents", "nav.documents", FileText],
+      ["source-snippets", "nav.sourceSnippets", Database],
     ]
   },
   {
-    name: "Risk Analysis",
+    nameKey: "nav.category.riskAnalysis",
     items: [
-      ["risk-library", "Risk Library", Library],
-      ["trigger-input", "Change/CAPA Input", ClipboardCheck],
-      ["delta-analysis", "Delta Analysis", Bot],
-      ["qrm-matrix", "QRM Matrix", Table2],
+      ["risk-library", "nav.riskLibrary", Library],
+      ["trigger-input", "nav.triggerInput", ClipboardCheck],
+      ["delta-analysis", "nav.deltaAnalysis", Bot],
+      ["qrm-matrix", "nav.qrmMatrix", Table2],
     ]
   },
   {
-    name: "Review & QA",
+    nameKey: "nav.category.reviewQA",
     items: [
-      ["review-packages", "Review Packages", PackageCheck],
-      ["plausibility-checks", "Plausibility Checks", CheckCircle2],
-      ["red-team-findings", "Red-Team Findings", MessageSquareWarning],
-      ["review-queue", "Review Queue", Users],
-      ["approvals", "Approvals", Lock],
+      ["review-packages", "nav.reviewPackages", PackageCheck],
+      ["plausibility-checks", "nav.plausibilityChecks", CheckCircle2],
+      ["red-team-findings", "nav.redTeamFindings", MessageSquareWarning],
+      ["review-queue", "nav.reviewQueue", Users],
+      ["approvals", "nav.approvals", Lock],
     ]
   },
   {
-    name: "Evidence & Gaps",
+    nameKey: "nav.category.evidenceGaps",
     items: [
-      ["evidence-map", "Evidence Map", ShieldCheck],
-      ["gaps", "Gaps", AlertTriangle],
+      ["evidence-map", "nav.evidenceMap", ShieldCheck],
+      ["gaps", "nav.gaps", AlertTriangle],
     ]
   },
   {
-    name: "Output",
+    nameKey: "nav.category.output",
     items: [
-      ["export-package", "Export Package", FileDown],
-      ["validation-pack", "Validation Pack", FlaskConical],
-      ["audit-trail", "Audit Trail", History],
+      ["export-package", "nav.exportPackage", FileDown],
+      ["validation-pack", "nav.validationPack", FlaskConical],
+      ["audit-trail", "nav.auditTrail", History],
     ]
   },
   {
-    name: "Admin",
+    nameKey: "nav.category.admin",
     items: [
-      ["admin-users", "Admin/Users", Users],
+      ["admin-users", "nav.adminUsers", Users],
     ]
   },
 ];
@@ -128,8 +129,18 @@ const navItems: NavItem[] = navCategories.flatMap(cat => cat.items);
 
 export const sectionSlugs = navItems.map(([slug]) => slug);
 
-const pageTitles: Record<string, string> = Object.fromEntries(navItems.map(([slug, label]) => [slug, label]));
-pageTitles["project-detail"] = "Project detail";
+// Map slugs to translation keys for page titles
+const pageTitleKeys: Record<string, TranslationKey> = Object.fromEntries(
+  navItems.map(([slug, labelKey]) => [slug, labelKey])
+) as Record<string, TranslationKey>;
+
+// Helper to get translated page title
+function getPageTitle(slug: string, t: (key: TranslationKey) => string): string {
+  const key = pageTitleKeys[slug];
+  if (key) return t(key);
+  if (slug === "project-detail") return t("nav.projects");
+  return t("nav.dashboard");
+}
 
 type RunState = "idle" | "running" | "done";
 
@@ -190,7 +201,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const [loginMessage, setLoginMessage] = useState("Demo users use password demo123.");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(navCategories.map(cat => [cat.name, true]))
+    Object.fromEntries(navCategories.map(cat => [cat.nameKey, true]))
   );
 
   // Multi-Agent Analysis State
@@ -294,23 +305,23 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const navigationContent = (
     <>
       {navCategories.map((category) => (
-        <div key={category.name} className="mb-2">
+        <div key={category.nameKey} className="mb-2">
           <button
             type="button"
-            onClick={() => toggleCategory(category.name)}
-            className="flex w-full items-center justify-between px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600 hover:text-slate-700 transition-colors"
-            aria-expanded={expandedCategories[category.name]}
+            onClick={() => toggleCategory(category.nameKey)}
+            className="flex w-full items-center justify-between px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+            aria-expanded={expandedCategories[category.nameKey]}
           >
-            <span>{category.name}</span>
-            {expandedCategories[category.name] ? (
+            <span>{t(category.nameKey)}</span>
+            {expandedCategories[category.nameKey] ? (
               <ChevronDown className="h-3 w-3" aria-hidden />
             ) : (
               <ChevronRight className="h-3 w-3" aria-hidden />
             )}
           </button>
-          {expandedCategories[category.name] && (
+          {expandedCategories[category.nameKey] && (
             <div className="mt-1 space-y-0.5">
-              {category.items.map(([slug, label, Icon]) => (
+              {category.items.map(([slug, labelKey, Icon]) => (
                 <Link
                   key={slug}
                   href={slug === "dashboard" ? "/" : `/${slug}`}
@@ -324,7 +335,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
                 >
                   <span className="flex min-w-0 items-center gap-3">
                     <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                    <span className="truncate">{label}</span>
+                    <span className="truncate">{t(labelKey)}</span>
                   </span>
                   {active === slug ? <span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden /> : null}
                 </Link>
@@ -420,7 +431,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
               </button>
               <div>
                 <div className="text-[11px] uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400">Workspace / {demoProject.name}</div>
-                <h1 className="mt-1 text-[26px] font-medium leading-tight tracking-[-0.045em] md:text-[30px] text-ink dark:text-white">{pageTitles[active] ?? "Dashboard"}</h1>
+                <h1 className="mt-1 text-[26px] font-medium leading-tight tracking-[-0.045em] md:text-[30px] text-ink dark:text-white">{getPageTitle(active, t)}</h1>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
@@ -486,7 +497,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
         </header>
 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
-          <Notice text="All AI-generated content is labeled DRAFT. The app prepares reviewable work products; it does not replace qualified human risk assessment, QA responsibility, or regulatory decisions." />
+          <Notice text={t("notice.text")} />
           <div className="mt-4 text-sm text-slate-600">{loginMessage}</div>
           <div className="mt-6">{renderSection(active, { deltaState, criticState, redTeamState, runApi, setDeltaState, setCriticState, setRedTeamState, exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis })}</div>
         </div>
@@ -568,6 +579,7 @@ function renderSection(
 }
 
 function Notice({ text }: { text: string }) {
+  const { t } = useI18n();
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -575,7 +587,7 @@ function Notice({ text }: { text: string }) {
       className="rounded-[22px] border border-amber/25 dark:border-amber-500/30 bg-[#fff9ed]/82 dark:bg-amber-950/30 px-5 py-4 text-sm leading-6 text-slate-800 dark:text-amber-100 shadow-[0_18px_50px_rgba(183,121,31,0.08)]"
     >
       <span className="mr-3 inline-flex h-2 w-2 rounded-full bg-amber animate-pulse align-middle" />
-      <strong className="font-semibold">DRAFT safety notice:</strong> {text}
+      <strong className="font-semibold">{t("notice.draft")}</strong> {text}
     </motion.div>
   );
 }
@@ -1059,6 +1071,7 @@ function TriggerSection() {
 
 function DeltaSection(context: Parameters<typeof renderSection>[1]) {
   const { multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis } = context;
+  const { t } = useI18n();
 
   return (
     <div className="space-y-6">
@@ -1079,13 +1092,13 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
               <Brain className="h-6 w-6" />
             </motion.div>
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal-600 dark:text-teal-400">Multi-Agent Analysis</div>
-              <h2 className="text-2xl font-medium tracking-tight text-ink dark:text-white">GPT-4o + Claude Collaboration</h2>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal-600 dark:text-teal-400">{t("agent.title")}</div>
+              <h2 className="text-2xl font-medium tracking-tight text-ink dark:text-white">{t("agent.collaboration")}</h2>
             </div>
           </div>
 
           <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Zwei KI-Systeme arbeiten zusammen: <strong className="dark:text-white">GPT-4o</strong> erstellt Risk-Drafts, <strong className="dark:text-white">Claude</strong> prüft kritisch auf Lücken und Fehler, dann überarbeitet <strong className="dark:text-white">GPT-4o</strong> basierend auf dem Feedback.
+            {t("agent.description")}
           </p>
 
           {/* Agent Flow Visualization */}
@@ -1095,7 +1108,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
                 <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${multiAgentState === "running" || multiAgentResult ? "bg-blue-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500"}`}>
                   <Bot className="h-5 w-5" />
                 </div>
-                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">Author</span>
+                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">{t("agent.author")}</span>
               </div>
             </FlowStep>
             <FlowConnector isActive={multiAgentState === "running" || multiAgentResult !== null} />
@@ -1104,7 +1117,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
                 <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${multiAgentState === "running" || multiAgentResult ? "bg-purple-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500"}`}>
                   <MessageCircle className="h-5 w-5" />
                 </div>
-                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">Critic</span>
+                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">{t("agent.critic")}</span>
               </div>
             </FlowStep>
             <FlowConnector isActive={multiAgentState === "running" || multiAgentResult !== null} />
@@ -1113,7 +1126,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
                 <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${multiAgentState === "running" || multiAgentResult ? "bg-teal-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500"}`}>
                   <Zap className="h-5 w-5" />
                 </div>
-                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">Resolver</span>
+                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">{t("agent.resolver")}</span>
               </div>
             </FlowStep>
           </div>
@@ -1134,17 +1147,17 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
               {multiAgentState === "running" ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Agents arbeiten...
+                  {t("agent.running")}
                 </>
               ) : multiAgentState === "done" ? (
                 <>
                   <CheckCircle2 className="h-5 w-5" />
-                  Analyse abgeschlossen
+                  {t("agent.completed")}
                 </>
               ) : (
                 <>
                   <Sparkles className="h-5 w-5" />
-                  Multi-Agent Analyse starten
+                  {t("agent.start")}
                 </>
               )}
             </AnimatedButton>
@@ -1157,7 +1170,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
                     className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 px-6 text-sm font-semibold text-ink dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-700"
                   >
                     <PackageCheck className="h-5 w-5" />
-                    Review Packages öffnen
+                    {t("agent.openPackages")}
                   </Link>
                 </motion.div>
               )}
@@ -1172,7 +1185,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
                 exit={{ opacity: 0, y: -10 }}
                 className="mt-6 rounded-xl border border-danger/20 dark:border-red-500/30 bg-danger/5 dark:bg-red-950/30 p-4 text-sm text-danger dark:text-red-300"
               >
-                <strong>Fehler:</strong> {multiAgentError}
+                <strong>{t("agent.error")}:</strong> {multiAgentError}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1180,28 +1193,28 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
           {/* Agent Architecture Visualization */}
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             <AgentCard
-              name="Author Agent"
-              model="GPT-4o"
-              role="Erstellt Risk-Drafts"
-              description="Analysiert Source-Dokumente, identifiziert Risiken, verlinkt Evidence"
+              name={`${t("agent.author")} Agent`}
+              model={t("agent.authorModel")}
+              role={t("agent.authorRole")}
+              description={t("agent.authorDesc")}
               icon={<Bot className="h-5 w-5" />}
               status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
               color="blue"
             />
             <AgentCard
-              name="Critic Agent"
-              model="Claude"
-              role="Prüft kritisch"
-              description="Verifiziert Claims, findet Lücken, hinterfragt Bewertungen"
+              name={`${t("agent.critic")} Agent`}
+              model={t("agent.criticModel")}
+              role={t("agent.criticRole")}
+              description={t("agent.criticDesc")}
               icon={<MessageCircle className="h-5 w-5" />}
               status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
               color="purple"
             />
             <AgentCard
-              name="Resolver Agent"
-              model="GPT-4o"
-              role="Mediiert & überarbeitet"
-              description="Bewertet Kritik, implementiert Änderungen oder eskaliert"
+              name={`${t("agent.resolver")} Agent`}
+              model={t("agent.resolverModel")}
+              role={t("agent.resolverRole")}
+              description={t("agent.resolverDesc")}
               icon={<Zap className="h-5 w-5" />}
               status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
               color="teal"
@@ -1215,14 +1228,14 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
         <>
           {/* Summary Stats */}
           <div className="grid gap-4 md:grid-cols-4">
-            <Stat label="Risk Items" value={multiAgentResult.riskItems.length} tone="teal" />
-            <Stat label="Findings" value={multiAgentResult.findings.length} tone={multiAgentResult.findings.some(f => f.severity === "BLOCKER") ? "danger" : "amber"} />
-            <Stat label="Gaps identifiziert" value={multiAgentResult.gaps.length} tone="amber" />
-            <Stat label="Eskaliert" value={multiAgentResult.escalatedItems.length} tone={multiAgentResult.escalatedItems.length > 0 ? "danger" : "slate"} />
+            <Stat label={t("risk.riskItems")} value={multiAgentResult.riskItems.length} tone="teal" />
+            <Stat label={t("risk.findings")} value={multiAgentResult.findings.length} tone={multiAgentResult.findings.some(f => f.severity === "BLOCKER") ? "danger" : "amber"} />
+            <Stat label={t("risk.gapsIdentified")} value={multiAgentResult.gaps.length} tone="amber" />
+            <Stat label={t("risk.escalated")} value={multiAgentResult.escalatedItems.length} tone={multiAgentResult.escalatedItems.length > 0 ? "danger" : "slate"} />
           </div>
 
           {/* Agent Conversation */}
-          <Panel title="Agent-Konversation" action={<span className="text-sm text-slate-600">{multiAgentResult.iterationsUsed} Iteration(en) • ${multiAgentResult.tokenUsage.estimatedCostUsd.toFixed(4)} • {(multiAgentResult.processingTimeMs / 1000).toFixed(1)}s</span>}>
+          <Panel title={t("agent.conversation")} action={<span className="text-sm text-slate-600 dark:text-slate-400">{multiAgentResult.iterationsUsed} {t("agent.iterations")} • ${multiAgentResult.tokenUsage.estimatedCostUsd.toFixed(4)} • {(multiAgentResult.processingTimeMs / 1000).toFixed(1)}s</span>}>
             <div className="space-y-4">
               {multiAgentResult.conversation.map((msg, idx) => (
                 <AgentMessageBubble key={idx} message={msg} />
@@ -1232,7 +1245,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
 
           {/* Findings */}
           {multiAgentResult.findings.length > 0 && (
-            <Panel title="Critic Findings">
+            <Panel title={t("agent.criticFindings")}>
               <div className="space-y-3">
                 {multiAgentResult.findings.map((finding, idx) => (
                   <div
@@ -1257,7 +1270,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
                         <p className="mt-2 text-sm leading-6 text-slate-700">{finding.description}</p>
                         {finding.suggestedAction && (
                           <p className="mt-2 text-sm text-teal-700">
-                            <strong>Empfehlung:</strong> {finding.suggestedAction}
+                            <strong>{t("agent.recommendation")}:</strong> {finding.suggestedAction}
                           </p>
                         )}
                       </div>
@@ -1269,7 +1282,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
           )}
 
           {/* Generated Risk Items */}
-          <Panel title="Generierte Risk Items">
+          <Panel title={t("agent.generatedItems")}>
             <div className="space-y-4">
               {multiAgentResult.riskItems.map((item) => (
                 <div key={item.riskId} className="rounded-xl border border-black/10 bg-white/80 p-5">
@@ -1278,7 +1291,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
                       <div className="flex items-center gap-3">
                         <span className="font-semibold text-ink">{item.riskId}</span>
                         <Badge tone={item.confidenceLevel === "HIGH" ? "slate" : item.confidenceLevel === "MEDIUM" ? "amber" : "danger"}>
-                          {item.confidenceLevel} confidence
+                          {item.confidenceLevel} {t("agent.confidence")}
                         </Badge>
                         <span className="text-sm text-slate-600">RPN: {item.initialRpn}</span>
                       </div>
@@ -1292,7 +1305,7 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
                   </div>
                   {item.claims.length > 0 && (
                     <div className="mt-4 border-t border-slate-100 pt-4">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">Verifizierte Claims</div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">{t("agent.verifiedClaims")}</div>
                       <ul className="mt-2 space-y-1">
                         {item.claims.slice(0, 3).map((claim, cidx) => (
                           <li key={cidx} className="flex items-center gap-2 text-sm">
@@ -1310,9 +1323,9 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
 
           {/* Gaps */}
           {multiAgentResult.gaps.length > 0 && (
-            <Panel title="Identifizierte Gaps">
+            <Panel title={t("agent.identifiedGaps")}>
               <Table
-                headers={["ID", "Priorität", "Kategorie", "Beschreibung", "Identifiziert von"]}
+                headers={[t("gaps.id"), t("gaps.priority"), t("gaps.category"), t("gaps.description"), t("gaps.identifiedBy")]}
                 rows={multiAgentResult.gaps.map(gap => [
                   gap.id,
                   <Badge key={gap.id} tone={gap.priority === "CRITICAL" || gap.priority === "HIGH" ? "danger" : gap.priority === "MEDIUM" ? "amber" : "slate"}>{gap.priority}</Badge>,
@@ -1330,10 +1343,10 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
       {!multiAgentResult && multiAgentState !== "running" && (
         <>
           <Panel
-            title="Legacy: Mock AI Delta (Demo)"
-            action={<RunButton label="Run Mock Delta" state={context.deltaState} onClick={() => context.runApi("/api/ai/delta", context.setDeltaState)} />}
+            title={t("agent.legacyMock")}
+            action={<RunButton label={t("agent.runMockDelta")} state={context.deltaState} onClick={() => context.runApi("/api/ai/delta", context.setDeltaState)} />}
           >
-            <p className="text-sm leading-6 text-slate-600">Fallback zu Demo-Daten ohne echte KI-Analyse. Nutze den Multi-Agent-Button oben für echte GPT-4o + Claude Analyse.</p>
+            <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">{t("agent.legacyNote")}</p>
           </Panel>
           <RiskRows items={demoRiskItems} />
         </>
