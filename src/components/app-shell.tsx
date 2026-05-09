@@ -143,8 +143,6 @@ function getPageTitle(slug: string, t: (key: TranslationKey) => string): string 
   return t("nav.dashboard");
 }
 
-type RunState = "idle" | "running" | "done";
-
 // Multi-Agent Analysis Types
 interface AgentMessage {
   role: "AUTHOR" | "CRITIC" | "RESOLVER";
@@ -193,9 +191,6 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const [role, setRole] = useState("QRM_AUTHOR");
   const { locale, setLocale, t } = useI18n();
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [deltaState, setDeltaState] = useState<RunState>("idle");
-  const [criticState, setCriticState] = useState<RunState>("idle");
-  const [redTeamState, setRedTeamState] = useState<RunState>("idle");
   const [reviewPackages, setReviewPackages] = useState<ReviewPackage[]>([]);
   const [packageResults, setPackageResults] = useState<Record<string, PackageReviewResult>>({});
   const [riskDeltaExport, setRiskDeltaExport] = useState<ReturnType<typeof generateRiskDeltaReviewPack> | null>(null);
@@ -219,12 +214,6 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
     () => exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }),
     []
   );
-
-  async function runApi(path: string, setter: (state: RunState) => void) {
-    setter("running");
-    await fetch(path, { method: "POST", body: JSON.stringify({ projectId: demoProject.id }) });
-    setter("done");
-  }
 
   async function generateReviewPackages() {
     const response = await fetch("/api/review-packages", { method: "POST" });
@@ -515,7 +504,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
           <Notice text={t("notice.text")} />
           <div className="mt-4 text-sm text-slate-600">{loginMessage}</div>
-          <div className="mt-6">{renderSection(active, { deltaState, criticState, redTeamState, runApi, setDeltaState, setCriticState, setRedTeamState, exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis, uploadedDocuments, setUploadedDocuments })}</div>
+          <div className="mt-6">{renderSection(active, { exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis, uploadedDocuments, setUploadedDocuments })}</div>
         </div>
       </main>
     </div>
@@ -525,13 +514,6 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
 function renderSection(
   section: string,
   context: {
-    deltaState: RunState;
-    criticState: RunState;
-    redTeamState: RunState;
-    runApi: (path: string, setter: (state: RunState) => void) => Promise<void>;
-    setDeltaState: (state: RunState) => void;
-    setCriticState: (state: RunState) => void;
-    setRedTeamState: (state: RunState) => void;
     exportDraft: ReturnType<typeof exportPackage>;
     approvedStyleExport: ReturnType<typeof exportPackage>;
     role: string;
@@ -577,9 +559,9 @@ function renderSection(
     case "gaps":
       return <GapsSection />;
     case "plausibility-checks":
-      return <PlausibilitySection {...context} />;
+      return <PlausibilitySection />;
     case "red-team-findings":
-      return <RedTeamSection {...context} />;
+      return <RedTeamSection />;
     case "review-queue":
       return <ReviewQueueSection />;
     case "approvals":
@@ -672,14 +654,6 @@ function DashboardSection(context: Parameters<typeof renderSection>[1]) {
           action={<Link className="text-sm font-medium text-teal dark:text-teal-400" href="/review-queue">{t("dashboard.openQueue")}</Link>}
         >
           <RiskRows items={reviewQueue.slice(0, 4)} compact />
-        </Panel>
-        <Panel title={t("dashboard.runMockAI")}>
-          <div className="grid gap-3">
-            <RunButton label={t("dashboard.runAuthorDelta")} state={context.deltaState} onClick={() => context.runApi("/api/ai/delta", context.setDeltaState)} />
-            <RunButton label={t("dashboard.runPlausibility")} state={context.criticState} onClick={() => context.runApi("/api/ai/critic", context.setCriticState)} />
-            <RunButton label={t("dashboard.runRedTeam")} state={context.redTeamState} onClick={() => context.runApi("/api/ai/red-team", context.setRedTeamState)} />
-          </div>
-          <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">{t("dashboard.mockNote")}</p>
         </Panel>
       </div>
       <Panel title={t("dashboard.deltaSummary")}>
@@ -905,39 +879,6 @@ function EvidenceConfidencePanel({ packages, results }: { packages: ReviewPackag
   );
 }
 
-function RunButton({ label, state, onClick }: { label: string; state: RunState; onClick: () => void }) {
-  const { t } = useI18n();
-  const isRunning = state === "running";
-  const isDone = state === "done";
-
-  return (
-    <button
-      type="button"
-      className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition-all duration-200 ${
-        isRunning
-          ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/20 cursor-wait"
-          : isDone
-          ? "bg-teal-500 text-white shadow-[0_8px_20px_rgba(0,155,141,0.25)]"
-          : "border border-line dark:border-white/10 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300"
-      }`}
-      onClick={onClick}
-      disabled={isRunning}
-      aria-busy={isRunning}
-    >
-      {isRunning ? (
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-      ) : isDone ? (
-        <CheckCircle2 className="h-4 w-4" aria-hidden />
-      ) : (
-        <Play className="h-4 w-4" aria-hidden />
-      )}
-      <span>
-        {isRunning ? t("runButton.processing") : isDone ? `${label}: ${t("runButton.complete")}` : label}
-      </span>
-    </button>
-  );
-}
-
 // Progress Wizard for Review Flow
 function ReviewProgressWizard({ currentStep }: { currentStep: number }) {
   const { t } = useI18n();
@@ -1044,7 +985,7 @@ function ProjectDetail({ id }: { id: string }) {
           ))}
         </dl>
       </Panel>
-      <DashboardSection {...({ deltaState: "idle", criticState: "idle", redTeamState: "idle", runApi: async () => undefined, setDeltaState: () => undefined, setCriticState: () => undefined, setRedTeamState: () => undefined, exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null, multiAgentState: "idle", multiAgentResult: null, multiAgentError: null, runMultiAgentAnalysis: async () => undefined, uploadedDocuments: [], setUploadedDocuments: () => undefined } as Parameters<typeof renderSection>[1])} />
+      <DashboardSection {...({ exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null, multiAgentState: "idle", multiAgentResult: null, multiAgentError: null, runMultiAgentAnalysis: async () => undefined, uploadedDocuments: [], setUploadedDocuments: () => undefined } as Parameters<typeof renderSection>[1])} />
     </div>
   );
 }
@@ -1389,17 +1330,12 @@ function DeltaSection(context: Parameters<typeof renderSection>[1]) {
         </>
       )}
 
-      {/* Fallback: Demo Risk Items */}
+      {/* Sample Risk Items - shown before analysis runs */}
       {!multiAgentResult && multiAgentState !== "running" && (
-        <>
-          <Panel
-            title={t("agent.legacyMock")}
-            action={<RunButton label={t("agent.runMockDelta")} state={context.deltaState} onClick={() => context.runApi("/api/ai/delta", context.setDeltaState)} />}
-          >
-            <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">{t("agent.legacyNote")}</p>
-          </Panel>
+        <Panel title={t("agent.sampleData")}>
+          <p className="mb-4 text-sm leading-6 text-slate-600 dark:text-slate-400">{t("agent.sampleDataNote")}</p>
           <RiskRows items={demoRiskItems} />
-        </>
+        </Panel>
       )}
     </div>
   );
@@ -1747,27 +1683,21 @@ function GapsSection() {
   );
 }
 
-function PlausibilitySection(context: Parameters<typeof renderSection>[1]) {
+function PlausibilitySection() {
   return (
-    <Panel
-      title="Independent AI plausibility checks"
-      action={<RunButton label="Run critic" state={context.criticState} onClick={() => context.runApi("/api/ai/critic", context.setCriticState)} />}
-    >
+    <Panel title="Independent AI plausibility checks">
       <Table
         headers={["Risk", "Result", "Reviewer type", "Comments", "Issues"]}
         rows={demoPlausibilityChecks.map((check) => [check.riskItemId, check.result, check.requiredHumanReviewerType, check.comments, check.issues.join("; ")])}
       />
-      <p className="mt-4 text-sm leading-6 text-slate-600">PASS means plausibility only. It is not a QA decision.</p>
+      <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">PASS means plausibility only. It is not a QA decision.</p>
     </Panel>
   );
 }
 
-function RedTeamSection(context: Parameters<typeof renderSection>[1]) {
+function RedTeamSection() {
   return (
-    <Panel
-      title="Red-Team Missing Risk Finder"
-      action={<RunButton label="Run red team" state={context.redTeamState} onClick={() => context.runApi("/api/ai/red-team", context.setRedTeamState)} />}
-    >
+    <Panel title="Red-Team Missing Risk Finder">
       <Table
         headers={["Category", "Priority", "Finding", "Source basis", "Status"]}
         rows={demoRedTeamFindings.map((finding) => [finding.category, finding.priority, finding.description, finding.sourceBasis, finding.status])}

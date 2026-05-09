@@ -62,11 +62,6 @@ export const translations = {
   "dashboard.sourceSnippets": { de: "Quellausschnitte", en: "Source snippets" },
   "dashboard.riskBasedQueue": { de: "Risikobasierte Review-Warteschlange", en: "Risk-based human review queue" },
   "dashboard.openQueue": { de: "Warteschlange öffnen", en: "Open queue" },
-  "dashboard.runMockAI": { de: "Legacy Demo-Aktionen", en: "Legacy Demo Actions" },
-  "dashboard.runAuthorDelta": { de: "Author-KI Delta ausführen", en: "Run Author AI delta" },
-  "dashboard.runPlausibility": { de: "Unabhängige Plausibilitätsprüfung", en: "Run independent plausibility check" },
-  "dashboard.runRedTeam": { de: "Red-Team Risikofinder", en: "Run Red-Team missing-risk finder" },
-  "dashboard.mockNote": { de: "Nutze 'Delta-Analyse' für die echte Multi-Agent Analyse mit GPT-4o + Claude.", en: "Use 'Delta Analysis' for real Multi-Agent analysis with GPT-4o + Claude." },
   "dashboard.deltaSummary": { de: "Delta-Zusammenfassung", en: "Delta summary" },
   "dashboard.trigger": { de: "Auslöser", en: "Trigger" },
   "dashboard.triggerText": { de: "Change Control für geänderte automatisierte visuelle Inspektions-Ablehnungsschwelle.", en: "Change control for modified automated visual inspection rejection threshold." },
@@ -105,9 +100,8 @@ export const translations = {
   "agent.confidence": { de: "Konfidenz", en: "confidence" },
   "agent.verifiedClaims": { de: "Verifizierte Claims", en: "Verified Claims" },
   "agent.identifiedGaps": { de: "Identifizierte Gaps", en: "Identified Gaps" },
-  "agent.legacyMock": { de: "Legacy: Mock AI Delta (Demo)", en: "Legacy: Mock AI Delta (Demo)" },
-  "agent.legacyNote": { de: "Fallback zu Demo-Daten ohne echte KI-Analyse. Nutze den Multi-Agent-Button oben für echte GPT-4o + Claude Analyse.", en: "Fallback to demo data without real AI analysis. Use the Multi-Agent button above for real GPT-4o + Claude analysis." },
-  "agent.runMockDelta": { de: "Mock Delta ausführen", en: "Run Mock Delta" },
+  "agent.sampleData": { de: "Beispiel-Risikodaten", en: "Sample Risk Data" },
+  "agent.sampleDataNote": { de: "Diese Beispieldaten zeigen das Format der Risikoanalyse. Starte die Multi-Agent Analyse oben, um echte KI-generierte Ergebnisse zu erhalten.", en: "This sample data shows the risk analysis format. Start the Multi-Agent Analysis above to get real AI-generated results." },
 
   // Document Upload
   "upload.title": { de: "Dokumente für Analyse", en: "Documents for Analysis" },
