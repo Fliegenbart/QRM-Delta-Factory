@@ -7,6 +7,8 @@ import {
   Archive,
   Bot,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   ClipboardCheck,
   Database,
   FileDown,
@@ -15,7 +17,9 @@ import {
   Gauge,
   History,
   Library,
+  Loader2,
   Lock,
+  Menu,
   PackageCheck,
   MessageSquareWarning,
   Play,
@@ -24,7 +28,8 @@ import {
   HelpCircle,
   ShieldCheck,
   Table2,
-  Users
+  Users,
+  X
 } from "lucide-react";
 import {
   demoAuditLogs,
@@ -50,28 +55,66 @@ import {
   type ReviewQueueItem
 } from "@/src/lib/risk-review-package-builder";
 import { generateValidationPack } from "@/src/lib/validation-pack";
+import type { LucideIcon } from "lucide-react";
 
-const navItems = [
-  ["dashboard", "Dashboard", Gauge],
-  ["projects", "Projects", Archive],
-  ["documents", "Documents", FileText],
-  ["source-snippets", "Source snippets", Database],
-  ["risk-library", "Risk library", Library],
-  ["trigger-input", "Change/deviation/CAPA/finding input", ClipboardCheck],
-  ["delta-analysis", "Delta analysis", Bot],
-  ["review-packages", "Review Packages", PackageCheck],
-  ["qrm-matrix", "QRM matrix", Table2],
-  ["evidence-map", "Evidence map", ShieldCheck],
-  ["gaps", "Gaps", AlertTriangle],
-  ["plausibility-checks", "Plausibility checks", CheckCircle2],
-  ["red-team-findings", "Red-team findings", MessageSquareWarning],
-  ["review-queue", "Review queue", Users],
-  ["approvals", "Approvals", Lock],
-  ["audit-trail", "Audit trail", History],
-  ["export-package", "Export package", FileDown],
-  ["validation-pack", "Validation pack", FlaskConical],
-  ["admin-users", "Admin/users", Users]
-] as const;
+// Navigation item type
+type NavItem = [slug: string, label: string, icon: LucideIcon];
+
+// Navigation organized by categories for better UX
+const navCategories: Array<{ name: string; items: NavItem[] }> = [
+  {
+    name: "Workspace",
+    items: [
+      ["dashboard", "Dashboard", Gauge],
+      ["projects", "Projects", Archive],
+      ["documents", "Documents", FileText],
+      ["source-snippets", "Source Snippets", Database],
+    ]
+  },
+  {
+    name: "Risk Analysis",
+    items: [
+      ["risk-library", "Risk Library", Library],
+      ["trigger-input", "Change/CAPA Input", ClipboardCheck],
+      ["delta-analysis", "Delta Analysis", Bot],
+      ["qrm-matrix", "QRM Matrix", Table2],
+    ]
+  },
+  {
+    name: "Review & QA",
+    items: [
+      ["review-packages", "Review Packages", PackageCheck],
+      ["plausibility-checks", "Plausibility Checks", CheckCircle2],
+      ["red-team-findings", "Red-Team Findings", MessageSquareWarning],
+      ["review-queue", "Review Queue", Users],
+      ["approvals", "Approvals", Lock],
+    ]
+  },
+  {
+    name: "Evidence & Gaps",
+    items: [
+      ["evidence-map", "Evidence Map", ShieldCheck],
+      ["gaps", "Gaps", AlertTriangle],
+    ]
+  },
+  {
+    name: "Output",
+    items: [
+      ["export-package", "Export Package", FileDown],
+      ["validation-pack", "Validation Pack", FlaskConical],
+      ["audit-trail", "Audit Trail", History],
+    ]
+  },
+  {
+    name: "Admin",
+    items: [
+      ["admin-users", "Admin/Users", Users],
+    ]
+  },
+];
+
+// Flatten for compatibility
+const navItems: NavItem[] = navCategories.flatMap(cat => cat.items);
 
 export const sectionSlugs = navItems.map(([slug]) => slug);
 
@@ -90,6 +133,10 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const [packageResults, setPackageResults] = useState<Record<string, PackageReviewResult>>({});
   const [riskDeltaExport, setRiskDeltaExport] = useState<ReturnType<typeof generateRiskDeltaReviewPack> | null>(null);
   const [loginMessage, setLoginMessage] = useState("Demo users use password demo123.");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(navCategories.map(cat => [cat.name, true]))
+  );
 
   const exportDraft = useMemo(
     () => exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }),
@@ -150,75 +197,149 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
     setRiskDeltaExport(generateRiskDeltaReviewPack({ packages: reviewPackages, results: packageResults, approvedExport: false }));
   }
 
+  function toggleCategory(categoryName: string) {
+    setExpandedCategories(prev => ({ ...prev, [categoryName]: !prev[categoryName] }));
+  }
+
+  // Shared navigation content for desktop and mobile
+  const navigationContent = (
+    <>
+      {navCategories.map((category) => (
+        <div key={category.name} className="mb-2">
+          <button
+            type="button"
+            onClick={() => toggleCategory(category.name)}
+            className="flex w-full items-center justify-between px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600 hover:text-slate-700 transition-colors"
+            aria-expanded={expandedCategories[category.name]}
+          >
+            <span>{category.name}</span>
+            {expandedCategories[category.name] ? (
+              <ChevronDown className="h-3 w-3" aria-hidden />
+            ) : (
+              <ChevronRight className="h-3 w-3" aria-hidden />
+            )}
+          </button>
+          {expandedCategories[category.name] && (
+            <div className="mt-1 space-y-0.5">
+              {category.items.map(([slug, label, Icon]) => (
+                <Link
+                  key={slug}
+                  href={slug === "dashboard" ? "/" : `/${slug}`}
+                  onClick={() => setMobileNavOpen(false)}
+                  className={`flex items-center justify-between rounded-2xl px-3 py-2.5 text-sm transition ${
+                    active === slug
+                      ? "bg-white text-teal-600 shadow-[0_12px_35px_rgba(17,24,29,0.07)] ring-1 ring-black/5"
+                      : "text-slate-600 hover:bg-white/70 hover:text-ink"
+                  }`}
+                  aria-current={active === slug ? "page" : undefined}
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="truncate">{label}</span>
+                  </span>
+                  {active === slug ? <span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden /> : null}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-mist text-ink">
-      <aside className="fixed inset-y-0 left-0 hidden w-[340px] border-r border-black/10 bg-[#fbfcfb]/90 backdrop-blur-2xl lg:flex">
-        <div className="flex w-16 flex-col items-center border-r border-black/10 py-6">
-          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal text-sm font-semibold text-white shadow-[0_16px_35px_rgba(0,155,141,0.26)]">Q</div>
-          <div className="mt-10 flex flex-col gap-3">
-            {navItems.slice(0, 8).map(([slug, label, Icon]) => (
-              <Link
-                key={slug}
-                href={slug === "dashboard" ? "/" : `/${slug}`}
-                className={`grid h-10 w-10 place-items-center rounded-2xl transition ${
-                  active === slug ? "bg-ink text-white shadow-[0_14px_35px_rgba(17,24,29,0.16)]" : "text-slate-500 hover:bg-white hover:text-ink"
-                }`}
-                aria-label={label}
-              >
-                <Icon className="h-4 w-4" aria-hidden />
-              </Link>
-            ))}
+      {/* Mobile Navigation Overlay */}
+      {mobileNavOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden
+        />
+      )}
+
+      {/* Mobile Navigation Drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-[300px] transform border-r border-black/10 bg-[#fbfcfb] transition-transform duration-300 ease-in-out lg:hidden ${
+          mobileNavOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        aria-label="Mobile navigation"
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
+            <div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-ink">Pharma QRM</div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-teal-600">Delta Factory</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(false)}
+              className="grid h-10 w-10 place-items-center rounded-xl text-slate-600 hover:bg-slate-100"
+              aria-label="Close navigation"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          <div className="mt-auto grid gap-3 text-slate-500">
-            <Bell className="h-4 w-4" />
-            <HelpCircle className="h-4 w-4" />
-          </div>
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="border-b border-black/10 px-6 py-7">
-            <div className="text-[13px] font-semibold uppercase leading-5 tracking-[0.18em] text-ink">Pharma QRM</div>
-            <div className="text-[13px] font-semibold uppercase leading-5 tracking-[0.18em] text-teal">Delta Factory</div>
-            <div className="mt-5 max-w-48 text-xs leading-5 text-slate-600">Source-linked draft risk packages for qualified human review.</div>
-          </div>
-          <nav className="h-[calc(100vh-168px)] overflow-y-auto px-4 py-5">
-            <div className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Workspace</div>
-            {navItems.map(([slug, label, Icon]) => (
-              <Link
-                key={slug}
-                href={slug === "dashboard" ? "/" : `/${slug}`}
-                className={`mb-1 flex items-center justify-between rounded-2xl px-3 py-2.5 text-sm transition ${
-                  active === slug ? "bg-white text-teal shadow-[0_12px_35px_rgba(17,24,29,0.07)] ring-1 ring-black/5" : "text-slate-600 hover:bg-white/70 hover:text-ink"
-                }`}
-              >
-                <span className="flex min-w-0 items-center gap-3">
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                  <span className="truncate">{label}</span>
-                </span>
-                {active === slug ? <span className="h-1.5 w-1.5 rounded-full bg-teal" /> : null}
-              </Link>
-            ))}
+          <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
+            {navigationContent}
           </nav>
         </div>
       </aside>
 
-      <main className="lg:pl-[340px]">
+      {/* Desktop Sidebar */}
+      <aside className="fixed inset-y-0 left-0 hidden w-[300px] border-r border-black/10 bg-[#fbfcfb]/90 backdrop-blur-2xl lg:flex lg:flex-col" aria-label="Desktop navigation">
+        <div className="border-b border-black/10 px-5 py-6">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal-500 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(0,155,141,0.26)]">Q</div>
+            <div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-ink">Pharma QRM</div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-teal-600">Delta Factory</div>
+            </div>
+          </div>
+          <div className="mt-4 text-xs leading-5 text-slate-600">Source-linked draft risk packages for qualified human review.</div>
+        </div>
+        <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
+          {navigationContent}
+        </nav>
+        <div className="border-t border-black/10 px-5 py-4">
+          <div className="flex items-center justify-center gap-4 text-slate-600">
+            <button type="button" className="grid h-9 w-9 place-items-center rounded-xl hover:bg-slate-100 hover:text-ink transition-colors" aria-label="Notifications">
+              <Bell className="h-4 w-4" />
+            </button>
+            <button type="button" className="grid h-9 w-9 place-items-center rounded-xl hover:bg-slate-100 hover:text-ink transition-colors" aria-label="Help">
+              <HelpCircle className="h-4 w-4" />
+            </button>
+            <button type="button" className="grid h-9 w-9 place-items-center rounded-xl hover:bg-slate-100 hover:text-ink transition-colors" aria-label="Documentation">
+              <BookOpen className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <main id="main-content" className="lg:pl-[300px]">
         <header className="sticky top-0 z-10 border-b border-black/10 bg-[#fbfcfb]/78 px-4 py-4 backdrop-blur-2xl lg:px-8">
           <div className="mx-auto flex max-w-[1500px] flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">Workspace / {demoProject.name}</div>
-              <h1 className="mt-1 text-[30px] font-medium leading-tight tracking-[-0.045em]">{pageTitles[active] ?? "Dashboard"}</h1>
+            <div className="flex items-center gap-4">
+              {/* Mobile menu button */}
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white/80 text-slate-600 lg:hidden"
+                aria-label="Open navigation menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-600">Workspace / {demoProject.name}</div>
+                <h1 className="mt-1 text-[26px] font-medium leading-tight tracking-[-0.045em] md:text-[30px]">{pageTitles[active] ?? "Dashboard"}</h1>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
-              <span className="hidden rounded-full border border-teal/20 bg-white/70 px-3 py-1.5 text-xs font-medium text-teal shadow-sm md:inline-flex">Version 1.2.0</span>
-              <button type="button" className="hidden h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white/80 text-slate-600 shadow-sm md:grid" aria-label="Notifications">
-                <Bell className="h-4 w-4" />
-              </button>
-              <button type="button" className="hidden h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white/80 text-slate-600 shadow-sm md:grid" aria-label="Help">
-                <HelpCircle className="h-4 w-4" />
-              </button>
-              <button type="button" className="hidden h-10 w-10 place-items-center rounded-2xl border border-black/10 bg-white/80 text-slate-600 shadow-sm md:grid" aria-label="Documentation">
-                <BookOpen className="h-4 w-4" />
-              </button>
+              <span className="hidden rounded-full border border-teal-500/20 bg-white/70 px-3 py-1.5 text-xs font-medium text-teal-600 shadow-sm md:inline-flex">
+                <ShieldCheck className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                Audit Trail Active
+              </span>
+              <span className="hidden rounded-full border border-teal-500/20 bg-white/70 px-3 py-1.5 text-xs font-medium text-teal-600 shadow-sm lg:inline-flex">v1.2.0</span>
               <select
                 className="h-10 rounded-2xl border border-black/10 bg-white/80 px-3 text-sm shadow-sm"
                 value={role}
@@ -233,11 +354,11 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
               </select>
               <button
                 type="button"
-                className="inline-flex h-10 items-center gap-2 rounded-2xl bg-ink px-4 text-sm font-medium text-white shadow-[0_16px_40px_rgba(17,24,29,0.18)]"
+                className="inline-flex h-10 items-center gap-2 rounded-2xl bg-ink px-4 text-sm font-medium text-white shadow-[0_16px_40px_rgba(17,24,29,0.18)] transition-transform hover:scale-[1.02] active:scale-[0.98]"
                 onClick={() => setLoginMessage(`Active local demo role: ${role.replaceAll("_", " ")}`)}
               >
                 <Lock className="h-4 w-4" aria-hidden />
-                Local auth
+                <span className="hidden sm:inline">Local auth</span>
               </button>
             </div>
           </div>
@@ -351,7 +472,7 @@ function Stat({ label, value, tone = "slate" }: { label: string; value: string |
   return (
     <div className="rounded-[22px] border border-black/10 bg-white/88 px-6 py-5 shadow-[0_16px_45px_rgba(17,24,29,0.045)]">
       <div className={`text-4xl font-light tracking-[-0.07em] ${toneClass}`}>{value}</div>
-      <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500">{label}</div>
+      <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600">{label}</div>
     </div>
   );
 }
@@ -395,7 +516,7 @@ function DashboardSection(context: Parameters<typeof renderSection>[1]) {
 function SummaryBlock({ title, text }: { title: string; text: string }) {
   return (
     <div>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">{title}</div>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">{title}</div>
       <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
     </div>
   );
@@ -446,7 +567,7 @@ function PremiumReviewHero({
               <Play className="h-4 w-4" aria-hidden />
               Run all ready checks
             </button>
-            <span className="text-xs leading-5 text-slate-500">DRAFT • source-linked • human controlled</span>
+            <span className="text-xs leading-5 text-slate-600">DRAFT • source-linked • human controlled</span>
           </div>
         </div>
         <div className="hidden xl:block" />
@@ -487,7 +608,7 @@ function LabInspectionVisual() {
           </div>
         ))}
       </div>
-      <div className="absolute bottom-8 left-10 max-w-52 text-[10px] font-semibold uppercase leading-5 tracking-[0.22em] text-slate-500">
+      <div className="absolute bottom-8 left-10 max-w-52 text-[10px] font-semibold uppercase leading-5 tracking-[0.22em] text-slate-600">
         Sterile injectable • AVI threshold review
       </div>
     </div>
@@ -500,7 +621,7 @@ function ExecutiveRiskSummary({ packages, results }: { packages: ReviewPackage[]
     <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
       <div className="premium-surface overflow-hidden rounded-[30px] border border-black/10">
         <div className="border-b border-black/10 px-7 py-5">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Review summary</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Review summary</div>
         </div>
         <div className="grid grid-cols-2 gap-0 border-b border-black/10 md:grid-cols-6">
           <MetricStripItem label="Total" value={workload.total_packages} />
@@ -516,12 +637,12 @@ function ExecutiveRiskSummary({ packages, results }: { packages: ReviewPackage[]
           </div>
           <div className="grid gap-5 p-7 md:grid-cols-2">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Estimated manual baseline</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">Estimated manual baseline</div>
               <div className="mt-5 text-5xl font-light tracking-[-0.07em]">{workload.manual_baseline_hours.toFixed(1)}h</div>
               <p className="mt-4 text-sm leading-6 text-slate-600">Classic document search and broad manual risk review estimate.</p>
             </div>
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">Estimated assisted review</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">Estimated assisted review</div>
               <div className="mt-5 text-5xl font-light tracking-[-0.07em] text-teal">{workload.assisted_review_hours.toFixed(1)}h</div>
               <p className="mt-4 text-sm leading-6 text-slate-600">Indicative MVP estimate only. It is not a regulatory or submission claim.</p>
             </div>
@@ -542,7 +663,7 @@ function MetricStripItem({ label, value, tone = "slate" }: { label: string; valu
   }[tone];
   return (
     <div className="border-r border-black/10 px-6 py-6 last:border-r-0">
-      <div className="text-sm text-slate-500">{label}</div>
+      <div className="text-sm text-slate-600">{label}</div>
       <div className={`mt-3 text-5xl font-light tracking-[-0.08em] ${color}`}>{value}</div>
     </div>
   );
@@ -562,7 +683,7 @@ function EvidenceConfidencePanel({ packages, results }: { packages: ReviewPackag
     <aside className="premium-surface rounded-[30px] border border-black/10 p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Evidence confidence</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Evidence confidence</div>
           <p className="mt-3 text-sm leading-6 text-slate-600">Signals for review planning, not approval.</p>
         </div>
         <ShieldCheck className="h-5 w-5 text-teal" />
@@ -583,11 +704,11 @@ function EvidenceConfidencePanel({ packages, results }: { packages: ReviewPackag
       <div className="mt-8 grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-black/10 bg-white/70 p-4">
           <div className="text-3xl font-light tracking-[-0.06em]">{totalEvidence}</div>
-          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Evidence links</div>
+          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">Evidence links</div>
         </div>
         <div className="rounded-2xl border border-black/10 bg-white/70 p-4">
           <div className="text-3xl font-light tracking-[-0.06em] text-amber">{totalGaps}</div>
-          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Gaps / inputs</div>
+          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">Gaps / inputs</div>
         </div>
       </div>
     </aside>
@@ -595,15 +716,88 @@ function EvidenceConfidencePanel({ packages, results }: { packages: ReviewPackag
 }
 
 function RunButton({ label, state, onClick }: { label: string; state: RunState; onClick: () => void }) {
+  const isRunning = state === "running";
+  const isDone = state === "done";
+
   return (
     <button
       type="button"
-      className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-line bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+      className={`inline-flex h-10 items-center justify-center gap-2 rounded-xl px-4 text-sm font-medium transition-all duration-200 ${
+        isRunning
+          ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/20 cursor-wait"
+          : isDone
+          ? "bg-teal-500 text-white shadow-[0_8px_20px_rgba(0,155,141,0.25)]"
+          : "border border-line bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+      }`}
       onClick={onClick}
+      disabled={isRunning}
+      aria-busy={isRunning}
     >
-      <Play className="h-4 w-4" aria-hidden />
-      {state === "running" ? "Running..." : state === "done" ? `${label}: DRAFT ready` : label}
+      {isRunning ? (
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+      ) : isDone ? (
+        <CheckCircle2 className="h-4 w-4" aria-hidden />
+      ) : (
+        <Play className="h-4 w-4" aria-hidden />
+      )}
+      <span>
+        {isRunning ? "Processing..." : isDone ? `${label}: Complete` : label}
+      </span>
     </button>
+  );
+}
+
+// Progress Wizard for Review Flow
+function ReviewProgressWizard({ currentStep }: { currentStep: number }) {
+  const steps = [
+    { label: "Generate", description: "Build review packages", icon: PackageCheck },
+    { label: "Plausibility", description: "Run AI checks", icon: CheckCircle2 },
+    { label: "SME Review", description: "Technical review", icon: Users },
+    { label: "QA Approval", description: "Quality sign-off", icon: ShieldCheck },
+    { label: "Export", description: "Deliver package", icon: FileDown },
+  ];
+
+  return (
+    <div className="mb-8 overflow-hidden rounded-2xl border border-black/10 bg-white/80 p-6 shadow-sm" role="navigation" aria-label="Review progress">
+      <div className="flex items-center justify-between">
+        {steps.map((step, index) => (
+          <div key={step.label} className="flex items-center">
+            <div className="flex flex-col items-center">
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 ${
+                  index < currentStep
+                    ? "bg-teal-500 text-white shadow-[0_8px_20px_rgba(0,155,141,0.3)]"
+                    : index === currentStep
+                    ? "bg-teal-500/15 text-teal-600 ring-2 ring-teal-500"
+                    : "bg-slate-100 text-slate-400"
+                }`}
+                aria-current={index === currentStep ? "step" : undefined}
+              >
+                {index < currentStep ? (
+                  <CheckCircle2 className="h-5 w-5" aria-hidden />
+                ) : (
+                  <step.icon className="h-5 w-5" aria-hidden />
+                )}
+              </div>
+              <div className="mt-2 text-center">
+                <div className={`text-xs font-semibold ${index <= currentStep ? "text-slate-800" : "text-slate-400"}`}>
+                  {step.label}
+                </div>
+                <div className="hidden text-[10px] text-slate-600 sm:block">{step.description}</div>
+              </div>
+            </div>
+            {index < steps.length - 1 && (
+              <div
+                className={`mx-2 h-0.5 w-8 sm:w-12 md:w-16 lg:w-20 transition-colors duration-300 ${
+                  index < currentStep ? "bg-teal-500" : "bg-slate-200"
+                }`}
+                aria-hidden
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -648,7 +842,7 @@ function ProjectDetail({ id }: { id: string }) {
             "Required QA approver": demoProject.requiredQaApprover
           }).map(([key, value]) => (
             <div key={key}>
-              <dt className="text-xs uppercase tracking-[0.08em] text-slate-500">{key}</dt>
+              <dt className="text-xs uppercase tracking-[0.08em] text-slate-600">{key}</dt>
               <dd className="mt-1 text-sm leading-6 text-slate-800">{value}</dd>
             </div>
           ))}
@@ -740,8 +934,25 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
   const workload = summarizeWorkload(packages, context.packageResults);
   const exportPack = context.riskDeltaExport;
 
+  // Calculate current step for progress wizard
+  const currentStep = useMemo(() => {
+    if (packages.length === 0) return 0;
+    const hasPlausibilityResults = Object.keys(context.packageResults).length > 0;
+    const allChecked = packages.every(pkg => context.packageResults[pkg.id]);
+    const hasExport = exportPack !== null;
+
+    if (hasExport) return 4;
+    if (allChecked) return 3;
+    if (hasPlausibilityResults) return 2;
+    if (packages.length > 0) return 1;
+    return 0;
+  }, [packages, context.packageResults, exportPack]);
+
   return (
     <div className="space-y-7">
+      {/* Progress Wizard */}
+      <ReviewProgressWizard currentStep={currentStep} />
+
       <PremiumReviewHero
         packages={packages}
         workload={workload}
@@ -1050,7 +1261,7 @@ function RiskRows({ items, title, compact = false }: { items: typeof demoRiskIte
   const table = (
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-line text-xs uppercase tracking-[0.08em] text-slate-500">
+          <thead className="border-b border-line text-xs uppercase tracking-[0.08em] text-slate-600">
             <tr>
               {["Risk", "Priority", "Level", "Failure mode / hazard", "Evidence", "Plausibility", "Review"].map((header) => (
                 <th key={header} className="px-3 py-2 font-semibold">{header}</th>
@@ -1063,7 +1274,7 @@ function RiskRows({ items, title, compact = false }: { items: typeof demoRiskIte
                 <td className="px-3 py-3 font-medium">{item.id}</td>
                 <td className="px-3 py-3"><Badge tone={item.priority === "CRITICAL" ? "danger" : item.priority === "HIGH" ? "amber" : "slate"}>{item.priority}</Badge></td>
                 <td className="px-3 py-3">Level {item.reviewLevel}</td>
-                <td className="max-w-xl px-3 py-3">{item.failureMode}{compact ? null : <div className="mt-1 text-xs leading-5 text-slate-500">{item.potentialCause}</div>}</td>
+                <td className="max-w-xl px-3 py-3">{item.failureMode}{compact ? null : <div className="mt-1 text-xs leading-5 text-slate-600">{item.potentialCause}</div>}</td>
                 <td className="px-3 py-3">{item.evidenceStatus}</td>
                 <td className="px-3 py-3">{item.plausibilityResult}</td>
                 <td className="px-3 py-3">{item.reviewStatus}</td>
@@ -1091,7 +1302,7 @@ function Metric({ label, value, tone = "slate" }: { label: string; value: string
   return (
     <div className="rounded-md bg-slate-50 p-3">
       <div className={`text-xl font-semibold ${tone === "teal" ? "text-teal" : "text-slate-900"}`}>{value}</div>
-      <div className="mt-1 text-xs uppercase tracking-[0.08em] text-slate-500">{label}</div>
+      <div className="mt-1 text-xs uppercase tracking-[0.08em] text-slate-600">{label}</div>
     </div>
   );
 }
@@ -1168,7 +1379,7 @@ function GaugeMetric({ label, value, max, suffix, tone, large = false }: { label
           </div>
         </div>
       </div>
-      <div className="mt-3 text-center text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">{label}</div>
+      <div className="mt-3 text-center text-[11px] font-medium uppercase tracking-[0.16em] text-slate-600">{label}</div>
     </div>
   );
 }
@@ -1196,7 +1407,7 @@ function DownloadButton({ fileName, mime, content, label }: { fileName: string; 
 function MiniList({ title, items, empty = "None" }: { title: string; items: string[]; empty?: string }) {
   return (
     <div>
-      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">{title}</div>
+      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">{title}</div>
       {items.length > 0 ? (
         <ul className="mt-2 space-y-2 text-sm leading-5 text-slate-700">
           {items.map((item) => (
@@ -1206,7 +1417,7 @@ function MiniList({ title, items, empty = "None" }: { title: string; items: stri
           ))}
         </ul>
       ) : (
-        <div className="mt-2 rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">{empty}</div>
+        <div className="mt-2 rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-600">{empty}</div>
       )}
     </div>
   );
@@ -1216,7 +1427,7 @@ function Table({ headers, rows }: { headers: string[]; rows: Array<Array<React.R
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-left text-sm">
-        <thead className="border-b border-line text-xs uppercase tracking-[0.08em] text-slate-500">
+        <thead className="border-b border-line text-xs uppercase tracking-[0.08em] text-slate-600">
           <tr>
             {headers.map((header) => (
               <th key={header} className="px-3 py-2 font-semibold">{header}</th>

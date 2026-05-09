@@ -6,10 +6,34 @@
   color-scheme: light;
   --background: #f7f8f6;
   --foreground: #11181d;
+  --teal: #009b8d;
+  --teal-dark: #007a6f;
+  --ink: #172026;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Skip Link for Keyboard Navigation (WCAG 2.4.1) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--ink);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 12px 12px;
+  transition: top 0.2s ease-in-out;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: none;
 }
 
 body {
@@ -27,6 +51,29 @@ body {
   text-rendering: geometricPrecision;
 }
 
+/* Focus Styles for Accessibility (WCAG 2.4.7 + 2.4.11) */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default focus for mouse users, keep for keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Enhanced focus for interactive elements */
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 155, 141, 0.15);
+}
+
 button,
 input,
 select,
@@ -40,6 +87,17 @@ table {
 
 ::selection {
   background: rgba(0, 155, 141, 0.2);
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .premium-surface {
