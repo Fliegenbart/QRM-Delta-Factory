@@ -1,0 +1,27 @@
+{
+  "dataset": {
+    "dataset_id": "evalds_clean_low_risk",
+    "name": "Clean low-risk change control",
+    "version": "2026.1",
+    "document_type": "change_control",
+    "process_area": "aseptic_filling",
+    "gold_findings": [],
+    "seeded_defects": []
+  },
+  "system_findings": [],
+  "risk_decision": {
+    "document_set_id": "ds_eval_demo",
+    "decision": "auto_clear_candidate",
+    "max_severity": "informational",
+    "credible_high_or_critical_exists": false,
+    "model_disagreement_score": 0.0,
+    "document_quality_score": 0.98,
+    "ood_score": 0.0,
+    "auto_clear_allowed": true,
+    "auto_clear_blockers": [],
+    "required_human_review_reasons": [],
+    "finding_clusters": [],
+    "generated_at": "2026-05-09T00:00:00Z",
+    "policy_version": "eval-fixture-policy-v0.1"
+  }
+}

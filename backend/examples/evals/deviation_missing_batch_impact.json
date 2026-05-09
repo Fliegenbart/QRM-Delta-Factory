@@ -1,0 +1,74 @@
+{
+  "dataset": {
+    "dataset_id": "evalds_deviation_missing_batch_impact",
+    "name": "Deviation with missing batch impact assessment",
+    "version": "2026.1",
+    "document_type": "deviation",
+    "process_area": "aseptic_filling",
+    "gold_findings": [
+      {
+        "gold_finding_id": "gold_deviation_missing_batch_impact",
+        "expected_risk_category": "batch_impact_assessment",
+        "expected_severity": "high",
+        "expected_requirement_ids": ["req_eval_batch_impact"],
+        "expected_evidence_refs": [
+          {
+            "document_id": "doc_eval_deviation",
+            "chunk_id": "chunk_eval_deviation_p1",
+            "page": 1,
+            "quote": "Batch impact assessment is missing for BATCH-001."
+          }
+        ],
+        "must_detect": true
+      }
+    ],
+    "seeded_defects": ["missing batch impact assessment"]
+  },
+  "system_findings": [
+    {
+      "finding_id": "finding_eval_deviation_batch_impact",
+      "document_set_id": "ds_eval_demo",
+      "risk_category": "batch_impact_assessment",
+      "severity": "high",
+      "likelihood": 3,
+      "detectability": 3,
+      "risk_statement": "Deviation record lacks a documented batch impact assessment.",
+      "evidence_items": [
+        {
+          "document_id": "doc_eval_deviation",
+          "chunk_id": "chunk_eval_deviation_p1",
+          "page": 1,
+          "quote": "Batch impact assessment is missing for BATCH-001.",
+          "quote_hash": "0880fad0e549af4d800767c2e905280e99deb13772d6f91c1f605af1c8bb1b59",
+          "support_type": "supports",
+          "verifier_score": 0.95
+        }
+      ],
+      "requirement_references": ["req_eval_batch_impact"],
+      "missing_information": [],
+      "model_provider": "mock",
+      "model_name": "mock-eval-reviewer",
+      "model_version": "0.1.0",
+      "prompt_version": "eval-v0.1",
+      "evidence_support": "strong",
+      "recommended_action": "Route to human review.",
+      "auto_close_allowed": false,
+      "status": "needs_human_review"
+    }
+  ],
+  "risk_decision": {
+    "document_set_id": "ds_eval_demo",
+    "decision": "human_review_required",
+    "max_severity": "high",
+    "credible_high_or_critical_exists": true,
+    "model_disagreement_score": 0.0,
+    "document_quality_score": 0.95,
+    "ood_score": 0.0,
+    "auto_clear_allowed": false,
+    "auto_clear_blockers": ["single high/critical finding requires review"],
+    "required_human_review_reasons": ["gold high-risk defect detected"],
+    "finding_clusters": [],
+    "generated_at": "2026-05-09T00:00:00Z",
+    "policy_version": "eval-fixture-policy-v0.1"
+  }
+}

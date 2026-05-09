@@ -1,0 +1,15 @@
+{
+  "claim_id": "claim_threshold_changed",
+  "document_id": "doc_cc_2026_014",
+  "chunk_id": "chunk_cc_001",
+  "page": 1,
+  "claim_type": "impact_assessment",
+  "normalized_subject": "impact_assessment",
+  "normalized_predicate": "states",
+  "normalized_object": "automated visual inspection threshold change may affect rejected container detection",
+  "raw_text_quote": "Impact assessment: automated visual inspection threshold change may affect rejected container detection.",
+  "confidence": 0.91,
+  "dependencies": [],
+  "created_by_model": "mock-claim-extractor-v0.1",
+  "prompt_version": "mock-claim-ledger-v0.1"
+}

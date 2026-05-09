@@ -55,6 +55,7 @@ import {
   reviewQueue
 } from "@/src/lib/demo-data";
 import { exportPackage, runDeterministicGates } from "@/src/lib/qrm-engine";
+import { riskOrchestrationEntry } from "@/src/lib/review-ui";
 import {
   buildEvidenceMap,
   buildReviewQueue,
@@ -549,7 +550,7 @@ function renderSection(
     case "trigger-input":
       return <TriggerSection />;
     case "delta-analysis":
-      return <DeltaSection {...context} />;
+      return <DeltaSection />;
     case "review-packages":
       return <ReviewPackagesSection {...context} />;
     case "qrm-matrix":
@@ -1050,293 +1051,188 @@ function TriggerSection() {
   );
 }
 
-function DeltaSection(context: Parameters<typeof renderSection>[1]) {
-  const { multiAgentState, multiAgentResult, multiAgentError, runMultiAgentAnalysis, uploadedDocuments, setUploadedDocuments } = context;
-  const { t } = useI18n();
+function DeltaSection() {
+  const { locale } = useI18n();
+  const isGerman = locale === "de";
+  const copy = isGerman
+    ? {
+        eyebrow: "Neuer Kernprozess",
+        badge: "Ersetzt die bisherige Delta-Analyse",
+        title: "Risk-Orchestrierung statt Modell-Abstimmung.",
+        description:
+          "Der neue Pfad analysiert Dokumente backend-first, baut ein zitiertes Claim Ledger, prüft versionierte Requirements, verifiziert Findings und erzeugt Review Packs für menschliche QA- und Regulatory-Prüfung.",
+        primary: "Review Workbench öffnen",
+        secondary: "Synthetische Demo-Pakete ansehen",
+        decisionSupport: "Decision Support",
+        noVoting: "Kein Mehrheitsvoting",
+        evidenceFirst: "Evidenzpflicht",
+        humanControl: "Human Review",
+        architectureTitle: "Integrierter Orchestrierungsablauf",
+        architectureText:
+          "Die alte Delta-Analyse bleibt nicht der Hauptprozess. Sie ist jetzt der Einstieg in diese Pipeline: Dokumente rein, Claims und Findings quellenbasiert raus, Review Pack für den Menschen.",
+        safetyTitle: "Warum das besser passt",
+        safetyText:
+          "Das System versucht nicht, regulatorische Entscheidungen selbst zu treffen. Es blockiert unvollständige Inputs, eskaliert High/Critical-Risiken konservativ und zeigt nur zitierte Aussagen mit Dokument-ID, Seite, Chunk und Quote.",
+        routesTitle: "Was du testen solltest",
+        routeReviewUi: "Neue Backend-Review-UI",
+        routeReviewUiText: "DocumentSets öffnen, Review Pack ansehen und Reviewer-Entscheidungen erfassen.",
+        routeReviewPackages: "Alte Frontend-Demo",
+        routeReviewPackagesText: "Nur noch als synthetische Demo für Review-Pakete, Queue, Evidence Map und Export.",
+        routeBackend: "Backend-Pipeline",
+        routeBackendText: "FastAPI verarbeitet Upload, Requirements, Claims, Reviewer, Verifier, Risk Fusion und Audit Trail."
+      }
+    : {
+        eyebrow: "New core workflow",
+        badge: "Replaces the previous Delta Analysis",
+        title: "Risk orchestration instead of model voting.",
+        description:
+          "The new path analyzes documents backend-first, builds a cited claim ledger, checks versioned requirements, verifies findings, and creates review packs for human QA and Regulatory review.",
+        primary: "Open Review Workbench",
+        secondary: "View synthetic demo packages",
+        decisionSupport: "Decision Support",
+        noVoting: "No majority voting",
+        evidenceFirst: "Evidence obligation",
+        humanControl: "Human Review",
+        architectureTitle: "Integrated orchestration flow",
+        architectureText:
+          "The old Delta Analysis is no longer the main process. It is now the entry into this pipeline: documents in, source-based claims and findings out, review pack for humans.",
+        safetyTitle: "Why this fits better",
+        safetyText:
+          "The system does not make regulatory decisions by itself. It blocks incomplete inputs, conservatively escalates High/Critical risks, and shows only cited claims with document ID, page, chunk, and quote.",
+        routesTitle: "What to test",
+        routeReviewUi: "New backend review UI",
+        routeReviewUiText: "Open DocumentSets, inspect Review Packs, and capture reviewer decisions.",
+        routeReviewPackages: "Old frontend demo",
+        routeReviewPackagesText: "Kept as a synthetic demo for packages, queue, evidence map, and export.",
+        routeBackend: "Backend pipeline",
+        routeBackendText: "FastAPI handles upload, requirements, claims, reviewers, verifier, risk fusion, and audit trail."
+      };
+
+  const workflow = isGerman
+    ? [
+        "Dokumente hochladen und parsen",
+        "Zitiertes Claim Ledger erzeugen",
+        "Versionierte Requirements abrufen",
+        "Primary und adversarial Reviewer ausführen",
+        "Evidenz und Requirement-Matches verifizieren",
+        "Risiko konservativ fusionieren",
+        "Human Review Pack erzeugen"
+      ]
+    : [...riskOrchestrationEntry.workflow];
 
   return (
     <div className="space-y-6">
-      {/* Multi-Agent Analysis Hero */}
       <motion.section
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="premium-surface relative overflow-hidden rounded-[32px] border border-black/10 dark:border-white/10"
       >
-        <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-teal-500/5 dark:from-teal-400/10 to-transparent" />
-        <div className="relative p-8 md:p-10">
-          <div className="flex items-center gap-3">
-            <motion.div
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 text-white shadow-lg"
-            >
-              <Brain className="h-6 w-6" />
-            </motion.div>
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal-600 dark:text-teal-400">{t("agent.title")}</div>
-              <h2 className="text-2xl font-medium tracking-tight text-ink dark:text-white">{t("agent.collaboration")}</h2>
+        <div className="absolute right-0 top-0 hidden h-full w-[40%] bg-gradient-to-l from-teal-500/10 to-transparent lg:block" />
+        <div className="relative grid gap-8 p-8 md:p-10 xl:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-teal-700 dark:text-teal-300">
+              <Brain className="h-3.5 w-3.5" />
+              {copy.eyebrow}
+            </div>
+            <h2 className="mt-6 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
+              {copy.title}
+            </h2>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300">
+              {copy.description}
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                href={riskOrchestrationEntry.reviewWorkbenchRoute}
+                className="inline-flex h-12 items-center gap-2 rounded-2xl bg-teal px-5 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(0,155,141,0.22)]"
+              >
+                <PackageCheck className="h-5 w-5" />
+                {copy.primary}
+              </Link>
+              <Link
+                href="/review-packages"
+                className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:hover:bg-slate-700"
+              >
+                <FileDown className="h-5 w-5" />
+                {copy.secondary}
+              </Link>
             </div>
           </div>
 
-          <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            {t("agent.description")}
-          </p>
-
-          {/* Agent Flow Visualization */}
-          <div className="mt-8 flex items-center justify-center gap-2 md:gap-4">
-            <FlowStep isActive={multiAgentState === "running"} isComplete={multiAgentResult !== null}>
-              <div className="flex flex-col items-center">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${multiAgentState === "running" || multiAgentResult ? "bg-blue-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500"}`}>
-                  <Bot className="h-5 w-5" />
+          <div className="rounded-[26px] border border-black/10 bg-white/72 p-5 shadow-[0_18px_55px_rgba(17,24,29,0.06)] dark:border-white/10 dark:bg-slate-800/72">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <Badge tone="slate">{copy.badge}</Badge>
+              <span className="text-xs font-semibold text-teal-700 dark:text-teal-300">{riskOrchestrationEntry.name}</span>
+            </div>
+            <div className="space-y-3">
+              {workflow.map((step, index) => (
+                <div key={step} className="flex items-start gap-3 rounded-2xl border border-black/5 bg-white/70 p-3 dark:border-white/10 dark:bg-slate-900/35">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-teal-500 text-xs font-semibold text-white">
+                    {index + 1}
+                  </span>
+                  <span className="text-sm leading-6 text-slate-700 dark:text-slate-300">{step}</span>
                 </div>
-                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">{t("agent.author")}</span>
-              </div>
-            </FlowStep>
-            <FlowConnector isActive={multiAgentState === "running" || multiAgentResult !== null} />
-            <FlowStep isActive={multiAgentState === "running"} isComplete={multiAgentResult !== null}>
-              <div className="flex flex-col items-center">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${multiAgentState === "running" || multiAgentResult ? "bg-purple-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500"}`}>
-                  <MessageCircle className="h-5 w-5" />
-                </div>
-                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">{t("agent.critic")}</span>
-              </div>
-            </FlowStep>
-            <FlowConnector isActive={multiAgentState === "running" || multiAgentResult !== null} />
-            <FlowStep isActive={multiAgentState === "running"} isComplete={multiAgentResult !== null}>
-              <div className="flex flex-col items-center">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-all ${multiAgentState === "running" || multiAgentResult ? "bg-teal-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500"}`}>
-                  <Zap className="h-5 w-5" />
-                </div>
-                <span className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-400">{t("agent.resolver")}</span>
-              </div>
-            </FlowStep>
-          </div>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <AnimatedButton
-              type="button"
-              onClick={runMultiAgentAnalysis}
-              disabled={multiAgentState === "running"}
-              className={`inline-flex h-12 items-center gap-3 rounded-2xl px-6 text-sm font-semibold transition-all ${
-                multiAgentState === "running"
-                  ? "bg-teal-500/20 dark:bg-teal-500/30 text-teal-700 dark:text-teal-300 cursor-wait"
-                  : multiAgentState === "done"
-                  ? "bg-teal-500 text-white shadow-[0_20px_45px_rgba(0,155,141,0.25)]"
-                  : "bg-ink dark:bg-teal-600 text-white shadow-[0_20px_45px_rgba(17,24,29,0.2)]"
-              }`}
-            >
-              {multiAgentState === "running" ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  {t("agent.running")}
-                </>
-              ) : multiAgentState === "done" ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5" />
-                  {t("agent.completed")}
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-5 w-5" />
-                  {t("agent.start")}
-                </>
-              )}
-            </AnimatedButton>
-
-            <AnimatePresence>
-              {multiAgentState === "done" && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                  <Link
-                    href="/review-packages"
-                    className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 px-6 text-sm font-semibold text-ink dark:text-white shadow-sm hover:bg-white dark:hover:bg-slate-700"
-                  >
-                    <PackageCheck className="h-5 w-5" />
-                    {t("agent.openPackages")}
-                  </Link>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <AnimatePresence>
-            {multiAgentError && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mt-6 rounded-xl border border-danger/20 dark:border-red-500/30 bg-danger/5 dark:bg-red-950/30 p-4 text-sm text-danger dark:text-red-300"
-              >
-                <strong>{t("agent.error")}:</strong> {multiAgentError}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Agent Architecture Visualization */}
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            <AgentCard
-              name={`${t("agent.author")} Agent`}
-              model={t("agent.authorModel")}
-              role={t("agent.authorRole")}
-              description={t("agent.authorDesc")}
-              icon={<Bot className="h-5 w-5" />}
-              status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
-              color="blue"
-            />
-            <AgentCard
-              name={`${t("agent.critic")} Agent`}
-              model={t("agent.criticModel")}
-              role={t("agent.criticRole")}
-              description={t("agent.criticDesc")}
-              icon={<MessageCircle className="h-5 w-5" />}
-              status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
-              color="purple"
-            />
-            <AgentCard
-              name={`${t("agent.resolver")} Agent`}
-              model={t("agent.resolverModel")}
-              role={t("agent.resolverRole")}
-              description={t("agent.resolverDesc")}
-              icon={<Zap className="h-5 w-5" />}
-              status={multiAgentState === "running" ? "active" : multiAgentResult ? "done" : "idle"}
-              color="teal"
-            />
+              ))}
+            </div>
           </div>
         </div>
       </motion.section>
 
-      {/* Document Upload Section */}
-      <Panel title={t("upload.title")}>
-        <DocumentUpload
-          documents={uploadedDocuments}
-          onDocumentsChange={setUploadedDocuments}
-          maxFiles={10}
-          maxSizeMb={5}
-        />
-      </Panel>
+      <div className="grid gap-4 md:grid-cols-4">
+        <Stat label={copy.decisionSupport} value="Human" tone="teal" />
+        <Stat label={copy.noVoting} value="0" tone="danger" />
+        <Stat label={copy.evidenceFirst} value="100%" tone="teal" />
+        <Stat label={copy.humanControl} value="QA/SME" tone="amber" />
+      </div>
 
-      {/* Results Section */}
-      {multiAgentResult && (
-        <>
-          {/* Summary Stats */}
-          <div className="grid gap-4 md:grid-cols-4">
-            <Stat label={t("risk.riskItems")} value={multiAgentResult.riskItems.length} tone="teal" />
-            <Stat label={t("risk.findings")} value={multiAgentResult.findings.length} tone={multiAgentResult.findings.some(f => f.severity === "BLOCKER") ? "danger" : "amber"} />
-            <Stat label={t("risk.gapsIdentified")} value={multiAgentResult.gaps.length} tone="amber" />
-            <Stat label={t("risk.escalated")} value={multiAgentResult.escalatedItems.length} tone={multiAgentResult.escalatedItems.length > 0 ? "danger" : "slate"} />
+      <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <Panel title={copy.architectureTitle}>
+          <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">{copy.architectureText}</p>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <SummaryBlock title="Claim Ledger" text="Claims need quote, document ID, page, chunk ID, confidence, model and prompt version." />
+            <SummaryBlock title="Verifier Gates" text="Citations, Requirement applicability, parser quality, OOD and coverage are checked before review routing." />
+            <SummaryBlock title="Review Pack" text="Humans receive a compact dossier with top risks, evidence table, model positions and audit references." />
           </div>
-
-          {/* Agent Conversation */}
-          <Panel title={t("agent.conversation")} action={<span className="text-sm text-slate-600 dark:text-slate-400">{multiAgentResult.iterationsUsed} {t("agent.iterations")} • ${multiAgentResult.tokenUsage.estimatedCostUsd.toFixed(4)} • {(multiAgentResult.processingTimeMs / 1000).toFixed(1)}s</span>}>
-            <div className="space-y-4">
-              {multiAgentResult.conversation.map((msg, idx) => (
-                <AgentMessageBubble key={idx} message={msg} />
-              ))}
-            </div>
-          </Panel>
-
-          {/* Findings */}
-          {multiAgentResult.findings.length > 0 && (
-            <Panel title={t("agent.criticFindings")}>
-              <div className="space-y-3">
-                {multiAgentResult.findings.map((finding, idx) => (
-                  <div
-                    key={idx}
-                    className={`rounded-xl border p-4 ${
-                      finding.severity === "BLOCKER"
-                        ? "border-danger/20 bg-danger/5"
-                        : finding.severity === "CONCERN"
-                        ? "border-amber/20 bg-amber/5"
-                        : "border-slate-200 bg-slate-50"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <Badge tone={finding.severity === "BLOCKER" ? "danger" : finding.severity === "CONCERN" ? "amber" : "slate"}>
-                            {finding.severity}
-                          </Badge>
-                          <span className="text-xs text-slate-600">{finding.category}</span>
-                          <span className="text-xs font-medium text-slate-800">{finding.riskItemId}</span>
-                        </div>
-                        <p className="mt-2 text-sm leading-6 text-slate-700">{finding.description}</p>
-                        {finding.suggestedAction && (
-                          <p className="mt-2 text-sm text-teal-700">
-                            <strong>{t("agent.recommendation")}:</strong> {finding.suggestedAction}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-          )}
-
-          {/* Generated Risk Items */}
-          <Panel title={t("agent.generatedItems")}>
-            <div className="space-y-4">
-              {multiAgentResult.riskItems.map((item) => (
-                <div key={item.riskId} className="rounded-xl border border-black/10 bg-white/80 p-5">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold text-ink">{item.riskId}</span>
-                        <Badge tone={item.confidenceLevel === "HIGH" ? "slate" : item.confidenceLevel === "MEDIUM" ? "amber" : "danger"}>
-                          {item.confidenceLevel} {t("agent.confidence")}
-                        </Badge>
-                        <span className="text-sm text-slate-600">RPN: {item.initialRpn}</span>
-                      </div>
-                      <h4 className="mt-2 font-medium text-slate-900">{item.failureMode}</h4>
-                      <p className="mt-1 text-sm text-slate-600">{item.potentialCause}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-slate-600">S×O×D</div>
-                      <div className="font-mono text-lg font-medium">{item.severity}×{item.occurrence}×{item.detectability}</div>
-                    </div>
-                  </div>
-                  {item.claims.length > 0 && (
-                    <div className="mt-4 border-t border-slate-100 pt-4">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">{t("agent.verifiedClaims")}</div>
-                      <ul className="mt-2 space-y-1">
-                        {item.claims.slice(0, 3).map((claim, cidx) => (
-                          <li key={cidx} className="flex items-center gap-2 text-sm">
-                            <span className={`h-2 w-2 rounded-full ${claim.confidence === "VERIFIED" ? "bg-teal-500" : claim.confidence === "INFERRED" ? "bg-amber" : "bg-slate-300"}`} />
-                            <span className="text-slate-700">{claim.claim}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Panel>
-
-          {/* Gaps */}
-          {multiAgentResult.gaps.length > 0 && (
-            <Panel title={t("agent.identifiedGaps")}>
-              <Table
-                headers={[t("gaps.id"), t("gaps.priority"), t("gaps.category"), t("gaps.description"), t("gaps.identifiedBy")]}
-                rows={multiAgentResult.gaps.map(gap => [
-                  gap.id,
-                  <Badge key={gap.id} tone={gap.priority === "CRITICAL" || gap.priority === "HIGH" ? "danger" : gap.priority === "MEDIUM" ? "amber" : "slate"}>{gap.priority}</Badge>,
-                  gap.category,
-                  gap.description,
-                  gap.identifiedBy,
-                ])}
-              />
-            </Panel>
-          )}
-        </>
-      )}
-
-      {/* Sample Risk Items - shown before analysis runs */}
-      {!multiAgentResult && multiAgentState !== "running" && (
-        <Panel title={t("agent.sampleData")}>
-          <p className="mb-4 text-sm leading-6 text-slate-600 dark:text-slate-400">{t("agent.sampleDataNote")}</p>
-          <RiskRows items={demoRiskItems} />
         </Panel>
-      )}
+
+        <Panel title={copy.safetyTitle}>
+          <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">{copy.safetyText}</p>
+          <div className="mt-5 grid gap-3">
+            <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">
+              <AlertTriangle className="mt-0.5 h-5 w-5 text-amber" />
+              <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">
+                Input incomplete, parser problems, missing coverage and weak evidence route to human action, not to silent clearance.
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">
+              <ShieldCheck className="mt-0.5 h-5 w-5 text-teal" />
+              <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">
+                Model, prompt, RequirementSet and orchestration versions are part of the audit trail.
+              </div>
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      <Panel title={copy.routesTitle}>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Link href={riskOrchestrationEntry.reviewWorkbenchRoute} className="rounded-[22px] border border-black/10 bg-white/78 p-5 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/78">
+            <PackageCheck className="h-5 w-5 text-teal" />
+            <h3 className="mt-4 font-semibold text-ink dark:text-white">{copy.routeReviewUi}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{copy.routeReviewUiText}</p>
+          </Link>
+          <Link href="/review-packages" className="rounded-[22px] border border-black/10 bg-white/78 p-5 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/78">
+            <ClipboardCheck className="h-5 w-5 text-teal" />
+            <h3 className="mt-4 font-semibold text-ink dark:text-white">{copy.routeReviewPackages}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{copy.routeReviewPackagesText}</p>
+          </Link>
+          <Link href="http://localhost:8000/docs" className="rounded-[22px] border border-black/10 bg-white/78 p-5 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/78">
+            <Database className="h-5 w-5 text-teal" />
+            <h3 className="mt-4 font-semibold text-ink dark:text-white">{copy.routeBackend}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{copy.routeBackendText}</p>
+          </Link>
+        </div>
+      </Panel>
     </div>
   );
 }

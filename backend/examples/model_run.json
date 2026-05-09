@@ -1,0 +1,18 @@
+{
+  "model_run_id": "run_validation_reviewer_001",
+  "provider": "mock",
+  "model_name": "mock-validation-reviewer",
+  "model_version": "0.1.0",
+  "prompt_version": "validation-review-v0.1",
+  "input_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "output_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "started_at": "2026-05-09T09:05:00Z",
+  "completed_at": "2026-05-09T09:05:03Z",
+  "latency_ms": 3000,
+  "token_usage": {
+    "input_tokens": 1000,
+    "output_tokens": 250,
+    "total_tokens": 1250
+  },
+  "status": "succeeded"
+}

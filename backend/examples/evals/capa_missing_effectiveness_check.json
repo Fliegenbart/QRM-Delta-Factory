@@ -1,0 +1,74 @@
+{
+  "dataset": {
+    "dataset_id": "evalds_capa_missing_effectiveness_check",
+    "name": "CAPA with missing effectiveness check",
+    "version": "2026.1",
+    "document_type": "capa",
+    "process_area": "aseptic_filling",
+    "gold_findings": [
+      {
+        "gold_finding_id": "gold_capa_missing_effectiveness_check",
+        "expected_risk_category": "capa",
+        "expected_severity": "high",
+        "expected_requirement_ids": ["req_eval_capa_effectiveness"],
+        "expected_evidence_refs": [
+          {
+            "document_id": "doc_eval_capa",
+            "chunk_id": "chunk_eval_capa_p1",
+            "page": 1,
+            "quote": "CAPA effectiveness check is missing after implementation."
+          }
+        ],
+        "must_detect": true
+      }
+    ],
+    "seeded_defects": ["missing CAPA effectiveness check"]
+  },
+  "system_findings": [
+    {
+      "finding_id": "finding_eval_capa_effectiveness",
+      "document_set_id": "ds_eval_demo",
+      "risk_category": "capa",
+      "severity": "high",
+      "likelihood": 3,
+      "detectability": 3,
+      "risk_statement": "CAPA closure lacks effectiveness-check evidence.",
+      "evidence_items": [
+        {
+          "document_id": "doc_eval_capa",
+          "chunk_id": "chunk_eval_capa_p1",
+          "page": 1,
+          "quote": "CAPA effectiveness check is missing after implementation.",
+          "quote_hash": "1a34d6fbe03e03d06063fe1c60593da94bf63491668d6ecbcbece9d82089e271",
+          "support_type": "supports",
+          "verifier_score": 0.94
+        }
+      ],
+      "requirement_references": ["req_eval_capa_effectiveness"],
+      "missing_information": ["effectiveness check evidence"],
+      "model_provider": "mock",
+      "model_name": "mock-eval-reviewer",
+      "model_version": "0.1.0",
+      "prompt_version": "eval-v0.1",
+      "evidence_support": "partial",
+      "recommended_action": "Route to human review.",
+      "auto_close_allowed": false,
+      "status": "needs_human_review"
+    }
+  ],
+  "risk_decision": {
+    "document_set_id": "ds_eval_demo",
+    "decision": "human_review_required",
+    "max_severity": "high",
+    "credible_high_or_critical_exists": true,
+    "model_disagreement_score": 0.0,
+    "document_quality_score": 0.95,
+    "ood_score": 0.0,
+    "auto_clear_allowed": false,
+    "auto_clear_blockers": ["high/critical finding has weak or partial evidence"],
+    "required_human_review_reasons": ["CAPA effectiveness check requires human review"],
+    "finding_clusters": [],
+    "generated_at": "2026-05-09T00:00:00Z",
+    "policy_version": "eval-fixture-policy-v0.1"
+  }
+}

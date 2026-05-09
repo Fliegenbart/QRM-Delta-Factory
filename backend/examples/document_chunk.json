@@ -1,0 +1,17 @@
+{
+  "chunk_id": "chunk_cc_001",
+  "document_id": "doc_cc_2026_014",
+  "page_start": 1,
+  "page_end": 1,
+  "text": "Change control CC-2026-014 modifies the automated visual inspection rejection threshold.",
+  "token_count": 12,
+  "extraction_confidence": 0.95,
+  "bbox": {
+    "page": 1,
+    "x": 72.0,
+    "y": 128.0,
+    "width": 420.0,
+    "height": 96.0
+  },
+  "source_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

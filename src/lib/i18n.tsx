@@ -28,7 +28,7 @@ export const translations = {
   "nav.sourceSnippets": { de: "Quellausschnitte", en: "Source Snippets" },
   "nav.riskLibrary": { de: "Risikobibliothek", en: "Risk Library" },
   "nav.triggerInput": { de: "Change/CAPA Eingabe", en: "Change/CAPA Input" },
-  "nav.deltaAnalysis": { de: "Delta-Analyse", en: "Delta Analysis" },
+  "nav.deltaAnalysis": { de: "Risk-Orchestrierung", en: "Risk Orchestration" },
   "nav.qrmMatrix": { de: "QRM-Matrix", en: "QRM Matrix" },
   "nav.reviewPackages": { de: "Review-Pakete", en: "Review Packages" },
   "nav.plausibilityChecks": { de: "Plausibilitätsprüfungen", en: "Plausibility Checks" },
