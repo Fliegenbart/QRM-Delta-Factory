@@ -130,6 +130,50 @@ export const consultantReviewCopy = {
   }
 } as const;
 
+export const caseWorkspaceStructure = {
+  route: "/case-workspace",
+  title: "Fallakte",
+  description:
+    "Ein zentraler Arbeitsbereich für den gesamten Risiko-Delta-Fall: Überblick, Quellen, Risiko-Deltas, Review Queue und Export.",
+  primaryTabs: [
+    {
+      id: "overview",
+      label: "Übersicht",
+      helper: "Status, Blocker, Aufwand und nächster Schritt"
+    },
+    {
+      id: "sources",
+      label: "Quellen & Anforderungen",
+      helper: "Dokumente, Zitate, Risikobibliothek und Regelwerk"
+    },
+    {
+      id: "risk-deltas",
+      label: "Risiko-Deltas",
+      helper: "Betroffene Risiken, neue Prüfpunkte und Plausibilitätscheck"
+    },
+    {
+      id: "review-queue",
+      label: "Review Queue",
+      helper: "Priorisierte Arbeit für Author/Ops, SME und QA"
+    },
+    {
+      id: "export",
+      label: "Export",
+      helper: "Draft Review Pack, CSV/JSON und Audit-Zusammenfassung"
+    }
+  ],
+  hiddenTechnicalPages: [
+    "source-snippets",
+    "qrm-matrix",
+    "plausibility-checks",
+    "red-team-findings",
+    "evidence-map",
+    "gaps",
+    "approvals",
+    "export-package"
+  ]
+} as const;
+
 export type DocumentSet = {
   document_set_id: string;
   tenant_id: string;

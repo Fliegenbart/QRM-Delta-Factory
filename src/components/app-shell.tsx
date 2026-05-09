@@ -55,7 +55,7 @@ import {
   reviewQueue
 } from "@/src/lib/demo-data";
 import { exportPackage, runDeterministicGates } from "@/src/lib/qrm-engine";
-import { riskOrchestrationEntry } from "@/src/lib/review-ui";
+import { caseWorkspaceStructure, riskOrchestrationEntry } from "@/src/lib/review-ui";
 import {
   buildEvidenceMap,
   buildReviewQueue,
@@ -79,48 +79,19 @@ const navCategories: NavCategory[] = [
     nameKey: "nav.category.workspace",
     items: [
       ["dashboard", "nav.dashboard", Gauge],
-      ["projects", "nav.projects", Archive],
-      ["documents", "nav.documents", FileText],
-      ["source-snippets", "nav.sourceSnippets", Database],
-    ]
-  },
-  {
-    nameKey: "nav.category.riskAnalysis",
-    items: [
-      ["risk-library", "nav.riskLibrary", Library],
-      ["trigger-input", "nav.triggerInput", ClipboardCheck],
+      ["case-workspace", "nav.caseWorkspace", PackageCheck],
       ["delta-analysis", "nav.deltaAnalysis", Bot],
-      ["qrm-matrix", "nav.qrmMatrix", Table2],
-    ]
-  },
-  {
-    nameKey: "nav.category.reviewQA",
-    items: [
-      ["review-packages", "nav.reviewPackages", PackageCheck],
-      ["plausibility-checks", "nav.plausibilityChecks", CheckCircle2],
-      ["red-team-findings", "nav.redTeamFindings", MessageSquareWarning],
-      ["review-queue", "nav.reviewQueue", Users],
-      ["approvals", "nav.approvals", Lock],
-    ]
-  },
-  {
-    nameKey: "nav.category.evidenceGaps",
-    items: [
-      ["evidence-map", "nav.evidenceMap", ShieldCheck],
-      ["gaps", "nav.gaps", AlertTriangle],
-    ]
-  },
-  {
-    nameKey: "nav.category.output",
-    items: [
-      ["export-package", "nav.exportPackage", FileDown],
-      ["validation-pack", "nav.validationPack", FlaskConical],
-      ["audit-trail", "nav.auditTrail", History],
+      ["review-ui", "nav.backendReview", ShieldCheck],
     ]
   },
   {
     nameKey: "nav.category.admin",
     items: [
+      ["projects", "nav.projects", Archive],
+      ["documents", "nav.documents", FileText],
+      ["risk-library", "nav.riskLibrary", Library],
+      ["validation-pack", "nav.validationPack", FlaskConical],
+      ["audit-trail", "nav.auditTrail", History],
       ["admin-users", "nav.adminUsers", Users],
     ]
   },
@@ -128,12 +99,38 @@ const navCategories: NavCategory[] = [
 
 // Flatten for compatibility
 const navItems: NavItem[] = navCategories.flatMap(cat => cat.items);
+const legacySectionSlugs = [
+  "source-snippets",
+  "trigger-input",
+  "qrm-matrix",
+  "review-packages",
+  "plausibility-checks",
+  "red-team-findings",
+  "review-queue",
+  "approvals",
+  "evidence-map",
+  "gaps",
+  "export-package"
+] as const;
 
-export const sectionSlugs = navItems.map(([slug]) => slug);
+export const sectionSlugs = [...navItems.map(([slug]) => slug), ...legacySectionSlugs];
 
 // Map slugs to translation keys for page titles
 const pageTitleKeys: Record<string, TranslationKey> = Object.fromEntries(
-  navItems.map(([slug, labelKey]) => [slug, labelKey])
+  [
+    ...navItems.map(([slug, labelKey]) => [slug, labelKey]),
+    ["source-snippets", "nav.sourceSnippets"],
+    ["trigger-input", "nav.triggerInput"],
+    ["qrm-matrix", "nav.qrmMatrix"],
+    ["review-packages", "nav.reviewPackages"],
+    ["plausibility-checks", "nav.plausibilityChecks"],
+    ["red-team-findings", "nav.redTeamFindings"],
+    ["review-queue", "nav.reviewQueue"],
+    ["approvals", "nav.approvals"],
+    ["evidence-map", "nav.evidenceMap"],
+    ["gaps", "nav.gaps"],
+    ["export-package", "nav.exportPackage"]
+  ]
 ) as Record<string, TranslationKey>;
 
 // Helper to get translated page title
@@ -537,6 +534,8 @@ function renderSection(
   }
 ) {
   switch (section) {
+    case "case-workspace":
+      return <CaseWorkspaceSection {...context} />;
     case "projects":
       return <ProjectsSection />;
     case "project-detail":
@@ -591,6 +590,277 @@ function Notice({ text }: { text: string }) {
       <span className="mr-3 inline-flex h-2 w-2 rounded-full bg-amber animate-pulse align-middle" />
       <strong className="font-semibold">{t("notice.draft")}</strong> {text}
     </motion.div>
+  );
+}
+
+function CaseWorkspaceSection(context: Parameters<typeof renderSection>[1]) {
+  type CaseWorkspaceTabId = (typeof caseWorkspaceStructure.primaryTabs)[number]["id"];
+  const [activeTab, setActiveTab] = useState<CaseWorkspaceTabId>("overview");
+  const packages = context.reviewPackages;
+  const workload = summarizeWorkload(packages, context.packageResults);
+  const queue = buildReviewQueue(packages, context.packageResults);
+  const exportPack = context.riskDeltaExport;
+  const readyCount = packages.filter((pkg) => pkg.package_status === "READY_FOR_PLAUSIBILITY_CHECK").length;
+  const incompleteCount = packages.filter((pkg) => pkg.package_status === "INPUT_INCOMPLETE").length;
+
+  return (
+    <div className="space-y-6">
+      <section className="premium-surface overflow-hidden rounded-[30px] border border-black/10 dark:border-white/10">
+        <div className="grid gap-6 p-7 lg:grid-cols-[1.15fr_0.85fr] lg:p-9">
+          <div>
+            <h2 className="max-w-3xl text-4xl font-light leading-[1.05] tracking-[-0.055em] text-ink dark:text-white md:text-5xl">
+              Ein Fall. Eine klare Arbeitsreihenfolge.
+            </h2>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300">
+              Diese Fallakte bündelt den gesamten Risiko-Delta-Prozess: Quellen prüfen,
+              betroffene Risiken verstehen, Review-Aufwand priorisieren und am Ende ein
+              Draft Review Pack erzeugen. Die technischen Module bleiben im Hintergrund.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => void context.generateReviewPackages()}
+                className="inline-flex h-12 items-center gap-2 rounded-2xl bg-teal px-5 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(0,155,141,0.22)]"
+              >
+                <PackageCheck className="h-4 w-4" />
+                Prüfpakete erstellen
+              </button>
+              <Link
+                href={riskOrchestrationEntry.reviewWorkbenchRoute}
+                className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-white"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Backend-Prüfmappe öffnen
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Stat label="Prüfpakete" value={packages.length || 5} tone="teal" />
+            <Stat label="Bereit für Check" value={readyCount || 4} tone="teal" />
+            <Stat label="Zurück an Author/Ops" value={incompleteCount || 1} tone="amber" />
+            <Stat label="Geschätzte Reduktion" value={`${workload.estimated_reduction_percent || 65}%`} tone="danger" />
+          </div>
+        </div>
+        <div className="border-t border-black/10 bg-white/55 px-5 py-4 dark:border-white/10 dark:bg-slate-800/55">
+          <div className="flex gap-2 overflow-x-auto">
+            {caseWorkspaceStructure.primaryTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`min-w-fit rounded-2xl border px-4 py-3 text-left transition ${
+                  activeTab === tab.id
+                    ? "border-teal bg-teal text-white shadow-[0_14px_35px_rgba(0,155,141,0.18)]"
+                    : "border-black/10 bg-white/80 text-slate-700 hover:bg-white dark:border-white/10 dark:bg-slate-900/50 dark:text-slate-200"
+                }`}
+              >
+                <div className="text-sm font-semibold">{tab.label}</div>
+                <div className={`mt-1 text-xs ${activeTab === tab.id ? "text-white/80" : "text-slate-500 dark:text-slate-400"}`}>
+                  {tab.helper}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {activeTab === "overview" ? <CaseOverviewTab packages={packages} workload={workload} /> : null}
+      {activeTab === "sources" ? <CaseSourcesTab /> : null}
+      {activeTab === "risk-deltas" ? <CaseRiskDeltasTab context={context} /> : null}
+      {activeTab === "review-queue" ? <CaseReviewQueueTab queue={queue} packages={packages} onGenerate={context.generateReviewPackages} /> : null}
+      {activeTab === "export" ? <CaseExportTab context={context} exportPack={exportPack} /> : null}
+    </div>
+  );
+}
+
+function CaseOverviewTab({
+  packages,
+  workload
+}: {
+  packages: ReviewPackage[];
+  workload: ReturnType<typeof summarizeWorkload>;
+}) {
+  return (
+    <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+      <Panel title="Wo steht der Fall?">
+        <div className="space-y-4">
+          {[
+            ["1", "Unterlagen liegen vor", "Synthetischer AVI-Threshold-Change mit FMEA, SOP und Validierungsevidenz."],
+            ["2", "Wichtigste Lücke ist sichtbar", "Validierung und Training decken die neue Schwelle noch nicht belastbar ab."],
+            ["3", "Review wird priorisiert", "High/Critical- und Evidenzlücken gehen zuerst an SME/QA."],
+            ["4", "Export bleibt Draft", "Das Lieferpaket ist prüfbar, aber keine regulatorische Entscheidung."]
+          ].map(([step, title, text]) => (
+            <div key={step} className="flex gap-4 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-teal text-sm font-semibold text-white">{step}</span>
+              <div>
+                <div className="font-semibold tracking-[-0.02em]">{title}</div>
+                <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">{text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Panel>
+      <Panel title="Risk Review Summary">
+        <div className="grid gap-3 md:grid-cols-3">
+          <Metric label="Total packages" value={String(packages.length || 5)} tone="teal" />
+          <Metric label="Ready for review" value={String(workload.ready_for_review || 4)} tone="teal" />
+          <Metric label="Input incomplete" value={String(workload.input_incomplete || 1)} />
+        </div>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <SummaryBlock title="Manual baseline" text={`${workload.manual_baseline_hours || 10}.0 h geschätzter klassischer Vorbereitungsaufwand.`} />
+          <SummaryBlock title="Assisted review" text={`${workload.assisted_review_hours || 3.5} h indikative MVP-Schätzung mit priorisierter Fallakte.`} />
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+function CaseSourcesTab() {
+  return (
+    <div className="space-y-6">
+      <Panel title="Quellen, die den Fall tragen">
+        <Table
+          headers={["Dokument", "Typ", "Wofür relevant?"]}
+          rows={demoDocuments.map((doc) => [doc.fileName, doc.documentType, `${doc.content.slice(0, 170)}...`])}
+        />
+      </Panel>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Panel title="Wichtige Quellenzitate">
+          <Table
+            headers={["Quelle", "Abschnitt", "Zitat"]}
+            rows={demoSnippets.slice(0, 5).map((snippet) => [snippet.id, snippet.sectionTitle, snippet.text])}
+          />
+        </Panel>
+        <Panel title="Regel-/Risikobibliothek">
+          <Table
+            headers={["Bibliothek", "Prozessschritt", "Risiko", "Status"]}
+            rows={demoRiskLibrary.map((item) => [item.libraryId, item.processStep, item.failureMode, item.approvalStatus])}
+          />
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function CaseRiskDeltasTab({ context }: { context: Parameters<typeof renderSection>[1] }) {
+  const packages = context.reviewPackages;
+  if (packages.length === 0) {
+    return (
+      <Panel
+        title="Risiko-Deltas vorbereiten"
+        action={
+          <button type="button" className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" onClick={() => void context.generateReviewPackages()}>
+            Prüfpakete erstellen
+          </button>
+        }
+      >
+        <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
+          Noch keine Pakete erzeugt. Starte hier den Package Builder. Danach siehst du pro Risiko:
+          Quellen, Evidenzlinks, Lücken, Bibliotheksbasis, Baseline-FMEA und Plausibilitätsstatus.
+        </p>
+      </Panel>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {packages.map((pkg) => {
+        const result = context.packageResults[pkg.id];
+        const canRun = pkg.package_status === "READY_FOR_PLAUSIBILITY_CHECK";
+        return (
+          <Panel
+            key={pkg.id}
+            title={`${pkg.risk_item_draft.risk_id}: ${pkg.risk_item_draft.failure_mode}`}
+            action={
+              <button
+                type="button"
+                disabled={!canRun}
+                onClick={() => void context.runPackageReview(pkg.id)}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                  canRun ? "bg-ink text-white" : "cursor-not-allowed bg-slate-100 text-slate-400"
+                }`}
+              >
+                Plausibilität prüfen
+              </button>
+            }
+          >
+            <div className="grid gap-4 md:grid-cols-4">
+              <SummaryBlock title="Status" text={pkg.package_status} />
+              <SummaryBlock title="Quellen" text={`${pkg.linked_source_snippets.length} verknüpfte Zitate`} />
+              <SummaryBlock title="Lücken" text={pkg.documented_gaps.length ? pkg.documented_gaps.map((gap) => gap.priority).join(", ") : "Keine dokumentierte Lücke"} />
+              <SummaryBlock title="Plausibilität" text={result ? `${result.overall_result} / ${result.evidence_quality}` : "Noch nicht geprüft"} />
+            </div>
+          </Panel>
+        );
+      })}
+    </div>
+  );
+}
+
+function CaseReviewQueueTab({
+  queue,
+  packages,
+  onGenerate
+}: {
+  queue: ReviewQueueItem[];
+  packages: ReviewPackage[];
+  onGenerate: () => Promise<void>;
+}) {
+  if (packages.length === 0) {
+    return (
+      <Panel
+        title="Review Queue"
+        action={<button type="button" className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" onClick={() => void onGenerate()}>Queue vorbereiten</button>}
+      >
+        <RiskRows items={reviewQueue} compact />
+      </Panel>
+    );
+  }
+
+  return (
+    <Panel title="Priorisierte Review Queue">
+      <div className="space-y-3">
+        {queue.map((item) => (
+          <QueueItemRow key={item.package_id} item={item} />
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function CaseExportTab({
+  context,
+  exportPack
+}: {
+  context: Parameters<typeof renderSection>[1];
+  exportPack: ReturnType<typeof generateRiskDeltaReviewPack> | null;
+}) {
+  return (
+    <Panel
+      title="Draft Risk Delta Review Pack"
+      action={
+        <button type="button" className="inline-flex h-10 items-center gap-2 rounded-xl bg-ink px-4 text-sm font-semibold text-white" onClick={context.generateDeltaExport}>
+          <FileDown className="h-4 w-4" />
+          Draft Export erzeugen
+        </button>
+      }
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        <SummaryBlock title="Markdown" text="Lesbares Deliverable für Kundendemo und SME/QA-Review." />
+        <SummaryBlock title="CSV" text="Tabellarische Risiko-Delta-Matrix für Excel." />
+        <SummaryBlock title="JSON" text="Strukturierte Daten für spätere Integration." />
+      </div>
+      {exportPack ? (
+        <pre className="mt-5 max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-slate-950 p-4 text-xs leading-5 text-slate-100">
+          {exportPack.markdown}
+        </pre>
+      ) : (
+        <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          Erzeuge den Draft Export erst, wenn die Pakete erstellt und idealerweise plausibilisiert wurden.
+          Der Export bleibt klar als Entwurf gekennzeichnet.
+        </div>
+      )}
+    </Panel>
   );
 }
 

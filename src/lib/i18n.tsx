@@ -23,6 +23,8 @@ export const translations = {
 
   // Navigation Items
   "nav.dashboard": { de: "Dashboard", en: "Dashboard" },
+  "nav.caseWorkspace": { de: "Fallakte", en: "Case Workspace" },
+  "nav.backendReview": { de: "Backend-Prüfmappe", en: "Backend Review Pack" },
   "nav.projects": { de: "Projekte", en: "Projects" },
   "nav.documents": { de: "Dokumente", en: "Documents" },
   "nav.sourceSnippets": { de: "Quellausschnitte", en: "Source Snippets" },

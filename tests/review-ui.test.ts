@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  caseWorkspaceStructure,
   consultantReviewCopy,
   decisionOptions,
   findTopRiskById,
@@ -33,6 +34,20 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.list.title).toBe("Vorbereitete Prüfpakete");
     expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt mit Quelle");
     expect(consultantReviewCopy.decision.savedMessage).toContain("Audit Trail");
+  });
+
+  it("defines a simpler case workspace structure for consultants", () => {
+    expect(caseWorkspaceStructure.route).toBe("/case-workspace");
+    expect(caseWorkspaceStructure.primaryTabs.map((tab) => tab.label)).toEqual([
+      "Übersicht",
+      "Quellen & Anforderungen",
+      "Risiko-Deltas",
+      "Review Queue",
+      "Export"
+    ]);
+    expect(caseWorkspaceStructure.hiddenTechnicalPages).toContain("source-snippets");
+    expect(caseWorkspaceStructure.hiddenTechnicalPages).toContain("plausibility-checks");
+    expect(caseWorkspaceStructure.hiddenTechnicalPages).toContain("red-team-findings");
   });
 
   it("exposes the reviewer decisions required by the workflow", () => {
