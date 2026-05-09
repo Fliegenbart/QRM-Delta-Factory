@@ -40,6 +40,7 @@ class Settings(BaseSettings):
         default="",
         description="Comma-separated tenant_id=api-key pairs for MVP API-key auth.",
     )
+    persistence_enabled: bool = Field(default=False)
     external_model_calls_enabled: bool = Field(default=False)
     allowed_model_providers: str = Field(default="mock")
     allowed_network_domains: str = Field(default="")

@@ -1,6 +1,11 @@
 import "server-only";
 
-import type { DocumentSet, ReviewDecisionValue, ReviewPack } from "@/src/lib/review-ui";
+import type {
+  DemoSeedResponse,
+  DocumentSet,
+  ReviewDecisionValue,
+  ReviewPack
+} from "@/src/lib/review-ui";
 import { normalizeReviewDecisionPayload } from "@/src/lib/review-ui";
 
 const DEFAULT_BACKEND_URL = "http://localhost:8000";
@@ -26,6 +31,10 @@ export async function getReviewPack(documentSetId: string): Promise<ReviewPack> 
   return backendFetch<ReviewPack>(
     `/document-sets/${encodeURIComponent(documentSetId)}/review-pack`
   );
+}
+
+export async function seedDemoData(): Promise<DemoSeedResponse> {
+  return backendFetch<DemoSeedResponse>("/demo/seed", { method: "POST" });
 }
 
 export async function submitReviewDecision(input: {

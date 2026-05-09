@@ -12,6 +12,7 @@ describe("review UI helpers", () => {
     expect(riskOrchestrationEntry.replacesLegacyDeltaAnalysis).toBe(true);
     expect(riskOrchestrationEntry.legacyDeltaRoute).toBe("/delta-analysis");
     expect(riskOrchestrationEntry.reviewWorkbenchRoute).toBe("/review-ui");
+    expect(riskOrchestrationEntry.demoSeedRoute).toBe("/api/review-ui/demo-seed");
     expect(riskOrchestrationEntry.workflow).toContain("Build cited claim ledger");
     expect(riskOrchestrationEntry.workflow).toContain("Fuse risk conservatively");
   });

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listDocumentSets } from "@/src/lib/review-api";
+import { DemoSeedButton } from "@/src/components/review-ui/demo-seed-button";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import type { DocumentSet } from "@/src/lib/review-ui";
 
@@ -17,11 +18,11 @@ export default async function ReviewUiDocumentSetsPage() {
 
   return (
     <ReviewShell>
-      <ReviewPanel title="DocumentSet Liste">
+      <ReviewPanel title="DocumentSet Liste" action={<DemoSeedButton />}>
         {error ? (
           <EmptyState message={`Backend nicht erreichbar oder nicht konfiguriert: ${error}`} />
         ) : documentSets.length === 0 ? (
-          <EmptyState message="Keine DocumentSets gefunden. Lade zuerst Dokumente im Backend hoch und starte eine Pipeline." />
+          <EmptyState message="Keine DocumentSets gefunden. Klicke auf Demo-Daten erzeugen, um einen synthetischen AVI-Threshold-Change mit Pipeline und Review Pack anzulegen." />
         ) : (
           <div className="overflow-hidden rounded-2xl border border-slate-200">
             <table className="w-full text-left text-sm">

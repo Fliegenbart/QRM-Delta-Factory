@@ -1,0 +1,62 @@
+from __future__ import annotations
+
+from datetime import UTC, datetime
+
+from app.db.persistent import PersistentSnapshotRepository
+from app.schemas.domain import DocumentSet, RequirementSet
+
+
+def test_persistent_repository_restores_snapshot_from_sqlite(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    database_url = f"sqlite:///{tmp_path / 'qrm_state.db'}"
+    first = PersistentSnapshotRepository(database_url=database_url)
+    first.create_requirement_set(_requirement_set())
+    first.create_document_set(_document_set())
+
+    second = PersistentSnapshotRepository(database_url=database_url)
+
+    assert second.get_requirement_set("rset_persist_demo") is not None
+    assert second.get_document_set("ds_persist_demo") is not None
+    assert second.list_document_sets()[0].document_set_id == "ds_persist_demo"
+
+
+def _document_set() -> DocumentSet:
+    return DocumentSet(
+        document_set_id="ds_persist_demo",
+        tenant_id="tenant_demo_pharma",
+        requirement_set_id="rset_persist_demo",
+        upload_timestamp=datetime.now(UTC),
+        document_ids=[],
+        declared_document_type="change_control",
+        declared_process_area="aseptic_filling",
+        uploaded_by="user_qrm_author",
+        status="uploaded",
+    )
+
+
+def _requirement_set() -> RequirementSet:
+    return RequirementSet(
+        requirement_set_id="rset_persist_demo",
+        tenant_id="tenant_demo_pharma",
+        name="Persistent Demo Requirements",
+        version="2026.1",
+        imported_at=datetime.now(UTC),
+        imported_by="user_quality_admin",
+        active=True,
+        requirements=[
+            {
+                "requirement_id": "req_persist_demo",
+                "source_type": "internal_sop",
+                "source_name": "SOP-PERSIST",
+                "source_version": "1.0",
+                "section": "1",
+                "requirement_text": "Persistent demo requirement.",
+                "applies_to_document_types": ["change_control"],
+                "applies_to_process_areas": ["aseptic_filling"],
+                "criticality": "low",
+                "required_evidence": ["demo record"],
+                "auto_close_allowed": True,
+                "effective_from": "2026-01-01T00:00:00Z",
+                "effective_to": None,
+            }
+        ],
+    )

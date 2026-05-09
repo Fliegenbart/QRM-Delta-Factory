@@ -88,14 +88,15 @@ export default async function ReviewPackPage({ params }: PageProps) {
 }
 
 function ReasonList({ title, reasons }: { title: string; reasons: string[] }) {
+  const uniqueReasons = Array.from(new Set(reasons));
   return (
     <div>
       <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{title}</h3>
-      {reasons.length === 0 ? (
+      {uniqueReasons.length === 0 ? (
         <p className="mt-1 text-sm text-slate-500">Keine Einträge.</p>
       ) : (
         <ul className="mt-2 space-y-1">
-          {reasons.map((reason) => (
+          {uniqueReasons.map((reason) => (
             <li key={reason} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
               {reason}
             </li>
