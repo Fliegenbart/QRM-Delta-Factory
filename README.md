@@ -6,11 +6,22 @@ MVP/prototype web application for AI-assisted Quality Risk Management delta anal
 
 - Creates and displays a QRM project for a synthetic sterile injectable / automated visual inspection change-control scenario.
 - Stores a Prisma/SQLite data model for users, projects, source documents, snippets, risk-library items, risk items, evidence, gaps, plausibility checks, red-team findings, approvals, audit logs, exports, and validation artifacts.
-- Uses `MockLLMAdapter` only. No external AI API is called.
+- **Multi-Agent AI Analysis**: Uses GPT-4o (Author/Resolver) + Claude (Critic) for real risk analysis with human-in-the-loop escalation.
+- **Document Upload**: Upload your own documents (PDF, DOCX, TXT, MD, CSV) for analysis, or use realistic demo documents.
 - Marks AI-generated content as `DRAFT`.
 - Produces source-based draft risk updates, evidence gaps, plausibility checks, red-team missing-risk findings, a review queue, audit trail view, export preview, and draft validation-pack templates.
 - Builds Risk Review Packages before independent plausibility review, so the Critic is not called on empty or incomplete technical input.
 - Shows a customer-demo-ready Risk Review Summary, Risk-Based Review Queue, Evidence Map, workload-reduction estimate, and Draft Risk Delta Review Pack export.
+
+## Multi-Agent Architecture
+
+The Delta Analysis feature uses a multi-agent workflow:
+
+1. **Author Agent (GPT-4o)**: Analyzes source documents, identifies risks, creates FMEA-style risk items with source citations
+2. **Critic Agent (Claude)**: Reviews the Author's work, verifies claims against sources, identifies gaps and issues
+3. **Resolver Agent (GPT-4o)**: Mediates disagreements, implements revisions, escalates unresolved items to human reviewers
+
+This "Best Buddies, Gnadenlose Kritiker" approach ensures thorough, audit-ready risk analysis with clear evidence trails.
 
 ## Important limits
 
@@ -41,6 +52,17 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+## Environment Variables
+
+For the Multi-Agent Analysis to work, set these API keys in `.env`:
+
+```bash
+OPENAI_API_KEY=sk-...      # For GPT-4o (Author/Resolver agents)
+ANTHROPIC_API_KEY=sk-...   # For Claude (Critic agent)
+```
+
+Without API keys, the system falls back to demo mode with realistic mock documents.
 
 Demo local users use password:
 
