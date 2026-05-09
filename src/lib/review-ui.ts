@@ -5,6 +5,19 @@ export type ReviewDecisionValue =
   | "request_more_information"
   | "escalate_to_qa";
 
+export const supabasePublicEnvKeys = {
+  url: "NEXT_PUBLIC_SUPABASE_URL",
+  publishableKey: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+} as const;
+
+export function hasSupabasePublicConfig(
+  env: Record<string, string | undefined> = process.env
+): boolean {
+  return Boolean(
+    env[supabasePublicEnvKeys.url] && env[supabasePublicEnvKeys.publishableKey]
+  );
+}
+
 export const riskOrchestrationEntry = {
   legacyDeltaRoute: "/delta-analysis",
   reviewWorkbenchRoute: "/review-ui",

@@ -81,11 +81,17 @@ backend. The browser never receives the backend API key. Configure the server-si
 ```bash
 QRM_BACKEND_URL="http://localhost:8000"
 QRM_BACKEND_API_KEY=""
+NEXT_PUBLIC_SUPABASE_URL=""
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=""
 ```
 
 The Review UI also includes a `Demo-Daten erzeugen` action. It calls the backend demo seed,
 creates a synthetic AVI threshold-change package, runs the pipeline, and opens a generated
 human-review dossier.
+
+Supabase browser/server helpers live under `utils/supabase/`. The middleware refreshes Supabase
+sessions when the public Supabase URL and publishable key are configured, and safely passes through
+when they are missing.
 
 ## Environment Variables
 
