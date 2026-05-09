@@ -3,6 +3,8 @@ import {
   decisionOptions,
   findTopRiskById,
   normalizeReviewDecisionPayload,
+  supabasePublicEnvKeys,
+  hasSupabasePublicConfig,
   riskOrchestrationEntry,
   type ReviewPack
 } from "@/src/lib/review-ui";
@@ -75,5 +77,19 @@ describe("review UI helpers", () => {
       decision: "confirm",
       rationale: "Evidence and requirement basis reviewed."
     });
+  });
+
+  it("documents the public Supabase env names used by the frontend helpers", () => {
+    expect(supabasePublicEnvKeys).toEqual({
+      url: "NEXT_PUBLIC_SUPABASE_URL",
+      publishableKey: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+    });
+    expect(
+      hasSupabasePublicConfig({
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_example"
+      })
+    ).toBe(true);
+    expect(hasSupabasePublicConfig({ NEXT_PUBLIC_SUPABASE_URL: "" })).toBe(false);
   });
 });

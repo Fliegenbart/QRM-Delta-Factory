@@ -17,6 +17,8 @@
     "@anthropic-ai/sdk": "^0.95.1",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^5.22.0",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.105.4",
     "bcryptjs": "^2.4.3",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.468.0",
