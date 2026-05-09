@@ -3,8 +3,18 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
+from app.db.in_memory import _engine_options_for_database_url
 from app.db.persistent import PersistentSnapshotRepository
 from app.schemas.domain import DocumentSet, RequirementSet
+
+
+def test_postgres_pooler_engine_options_disable_prepared_statements() -> None:
+    options = _engine_options_for_database_url(
+        "postgresql://postgres.example:secret@aws-0-eu-west-1.pooler.supabase.com:6543/postgres"
+    )
+
+    assert options["connect_args"] == {"prepare_threshold": None}
+    assert options["pool_pre_ping"] is True
 
 
 def test_persistent_repository_restores_snapshot_from_sqlite(tmp_path) -> None:  # type: ignore[no-untyped-def]

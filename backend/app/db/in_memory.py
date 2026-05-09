@@ -345,7 +345,12 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
     """
 
     def __init__(self, *, database_url: str) -> None:
-        self._engine: Engine = create_engine(_normalize_database_url(database_url), future=True)
+        normalized_database_url = _normalize_database_url(database_url)
+        self._engine: Engine = create_engine(
+            normalized_database_url,
+            future=True,
+            **_engine_options_for_database_url(normalized_database_url),
+        )
         self._is_loading = False
         self._lock = RLock()
         super().__init__()
@@ -711,6 +716,16 @@ def _normalize_database_url(database_url: str) -> str:
     if database_url.startswith("postgresql://"):
         return database_url.replace("postgresql://", "postgresql+psycopg://", 1)
     return database_url
+
+
+def _engine_options_for_database_url(database_url: str) -> dict[str, object]:
+    normalized_database_url = _normalize_database_url(database_url)
+    if normalized_database_url.startswith("postgresql+psycopg://"):
+        return {
+            "connect_args": {"prepare_threshold": None},
+            "pool_pre_ping": True,
+        }
+    return {}
 
 
 def _build_repository() -> InMemoryDocumentRepository:
