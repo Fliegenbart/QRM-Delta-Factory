@@ -2,7 +2,7 @@ import Link from "next/link";
 import { listDocumentSets } from "@/src/lib/review-api";
 import { DemoSeedButton } from "@/src/components/review-ui/demo-seed-button";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
-import type { DocumentSet } from "@/src/lib/review-ui";
+import { consultantReviewCopy, type DocumentSet } from "@/src/lib/review-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -13,26 +13,26 @@ export default async function ReviewUiDocumentSetsPage() {
   try {
     documentSets = await listDocumentSets();
   } catch (caught) {
-    error = caught instanceof Error ? caught.message : "Could not load DocumentSets.";
+    error = caught instanceof Error ? caught.message : "Prüfpakete konnten nicht geladen werden.";
   }
 
   return (
     <ReviewShell>
-      <ReviewPanel title="DocumentSet Liste" action={<DemoSeedButton />}>
+      <ReviewPanel title={consultantReviewCopy.list.title} action={<DemoSeedButton />}>
         {error ? (
-          <EmptyState message={`Backend nicht erreichbar oder nicht konfiguriert: ${error}`} />
+          <EmptyState message={`${consultantReviewCopy.list.loadErrorPrefix}: ${error}`} />
         ) : documentSets.length === 0 ? (
-          <EmptyState message="Keine DocumentSets gefunden. Klicke auf Demo-Daten erzeugen, um einen synthetischen AVI-Threshold-Change mit Pipeline und Review Pack anzulegen." />
+          <EmptyState message={consultantReviewCopy.list.empty} />
         ) : (
           <div className="overflow-hidden rounded-2xl border border-slate-200">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
                 <tr>
-                  <th className="px-4 py-3">DocumentSet</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Process Area</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Documents</th>
+                  <th className="px-4 py-3">{consultantReviewCopy.list.columns.package}</th>
+                  <th className="px-4 py-3">{consultantReviewCopy.list.columns.trigger}</th>
+                  <th className="px-4 py-3">{consultantReviewCopy.list.columns.area}</th>
+                  <th className="px-4 py-3">{consultantReviewCopy.list.columns.status}</th>
+                  <th className="px-4 py-3">{consultantReviewCopy.list.columns.sources}</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -53,7 +53,7 @@ export default async function ReviewUiDocumentSetsPage() {
                         className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white"
                         href={`/review-ui/document-sets/${documentSet.document_set_id}`}
                       >
-                        Öffnen
+                        {consultantReviewCopy.list.open}
                       </Link>
                     </td>
                   </tr>

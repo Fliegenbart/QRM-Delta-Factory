@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { consultantReviewCopy } from "@/src/lib/review-ui";
 
 export function DemoSeedButton() {
   const router = useRouter();
@@ -16,15 +17,15 @@ export function DemoSeedButton() {
 
     if (!response.ok) {
       setStatus("error");
-      setMessage(payload.error ?? "Demo-Daten konnten nicht erzeugt werden.");
+      setMessage(payload.error ?? consultantReviewCopy.seed.error);
       return;
     }
 
     setStatus("seeded");
     setMessage(
       payload.created
-        ? "Demo-Daten erzeugt. Pipeline und Review Pack sind angelegt."
-        : "Demo-Daten waren schon vorhanden. Pipeline und Review Pack wurden aktualisiert."
+        ? consultantReviewCopy.seed.created
+        : consultantReviewCopy.seed.refreshed
     );
     router.refresh();
   }
@@ -37,7 +38,7 @@ export function DemoSeedButton() {
         disabled={status === "seeding"}
         className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:bg-slate-300"
       >
-        {status === "seeding" ? "Demo wird erzeugt..." : "Demo-Daten erzeugen"}
+        {status === "seeding" ? consultantReviewCopy.seed.seeding : consultantReviewCopy.seed.idle}
       </button>
       {message ? (
         <p

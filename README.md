@@ -2,6 +2,21 @@
 
 MVP/prototype web application for AI-assisted Quality Risk Management delta analysis in pharmaceutical GMP environments.
 
+## Kurz erklärt für Consultants
+
+Dieses Projekt ist ein Demo-Cockpit für vorbereitende pharmazeutische Risikoarbeit. Es nimmt einen Change-/Deviation-/CAPA-Fall, verknüpft ihn mit vorhandenen Quellen und baut daraus eine kurze, prüfbare Risikomappe für SME, QA oder Regulatory.
+
+Das Tool entscheidet nicht selbst. Es spart vor allem Such- und Sortieraufwand: Welche Risiken sind betroffen? Welche Quelle stützt welche Aussage? Welche Evidenz fehlt? Was muss ein Mensch als Nächstes prüfen?
+
+Der wichtigste Pfad ist:
+
+1. Unterlagen oder Demo-Fall bereitstellen.
+2. Quellen, Anforderungen und Prüfpunkte erzeugen.
+3. Unvollständige Pakete zurück an Author/Ops geben.
+4. Vollständige Pakete plausibilisieren.
+5. Prüfpaket mit Quellen, Lücken und Review-Fragen öffnen.
+6. Menschliche Review-Entscheidung dokumentieren.
+
 ## What this MVP does
 
 - Creates and displays a QRM project for a synthetic sterile injectable / automated visual inspection change-control scenario.
@@ -74,9 +89,9 @@ entry point for the backend-first Risk Orchestration workflow. Conceptually, thi
 replaces the earlier frontend-only delta analysis as the primary process. The old
 synthetic Review Package screens remain available for demo/export presentation only.
 
-It lists backend `DocumentSet` records, opens generated Review Packs, shows finding-level cited
-evidence with page/chunk references, and records human review decisions through the FastAPI
-backend. The browser never receives the backend API key. Configure the server-side proxy with:
+Die Review-UI zeigt keine technische Modell-Spielerei, sondern vorbereitete Prüfpakete. Man sieht den Anlass, den Prozessbereich, die Quellen im Paket, die wichtigsten Prüfpunkte, die Zitate mit Seite/Chunk und den Grund, warum menschliche Prüfung erforderlich ist. Review-Entscheidungen werden über das FastAPI-Backend dokumentiert.
+
+The browser never receives the backend API key. Configure the server-side proxy with:
 
 ```bash
 QRM_BACKEND_URL="http://localhost:8000"

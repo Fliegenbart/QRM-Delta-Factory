@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  consultantReviewCopy,
   decisionOptions,
   findTopRiskById,
   normalizeReviewDecisionPayload,
@@ -15,8 +16,23 @@ describe("review UI helpers", () => {
     expect(riskOrchestrationEntry.legacyDeltaRoute).toBe("/delta-analysis");
     expect(riskOrchestrationEntry.reviewWorkbenchRoute).toBe("/review-ui");
     expect(riskOrchestrationEntry.demoSeedRoute).toBe("/api/review-ui/demo-seed");
-    expect(riskOrchestrationEntry.workflow).toContain("Build cited claim ledger");
-    expect(riskOrchestrationEntry.workflow).toContain("Fuse risk conservatively");
+    expect(riskOrchestrationEntry.name).toBe("Prüfbare Risiko-Deltas");
+    expect(riskOrchestrationEntry.shortDescription).toContain("Berater");
+    expect(riskOrchestrationEntry.shortDescription).toContain("Quellen");
+    expect(riskOrchestrationEntry.workflow).toContain(
+      "1. Demo-Fall oder Kundendokumente bereitstellen"
+    );
+    expect(riskOrchestrationEntry.workflow).toContain(
+      "3. Review Pack für SME/QA öffnen"
+    );
+  });
+
+  it("uses consultant-friendly copy for the backend review UI", () => {
+    expect(consultantReviewCopy.workspaceTitle).toBe("Prüfbare Risiko-Deltas");
+    expect(consultantReviewCopy.workspaceDescription).toContain("Es entscheidet nicht selbst");
+    expect(consultantReviewCopy.list.title).toBe("Vorbereitete Prüfpakete");
+    expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt mit Quelle");
+    expect(consultantReviewCopy.decision.savedMessage).toContain("Audit Trail");
   });
 
   it("exposes the reviewer decisions required by the workflow", () => {
@@ -26,6 +42,13 @@ describe("review UI helpers", () => {
       "reject_false_positive",
       "request_more_information",
       "escalate_to_qa"
+    ]);
+    expect(decisionOptions.map((option) => option.label)).toEqual([
+      "Befund bestätigen",
+      "Bewertung herabstufen",
+      "Als Fehlalarm markieren",
+      "Weitere Unterlagen anfordern",
+      "An QA eskalieren"
     ]);
   });
 

@@ -195,7 +195,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const [reviewPackages, setReviewPackages] = useState<ReviewPackage[]>([]);
   const [packageResults, setPackageResults] = useState<Record<string, PackageReviewResult>>({});
   const [riskDeltaExport, setRiskDeltaExport] = useState<ReturnType<typeof generateRiskDeltaReviewPack> | null>(null);
-  const [loginMessage, setLoginMessage] = useState("Demo users use password demo123.");
+  const [loginMessage, setLoginMessage] = useState("Demo-Rollen nutzen Passwort demo123.");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navCategories.map(cat => [cat.nameKey, true]))
@@ -402,7 +402,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
               <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-teal-600">Delta Factory</div>
             </div>
           </div>
-          <div className="mt-4 text-xs leading-5 text-slate-600">Source-linked draft risk packages for qualified human review.</div>
+          <div className="mt-4 text-xs leading-5 text-slate-600">{t("brand.tagline")}</div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
           {navigationContent}
@@ -443,7 +443,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
             <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
               <span className="hidden rounded-full border border-teal-500/20 bg-white/70 dark:bg-slate-800/70 dark:border-teal-500/30 px-3 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 shadow-sm md:inline-flex">
                 <ShieldCheck className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                Audit Trail Active
+                {t("header.auditTrailActive")}
               </span>
               <span className="hidden rounded-full border border-teal-500/20 bg-white/70 dark:bg-slate-800/70 dark:border-teal-500/30 px-3 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 shadow-sm lg:inline-flex">v1.2.0</span>
 
@@ -493,10 +493,10 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
               <button
                 type="button"
                 className="inline-flex h-10 items-center gap-2 rounded-2xl bg-ink dark:bg-teal-600 px-4 text-sm font-medium text-white shadow-[0_16px_40px_rgba(17,24,29,0.18)] transition-transform hover:scale-[1.02] active:scale-[0.98]"
-                onClick={() => setLoginMessage(`Active local demo role: ${role.replaceAll("_", " ")}`)}
+                onClick={() => setLoginMessage(`Aktive Demo-Rolle: ${role.replaceAll("_", " ")}`)}
               >
                 <Lock className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">Local auth</span>
+                <span className="hidden sm:inline">{t("header.localAuth")}</span>
               </button>
             </div>
           </div>
@@ -1058,26 +1058,26 @@ function DeltaSection() {
     ? {
         eyebrow: "Neuer Kernprozess",
         badge: "Ersetzt die bisherige Delta-Analyse",
-        title: "Risk-Orchestrierung statt Modell-Abstimmung.",
+        title: "Aus Dokumenten wird eine prüfbare Risikomappe.",
         description:
-          "Der neue Pfad analysiert Dokumente backend-first, baut ein zitiertes Claim Ledger, prüft versionierte Requirements, verifiziert Findings und erzeugt Review Packs für menschliche QA- und Regulatory-Prüfung.",
-        primary: "Review Workbench öffnen",
-        secondary: "Synthetische Demo-Pakete ansehen",
+          "Der neue Pfad zeigt nicht mehr nur eine KI-Auswertung. Er sammelt Quellen, prüft Anforderungen, markiert Lücken und erzeugt ein kompaktes Review Pack für SME, QA oder Regulatory.",
+        primary: "Prüfmappe öffnen",
+        secondary: "Demo-Pakete ansehen",
         decisionSupport: "Decision Support",
-        noVoting: "Kein Mehrheitsvoting",
-        evidenceFirst: "Evidenzpflicht",
-        humanControl: "Human Review",
-        architectureTitle: "Integrierter Orchestrierungsablauf",
+        noVoting: "Keine Modell-Abstimmung",
+        evidenceFirst: "Quellenpflicht",
+        humanControl: "Entscheidung beim Menschen",
+        architectureTitle: "Was passiert in diesem Schritt?",
         architectureText:
-          "Die alte Delta-Analyse bleibt nicht der Hauptprozess. Sie ist jetzt der Einstieg in diese Pipeline: Dokumente rein, Claims und Findings quellenbasiert raus, Review Pack für den Menschen.",
-        safetyTitle: "Warum das besser passt",
+          "Die frühere Delta-Analyse ist jetzt der Einstieg in die Pipeline: Unterlagen rein, zitierte Prüfpunkte und offene Fragen raus.",
+        safetyTitle: "Warum das für Consultants wichtig ist",
         safetyText:
-          "Das System versucht nicht, regulatorische Entscheidungen selbst zu treffen. Es blockiert unvollständige Inputs, eskaliert High/Critical-Risiken konservativ und zeigt nur zitierte Aussagen mit Dokument-ID, Seite, Chunk und Quote.",
+          "Das System reduziert Such- und Sortieraufwand. Es trifft keine regulatorischen Entscheidungen, sondern zeigt, wo der Mensch gezielt prüfen muss.",
         routesTitle: "Was du testen solltest",
-        routeReviewUi: "Neue Backend-Review-UI",
-        routeReviewUiText: "DocumentSets öffnen, Review Pack ansehen und Reviewer-Entscheidungen erfassen.",
-        routeReviewPackages: "Alte Frontend-Demo",
-        routeReviewPackagesText: "Nur noch als synthetische Demo für Review-Pakete, Queue, Evidence Map und Export.",
+        routeReviewUi: "Neue Prüfmappen-UI",
+        routeReviewUiText: "Prüfpaket öffnen, Quellenzitate ansehen und Review-Entscheidungen erfassen.",
+        routeReviewPackages: "Demo-Cockpit",
+        routeReviewPackagesText: "Zeigt Review Queue, Quellenkarte, Arbeitsaufwand und Draft Export für den synthetischen Fall.",
         routeBackend: "Backend-Pipeline",
         routeBackendText: "FastAPI verarbeitet Upload, Requirements, Claims, Reviewer, Verifier, Risk Fusion und Audit Trail."
       }
@@ -1110,15 +1110,19 @@ function DeltaSection() {
 
   const workflow = isGerman
     ? [
-        "Dokumente hochladen und parsen",
-        "Zitiertes Claim Ledger erzeugen",
-        "Versionierte Requirements abrufen",
-        "Primary und adversarial Reviewer ausführen",
-        "Evidenz und Requirement-Matches verifizieren",
-        "Risiko konservativ fusionieren",
-        "Human Review Pack erzeugen"
+        "Demo-Fall oder Kundendokumente bereitstellen",
+        "Quellen und Anforderungen prüfen lassen",
+        "Prüfpunkte mit Zitaten erzeugen",
+        "Plausibilität und Lücken prüfen",
+        "Review Pack für SME/QA öffnen"
       ]
-    : [...riskOrchestrationEntry.workflow];
+    : [
+        "Provide demo case or customer documents",
+        "Check sources and requirements",
+        "Create cited review points",
+        "Check plausibility and gaps",
+        "Open review pack for SME/QA"
+      ];
 
   return (
     <div className="space-y-6">
@@ -1189,9 +1193,18 @@ function DeltaSection() {
         <Panel title={copy.architectureTitle}>
           <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">{copy.architectureText}</p>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <SummaryBlock title="Claim Ledger" text="Claims need quote, document ID, page, chunk ID, confidence, model and prompt version." />
-            <SummaryBlock title="Verifier Gates" text="Citations, Requirement applicability, parser quality, OOD and coverage are checked before review routing." />
-            <SummaryBlock title="Review Pack" text="Humans receive a compact dossier with top risks, evidence table, model positions and audit references." />
+            <SummaryBlock
+              title={isGerman ? "Aussagen-Liste" : "Claim Ledger"}
+              text={isGerman ? "Jede Aussage braucht Quelle, Seite, Chunk, Zitat und eine nachvollziehbare Herkunft." : "Claims need quote, document ID, page, chunk ID, confidence, model and prompt version."}
+            />
+            <SummaryBlock
+              title={isGerman ? "Prüf-Gates" : "Verifier Gates"}
+              text={isGerman ? "Zitate, passende Requirements, Parserqualität und Abdeckung werden geprüft, bevor etwas in den Review geht." : "Citations, Requirement applicability, parser quality, OOD and coverage are checked before review routing."}
+            />
+            <SummaryBlock
+              title={isGerman ? "Review Pack" : "Review Pack"}
+              text={isGerman ? "Menschen erhalten ein kurzes Dossier mit Top-Risiken, Quellen, Modellpositionen und Audit-Referenzen." : "Humans receive a compact dossier with top risks, evidence table, model positions and audit references."}
+            />
           </div>
         </Panel>
 
@@ -1201,13 +1214,17 @@ function DeltaSection() {
             <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">
               <AlertTriangle className="mt-0.5 h-5 w-5 text-amber" />
               <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">
-                Input incomplete, parser problems, missing coverage and weak evidence route to human action, not to silent clearance.
+                {isGerman
+                  ? "Unvollständige Eingaben, Parserprobleme, fehlende Abdeckung und schwache Evidenz führen zu menschlicher Aktion, nicht zu stiller Entwarnung."
+                  : "Input incomplete, parser problems, missing coverage and weak evidence route to human action, not to silent clearance."}
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">
               <ShieldCheck className="mt-0.5 h-5 w-5 text-teal" />
               <div className="text-sm leading-6 text-slate-700 dark:text-slate-300">
-                Model, prompt, RequirementSet and orchestration versions are part of the audit trail.
+                {isGerman
+                  ? "Modell, Prompt, RequirementSet und Orchestrierungsversion werden im Audit Trail nachvollziehbar gehalten."
+                  : "Model, prompt, RequirementSet and orchestration versions are part of the audit trail."}
               </div>
             </div>
           </div>
@@ -1362,6 +1379,16 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
   const filteredQueue = queue.filter((item) => queueFilter === "All" || queueFilterMatch(item, queueFilter));
   const workload = summarizeWorkload(packages, context.packageResults);
   const exportPack = context.riskDeltaExport;
+  const queueFilters = [
+    { value: "All", label: "Alle" },
+    { value: "Input incomplete", label: "Unvollständig" },
+    { value: "Ready for plausibility check", label: "Bereit für Quellencheck" },
+    { value: "SME required", label: "SME erforderlich" },
+    { value: "QA required", label: "QA erforderlich" },
+    { value: "Evidence gaps", label: "Evidenzlücken" },
+    { value: "High priority", label: "Hohe Priorität" },
+    { value: "Quick check only", label: "Nur Schnellcheck" }
+  ];
 
   // Calculate current step for progress wizard
   const currentStep = useMemo(() => {
@@ -1396,16 +1423,16 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
       {packages.length > 0 ? (
         <Panel title={t("review.riskBasedQueue")}>
           <div className="mb-5 flex flex-wrap gap-2">
-            {["All", "Input incomplete", "Ready for plausibility check", "SME required", "QA required", "Evidence gaps", "High priority", "Quick check only"].map((filter) => (
+            {queueFilters.map((filter) => (
               <button
-                key={filter}
+                key={filter.value}
                 type="button"
                 className={`h-10 rounded-2xl border px-4 text-sm transition ${
-                  queueFilter === filter ? "border-teal bg-teal text-white shadow-[0_14px_35px_rgba(0,155,141,0.18)]" : "border-black/10 bg-white/75 text-slate-700 hover:bg-white"
+                  queueFilter === filter.value ? "border-teal bg-teal text-white shadow-[0_14px_35px_rgba(0,155,141,0.18)]" : "border-black/10 bg-white/75 text-slate-700 hover:bg-white"
                 }`}
-                onClick={() => setQueueFilter(filter)}
+                onClick={() => setQueueFilter(filter.value)}
               >
-                {filter}
+                {filter.label}
               </button>
             ))}
           </div>
@@ -1445,7 +1472,7 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
                 onClick={() => void context.runPackageReview(pkg.id)}
               >
                 <Play className="h-4 w-4" aria-hidden />
-                Run Plausibility Check
+                Plausibilitätscheck starten
               </button>
             }
           >
@@ -1456,36 +1483,36 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
                   <Badge tone={pkg.package_status === "INPUT_INCOMPLETE" ? "amber" : "slate"}>{pkg.package_status}</Badge>
                 </div>
                 <div>
-                  <span className="font-semibold">Missing fields:</span>{" "}
-                  {pkg.missing_inputs.length > 0 ? pkg.missing_inputs.join(", ") : "None"}
+                  <span className="font-semibold">Fehlende Eingaben:</span>{" "}
+                  {pkg.missing_inputs.length > 0 ? pkg.missing_inputs.join(", ") : "keine"}
                 </div>
                 <div>
-                  <span className="font-semibold">Risk library:</span> {libraryLabel}
+                  <span className="font-semibold">Risikobibliothek:</span> {libraryLabel}
                 </div>
                 <div>
-                  <span className="font-semibold">Baseline:</span> {baselineLabel}
+                  <span className="font-semibold">Bestehender FMEA-Eintrag:</span> {baselineLabel}
                 </div>
                 <div>
-                  <span className="font-semibold">Scoring:</span> {pkg.scoring_model.name}, {pkg.scoring_model.scale}, RPN {pkg.risk_item_draft.initial_rpn_suggestion}
+                  <span className="font-semibold">Bewertungsvorschlag:</span> {pkg.scoring_model.name}, {pkg.scoring_model.scale}, RPN {pkg.risk_item_draft.initial_rpn_suggestion}
                 </div>
                 {result ? (
                   <div className="rounded-md bg-slate-50 p-3">
-                    <div className="font-semibold">Critic result: {result.overall_result}</div>
-                    <div>Evidence: {result.evidence_quality}</div>
-                    <div>Recommended status: {result.recommended_status}</div>
+                    <div className="font-semibold">Plausibilitätscheck: {result.overall_result}</div>
+                    <div>Evidenzqualität: {result.evidence_quality}</div>
+                    <div>Empfohlener nächster Status: {result.recommended_status}</div>
                   </div>
                 ) : null}
               </div>
               <div className="grid gap-4 md:grid-cols-3">
-                <MiniList title="Linked snippets" items={pkg.linked_source_snippets.map((snippet) => `${snippet.id}: ${snippet.sectionTitle}`)} />
-                <MiniList title="Evidence links" items={pkg.evidence_links.map((link) => `${link.id}: ${link.evidence_type} (${link.quality_status})`)} empty="No evidence link" />
-                <MiniList title="Documented gaps" items={pkg.documented_gaps.map((gap) => `${gap.priority}: ${gap.description}`)} empty="No documented gap" />
+                <MiniList title="Quellenzitate" items={pkg.linked_source_snippets.map((snippet) => `${snippet.id}: ${snippet.sectionTitle}`)} />
+                <MiniList title="Evidenzlinks" items={pkg.evidence_links.map((link) => `${link.id}: ${link.evidence_type} (${link.quality_status})`)} empty="Kein Evidenzlink" />
+                <MiniList title="Dokumentierte Lücken" items={pkg.documented_gaps.map((gap) => `${gap.priority}: ${gap.description}`)} empty="Keine Lücke dokumentiert" />
               </div>
             </div>
             <div className="mt-5 border-t border-line pt-4">
-              <h3 className="text-sm font-semibold">Evidence Map</h3>
+              <h3 className="text-sm font-semibold">Quellenkarte</h3>
               <Table
-                headers={["Claim", "Snippet", "Document", "Evidence", "Quality", "Gap", "Supports"]}
+                headers={["Aussage", "Quelle", "Dokument", "Evidenztyp", "Qualität", "Lücke", "Stützt"]}
                 rows={buildEvidenceMap(pkg).map((row) => [
                   row.risk_item_claim,
                   row.source_snippet_id,
@@ -1496,7 +1523,7 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
                   Object.entries(row.supports)
                     .filter(([, supported]) => supported)
                     .map(([key]) => key.replaceAll("_", " "))
-                    .join(", ") || "Context only"
+                    .join(", ") || "nur Kontext"
                 ])}
               />
             </div>
@@ -1506,30 +1533,30 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
 
       {packages.length > 0 ? (
         <Panel
-          title="Risk Delta Review Pack Export"
+          title="Draft Risk Delta Review Pack"
           action={
             <button type="button" className="inline-flex h-9 items-center gap-2 rounded-md bg-ink px-3 text-sm font-medium text-white" onClick={context.generateDeltaExport}>
               <FileDown className="h-4 w-4" aria-hidden />
-              Generate Export
+              Draft Export erzeugen
             </button>
           }
         >
           <div className="grid gap-4 md:grid-cols-3">
-            <SummaryBlock title="Markdown" text="Professional draft deliverable with cover, AI disclosure, workload summary, review queue, risk delta matrix, evidence map, questions, audit summary, and limitations." />
-            <SummaryBlock title="CSV" text="Risk matrix queue export for spreadsheet review." />
-            <SummaryBlock title="JSON" text="Structured ReviewPackage data for downstream inspection, testing, or system integration." />
+            <SummaryBlock title="Markdown" text="Lesbare Prüfmappen-Vorschau mit Scope, KI-Hinweis, Aufwand, Review Queue, Risiko-Delta-Matrix, Quellenkarte, Fragen und Grenzen." />
+            <SummaryBlock title="CSV" text="Tabellarischer Risiko- und Queue-Export für Excel oder interne Review-Listen." />
+            <SummaryBlock title="JSON" text="Strukturierte Paketdaten für technische Prüfung, Tests oder spätere Integration." />
           </div>
           {exportPack ? (
             <div className="mt-4 space-y-4">
               <div className="flex flex-wrap gap-2">
-                <DownloadButton fileName="risk-delta-review-pack.md" mime="text/markdown" content={exportPack.markdown} label="Download .md" />
-                <DownloadButton fileName="risk-delta-review-pack.csv" mime="text/csv" content={exportPack.csv} label="Download .csv" />
-                <DownloadButton fileName="risk-delta-review-pack.json" mime="application/json" content={JSON.stringify(exportPack.json, null, 2)} label="Download .json" />
+                <DownloadButton fileName="risk-delta-review-pack.md" mime="text/markdown" content={exportPack.markdown} label=".md herunterladen" />
+                <DownloadButton fileName="risk-delta-review-pack.csv" mime="text/csv" content={exportPack.csv} label=".csv herunterladen" />
+                <DownloadButton fileName="risk-delta-review-pack.json" mime="application/json" content={JSON.stringify(exportPack.json, null, 2)} label=".json herunterladen" />
               </div>
               <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-slate-950 p-4 text-xs leading-5 text-slate-100">{exportPack.markdown}</pre>
             </div>
           ) : (
-            <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-600">Draft export is allowed and clearly marked DRAFT. Approved export remains blocked until package approval workflow exists.</div>
+            <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm text-slate-600">Der Draft Export ist erlaubt und klar als ENTWURF gekennzeichnet. Ein freigegebener Export bleibt blockiert, solange keine menschliche QA-Entscheidung dokumentiert ist.</div>
           )}
         </Panel>
       ) : null}
@@ -1561,41 +1588,41 @@ function MatrixSection() {
 
 function EvidenceSection() {
   return (
-    <Panel title="Evidence map">
+    <Panel title="Quellenkarte">
       <Table
-        headers={["Risk", "Required evidence / verification", "Source links", "Evidence quality"]}
+        headers={["Risiko", "Benötigte Evidenz", "Quellen", "Qualität"]}
         rows={demoRiskItems.map((item) => [item.id, item.requiredEvidence.join("; "), item.sourceLinks.join(", "), item.evidenceStatus])}
       />
-      <p className="mt-4 text-sm leading-6 text-slate-600">SOP-only evidence can describe a control, but usually does not prove effectiveness. Validation reports or tests are stronger evidence for effectiveness.</p>
+      <p className="mt-4 text-sm leading-6 text-slate-600">Eine SOP beschreibt oft nur die Regel. Für Wirksamkeit sind Tests, Validierungsberichte oder Effektivitätsnachweise belastbarer.</p>
     </Panel>
   );
 }
 
 function GapsSection() {
   return (
-    <Panel title="Gap and expert-question list">
-      <Table headers={["Priority", "Risk", "Gap", "Question", "Status"]} rows={demoGaps.map((gap) => [gap.priority, gap.riskItemId, gap.description, gap.question, gap.status])} />
+    <Panel title="Lücken und gezielte Expertenfragen">
+      <Table headers={["Priorität", "Risiko", "Lücke", "Frage", "Status"]} rows={demoGaps.map((gap) => [gap.priority, gap.riskItemId, gap.description, gap.question, gap.status])} />
     </Panel>
   );
 }
 
 function PlausibilitySection() {
   return (
-    <Panel title="Independent AI plausibility checks">
+    <Panel title="Unabhängiger Plausibilitätscheck">
       <Table
-        headers={["Risk", "Result", "Reviewer type", "Comments", "Issues"]}
+        headers={["Risiko", "Ergebnis", "Benötigte Rolle", "Kommentar", "Themen"]}
         rows={demoPlausibilityChecks.map((check) => [check.riskItemId, check.result, check.requiredHumanReviewerType, check.comments, check.issues.join("; ")])}
       />
-      <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">PASS means plausibility only. It is not a QA decision.</p>
+      <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">PASS bedeutet nur: Die Plausibilitätsprüfung hat keinen Blocker gefunden. Das ist keine QA-Entscheidung.</p>
     </Panel>
   );
 }
 
 function RedTeamSection() {
   return (
-    <Panel title="Red-Team Missing Risk Finder">
+    <Panel title="Blind-Spot-Prüfung">
       <Table
-        headers={["Category", "Priority", "Finding", "Source basis", "Status"]}
+        headers={["Kategorie", "Priorität", "Prüfpunkt", "Quellenbasis", "Status"]}
         rows={demoRedTeamFindings.map((finding) => [finding.category, finding.priority, finding.description, finding.sourceBasis, finding.status])}
       />
     </Panel>
@@ -1603,18 +1630,18 @@ function RedTeamSection() {
 }
 
 function ReviewQueueSection() {
-  return <RiskRows items={reviewQueue} title="Prioritized review queue" />;
+  return <RiskRows items={reviewQueue} title="Priorisierte Review-Liste" />;
 }
 
 function ApprovalsSection({ role }: { role: string }) {
   const eligible = role === "QA_APPROVER";
   return (
-    <Panel title="Approval workflow">
+    <Panel title="QA-Entscheidungsworkflow">
       <div className={`mb-4 border-l-4 px-4 py-3 text-sm ${eligible ? "border-teal bg-teal/10" : "border-danger bg-danger/10"}`}>
-        Current role: {role.replaceAll("_", " ")}. {eligible ? "This role may perform the QA workflow step after gates pass." : "This role cannot perform the QA workflow step."}
+        Aktuelle Rolle: {role.replaceAll("_", " ")}. {eligible ? "Diese Rolle darf den QA-Schritt dokumentieren, wenn die Gates bestanden sind." : "Diese Rolle darf den QA-Schritt nicht dokumentieren."}
       </div>
       <Table
-        headers={["Risk", "Current status", "Gate result", "Plausibility", "Human scores", "QA route"]}
+        headers={["Risiko", "Aktueller Status", "Gate-Ergebnis", "Plausibilität", "Menschliche Scores", "QA-Pfad"]}
         rows={demoRiskItems.map((item) => {
           const gates = runDeterministicGates(item);
           return [
@@ -1623,7 +1650,7 @@ function ApprovalsSection({ role }: { role: string }) {
             gates.ok ? "PASS" : gates.errors.join("; "),
             item.plausibilityResult,
             `${item.humanSeverity ?? "-"} / ${item.humanOccurrence ?? "-"} / ${item.humanDetectability ?? "-"}`,
-            item.reviewLevel === 3 ? "Full SME and QA review required" : "Risk-based route"
+            item.reviewLevel === 3 ? "Vollständiger SME- und QA-Review nötig" : "Risikobasierter Pfad"
           ];
         })}
       />
@@ -1633,9 +1660,9 @@ function ApprovalsSection({ role }: { role: string }) {
 
 function AuditTrailSection() {
   return (
-    <Panel title="Append-only audit trail">
+    <Panel title="Audit Trail">
       <Table
-        headers={["Timestamp", "User", "Action", "Entity", "Reason", "Payload hash", "Previous hash"]}
+        headers={["Zeitpunkt", "Nutzer", "Aktion", "Objekt", "Grund", "Payload-Hash", "Vorheriger Hash"]}
         rows={demoAuditLogs.map((log) => [log.timestamp, log.userName, log.action, log.entityType, log.reason, log.eventPayloadHash, log.previousEventHash])}
       />
     </Panel>
@@ -1645,16 +1672,16 @@ function AuditTrailSection() {
 function ExportSection(context: Parameters<typeof renderSection>[1]) {
   return (
     <div className="space-y-6">
-      <Panel title="Export package">
+      <Panel title="Review-Pack Export">
         <div className="grid gap-4 md:grid-cols-2">
-          <SummaryBlock title="Markdown export" text="Includes scope, methodology, source index, risk matrix, gaps, checks, review history, audit summary, limitations, and mandatory AI-assistance disclosure." />
-          <SummaryBlock title="CSV export" text="Risk matrix rows are prepared for spreadsheet review. This MVP exposes the generated content through /api/export." />
+          <SummaryBlock title="Markdown" text="Lesbare Draft-Prüfmappe mit Scope, Quellenindex, Risikomatrix, Lücken, Checks, Review-Historie, Audit-Zusammenfassung und Grenzen." />
+          <SummaryBlock title="CSV" text="Risikomatrix als Tabelle für Excel oder interne Review-Listen." />
         </div>
         <div className="mt-4 rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-700">
-          Approved-style export blocked: {context.approvedStyleExport.ok ? "No" : context.approvedStyleExport.errors.join(" ")}
+          Freigegebener Export blockiert: {context.approvedStyleExport.ok ? "Nein" : context.approvedStyleExport.errors.join(" ")}
         </div>
       </Panel>
-      <Panel title="Markdown preview">
+      <Panel title="Markdown-Vorschau">
         <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-md bg-slate-950 p-4 text-xs leading-5 text-slate-100">{context.exportDraft.markdown}</pre>
       </Panel>
     </div>
@@ -1665,17 +1692,17 @@ function ValidationPackSection() {
   const artifacts = generateValidationPack(demoProject.name);
   return (
     <Panel title="System Validation Pack">
-      <Table headers={["Artifact", "Status", "Purpose"]} rows={artifacts.map((artifact) => [artifact.title, artifact.status, artifact.content.split("\n")[7] ?? "Draft planning artifact"])} />
-      <p className="mt-4 text-sm leading-6 text-slate-600">These are draft templates only. Production use requires formal lifecycle controls, SOPs, supplier assessment, security and privacy review, model governance, periodic review, and customer QA decisions.</p>
+      <Table headers={["Unterlage", "Status", "Zweck"]} rows={artifacts.map((artifact) => [artifact.title, artifact.status, artifact.content.split("\n")[7] ?? "Draft planning artifact"])} />
+      <p className="mt-4 text-sm leading-6 text-slate-600">Das sind nur Entwurfsunterlagen. Produktiver Einsatz braucht formale Lifecycle-Kontrollen, SOPs, Lieferantenbewertung, Security-/Privacy-Review, Model Governance, Periodic Review und Kundenseitige QA-Entscheidungen.</p>
     </Panel>
   );
 }
 
 function AdminSection() {
   return (
-    <Panel title="Admin/users">
-      <Table headers={["Name", "Email", "Role"]} rows={demoUsers.map((user) => [user.name, user.email, user.role.replaceAll("_", " ")])} />
-      <p className="mt-4 text-sm leading-6 text-slate-600">Simple local demo authentication uses password demo123. Production use would need enterprise identity, access review, session controls, and record-retention configuration.</p>
+    <Panel title="Admin / Benutzer">
+      <Table headers={["Name", "E-Mail", "Rolle"]} rows={demoUsers.map((user) => [user.name, user.email, user.role.replaceAll("_", " ")])} />
+      <p className="mt-4 text-sm leading-6 text-slate-600">Die lokale Demo nutzt Passwort demo123. Für produktiven Einsatz braucht es Unternehmens-Login, regelmäßige Zugriffsprüfung, Session-Kontrollen und Aufbewahrungsregeln.</p>
     </Panel>
   );
 }
@@ -1686,7 +1713,7 @@ function RiskRows({ items, title, compact = false }: { items: typeof demoRiskIte
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-line text-xs uppercase tracking-[0.08em] text-slate-600">
             <tr>
-              {["Risk", "Priority", "Level", "Failure mode / hazard", "Evidence", "Plausibility", "Review"].map((header) => (
+              {["Risiko", "Priorität", "Level", "Fehlermodus / Risiko", "Evidenz", "Plausibilität", "Review"].map((header) => (
                 <th key={header} className="px-3 py-2 font-semibold">{header}</th>
               ))}
             </tr>
@@ -1752,10 +1779,10 @@ function QueueItemRow({ item }: { item: ReviewQueueItem }) {
         </div>
         <div className="min-w-64 rounded-2xl border border-black/10 bg-slate-50/80 px-4 py-3 text-sm leading-6">
           <div>
-            <span className="font-semibold">Reviewer:</span> {item.required_reviewer_type.join(", ")}
+            <span className="font-semibold">Benötigte Rolle:</span> {item.required_reviewer_type.join(", ")}
           </div>
           <div>
-            <span className="font-semibold">Next action:</span> {item.next_action}
+            <span className="font-semibold">Nächster Schritt:</span> {formatNextAction(item.next_action)}
           </div>
         </div>
       </div>
@@ -1765,21 +1792,33 @@ function QueueItemRow({ item }: { item: ReviewQueueItem }) {
 
 function formatBadge(value: string) {
   const labels: Record<string, string> = {
-    INPUT_INCOMPLETE: "Input incomplete",
-    READY_FOR_PLAUSIBILITY_CHECK: "Ready for check",
-    PLAUSIBILITY_PASS: "Plausibility pass",
-    PLAUSIBILITY_PARTIAL: "Plausibility partial",
-    PLAUSIBILITY_FAIL: "Plausibility fail",
-    EVIDENCE_MISSING: "Evidence missing",
-    SME_REQUIRED: "SME required",
-    QA_REQUIRED: "QA required",
-    AUTHOR_OPS_ACTION: "Author/Ops action",
+    INPUT_INCOMPLETE: "Unvollständig",
+    READY_FOR_PLAUSIBILITY_CHECK: "Bereit für Check",
+    PLAUSIBILITY_PASS: "Plausibilität ok",
+    PLAUSIBILITY_PARTIAL: "Teilweise plausibel",
+    PLAUSIBILITY_FAIL: "Plausibilität fehlgeschlagen",
+    EVIDENCE_MISSING: "Evidenz fehlt",
+    SME_REQUIRED: "SME nötig",
+    QA_REQUIRED: "QA nötig",
+    AUTHOR_OPS_ACTION: "Author/Ops",
     LEVEL_0_BASELINE_UNCHANGED: "Level 0",
-    LEVEL_1_QUICK_CHECK: "Level 1 quick check",
-    LEVEL_2_TARGETED_SME_REVIEW: "Level 2 targeted SME",
-    LEVEL_3_FULL_SME_QA_REVIEW: "Level 3 full SME/QA"
+    LEVEL_1_QUICK_CHECK: "Level 1 Schnellcheck",
+    LEVEL_2_TARGETED_SME_REVIEW: "Level 2 gezielter SME",
+    LEVEL_3_FULL_SME_QA_REVIEW: "Level 3 SME/QA"
   };
   return labels[value] ?? value.replaceAll("_", " ").toLowerCase();
+}
+
+function formatNextAction(value: string) {
+  const labels: Record<string, string> = {
+    "complete input": "Eingabe vervollständigen",
+    "run plausibility check": "Plausibilitätscheck starten",
+    "resolve evidence gap": "Evidenzlücke klären",
+    "SME review": "SME-Review durchführen",
+    "QA approval": "QA-Entscheidung vorbereiten",
+    "ready for export": "Bereit für Draft Export"
+  };
+  return labels[value] ?? value;
 }
 
 function GaugeMetric({ label, value, max, suffix, tone, large = false }: { label: string; value: number; max: number; suffix: string; tone: "slate" | "teal"; large?: boolean }) {

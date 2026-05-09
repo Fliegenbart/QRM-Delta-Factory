@@ -23,18 +23,111 @@ export const riskOrchestrationEntry = {
   reviewWorkbenchRoute: "/review-ui",
   demoSeedRoute: "/api/review-ui/demo-seed",
   replacesLegacyDeltaAnalysis: true,
-  name: "Backend-first Risk Orchestration",
+  name: "Prüfbare Risiko-Deltas",
   shortDescription:
-    "Documents, requirements, claim ledger, multi-reviewer findings, verifier gates, risk fusion, and human review packs.",
+    "Für Berater und QA-Teams: Dokumente, Anforderungen, Quellenzitate und Modellbefunde werden zu prüfbaren Review Packs zusammengeführt. Die Entscheidung bleibt beim Menschen.",
   workflow: [
-    "Upload and parse documents",
-    "Build cited claim ledger",
-    "Retrieve versioned requirements",
-    "Run primary and adversarial reviewers",
-    "Verify evidence and requirement matches",
-    "Fuse risk conservatively",
-    "Generate human review pack"
+    "1. Demo-Fall oder Kundendokumente bereitstellen",
+    "2. Quellen und Anforderungen prüfen lassen",
+    "3. Review Pack für SME/QA öffnen",
+    "4. Evidenz, Lücken und Modellpositionen nachvollziehen",
+    "5. Menschliche Review-Entscheidung dokumentieren"
   ]
+} as const;
+
+export const consultantReviewCopy = {
+  productName: "Pharma QRM Delta Engine",
+  workspaceTitle: "Prüfbare Risiko-Deltas",
+  workspaceDescription:
+    "Aus Change Controls, FMEAs und GMP-Dokumenten entstehen quellenbasierte Prüfpakete. Das System sortiert vor, zeigt Lücken und bereitet Entscheidungen für SME/QA vor. Es entscheidet nicht selbst.",
+  nav: {
+    cockpit: "Demo-Cockpit",
+    packages: "Prüfpakete"
+  },
+  list: {
+    title: "Vorbereitete Prüfpakete",
+    empty:
+      "Noch kein Prüfpaket vorhanden. Lege den synthetischen AVI-Demo-Fall an, um Quellen, Pipeline und Review Pack zu sehen.",
+    loadErrorPrefix: "Backend nicht erreichbar oder noch nicht konfiguriert",
+    columns: {
+      package: "Paket",
+      trigger: "Anlass",
+      area: "Bereich",
+      status: "Status",
+      sources: "Quellen"
+    },
+    open: "Paket öffnen"
+  },
+  seed: {
+    idle: "Demo-Fall anlegen",
+    seeding: "Demo-Fall wird aufgebaut...",
+    created: "Demo-Fall angelegt: Quellen, Pipeline und Prüfmappe sind bereit.",
+    refreshed: "Demo-Fall war vorhanden. Pipeline und Prüfmappe wurden aktualisiert.",
+    error: "Demo-Fall konnte nicht angelegt werden."
+  },
+  detail: {
+    title: "Paket-Übersicht",
+    openReviewPack: "Prüfmappe öffnen",
+    sourcesTitle: "Quellen im Paket",
+    noSources: "Keine Quellen verknüpft.",
+    loadErrorPrefix: "Prüfpaket konnte nicht geladen werden",
+    labels: {
+      packageId: "Paket-ID",
+      tenant: "Mandant",
+      requirementSet: "Regelwerk-Version",
+      uploadedBy: "Angelegt durch",
+      documentType: "Anlass/Dokumenttyp",
+      processArea: "Prozessbereich",
+      uploaded: "Angelegt am",
+      status: "Status"
+    }
+  },
+  pack: {
+    title: "Prüfmappe",
+    humanNotice:
+      "Menschliche Prüfung bleibt erforderlich. Diese Ansicht zeigt nur die relevanten Zitate und Prüfpunkte, nicht das vollständige Quelldokument.",
+    humanReasons: "Warum menschliche Prüfung nötig ist",
+    missingInformation: "Offene Unterlagen oder Fragen",
+    findingsTitle: "Prüfpunkte",
+    emptyFindings: "Diese Prüfmappe enthält aktuell keine Prüfpunkte.",
+    requirement: "Regelwerk",
+    notLinked: "nicht verknüpft",
+    openFinding: "Prüfpunkt ansehen",
+    noEntries: "Keine Einträge.",
+    loadError:
+      "Prüfmappe konnte nicht geladen werden. Starte vorher den Demo-Fall oder die Backend-Pipeline."
+  },
+  finding: {
+    backToPack: "Zurück zur Prüfmappe",
+    title: "Prüfpunkt mit Quelle",
+    notFound: "Prüfpunkt wurde in der Prüfmappe nicht gefunden.",
+    humanReason: "Warum menschliche Prüfung nötig ist",
+    evidenceTitle: "Quellenzitate",
+    noEvidence: "Keine Quellenzitate in der Prüfmappe verknüpft.",
+    document: "Dokument",
+    page: "Seite",
+    chunk: "Chunk",
+    modelPositions: "Systemeinschätzung",
+    foundBy: "Gefunden durch",
+    contradictedBy: "Widerspruch von",
+    noIssueAgents: "Ohne Befund gemeldet",
+    decisionForm: "Review-Entscheidung erfassen",
+    loadErrorPrefix: "Prüfpunkt konnte nicht geladen werden",
+    labels: {
+      findingId: "Prüfpunkt-ID",
+      riskCategory: "Risikobereich",
+      requirementReference: "Regelwerk-Referenz",
+      verifierResult: "Evidenzprüfung"
+    }
+  },
+  decision: {
+    reviewerId: "Reviewer-ID",
+    rationale: "Begründung",
+    placeholder:
+      "Dokumentiere kurz, warum du den Befund bestätigst, herabstufst, zurückweist oder weitere Unterlagen brauchst. Nicht allein auf die Modellantwort stützen.",
+    defaultRationalePrefix: "Reviewer hat ausgewählt",
+    savedMessage: "Review-Entscheidung wurde im Backend-Audit Trail gespeichert."
+  }
 } as const;
 
 export type DocumentSet = {
@@ -130,11 +223,11 @@ export type DemoSeedResponse = {
 };
 
 export const decisionOptions: Array<{ value: ReviewDecisionValue; label: string }> = [
-  { value: "confirm", label: "Confirm" },
-  { value: "downgrade", label: "Downgrade" },
-  { value: "reject_false_positive", label: "Reject False Positive" },
-  { value: "request_more_information", label: "Request More Information" },
-  { value: "escalate_to_qa", label: "Escalate to QA" }
+  { value: "confirm", label: "Befund bestätigen" },
+  { value: "downgrade", label: "Bewertung herabstufen" },
+  { value: "reject_false_positive", label: "Als Fehlalarm markieren" },
+  { value: "request_more_information", label: "Weitere Unterlagen anfordern" },
+  { value: "escalate_to_qa", label: "An QA eskalieren" }
 ];
 
 export function findTopRiskById(
