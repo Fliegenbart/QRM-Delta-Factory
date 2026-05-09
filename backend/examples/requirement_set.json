@@ -1,0 +1,26 @@
+{
+  "requirement_set_id": "rset_demo_gmp_qrm_2026_1",
+  "tenant_id": "tenant_demo_pharma",
+  "name": "Synthetic GMP QRM Requirement Library",
+  "version": "2026.1",
+  "imported_at": "2026-05-09T09:00:00Z",
+  "imported_by": "user_quality_admin",
+  "active": true,
+  "requirements": [
+    {
+      "requirement_id": "req_val_threshold_current_evidence",
+      "source_type": "internal_sop",
+      "source_name": "SOP-QRM-AVI-001",
+      "source_version": "3.0",
+      "section": "6.4",
+      "requirement_text": "Changed automated inspection thresholds require verification or validation evidence applicable to the changed setting.",
+      "applies_to_document_types": ["change_control_package", "validation_report"],
+      "applies_to_process_areas": ["automated_visual_inspection", "aseptic_filling"],
+      "criticality": "high",
+      "required_evidence": ["current validation report", "approved validation addendum"],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    }
+  ]
+}

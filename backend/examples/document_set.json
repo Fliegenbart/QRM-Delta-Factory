@@ -1,0 +1,11 @@
+{
+  "document_set_id": "ds_avi_threshold_2026_014",
+  "tenant_id": "tenant_demo_pharma",
+  "requirement_set_id": "rset_demo_gmp_qrm_2026_1",
+  "upload_timestamp": "2026-05-09T09:00:00Z",
+  "document_ids": ["doc_cc_2026_014", "doc_val_2025_011"],
+  "declared_document_type": "change_control_package",
+  "declared_process_area": "aseptic_filling_and_automated_visual_inspection",
+  "uploaded_by": "user_qrm_author",
+  "status": "ready_for_orchestration"
+}

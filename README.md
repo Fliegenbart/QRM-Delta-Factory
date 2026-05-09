@@ -6,22 +6,26 @@ MVP/prototype web application for AI-assisted Quality Risk Management delta anal
 
 - Creates and displays a QRM project for a synthetic sterile injectable / automated visual inspection change-control scenario.
 - Stores a Prisma/SQLite data model for users, projects, source documents, snippets, risk-library items, risk items, evidence, gaps, plausibility checks, red-team findings, approvals, audit logs, exports, and validation artifacts.
-- **Multi-Agent AI Analysis**: Uses GPT-4o (Author/Resolver) + Claude (Critic) for real risk analysis with human-in-the-loop escalation.
+- **Backend-first orchestration direction**: A new Python/FastAPI backend foundation under `backend/` provides the clean service structure for future claim-ledger, verifier, risk, audit, storage, and reviewer-agent modules.
 - **Document Upload**: Upload your own documents (PDF, DOCX, TXT, MD, CSV) for analysis, or use realistic demo documents.
 - Marks AI-generated content as `DRAFT`.
 - Produces source-based draft risk updates, evidence gaps, plausibility checks, red-team missing-risk findings, a review queue, audit trail view, export preview, and draft validation-pack templates.
 - Builds Risk Review Packages before independent plausibility review, so the Critic is not called on empty or incomplete technical input.
 - Shows a customer-demo-ready Risk Review Summary, Risk-Based Review Queue, Evidence Map, workload-reduction estimate, and Draft Risk Delta Review Pack export.
 
-## Multi-Agent Architecture
+## Backend-first Orchestration Direction
 
-The Delta Analysis feature uses a multi-agent workflow:
+The previous simple ensemble-analysis direction is retired. The new process is:
 
-1. **Author Agent (GPT-4o)**: Analyzes source documents, identifies risks, creates FMEA-style risk items with source citations
-2. **Critic Agent (Claude)**: Reviews the Author's work, verifies claims against sources, identifies gaps and issues
-3. **Resolver Agent (GPT-4o)**: Mediates disagreements, implements revisions, escalates unresolved items to human reviewers
+1. parse uploaded documents into controlled chunks
+2. create a source-linked Claim Ledger
+3. evaluate claims against a versioned Requirement Library
+4. run reviewer providers in parallel without live internet access
+5. verify every finding against document ID, page, chunk ID, and quote
+6. conservatively aggregate risk without model-majority voting
+7. generate draft Review Packs for qualified QA/Regulatory human review
 
-This "Best Buddies, Gnadenlose Kritiker" approach ensures thorough, audit-ready risk analysis with clear evidence trails.
+The initial backend lives in `backend/`. It uses Python 3.12, FastAPI, Pydantic v2 settings, pytest, ruff, mypy, Docker Compose, PostgreSQL, and Redis. It does not use real API keys.
 
 ## Important limits
 
@@ -40,6 +44,10 @@ Production use would require formal validation, SOPs, supplier assessment, secur
 - SQLite with Prisma schema and Prisma Client
 - Vitest automated tests
 - Simple local demo authentication data
+- Python 3.12 backend foundation in `backend/`
+- FastAPI, Pydantic v2 settings
+- Docker Compose services for PostgreSQL, Redis, and the app
+- pytest, ruff, mypy configuration
 
 ## Run locally
 
@@ -53,16 +61,55 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Environment Variables
+## Minimal QA Review UI
 
-For the Multi-Agent Analysis to work, set these API keys in `.env`:
+The backend-first review workflow now has a minimal reviewer UI at:
 
-```bash
-OPENAI_API_KEY=sk-...      # For GPT-4o (Author/Resolver agents)
-ANTHROPIC_API_KEY=sk-...   # For Claude (Critic agent)
+```text
+/review-ui
 ```
 
-Without API keys, the system falls back to demo mode with realistic mock documents.
+In the main product navigation, the previous `Delta-Analyse` entry now acts as the
+entry point for the backend-first Risk Orchestration workflow. Conceptually, this
+replaces the earlier frontend-only delta analysis as the primary process. The old
+synthetic Review Package screens remain available for demo/export presentation only.
+
+It lists backend `DocumentSet` records, opens generated Review Packs, shows finding-level cited
+evidence with page/chunk references, and records human review decisions through the FastAPI
+backend. The browser never receives the backend API key. Configure the server-side proxy with:
+
+```bash
+QRM_BACKEND_URL="http://localhost:8000"
+QRM_BACKEND_API_KEY=""
+```
+
+## Environment Variables
+
+The retired TypeScript agent code still has placeholders for old experiments, but the new backend-first flow does not require real API keys. Backend configuration uses `QRM_*` variables. See:
+
+```bash
+backend/.env.example
+```
+
+No real secrets should be committed. Mock LLM providers are used for fixtures and tests.
+
+## Python backend quick start
+
+```bash
+cd backend
+/opt/homebrew/bin/python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+pytest
+ruff check .
+mypy app
+```
+
+Infrastructure:
+
+```bash
+docker compose up --build
+```
 
 Demo local users use password:
 

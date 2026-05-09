@@ -44,13 +44,13 @@ describe("RiskReviewPackageBuilder", () => {
     const missingNoMatch = { ...readyPackage(), risk_library_reference: undefined };
 
     expect(inputCompletenessGate(explicitNoMatch).package_status).toBe("READY_FOR_PLAUSIBILITY_CHECK");
-    expect(inputCompletenessGate(missingNoMatch as ReviewPackage).package_status).toBe("INPUT_INCOMPLETE");
+    expect(inputCompletenessGate(missingNoMatch as unknown as ReviewPackage).package_status).toBe("INPUT_INCOMPLETE");
   });
 
   it("package marked as delta/update requires baseline_risk_item", () => {
     const pkg = { ...readyPackage(), baseline_risk_item: undefined };
 
-    const result = inputCompletenessGate(pkg as ReviewPackage);
+    const result = inputCompletenessGate(pkg as unknown as ReviewPackage);
 
     expect(result.package_status).toBe("INPUT_INCOMPLETE");
     expect(result.missing_inputs).toContain("baseline_risk_item");

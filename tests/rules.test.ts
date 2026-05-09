@@ -98,7 +98,6 @@ describe("Pharma QRM Delta Engine safety rules", () => {
   it("risk library unapproved item cannot be used as approved basis", () => {
     expect(
       canUseLibraryItemAsApprovedBasis({
-        id: "lib-1",
         approvalStatus: "DRAFT",
         retired: false
       })

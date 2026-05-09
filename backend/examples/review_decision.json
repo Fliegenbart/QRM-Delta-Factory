@@ -1,0 +1,8 @@
+{
+  "review_id": "review_qa_001",
+  "finding_id": "finding_missing_current_validation",
+  "reviewer_id": "reviewer_qa_approver",
+  "decision": "request_more_info",
+  "rationale": "Current validation evidence for the changed threshold was not included in the document set.",
+  "created_at": "2026-05-09T10:00:00Z"
+}

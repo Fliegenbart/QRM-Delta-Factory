@@ -1,0 +1,140 @@
+requirement_set_id: rset_demo_gmp_qrm_2026_1
+tenant_id: tenant_demo_pharma
+name: "Synthetic GMP QRM Requirement Library"
+version: "2026.1"
+active: false
+requirements:
+  - requirement_id: req_deviation_documented_impact_assessment
+    source_type: internal_sop
+    source_name: "SOP-DEV-001 Deviation Management"
+    source_version: "4.2"
+    section: "6.3"
+    requirement_text: "Deviation records must include a documented product quality and patient safety impact assessment."
+    applies_to_document_types:
+      - deviation
+      - deviation_record
+      - batch_impact_assessment
+    applies_to_process_areas:
+      - aseptic_filling
+      - packaging
+      - qc_lab
+    criticality: high
+    required_evidence:
+      - "approved deviation record"
+      - "documented product impact assessment"
+      - "QA review record"
+    auto_close_allowed: false
+    effective_from: "2026-01-01T00:00:00Z"
+    effective_to: null
+
+  - requirement_id: req_capa_effectiveness_check
+    source_type: internal_sop
+    source_name: "SOP-CAPA-002 CAPA Management"
+    source_version: "3.1"
+    section: "7.5"
+    requirement_text: "CAPA closure must include defined effectiveness verification where the CAPA is linked to a quality risk."
+    applies_to_document_types:
+      - capa
+      - capa_record
+      - deviation
+    applies_to_process_areas:
+      - aseptic_filling
+      - automated_visual_inspection
+      - qc_lab
+    criticality: high
+    required_evidence:
+      - "CAPA record"
+      - "effectiveness check evidence"
+    auto_close_allowed: false
+    effective_from: "2026-01-01T00:00:00Z"
+    effective_to: null
+
+  - requirement_id: req_batch_impact_disposition_trace
+    source_type: checklist
+    source_name: "QRM Batch Impact Checklist"
+    source_version: "2.0"
+    section: "3.2"
+    requirement_text: "Batch impact assessments must link affected batches to disposition rationale and supporting batch records."
+    applies_to_document_types:
+      - batch_impact_assessment
+      - batch_record
+      - deviation
+    applies_to_process_areas:
+      - aseptic_filling
+      - packaging
+    criticality: medium
+    required_evidence:
+      - "batch record excerpt"
+      - "disposition rationale"
+    auto_close_allowed: false
+    effective_from: "2026-01-01T00:00:00Z"
+    effective_to: null
+
+  - requirement_id: req_qa_approval_quality_risk
+    source_type: internal_sop
+    source_name: "SOP-QA-005 QA Approval Workflow"
+    source_version: "5.0"
+    section: "5.4"
+    requirement_text: "Quality risk decisions affecting product quality must be routed to QA for documented review."
+    applies_to_document_types:
+      - change_control
+      - deviation
+      - capa
+      - risk_assessment
+    applies_to_process_areas:
+      - aseptic_filling
+      - automated_visual_inspection
+      - data_integrity
+    criticality: critical
+    required_evidence:
+      - "QA review record"
+      - "risk decision rationale"
+    auto_close_allowed: false
+    effective_from: "2026-01-01T00:00:00Z"
+    effective_to: null
+
+  - requirement_id: req_data_integrity_audit_trail_review
+    source_type: internal_sop
+    source_name: "SOP-DI-003 Data Integrity Controls"
+    source_version: "2.5"
+    section: "8.1"
+    requirement_text: "Data integrity relevant records must include audit trail review expectations and evidence of review where required."
+    applies_to_document_types:
+      - validation_report
+      - batch_record
+      - change_control
+      - data_integrity_assessment
+    applies_to_process_areas:
+      - data_integrity
+      - automated_visual_inspection
+      - computerized_system
+    criticality: high
+    required_evidence:
+      - "audit trail review evidence"
+      - "system access or record review procedure"
+    auto_close_allowed: false
+    effective_from: "2026-01-01T00:00:00Z"
+    effective_to: null
+
+  - requirement_id: req_change_control_impact_assessment
+    source_type: internal_sop
+    source_name: "SOP-CC-004 Change Control"
+    source_version: "6.0"
+    section: "6.2"
+    requirement_text: "Change controls must include documented impact assessment for product quality, process control, validation, and data integrity where applicable."
+    applies_to_document_types:
+      - change_control
+      - validation_report
+      - risk_assessment
+    applies_to_process_areas:
+      - aseptic_filling
+      - automated_visual_inspection
+      - data_integrity
+    criticality: high
+    required_evidence:
+      - "approved change control"
+      - "impact assessment"
+      - "validation or verification evidence where applicable"
+    auto_close_allowed: false
+    effective_from: "2026-01-01T00:00:00Z"
+    effective_to: null

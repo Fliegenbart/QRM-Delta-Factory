@@ -1,0 +1,17 @@
+{
+  "document_id": "doc_cc_2026_014",
+  "document_set_id": "ds_avi_threshold_2026_014",
+  "filename": "CC-2026-014.txt",
+  "file_hash_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "mime_type": "text/plain",
+  "page_count": 4,
+  "storage_uri": "s3://qrm-documents/demo/CC-2026-014.txt",
+  "parser_version": "parser-v0.1",
+  "parsing_status": "parsed",
+  "parsing_quality_score": 0.96,
+  "language": "en",
+  "metadata": {
+    "source_system": "synthetic_demo",
+    "contains_gxp_content": true
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "finding_id": "finding_missing_current_validation",
+  "document_set_id": "ds_avi_threshold_2026_014",
+  "risk_category": "validation_coverage",
+  "severity": "high",
+  "likelihood": 3,
+  "detectability": 2,
+  "risk_statement": "Validation evidence may not cover the modified AVI rejection threshold.",
+  "evidence_items": [
+    {
+      "document_id": "doc_val_2025_011",
+      "chunk_id": "chunk_val_001",
+      "page": 4,
+      "quote": "Validation report VR-AVI-2025-011 covers the old threshold only.",
+      "quote_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "support_type": "supports",
+      "verifier_score": 0.88
+    }
+  ],
+  "requirement_references": ["req_val_threshold_current_evidence"],
+  "missing_information": ["validation addendum for the new threshold"],
+  "model_provider": "mock",
+  "model_name": "mock-validation-reviewer",
+  "model_version": "0.1.0",
+  "prompt_version": "validation-review-v0.1",
+  "evidence_support": "strong",
+  "recommended_action": "Route to Validation SME and QA for review before closure.",
+  "auto_close_allowed": false,
+  "status": "needs_human_review"
+}
