@@ -38,6 +38,7 @@ Current implemented scope is intentionally small:
 - synchronous end-to-end pipeline runs at `POST /document-sets/{id}/pipeline-runs`
 - pipeline-run retrieval at `GET /pipeline-runs/{id}`
 - human review decisions at `POST /findings/{id}/review-decision`
+- synthetic AVI threshold demo seed at `POST /demo/seed`
 - evaluation harness at `POST /evals/run`
 - local filesystem storage behind a storage interface
 - TXT and PDF parsing behind a testable `DocumentParser` abstraction
@@ -293,6 +294,20 @@ curl -X POST http://localhost:8000/findings/finding_example/review-decision \
 Supported reviewer actions include confirm, downgrade, reject false positive, request more
 information, link to CAPA, and escalate to QA. Each stored decision writes an audit event.
 
+## Synthetic Demo Seed
+
+Create the built-in synthetic AVI threshold-change demo:
+
+```bash
+curl -X POST http://localhost:8000/demo/seed
+```
+
+The seed creates a synthetic `change_control` DocumentSet, versioned demo RequirementSet, cited
+document chunks, then runs the full pipeline and returns the generated Review Pack. The endpoint is
+idempotent for the demo DocumentSet: calling it again re-runs the pipeline but does not create a
+second demo DocumentSet. All content is synthetic and intended only to demonstrate the backend-first
+review workflow.
+
 ## False-Positive Analytics
 
 Analyze repeated human overrides:
@@ -478,6 +493,22 @@ cp backend/.env.example backend/.env
 ```
 
 Configuration keys use the `QRM_` prefix.
+
+## Optional Supabase Persistence
+
+By default, the MVP repository is in-memory. That is fine for local tests, but Vercel serverless
+instances can reset between requests. To persist demo data and review decisions, use a Supabase
+Postgres connection string:
+
+```bash
+QRM_PERSISTENCE_ENABLED=true
+QRM_DATABASE_URL="postgresql+psycopg://USER:PASSWORD@HOST:PORT/postgres"
+```
+
+Supabase often shows the URL as `postgresql://...`; the backend normalizes that to
+`postgresql+psycopg://...` automatically. For serverless deployment, use the Supabase pooler
+connection string rather than a direct database connection. Store the URL only in the deployment
+secret manager; do not commit it.
 
 ## Security Assumptions And Tenant Isolation
 

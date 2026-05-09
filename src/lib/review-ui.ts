@@ -8,6 +8,7 @@ export type ReviewDecisionValue =
 export const riskOrchestrationEntry = {
   legacyDeltaRoute: "/delta-analysis",
   reviewWorkbenchRoute: "/review-ui",
+  demoSeedRoute: "/api/review-ui/demo-seed",
   replacesLegacyDeltaAnalysis: true,
   name: "Backend-first Risk Orchestration",
   shortDescription:
@@ -33,6 +34,17 @@ export type DocumentSet = {
   declared_process_area: string;
   uploaded_by: string;
   status: string;
+};
+
+export type PipelineRun = {
+  pipeline_run_id: string;
+  document_set_id: string;
+  status: string;
+  started_at: string;
+  completed_at?: string | null;
+  failed_step?: string | null;
+  error_summary?: string | null;
+  config_version: string;
 };
 
 export type EvidenceQuote = {
@@ -95,6 +107,13 @@ export type ReviewPack = {
   missing_information: string[];
   recommended_reviewer_actions: unknown[];
   audit_references: string[];
+};
+
+export type DemoSeedResponse = {
+  created: boolean;
+  document_set: DocumentSet;
+  pipeline_run: PipelineRun;
+  review_pack: ReviewPack;
 };
 
 export const decisionOptions: Array<{ value: ReviewDecisionValue; label: string }> = [

@@ -83,6 +83,10 @@ QRM_BACKEND_URL="http://localhost:8000"
 QRM_BACKEND_API_KEY=""
 ```
 
+The Review UI also includes a `Demo-Daten erzeugen` action. It calls the backend demo seed,
+creates a synthetic AVI threshold-change package, runs the pipeline, and opens a generated
+human-review dossier.
+
 ## Environment Variables
 
 The retired TypeScript agent code still has placeholders for old experiments, but the new backend-first flow does not require real API keys. Backend configuration uses `QRM_*` variables. See:
@@ -92,6 +96,16 @@ backend/.env.example
 ```
 
 No real secrets should be committed. Mock LLM providers are used for fixtures and tests.
+
+For persistent backend state on Vercel, use Supabase Postgres by setting the backend environment:
+
+```bash
+QRM_PERSISTENCE_ENABLED=true
+QRM_DATABASE_URL="postgresql+psycopg://USER:PASSWORD@HOST:PORT/postgres"
+```
+
+Use the Supabase pooler connection string for serverless deployments and store it only as a
+deployment secret.
 
 ## Python backend quick start
 

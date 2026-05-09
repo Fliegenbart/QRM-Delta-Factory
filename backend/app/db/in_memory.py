@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+import json
+from collections.abc import Callable, Mapping, Sequence
+from datetime import UTC, datetime
+from typing import TypeVar
+
+from pydantic import BaseModel
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
+
+from app.core.config import get_settings
 from app.schemas.domain import (
     AdversarialChallenge,
     Claim,
@@ -18,6 +28,8 @@ from app.schemas.domain import (
 from app.schemas.pipeline import PipelineRun
 from app.schemas.review import CoverageSummary
 from app.schemas.risk import RiskDecision
+
+OperationT = TypeVar("OperationT")
 
 
 class InMemoryDocumentRepository:
@@ -322,4 +334,390 @@ def _requirement_matches(
     return not (criticality and criticality != requirement.criticality)
 
 
-repository = InMemoryDocumentRepository()
+class PersistentSnapshotRepository(InMemoryDocumentRepository):
+    """Small durable repository for MVP deployments.
+
+    The current backend mostly works with Pydantic domain objects. To avoid a large ORM
+    migration before the product flow is proven, this repository stores a validated JSON
+    snapshot in SQL. It is intentionally conservative and can later be replaced by table-
+    per-entity SQLAlchemy models without changing service boundaries.
+    """
+
+    def __init__(self, *, database_url: str) -> None:
+        self._engine: Engine = create_engine(_normalize_database_url(database_url), future=True)
+        self._is_loading = False
+        super().__init__()
+        self._create_table()
+        self._load_snapshot()
+
+    def reset(self) -> None:
+        super().reset()
+        if hasattr(self, "_engine"):
+            self._save_snapshot()
+
+    def create_document_set(self, document_set: DocumentSet) -> DocumentSet:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).create_document_set(document_set)
+        )
+
+    def update_document_set(self, document_set: DocumentSet) -> DocumentSet:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).update_document_set(document_set)
+        )
+
+    def add_document(
+        self,
+        *,
+        document: Document,
+        chunks: list[DocumentChunk],
+    ) -> Document:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).add_document(
+                document=document,
+                chunks=chunks,
+            )
+        )
+
+    def replace_claim_ledger(self, *, document_set_id: str, claims: list[Claim]) -> list[Claim]:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).replace_claim_ledger(
+                document_set_id=document_set_id,
+                claims=claims,
+            )
+        )
+
+    def replace_risk_findings(
+        self,
+        *,
+        document_set_id: str,
+        findings: list[RiskFinding],
+    ) -> list[RiskFinding]:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).replace_risk_findings(
+                document_set_id=document_set_id,
+                findings=findings,
+            )
+        )
+
+    def replace_risk_fusion_findings(
+        self,
+        *,
+        document_set_id: str,
+        findings: list[RiskFinding],
+    ) -> list[RiskFinding]:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).replace_risk_fusion_findings(
+                document_set_id=document_set_id,
+                findings=findings,
+            )
+        )
+
+    def append_adversarial_challenges(
+        self,
+        *,
+        document_set_id: str,
+        challenges: list[AdversarialChallenge],
+    ) -> list[AdversarialChallenge]:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).append_adversarial_challenges(
+                document_set_id=document_set_id,
+                challenges=challenges,
+            )
+        )
+
+    def replace_coverage_summaries(
+        self,
+        *,
+        document_set_id: str,
+        coverage_summaries: list[CoverageSummary],
+    ) -> list[CoverageSummary]:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).replace_coverage_summaries(
+                document_set_id=document_set_id,
+                coverage_summaries=coverage_summaries,
+            )
+        )
+
+    def add_risk_decision(
+        self,
+        *,
+        document_set_id: str,
+        risk_decision: RiskDecision,
+    ) -> RiskDecision:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).add_risk_decision(
+                document_set_id=document_set_id,
+                risk_decision=risk_decision,
+            )
+        )
+
+    def add_pipeline_run(self, pipeline_run: PipelineRun) -> PipelineRun:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).add_pipeline_run(pipeline_run)
+        )
+
+    def update_pipeline_run(self, pipeline_run: PipelineRun) -> PipelineRun:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).update_pipeline_run(pipeline_run)
+        )
+
+    def add_review_decision(self, review_decision: ReviewDecision) -> ReviewDecision:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).add_review_decision(review_decision)
+        )
+
+    def replace_verification_results(
+        self,
+        *,
+        document_set_id: str,
+        results: list[FindingVerificationResult],
+    ) -> list[FindingVerificationResult]:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).replace_verification_results(
+                document_set_id=document_set_id,
+                results=results,
+            )
+        )
+
+    def add_model_run(self, *, document_set_id: str, model_run: ModelRun) -> ModelRun:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).add_model_run(
+                document_set_id=document_set_id,
+                model_run=model_run,
+            )
+        )
+
+    def store_raw_model_output(self, record: RawModelOutputRecord) -> RawModelOutputRecord:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).store_raw_model_output(record)
+        )
+
+    def create_requirement_set(self, requirement_set: RequirementSet) -> RequirementSet:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).create_requirement_set(
+                requirement_set
+            )
+        )
+
+    def update_requirement_set(self, requirement_set: RequirementSet) -> RequirementSet:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).update_requirement_set(
+                requirement_set
+            )
+        )
+
+    def _persist_after(self, operation: Callable[[], OperationT]) -> OperationT:
+        result = operation()
+        if not self._is_loading:
+            self._save_snapshot()
+        return result
+
+    def _create_table(self) -> None:
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS qrm_repository_snapshots (
+                        snapshot_id VARCHAR(64) PRIMARY KEY,
+                        payload TEXT NOT NULL,
+                        updated_at VARCHAR(64) NOT NULL
+                    )
+                    """
+                )
+            )
+
+    def _load_snapshot(self) -> None:
+        with self._engine.begin() as connection:
+            row = connection.execute(
+                text(
+                    """
+                    SELECT payload FROM qrm_repository_snapshots
+                    WHERE snapshot_id = :snapshot_id
+                    """
+                ),
+                {"snapshot_id": "default"},
+            ).first()
+        if row is None:
+            return
+
+        payload = json.loads(str(row.payload))
+        self._is_loading = True
+        try:
+            self.document_sets = _model_dict(payload, "document_sets", DocumentSet)
+            self.documents = _model_dict(payload, "documents", Document)
+            self.chunks_by_document = _model_list_dict(
+                payload,
+                "chunks_by_document",
+                DocumentChunk,
+            )
+            self.claims_by_document_set = _model_list_dict(
+                payload,
+                "claims_by_document_set",
+                Claim,
+            )
+            self.risk_findings_by_document_set = _model_list_dict(
+                payload,
+                "risk_findings_by_document_set",
+                RiskFinding,
+            )
+            self.risk_fusion_findings_by_document_set = _model_list_dict(
+                payload,
+                "risk_fusion_findings_by_document_set",
+                RiskFinding,
+            )
+            self.adversarial_challenges_by_document_set = _model_list_dict(
+                payload,
+                "adversarial_challenges_by_document_set",
+                AdversarialChallenge,
+            )
+            self.coverage_summaries_by_document_set = _model_list_dict(
+                payload,
+                "coverage_summaries_by_document_set",
+                CoverageSummary,
+            )
+            self.risk_decisions_by_document_set = _model_list_dict(
+                payload,
+                "risk_decisions_by_document_set",
+                RiskDecision,
+            )
+            self.pipeline_runs = _model_dict(payload, "pipeline_runs", PipelineRun)
+            self.review_decisions_by_finding = _model_list_dict(
+                payload,
+                "review_decisions_by_finding",
+                ReviewDecision,
+            )
+            self.verification_results_by_document_set = _model_list_dict(
+                payload,
+                "verification_results_by_document_set",
+                FindingVerificationResult,
+            )
+            self.model_runs_by_document_set = _model_list_dict(
+                payload,
+                "model_runs_by_document_set",
+                ModelRun,
+            )
+            self.raw_model_outputs = _model_dict(
+                payload,
+                "raw_model_outputs",
+                RawModelOutputRecord,
+            )
+            self.requirement_sets = _model_dict(payload, "requirement_sets", RequirementSet)
+        finally:
+            self._is_loading = False
+
+    def _save_snapshot(self) -> None:
+        payload = json.dumps(self._snapshot(), sort_keys=True)
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    DELETE FROM qrm_repository_snapshots
+                    WHERE snapshot_id = :snapshot_id
+                    """
+                ),
+                {"snapshot_id": "default"},
+            )
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO qrm_repository_snapshots
+                    (snapshot_id, payload, updated_at)
+                    VALUES (:snapshot_id, :payload, :updated_at)
+                    """
+                ),
+                {
+                    "snapshot_id": "default",
+                    "payload": payload,
+                    "updated_at": datetime.now(UTC).isoformat(),
+                },
+            )
+
+    def _snapshot(self) -> dict[str, object]:
+        return {
+            "document_sets": _dump_model_dict(self.document_sets),
+            "documents": _dump_model_dict(self.documents),
+            "chunks_by_document": _dump_model_list_dict(self.chunks_by_document),
+            "claims_by_document_set": _dump_model_list_dict(self.claims_by_document_set),
+            "risk_findings_by_document_set": _dump_model_list_dict(
+                self.risk_findings_by_document_set
+            ),
+            "risk_fusion_findings_by_document_set": _dump_model_list_dict(
+                self.risk_fusion_findings_by_document_set
+            ),
+            "adversarial_challenges_by_document_set": _dump_model_list_dict(
+                self.adversarial_challenges_by_document_set
+            ),
+            "coverage_summaries_by_document_set": _dump_model_list_dict(
+                self.coverage_summaries_by_document_set
+            ),
+            "risk_decisions_by_document_set": _dump_model_list_dict(
+                self.risk_decisions_by_document_set
+            ),
+            "pipeline_runs": _dump_model_dict(self.pipeline_runs),
+            "review_decisions_by_finding": _dump_model_list_dict(
+                self.review_decisions_by_finding
+            ),
+            "verification_results_by_document_set": _dump_model_list_dict(
+                self.verification_results_by_document_set
+            ),
+            "model_runs_by_document_set": _dump_model_list_dict(self.model_runs_by_document_set),
+            "raw_model_outputs": _dump_model_dict(self.raw_model_outputs),
+            "requirement_sets": _dump_model_dict(self.requirement_sets),
+        }
+
+
+def _dump_model_dict[ModelT: BaseModel](items: Mapping[str, ModelT]) -> dict[str, object]:
+    return {key: item.model_dump(mode="json") for key, item in items.items()}
+
+
+def _dump_model_list_dict[ModelT: BaseModel](
+    items: Mapping[str, Sequence[ModelT]],
+) -> dict[str, list[object]]:
+    return {
+        key: [item.model_dump(mode="json") for item in values]
+        for key, values in items.items()
+    }
+
+
+def _model_dict[ModelT: BaseModel](
+    payload: dict[str, object],
+    key: str,
+    model: type[ModelT],
+) -> dict[str, ModelT]:
+    data = payload.get(key, {})
+    if not isinstance(data, dict):
+        return {}
+    return {item_key: model.model_validate(value) for item_key, value in data.items()}
+
+
+def _model_list_dict[ModelT: BaseModel](
+    payload: dict[str, object],
+    key: str,
+    model: type[ModelT],
+) -> dict[str, list[ModelT]]:
+    data = payload.get(key, {})
+    if not isinstance(data, dict):
+        return {}
+    return {
+        item_key: [model.model_validate(value) for value in values]
+        for item_key, values in data.items()
+        if isinstance(values, list)
+    }
+
+
+def _normalize_database_url(database_url: str) -> str:
+    """Use the psycopg SQLAlchemy driver when Supabase provides a plain URL."""
+
+    if database_url.startswith("postgresql://"):
+        return database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return database_url
+
+
+def _build_repository() -> InMemoryDocumentRepository:
+    settings = get_settings()
+    if settings.persistence_enabled:
+        return PersistentSnapshotRepository(database_url=settings.database_url)
+    return InMemoryDocumentRepository()
+
+
+repository = _build_repository()
