@@ -638,35 +638,36 @@ function Stat({ label, value, tone = "slate" }: { label: string; value: string |
 }
 
 function DashboardSection(context: Parameters<typeof renderSection>[1]) {
+  const { t } = useI18n();
   return (
     <div className="space-y-6">
       <div className="grid gap-3 md:grid-cols-4">
-        <Stat label="Open high gaps" value={demoGaps.filter((gap) => gap.status === "OPEN" && ["HIGH", "CRITICAL"].includes(gap.priority)).length} tone="danger" />
-        <Stat label="Level 3 review" value={demoRiskItems.filter((item) => item.reviewLevel === 3).length} tone="amber" />
-        <Stat label="AI draft items" value={demoRiskItems.filter((item) => item.status === "AI_DRAFT").length} tone="teal" />
-        <Stat label="Source snippets" value={demoSnippets.length} />
+        <Stat label={t("dashboard.openHighGaps")} value={demoGaps.filter((gap) => gap.status === "OPEN" && ["HIGH", "CRITICAL"].includes(gap.priority)).length} tone="danger" />
+        <Stat label={t("dashboard.level3Review")} value={demoRiskItems.filter((item) => item.reviewLevel === 3).length} tone="amber" />
+        <Stat label={t("dashboard.aiDraftItems")} value={demoRiskItems.filter((item) => item.status === "AI_DRAFT").length} tone="teal" />
+        <Stat label={t("dashboard.sourceSnippets")} value={demoSnippets.length} />
       </div>
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <Panel
-          title="Risk-based human review queue"
-          action={<Link className="text-sm font-medium text-teal" href="/review-queue">Open queue</Link>}
+          title={t("dashboard.riskBasedQueue")}
+          action={<Link className="text-sm font-medium text-teal dark:text-teal-400" href="/review-queue">{t("dashboard.openQueue")}</Link>}
         >
           <RiskRows items={reviewQueue.slice(0, 4)} compact />
         </Panel>
-        <Panel title="Run mock AI safety layers">
+        <Panel title={t("dashboard.runMockAI")}>
           <div className="grid gap-3">
-            <RunButton label="Run Author AI delta" state={context.deltaState} onClick={() => context.runApi("/api/ai/delta", context.setDeltaState)} />
-            <RunButton label="Run independent plausibility check" state={context.criticState} onClick={() => context.runApi("/api/ai/critic", context.setCriticState)} />
-            <RunButton label="Run Red-Team missing-risk finder" state={context.redTeamState} onClick={() => context.runApi("/api/ai/red-team", context.setRedTeamState)} />
+            <RunButton label={t("dashboard.runAuthorDelta")} state={context.deltaState} onClick={() => context.runApi("/api/ai/delta", context.setDeltaState)} />
+            <RunButton label={t("dashboard.runPlausibility")} state={context.criticState} onClick={() => context.runApi("/api/ai/critic", context.setCriticState)} />
+            <RunButton label={t("dashboard.runRedTeam")} state={context.redTeamState} onClick={() => context.runApi("/api/ai/red-team", context.setRedTeamState)} />
           </div>
-          <p className="mt-4 text-sm leading-6 text-slate-600">Each run uses MockLLMAdapter only. No external AI API is called.</p>
+          <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">{t("dashboard.mockNote")}</p>
         </Panel>
       </div>
-      <Panel title="Delta summary">
+      <Panel title={t("dashboard.deltaSummary")}>
         <div className="grid gap-4 md:grid-cols-3">
-          <SummaryBlock title="Trigger" text="Change control for modified automated visual inspection rejection threshold." />
-          <SummaryBlock title="Main concern" text="Evidence package covers old threshold; new-threshold effectiveness evidence is missing." />
-          <SummaryBlock title="Routing" text="Level 3 items go to SME review first, then QA workflow only after required fields and gates pass." />
+          <SummaryBlock title={t("dashboard.trigger")} text={t("dashboard.triggerText")} />
+          <SummaryBlock title={t("dashboard.mainConcern")} text={t("dashboard.mainConcernText")} />
+          <SummaryBlock title={t("dashboard.routing")} text={t("dashboard.routingText")} />
         </div>
       </Panel>
     </div>
@@ -676,8 +677,8 @@ function DashboardSection(context: Parameters<typeof renderSection>[1]) {
 function SummaryBlock({ title, text }: { title: string; text: string }) {
   return (
     <div>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400">{title}</div>
-      <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">{text}</p>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600 dark:text-slate-300">{title}</div>
+      <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">{text}</p>
     </div>
   );
 }
@@ -693,20 +694,21 @@ function PremiumReviewHero({
   onGenerate: () => void;
   onRunAll: () => void;
 }) {
+  const { t } = useI18n();
   return (
-    <section className="premium-surface relative overflow-hidden rounded-[32px] border border-black/10">
+    <section className="premium-surface relative overflow-hidden rounded-[32px] border border-black/10 dark:border-white/10">
       <div className="absolute right-0 top-0 hidden h-full w-[46%] xl:block">
         <LabInspectionVisual />
       </div>
       <div className="relative grid min-h-[390px] gap-8 p-7 md:p-10 xl:grid-cols-[0.58fr_0.42fr]">
         <div className="flex max-w-3xl flex-col justify-between">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal">Review packages</div>
-            <h2 className="mt-7 max-w-xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink md:text-6xl">
-              Quality risk, reduced to evidence.
+            <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-teal">{t("premium.reviewPackages")}</div>
+            <h2 className="mt-7 max-w-xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
+              {t("premium.headline")}
             </h2>
-            <p className="mt-6 max-w-xl text-base leading-8 text-slate-600">
-              Complete draft risk packages for the AVI threshold change. Incomplete inputs are blocked before plausibility review.
+            <p className="mt-6 max-w-xl text-base leading-8 text-slate-600 dark:text-slate-300">
+              {t("premium.subline")}
             </p>
           </div>
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -716,38 +718,47 @@ function PremiumReviewHero({
               onClick={onGenerate}
             >
               <PackageCheck className="h-4 w-4" aria-hidden />
-              Generate Review Packages
+              {t("premium.generatePackages")}
             </button>
             <button
               type="button"
-              className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm disabled:cursor-not-allowed disabled:text-slate-400"
+              className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 px-5 text-sm font-semibold text-ink dark:text-white shadow-sm disabled:cursor-not-allowed disabled:text-slate-400"
               disabled={packages.length === 0}
               onClick={onRunAll}
             >
               <Play className="h-4 w-4" aria-hidden />
-              Run all ready checks
+              {t("premium.runAllChecks")}
             </button>
-            <span className="text-xs leading-5 text-slate-600">DRAFT • source-linked • human controlled</span>
+            <span className="text-xs leading-5 text-slate-600 dark:text-slate-400">{t("premium.draftNote")}</span>
           </div>
         </div>
         <div className="hidden xl:block" />
       </div>
-      <div className="border-t border-black/10 bg-white/55 px-7 py-5 backdrop-blur md:px-10">
+      <div className="border-t border-black/10 dark:border-white/10 bg-white/55 dark:bg-slate-800/55 px-7 py-5 backdrop-blur md:px-10">
         {packages.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-3">
-            <Stat label="Generated packages" value={workload.total_packages} />
-            <Stat label="Ready for review" value={workload.ready_for_review} tone="teal" />
-            <Stat label="Input incomplete" value={workload.input_incomplete} tone="amber" />
+            <Stat label={t("review.generatedPackages")} value={workload.total_packages} />
+            <Stat label={t("review.readyForReview")} value={workload.ready_for_review} tone="teal" />
+            <Stat label={t("review.inputIncomplete")} value={workload.input_incomplete} tone="amber" />
           </div>
         ) : (
           <div className="grid gap-5 md:grid-cols-3">
-            <SummaryBlock title="Architecture" text="Documents, trigger, FMEA baseline, snippets, library, and scoring model are assembled first." />
-            <SummaryBlock title="Completeness gate" text="Missing technical input goes back to Author/Ops. The Critic is not called on partial packages." />
-            <SummaryBlock title="Demo scenario" text="CC-2026-014, old-threshold validation only, missing training record, missing validation addendum." />
+            <SummaryBlock title={t("premium.architecture")} text={t("premium.architectureText")} />
+            <SummaryBlock title={t("premium.completenessGate")} text={t("premium.completenessText")} />
+            <SummaryBlock title={t("premium.demoScenario")} text={t("premium.demoText")} />
           </div>
         )}
       </div>
     </section>
+  );
+}
+
+function LabInspectionLabel() {
+  const { t } = useI18n();
+  return (
+    <div className="absolute bottom-8 left-10 max-w-52 text-[10px] font-semibold uppercase leading-5 tracking-[0.22em] text-slate-600">
+      {t("premium.sterileNote")}
+    </div>
   );
 }
 
@@ -768,43 +779,42 @@ function LabInspectionVisual() {
           </div>
         ))}
       </div>
-      <div className="absolute bottom-8 left-10 max-w-52 text-[10px] font-semibold uppercase leading-5 tracking-[0.22em] text-slate-600">
-        Sterile injectable • AVI threshold review
-      </div>
+      <LabInspectionLabel />
     </div>
   );
 }
 
 function ExecutiveRiskSummary({ packages, results }: { packages: ReviewPackage[]; results: Record<string, PackageReviewResult> }) {
   const workload = summarizeWorkload(packages, results);
+  const { t } = useI18n();
   return (
     <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
-      <div className="premium-surface overflow-hidden rounded-[30px] border border-black/10">
-        <div className="border-b border-black/10 px-7 py-5">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Review summary</div>
+      <div className="premium-surface overflow-hidden rounded-[30px] border border-black/10 dark:border-white/10">
+        <div className="border-b border-black/10 dark:border-white/10 px-7 py-5">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">{t("executive.reviewSummary")}</div>
         </div>
-        <div className="grid grid-cols-2 gap-0 border-b border-black/10 md:grid-cols-6">
-          <MetricStripItem label="Total" value={workload.total_packages} />
-          <MetricStripItem label="Ready" value={workload.ready_for_review} tone="teal" />
-          <MetricStripItem label="Incomplete" value={workload.input_incomplete} tone="amber" />
-          <MetricStripItem label="Pass" value={workload.plausibility_pass} tone="teal" />
-          <MetricStripItem label="Partial" value={workload.plausibility_partial} tone="amber" />
-          <MetricStripItem label="Fail" value={workload.plausibility_fail} tone="danger" />
+        <div className="grid grid-cols-2 gap-0 border-b border-black/10 dark:border-white/10 md:grid-cols-6">
+          <MetricStripItem label={t("executive.total")} value={workload.total_packages} />
+          <MetricStripItem label={t("executive.ready")} value={workload.ready_for_review} tone="teal" />
+          <MetricStripItem label={t("executive.incomplete")} value={workload.input_incomplete} tone="amber" />
+          <MetricStripItem label={t("executive.pass")} value={workload.plausibility_pass} tone="teal" />
+          <MetricStripItem label={t("executive.partial")} value={workload.plausibility_partial} tone="amber" />
+          <MetricStripItem label={t("executive.fail")} value={workload.plausibility_fail} tone="danger" />
         </div>
         <div className="grid gap-0 lg:grid-cols-[330px_1fr]">
-          <div className="border-b border-black/10 p-7 lg:border-b-0 lg:border-r">
-            <GaugeMetric label="Reduction" value={workload.estimated_reduction_percent} max={100} suffix="%" tone="teal" large />
+          <div className="border-b border-black/10 dark:border-white/10 p-7 lg:border-b-0 lg:border-r">
+            <GaugeMetric label={t("executive.reduction")} value={workload.estimated_reduction_percent} max={100} suffix="%" tone="teal" large />
           </div>
           <div className="grid gap-5 p-7 md:grid-cols-2">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">Estimated manual baseline</div>
-              <div className="mt-5 text-5xl font-light tracking-[-0.07em]">{workload.manual_baseline_hours.toFixed(1)}h</div>
-              <p className="mt-4 text-sm leading-6 text-slate-600">Classic document search and broad manual risk review estimate.</p>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400">{t("executive.manualBaseline")}</div>
+              <div className="mt-5 text-5xl font-light tracking-[-0.07em] dark:text-white">{workload.manual_baseline_hours.toFixed(1)}h</div>
+              <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{t("executive.manualBaselineDesc")}</p>
             </div>
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">Estimated assisted review</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400">{t("executive.assistedReview")}</div>
               <div className="mt-5 text-5xl font-light tracking-[-0.07em] text-teal">{workload.assisted_review_hours.toFixed(1)}h</div>
-              <p className="mt-4 text-sm leading-6 text-slate-600">Indicative MVP estimate only. It is not a regulatory or submission claim.</p>
+              <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">{t("executive.assistedReviewDesc")}</p>
             </div>
           </div>
         </div>
@@ -816,35 +826,36 @@ function ExecutiveRiskSummary({ packages, results }: { packages: ReviewPackage[]
 
 function MetricStripItem({ label, value, tone = "slate" }: { label: string; value: number; tone?: "slate" | "teal" | "amber" | "danger" }) {
   const color = {
-    slate: "text-ink",
+    slate: "text-ink dark:text-white",
     teal: "text-teal",
     amber: "text-amber",
     danger: "text-danger"
   }[tone];
   return (
-    <div className="border-r border-black/10 px-6 py-6 last:border-r-0">
-      <div className="text-sm text-slate-600">{label}</div>
+    <div className="border-r border-black/10 dark:border-white/10 px-6 py-6 last:border-r-0">
+      <div className="text-sm text-slate-600 dark:text-slate-400">{label}</div>
       <div className={`mt-3 text-5xl font-light tracking-[-0.08em] ${color}`}>{value}</div>
     </div>
   );
 }
 
 function EvidenceConfidencePanel({ packages, results }: { packages: ReviewPackage[]; results: Record<string, PackageReviewResult> }) {
+  const { t } = useI18n();
   const totalEvidence = packages.reduce((sum, pkg) => sum + pkg.evidence_links.length, 0);
   const totalGaps = packages.reduce((sum, pkg) => sum + pkg.documented_gaps.length + pkg.missing_inputs.length, 0);
   const checked = Object.keys(results).length;
   const bars = [
-    ["Source coverage", packages.length ? Math.round(((packages.length - 1) / packages.length) * 100) : 0],
-    ["Plausibility checked", packages.length ? Math.round((checked / packages.length) * 100) : 0],
-    ["Evidence linked", packages.length ? Math.min(100, totalEvidence * 14) : 0],
-    ["Open gaps visible", packages.length ? Math.min(100, totalGaps * 18) : 0]
+    [t("evidence.sourceCoverage"), packages.length ? Math.round(((packages.length - 1) / packages.length) * 100) : 0],
+    [t("evidence.plausibilityChecked"), packages.length ? Math.round((checked / packages.length) * 100) : 0],
+    [t("evidence.evidenceLinked"), packages.length ? Math.min(100, totalEvidence * 14) : 0],
+    [t("evidence.openGapsVisible"), packages.length ? Math.min(100, totalGaps * 18) : 0]
   ] as const;
   return (
-    <aside className="premium-surface rounded-[30px] border border-black/10 p-7">
+    <aside className="premium-surface rounded-[30px] border border-black/10 dark:border-white/10 p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600">Evidence confidence</div>
-          <p className="mt-3 text-sm leading-6 text-slate-600">Signals for review planning, not approval.</p>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-600 dark:text-slate-400">{t("evidence.confidence")}</div>
+          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{t("evidence.confidenceDesc")}</p>
         </div>
         <ShieldCheck className="h-5 w-5 text-teal" />
       </div>
@@ -852,23 +863,23 @@ function EvidenceConfidencePanel({ packages, results }: { packages: ReviewPackag
         {bars.map(([label, value]) => (
           <div key={label}>
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="text-slate-700">{label}</span>
-              <span className="font-medium text-ink">{value}%</span>
+              <span className="text-slate-700 dark:text-slate-300">{label}</span>
+              <span className="font-medium text-ink dark:text-white">{value}%</span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
               <div className="h-full rounded-full bg-teal" style={{ width: `${value}%` }} />
             </div>
           </div>
         ))}
       </div>
       <div className="mt-8 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-black/10 bg-white/70 p-4">
-          <div className="text-3xl font-light tracking-[-0.06em]">{totalEvidence}</div>
-          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">Evidence links</div>
+        <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-slate-800/70 p-4">
+          <div className="text-3xl font-light tracking-[-0.06em] dark:text-white">{totalEvidence}</div>
+          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-400">{t("evidence.evidenceLinks")}</div>
         </div>
-        <div className="rounded-2xl border border-black/10 bg-white/70 p-4">
+        <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-slate-800/70 p-4">
           <div className="text-3xl font-light tracking-[-0.06em] text-amber">{totalGaps}</div>
-          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600">Gaps / inputs</div>
+          <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-400">{t("evidence.gapsInputs")}</div>
         </div>
       </div>
     </aside>
@@ -876,6 +887,7 @@ function EvidenceConfidencePanel({ packages, results }: { packages: ReviewPackag
 }
 
 function RunButton({ label, state, onClick }: { label: string; state: RunState; onClick: () => void }) {
+  const { t } = useI18n();
   const isRunning = state === "running";
   const isDone = state === "done";
 
@@ -887,7 +899,7 @@ function RunButton({ label, state, onClick }: { label: string; state: RunState; 
           ? "bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/20 cursor-wait"
           : isDone
           ? "bg-teal-500 text-white shadow-[0_8px_20px_rgba(0,155,141,0.25)]"
-          : "border border-line bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300"
+          : "border border-line dark:border-white/10 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300"
       }`}
       onClick={onClick}
       disabled={isRunning}
@@ -901,7 +913,7 @@ function RunButton({ label, state, onClick }: { label: string; state: RunState; 
         <Play className="h-4 w-4" aria-hidden />
       )}
       <span>
-        {isRunning ? "Processing..." : isDone ? `${label}: Complete` : label}
+        {isRunning ? t("runButton.processing") : isDone ? `${label}: ${t("runButton.complete")}` : label}
       </span>
     </button>
   );
@@ -909,16 +921,17 @@ function RunButton({ label, state, onClick }: { label: string; state: RunState; 
 
 // Progress Wizard for Review Flow
 function ReviewProgressWizard({ currentStep }: { currentStep: number }) {
+  const { t } = useI18n();
   const steps = [
-    { label: "Generate", description: "Build review packages", icon: PackageCheck },
-    { label: "Plausibility", description: "Run AI checks", icon: CheckCircle2 },
-    { label: "SME Review", description: "Technical review", icon: Users },
-    { label: "QA Approval", description: "Quality sign-off", icon: ShieldCheck },
-    { label: "Export", description: "Deliver package", icon: FileDown },
+    { label: t("wizard.generate"), description: t("wizard.generateDesc"), icon: PackageCheck },
+    { label: t("wizard.plausibility"), description: t("wizard.plausibilityDesc"), icon: CheckCircle2 },
+    { label: t("wizard.smeReview"), description: t("wizard.smeDesc"), icon: Users },
+    { label: t("wizard.qaApproval"), description: t("wizard.qaDesc"), icon: ShieldCheck },
+    { label: t("wizard.export"), description: t("wizard.exportDesc"), icon: FileDown },
   ];
 
   return (
-    <div className="mb-8 overflow-hidden rounded-2xl border border-black/10 bg-white/80 p-6 shadow-sm" role="navigation" aria-label="Review progress">
+    <div className="mb-8 overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 p-6 shadow-sm" role="navigation" aria-label={t("wizard.navigation")}>
       <div className="flex items-center justify-between">
         {steps.map((step, index) => (
           <div key={step.label} className="flex items-center">
@@ -929,7 +942,7 @@ function ReviewProgressWizard({ currentStep }: { currentStep: number }) {
                     ? "bg-teal-500 text-white shadow-[0_8px_20px_rgba(0,155,141,0.3)]"
                     : index === currentStep
                     ? "bg-teal-500/15 text-teal-600 ring-2 ring-teal-500"
-                    : "bg-slate-100 text-slate-400"
+                    : "bg-slate-100 dark:bg-slate-700 text-slate-400"
                 }`}
                 aria-current={index === currentStep ? "step" : undefined}
               >
@@ -940,16 +953,16 @@ function ReviewProgressWizard({ currentStep }: { currentStep: number }) {
                 )}
               </div>
               <div className="mt-2 text-center">
-                <div className={`text-xs font-semibold ${index <= currentStep ? "text-slate-800" : "text-slate-400"}`}>
+                <div className={`text-xs font-semibold ${index <= currentStep ? "text-slate-800 dark:text-white" : "text-slate-400"}`}>
                   {step.label}
                 </div>
-                <div className="hidden text-[10px] text-slate-600 sm:block">{step.description}</div>
+                <div className="hidden text-[10px] text-slate-600 dark:text-slate-400 sm:block">{step.description}</div>
               </div>
             </div>
             {index < steps.length - 1 && (
               <div
                 className={`mx-2 h-0.5 w-8 sm:w-12 md:w-16 lg:w-20 transition-colors duration-300 ${
-                  index < currentStep ? "bg-teal-500" : "bg-slate-200"
+                  index < currentStep ? "bg-teal-500" : "bg-slate-200 dark:bg-slate-700"
                 }`}
                 aria-hidden
               />
@@ -962,24 +975,28 @@ function ReviewProgressWizard({ currentStep }: { currentStep: number }) {
 }
 
 function ProjectsSection() {
+  const { t, locale } = useI18n();
+  const placeholders = locale === "de"
+    ? ["Projektname", "Produkt/Prozess/System", "GMP-Bereich", "Geltungsbereich", "Außerhalb Geltungsbereich"]
+    : ["Project name", "Product/process/system", "GMP area", "Scope statement", "Out-of-scope statement"];
   return (
-    <Panel title="Projects">
+    <Panel title={t("projects.title")}>
       <div className="grid gap-4 lg:grid-cols-[1fr_0.8fr]">
-        <Link href={`/projects/${demoProject.id}`} className="block rounded-lg border border-line p-4 hover:bg-slate-50">
-          <div className="text-lg font-semibold">{demoProject.name}</div>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{demoProject.scopeStatement}</p>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
-            <span className="rounded bg-slate-100 px-2 py-1">{demoProject.gmpArea}</span>
-            <span className="rounded bg-slate-100 px-2 py-1">{demoProject.methodology}</span>
-            <span className="rounded bg-slate-100 px-2 py-1">{demoProject.triggerType}</span>
+        <Link href={`/projects/${demoProject.id}`} className="block rounded-lg border border-line dark:border-white/10 p-4 hover:bg-slate-50 dark:hover:bg-slate-800">
+          <div className="text-lg font-semibold dark:text-white">{demoProject.name}</div>
+          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{demoProject.scopeStatement}</p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600 dark:text-slate-400">
+            <span className="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1">{demoProject.gmpArea}</span>
+            <span className="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1">{demoProject.methodology}</span>
+            <span className="rounded bg-slate-100 dark:bg-slate-700 px-2 py-1">{demoProject.triggerType}</span>
           </div>
         </Link>
-        <form className="grid gap-3 rounded-lg border border-line p-4">
-          <div className="font-semibold">Create QRM project</div>
-          {["Project name", "Product/process/system", "GMP area", "Scope statement", "Out-of-scope statement"].map((label) => (
-            <input key={label} className="h-9 rounded-md border border-line px-3 text-sm" placeholder={label} />
+        <form className="grid gap-3 rounded-lg border border-line dark:border-white/10 p-4">
+          <div className="font-semibold dark:text-white">{t("projects.createProject")}</div>
+          {placeholders.map((label) => (
+            <input key={label} className="h-9 rounded-md border border-line dark:border-white/10 dark:bg-slate-800 dark:text-white px-3 text-sm" placeholder={label} />
           ))}
-          <button type="button" className="h-9 rounded-md bg-teal px-3 text-sm font-medium text-white">Create draft project</button>
+          <button type="button" className="h-9 rounded-md bg-teal px-3 text-sm font-medium text-white">{t("projects.createDraft")}</button>
         </form>
       </div>
     </Panel>
@@ -1014,22 +1031,24 @@ function ProjectDetail({ id }: { id: string }) {
 }
 
 function DocumentsSection() {
+  const { t } = useI18n();
   return (
-    <Panel title="Source documents">
+    <Panel title={t("docs.sourceDocuments")}>
       <Table
-        headers={["Document type", "File", "Supported format", "Content excerpt"]}
+        headers={[t("docs.documentType"), t("docs.fileName"), t("docs.supportedFormat"), t("docs.contentExcerpt")]}
         rows={demoDocuments.map((document) => [document.documentType, document.fileName, document.fileName.split(".").pop(), document.content])}
       />
-      <div className="mt-4 text-sm leading-6 text-slate-600">TODO placeholders: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum ingestion.</div>
+      <div className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">{t("docs.todoPlaceholder")}</div>
     </Panel>
   );
 }
 
 function SnippetsSection() {
+  const { t } = useI18n();
   return (
-    <Panel title="Source snippets with hashes">
+    <Panel title={t("snippets.title")}>
       <Table
-        headers={["Snippet", "Document", "Section", "Line/page placeholder", "Hash"]}
+        headers={[t("snippets.snippet"), t("snippets.document"), t("snippets.section"), t("snippets.lineRef"), t("snippets.hash")]}
         rows={demoSnippets.map((snippet) => [snippet.id, snippet.documentType, snippet.sectionTitle, snippet.lineReference, snippet.snippetHash.slice(0, 16)])}
       />
     </Panel>
@@ -1037,10 +1056,11 @@ function SnippetsSection() {
 }
 
 function RiskLibrarySection() {
+  const { t } = useI18n();
   return (
-    <Panel title="Approved risk library">
+    <Panel title={t("riskLib.title")}>
       <Table
-        headers={["Library ID", "GMP area", "Process step", "Failure mode / hazard", "Status", "Version", "SME"]}
+        headers={[t("riskLib.libraryId"), t("riskLib.gmpArea"), t("riskLib.processStep"), t("riskLib.failureMode"), t("riskLib.status"), t("riskLib.version"), t("riskLib.sme")]}
         rows={demoRiskLibrary.map((item) => [
           item.libraryId,
           item.gmpArea,
@@ -1051,19 +1071,20 @@ function RiskLibrarySection() {
           item.requiredSmeDiscipline
         ])}
       />
-      <p className="mt-4 text-sm leading-6 text-slate-600">Unapproved library items cannot be used as an approved basis. If no match exists, the risk is marked NEW_OR_UNVERIFIED and routed to SME review.</p>
+      <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">{t("riskLib.note")}</p>
     </Panel>
   );
 }
 
 function TriggerSection() {
+  const { t } = useI18n();
   return (
-    <Panel title="Change/deviation/CAPA/finding input">
+    <Panel title={t("trigger.title")}>
       <div className="grid gap-4 md:grid-cols-2">
-        <SummaryBlock title="Change control" text="Modified AVI rejection threshold to reduce false rejects while maintaining detection capability." />
-        <SummaryBlock title="Deviation" text="Batch record reconciliation wording for AVI reject counts is unclear." />
-        <SummaryBlock title="CAPA" text="Synthetic follow-up for threshold evidence, training completion, and reconciliation clarification." />
-        <SummaryBlock title="Audit finding" text="Review whether audit trail scope explicitly covers threshold configuration." />
+        <SummaryBlock title={t("trigger.changeControl")} text={t("trigger.changeText")} />
+        <SummaryBlock title={t("trigger.deviation")} text={t("trigger.deviationText")} />
+        <SummaryBlock title={t("trigger.capa")} text={t("trigger.capaText")} />
+        <SummaryBlock title={t("trigger.auditFinding")} text={t("trigger.auditText")} />
       </div>
     </Panel>
   );
@@ -1473,6 +1494,7 @@ function AgentMessageBubble({ message }: { message: AgentMessage }) {
 }
 
 function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
+  const { t } = useI18n();
   const packages = context.reviewPackages;
   const [queueFilter, setQueueFilter] = useState("All");
   const queue = buildReviewQueue(packages, context.packageResults);
@@ -1511,7 +1533,7 @@ function ReviewPackagesSection(context: Parameters<typeof renderSection>[1]) {
       ) : null}
 
       {packages.length > 0 ? (
-        <Panel title="Risk-Based Review Queue">
+        <Panel title={t("review.riskBasedQueue")}>
           <div className="mb-5 flex flex-wrap gap-2">
             {["All", "Input incomplete", "Ready for plausibility check", "SME required", "QA required", "Evidence gaps", "High priority", "Quick check only"].map((filter) => (
               <button
