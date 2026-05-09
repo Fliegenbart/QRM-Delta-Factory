@@ -10,6 +10,20 @@ export { AgentOrchestrator, createOrchestrator } from "./orchestrator";
 // Individual adapters (for advanced use)
 export { OpenAIAdapter } from "./openai-adapter";
 export { AnthropicAdapter } from "./anthropic-adapter";
+export { GeminiAdapter } from "./gemini-adapter";
+
+// Ensemble orchestrator
+export {
+  EnsembleOrchestrator,
+  createEnsembleOrchestrator,
+  CANARY_RISKS,
+  type ModelProvider,
+  type ModelResult,
+  type RiskAgreement,
+  type EnsembleResult,
+  type CanaryTestResult,
+  type EnsembleConfig,
+} from "./ensemble-orchestrator";
 
 // Document verification
 export { DocumentVerifier, getDocumentVerifier } from "./document-verifier";
