@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { decisionOptions, type ReviewDecisionValue } from "@/src/lib/review-ui";
+import { consultantReviewCopy, decisionOptions, type ReviewDecisionValue } from "@/src/lib/review-ui";
 
 export function ReviewDecisionForm({ findingId }: { findingId: string }) {
   const [reviewerId, setReviewerId] = useState("reviewer_qa_1");
@@ -21,7 +21,9 @@ export function ReviewDecisionForm({ findingId }: { findingId: string }) {
       body: JSON.stringify({
         reviewerId,
         decision: nextDecision,
-        rationale: rationale || `Reviewer selected ${nextDecision.replaceAll("_", " ")}.`
+        rationale:
+          rationale ||
+          `${consultantReviewCopy.decision.defaultRationalePrefix}: ${nextDecision.replaceAll("_", " ")}.`
       })
     });
 
@@ -32,14 +34,14 @@ export function ReviewDecisionForm({ findingId }: { findingId: string }) {
     }
 
     setStatus("saved");
-    setMessage("Review decision saved to the backend audit trail.");
+    setMessage(consultantReviewCopy.decision.savedMessage);
   }
 
   return (
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-[220px_1fr]">
         <label className="text-sm font-medium text-slate-700">
-          Reviewer ID
+          {consultantReviewCopy.decision.reviewerId}
           <input
             className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-sm"
             value={reviewerId}
@@ -47,12 +49,12 @@ export function ReviewDecisionForm({ findingId }: { findingId: string }) {
           />
         </label>
         <label className="text-sm font-medium text-slate-700">
-          Rationale
+          {consultantReviewCopy.decision.rationale}
           <textarea
             className="mt-1 min-h-24 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm leading-6"
             value={rationale}
             onChange={(event) => setRationale(event.target.value)}
-            placeholder="Document the human review rationale. Do not rely on model output alone."
+            placeholder={consultantReviewCopy.decision.placeholder}
           />
         </label>
       </div>

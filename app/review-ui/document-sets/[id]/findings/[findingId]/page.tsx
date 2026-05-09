@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getReviewPack } from "@/src/lib/review-api";
 import {
+  consultantReviewCopy,
   evidenceRowsForFinding,
   findTopRiskById,
   modelPositionForFinding
@@ -26,7 +27,7 @@ export default async function FindingDetailPage({ params }: PageProps) {
     if (!risk) {
       return (
         <ReviewShell>
-          <EmptyState message="Finding wurde im Review Pack nicht gefunden." />
+          <EmptyState message={consultantReviewCopy.finding.notFound} />
         </ReviewShell>
       );
     }
@@ -35,13 +36,13 @@ export default async function FindingDetailPage({ params }: PageProps) {
       <ReviewShell>
         <div className="mb-4">
           <Link className="text-sm font-semibold text-teal-700" href={`/review-ui/document-sets/${id}/review-pack`}>
-            Zurück zum Review Pack
+            {consultantReviewCopy.finding.backToPack}
           </Link>
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[1fr_0.75fr]">
           <div className="space-y-5">
-            <ReviewPanel title="Finding Detail mit Evidenz">
+            <ReviewPanel title={consultantReviewCopy.finding.title}>
               <div className="flex flex-wrap gap-2">
                 <StatusBadge tone={risk.severity === "critical" || risk.severity === "high" ? "red" : "amber"}>
                   {risk.severity}
@@ -52,20 +53,20 @@ export default async function FindingDetailPage({ params }: PageProps) {
 
               <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{risk.risk_statement}</h2>
               <dl className="mt-5 grid gap-4 md:grid-cols-2">
-                <Detail label="Finding ID" value={risk.finding_id} mono />
-                <Detail label="Risk Category" value={risk.risk_category ?? "not provided"} />
-                <Detail label="Requirement Reference" value={risk.requirement_references.join(", ") || "not linked"} mono />
-                <Detail label="Verifier Result" value={risk.verifier_status} />
+                <Detail label={consultantReviewCopy.finding.labels.findingId} value={risk.finding_id} mono />
+                <Detail label={consultantReviewCopy.finding.labels.riskCategory} value={risk.risk_category ?? "nicht angegeben"} />
+                <Detail label={consultantReviewCopy.finding.labels.requirementReference} value={risk.requirement_references.join(", ") || "nicht verknüpft"} mono />
+                <Detail label={consultantReviewCopy.finding.labels.verifierResult} value={risk.verifier_status} />
               </dl>
 
               <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-                <strong>Required human review reason:</strong> {risk.human_review_reason}
+                <strong>{consultantReviewCopy.finding.humanReason}:</strong> {risk.human_review_reason}
               </div>
             </ReviewPanel>
 
-            <ReviewPanel title="Evidence Quotes">
+            <ReviewPanel title={consultantReviewCopy.finding.evidenceTitle}>
               {evidenceRows.length === 0 && risk.evidence_quotes.length === 0 ? (
-                <EmptyState message="Keine Evidenzzitate im Review Pack verknüpft." />
+                <EmptyState message={consultantReviewCopy.finding.noEvidence} />
               ) : (
                 <div className="space-y-3">
                   {[...evidenceRows, ...risk.evidence_quotes.map((quote) => ({
@@ -81,9 +82,9 @@ export default async function FindingDetailPage({ params }: PageProps) {
                     <blockquote key={`${row.document_id}-${row.chunk_id}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <p className="text-sm leading-6 text-slate-800">"{row.quote}"</p>
                       <footer className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-                        <span>Document: {row.document_id}</span>
-                        <span>Page: {row.page}</span>
-                        <span>Chunk: {row.chunk_id}</span>
+                        <span>{consultantReviewCopy.finding.document}: {row.document_id}</span>
+                        <span>{consultantReviewCopy.finding.page}: {row.page}</span>
+                        <span>{consultantReviewCopy.finding.chunk}: {row.chunk_id}</span>
                       </footer>
                     </blockquote>
                   ))}
@@ -93,13 +94,13 @@ export default async function FindingDetailPage({ params }: PageProps) {
           </div>
 
           <div className="space-y-5">
-            <ReviewPanel title="Model Positions">
-              <PositionList label="Found by" values={modelPosition?.found_by_agents ?? risk.found_by_agents} />
-              <PositionList label="Contradicted by" values={modelPosition?.contradicted_by_agents ?? risk.contradicted_by_agents} />
-              <PositionList label="No issue agents" values={modelPosition?.no_issue_agents ?? risk.no_issue_agents} />
+            <ReviewPanel title={consultantReviewCopy.finding.modelPositions}>
+              <PositionList label={consultantReviewCopy.finding.foundBy} values={modelPosition?.found_by_agents ?? risk.found_by_agents} />
+              <PositionList label={consultantReviewCopy.finding.contradictedBy} values={modelPosition?.contradicted_by_agents ?? risk.contradicted_by_agents} />
+              <PositionList label={consultantReviewCopy.finding.noIssueAgents} values={modelPosition?.no_issue_agents ?? risk.no_issue_agents} />
             </ReviewPanel>
 
-            <ReviewPanel title="Review Decision Form">
+            <ReviewPanel title={consultantReviewCopy.finding.decisionForm}>
               <ReviewDecisionForm findingId={findingId} />
             </ReviewPanel>
           </div>
@@ -109,7 +110,7 @@ export default async function FindingDetailPage({ params }: PageProps) {
   } catch (error) {
     return (
       <ReviewShell>
-        <EmptyState message={`Finding konnte nicht geladen werden: ${error instanceof Error ? error.message : "Unbekannter Fehler"}`} />
+        <EmptyState message={`${consultantReviewCopy.finding.loadErrorPrefix}: ${error instanceof Error ? error.message : "Unbekannter Fehler"}`} />
       </ReviewShell>
     );
   }

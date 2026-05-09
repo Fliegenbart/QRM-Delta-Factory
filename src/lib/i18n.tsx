@@ -15,10 +15,10 @@ export type Locale = "de" | "en";
 export const translations = {
   // Navigation Categories
   "nav.category.workspace": { de: "Arbeitsbereich", en: "Workspace" },
-  "nav.category.riskAnalysis": { de: "Risikoanalyse", en: "Risk Analysis" },
-  "nav.category.reviewQA": { de: "Review & QA", en: "Review & QA" },
-  "nav.category.evidenceGaps": { de: "Evidenz & Lücken", en: "Evidence & Gaps" },
-  "nav.category.output": { de: "Ausgabe", en: "Output" },
+  "nav.category.riskAnalysis": { de: "Analyse vorbereiten", en: "Prepare Analysis" },
+  "nav.category.reviewQA": { de: "Prüfung steuern", en: "Steer Review" },
+  "nav.category.evidenceGaps": { de: "Quellen & Lücken", en: "Sources & Gaps" },
+  "nav.category.output": { de: "Lieferpakete", en: "Deliverables" },
   "nav.category.admin": { de: "Administration", en: "Admin" },
 
   // Navigation Items
@@ -28,17 +28,17 @@ export const translations = {
   "nav.sourceSnippets": { de: "Quellausschnitte", en: "Source Snippets" },
   "nav.riskLibrary": { de: "Risikobibliothek", en: "Risk Library" },
   "nav.triggerInput": { de: "Change/CAPA Eingabe", en: "Change/CAPA Input" },
-  "nav.deltaAnalysis": { de: "Risk-Orchestrierung", en: "Risk Orchestration" },
+  "nav.deltaAnalysis": { de: "Risk Delta Prozess", en: "Risk Delta Process" },
   "nav.qrmMatrix": { de: "QRM-Matrix", en: "QRM Matrix" },
-  "nav.reviewPackages": { de: "Review-Pakete", en: "Review Packages" },
-  "nav.plausibilityChecks": { de: "Plausibilitätsprüfungen", en: "Plausibility Checks" },
-  "nav.redTeamFindings": { de: "Red-Team Findings", en: "Red-Team Findings" },
-  "nav.reviewQueue": { de: "Review-Warteschlange", en: "Review Queue" },
-  "nav.approvals": { de: "Genehmigungen", en: "Approvals" },
-  "nav.evidenceMap": { de: "Evidenzkarte", en: "Evidence Map" },
+  "nav.reviewPackages": { de: "Prüfpakete", en: "Review Packages" },
+  "nav.plausibilityChecks": { de: "Plausibilitätscheck", en: "Plausibility Check" },
+  "nav.redTeamFindings": { de: "Blind-Spot-Prüfung", en: "Blind-Spot Review" },
+  "nav.reviewQueue": { de: "Review-Prioritäten", en: "Review Priorities" },
+  "nav.approvals": { de: "QA-Entscheidungen", en: "QA Decisions" },
+  "nav.evidenceMap": { de: "Quellenkarte", en: "Evidence Map" },
   "nav.gaps": { de: "Lücken", en: "Gaps" },
-  "nav.exportPackage": { de: "Export-Paket", en: "Export Package" },
-  "nav.validationPack": { de: "Validierungspaket", en: "Validation Pack" },
+  "nav.exportPackage": { de: "Review-Pack Export", en: "Review Pack Export" },
+  "nav.validationPack": { de: "Validierungsunterlagen", en: "Validation Documents" },
   "nav.auditTrail": { de: "Audit-Trail", en: "Audit Trail" },
   "nav.adminUsers": { de: "Admin/Benutzer", en: "Admin/Users" },
 
@@ -53,22 +53,22 @@ export const translations = {
   // Brand
   "brand.name": { de: "Pharma QRM", en: "Pharma QRM" },
   "brand.subtitle": { de: "Delta Factory", en: "Delta Factory" },
-  "brand.tagline": { de: "Quellenverknüpfte Entwurfs-Risikopakete für qualifizierte menschliche Prüfung.", en: "Source-linked draft risk packages for qualified human review." },
+  "brand.tagline": { de: "Ein auditierbares Assistenzsystem: Es bereitet Risiko-Deltas vor, verlinkt Quellen und hält die Entscheidung beim Menschen.", en: "An auditable assistance system: it prepares risk deltas, links sources, and keeps decisions with humans." },
 
   // Dashboard
-  "dashboard.openHighGaps": { de: "Offene kritische Lücken", en: "Open high gaps" },
-  "dashboard.level3Review": { de: "Level 3 Review", en: "Level 3 review" },
-  "dashboard.aiDraftItems": { de: "KI-Entwurfspositionen", en: "AI draft items" },
+  "dashboard.openHighGaps": { de: "Offene High/Critical-Lücken", en: "Open high/critical gaps" },
+  "dashboard.level3Review": { de: "Vollprüfung nötig", en: "Full review needed" },
+  "dashboard.aiDraftItems": { de: "Entwurfsrisiken", en: "Draft risk items" },
   "dashboard.sourceSnippets": { de: "Quellausschnitte", en: "Source snippets" },
-  "dashboard.riskBasedQueue": { de: "Risikobasierte Review-Warteschlange", en: "Risk-based human review queue" },
-  "dashboard.openQueue": { de: "Warteschlange öffnen", en: "Open queue" },
-  "dashboard.deltaSummary": { de: "Delta-Zusammenfassung", en: "Delta summary" },
+  "dashboard.riskBasedQueue": { de: "Was zuerst geprüft werden sollte", en: "What should be reviewed first" },
+  "dashboard.openQueue": { de: "Prioritäten ansehen", en: "View priorities" },
+  "dashboard.deltaSummary": { de: "Wo stehen wir in diesem Fall?", en: "Where are we in this case?" },
   "dashboard.trigger": { de: "Auslöser", en: "Trigger" },
   "dashboard.triggerText": { de: "Change Control für geänderte automatisierte visuelle Inspektions-Ablehnungsschwelle.", en: "Change control for modified automated visual inspection rejection threshold." },
-  "dashboard.mainConcern": { de: "Hauptbedenken", en: "Main concern" },
+  "dashboard.mainConcern": { de: "Wichtigster Punkt", en: "Main point" },
   "dashboard.mainConcernText": { de: "Evidenzpaket deckt alte Schwelle ab; Wirksamkeitsnachweis für neue Schwelle fehlt.", en: "Evidence package covers old threshold; new-threshold effectiveness evidence is missing." },
-  "dashboard.routing": { de: "Routing", en: "Routing" },
-  "dashboard.routingText": { de: "Level 3 Items gehen zuerst zum SME-Review, dann erst nach Pflichtfeld- und Gate-Prüfung zum QA-Workflow.", en: "Level 3 items go to SME review first, then QA workflow only after required fields and gates pass." },
+  "dashboard.routing": { de: "Nächster Review-Schritt", en: "Next review step" },
+  "dashboard.routingText": { de: "Das Tool sortiert den Fall vor: unvollständige Pakete zurück an Author/Ops, fachliche Risiken gezielt zu SME und QA.", en: "The tool pre-sorts the case: incomplete packages return to Author/Ops, technical risks go to SME and QA." },
 
   // Multi-Agent Analysis
   "agent.title": { de: "Multi-Agent Analyse", en: "Multi-Agent Analysis" },
@@ -131,11 +131,11 @@ export const translations = {
   "docs.placeholder": { de: "TODO Platzhalter: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum Ingestion.", en: "TODO placeholders: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum ingestion." },
 
   // Review Packages
-  "review.packages": { de: "Review-Pakete", en: "Review Packages" },
-  "review.riskBasedQueue": { de: "Risikobasierte Review-Warteschlange", en: "Risk-Based Review Queue" },
-  "review.generatedPackages": { de: "Generierte Pakete", en: "Generated packages" },
-  "review.readyForReview": { de: "Bereit für Review", en: "Ready for review" },
-  "review.inputIncomplete": { de: "Eingabe unvollständig", en: "Input incomplete" },
+  "review.packages": { de: "Prüfpakete", en: "Review Packages" },
+  "review.riskBasedQueue": { de: "Risk-Based Review Queue", en: "Risk-Based Review Queue" },
+  "review.generatedPackages": { de: "Erstellte Prüfpakete", en: "Generated packages" },
+  "review.readyForReview": { de: "Bereit für Quellencheck", en: "Ready for source check" },
+  "review.inputIncomplete": { de: "Zurück an Author/Ops", en: "Back to Author/Ops" },
   "review.total": { de: "Gesamt", en: "Total" },
   "review.ready": { de: "Bereit", en: "Ready" },
   "review.incomplete": { de: "Unvollständig", en: "Incomplete" },
@@ -143,14 +143,14 @@ export const translations = {
   "review.partial": { de: "Teilweise", en: "Partial" },
   "review.fail": { de: "Fehlgeschlagen", en: "Fail" },
   "review.reduction": { de: "Reduktion", en: "Reduction" },
-  "review.generatePackages": { de: "Pakete generieren", en: "Generate Packages" },
-  "review.runAllChecks": { de: "Alle Prüfungen ausführen", en: "Run All Checks" },
-  "review.generateExport": { de: "Export generieren", en: "Generate Export" },
+  "review.generatePackages": { de: "Prüfpakete erstellen", en: "Build Review Packages" },
+  "review.runAllChecks": { de: "Plausibilität prüfen", en: "Run Plausibility Checks" },
+  "review.generateExport": { de: "Draft Review Pack erzeugen", en: "Generate Draft Review Pack" },
   "review.downloadJson": { de: "JSON herunterladen", en: "Download JSON" },
 
   // Notice
-  "notice.draft": { de: "DRAFT Sicherheitshinweis:", en: "DRAFT safety notice:" },
-  "notice.text": { de: "Alle KI-generierten Inhalte sind als ENTWURF gekennzeichnet. Die App bereitet prüfbare Arbeitspakete vor; sie ersetzt keine qualifizierte menschliche Risikobewertung, QA-Verantwortung oder regulatorische Entscheidungen.", en: "All AI-generated content is labeled DRAFT. The app prepares reviewable work products; it does not replace qualified human risk assessment, QA responsibility, or regulatory decisions." },
+  "notice.draft": { de: "Entwurfsmodus:", en: "Draft mode:" },
+  "notice.text": { de: "Dieses Tool bereitet Arbeitspakete für menschliche Prüfung vor. Es sammelt Quellen, zeigt Lücken und priorisiert den Review; es trifft keine regulatorischen Entscheidungen.", en: "This tool prepares work packages for human review. It gathers sources, shows gaps, and prioritizes review; it does not make regulatory decisions." },
 
   // Actions
   "action.save": { de: "Speichern", en: "Save" },
@@ -193,7 +193,7 @@ export const translations = {
 
   // Validation Pack
   "validation.title": { de: "Validierungspaket", en: "Validation Pack" },
-  "validation.description": { de: "GMP-konformes Validierungspaket für regulatorische Einreichung.", en: "GMP-compliant validation package for regulatory submission." },
+  "validation.description": { de: "Entwurfsunterlagen für eine spätere Validierungsplanung im Kundensystem.", en: "Draft documents for later validation planning in the customer's quality system." },
 
   // Projects
   "projects.title": { de: "Projekte", en: "Projects" },
@@ -244,22 +244,22 @@ export const translations = {
   "docs.todoPlaceholder": { de: "TODO Platzhalter: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum Anbindung.", en: "TODO placeholders: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum ingestion." },
 
   // Premium Review Hero
-  "premium.reviewPackages": { de: "Review-Pakete", en: "Review packages" },
-  "premium.headline": { de: "Qualitätsrisiko, auf Evidenz reduziert.", en: "Quality risk, reduced to evidence." },
-  "premium.subline": { de: "Vollständige Entwurfs-Risikopakete für die AVI-Schwellenänderung. Unvollständige Eingaben werden vor der Plausibilitätsprüfung blockiert.", en: "Complete draft risk packages for the AVI threshold change. Incomplete inputs are blocked before plausibility review." },
-  "premium.generatePackages": { de: "Review-Pakete generieren", en: "Generate Review Packages" },
-  "premium.runAllChecks": { de: "Alle Prüfungen ausführen", en: "Run all ready checks" },
-  "premium.draftNote": { de: "ENTWURF • quellenverknüpft • menschlich kontrolliert", en: "DRAFT • source-linked • human controlled" },
-  "premium.architecture": { de: "Architektur", en: "Architecture" },
-  "premium.architectureText": { de: "Dokumente, Auslöser, FMEA-Baseline, Ausschnitte, Bibliothek und Bewertungsmodell werden zuerst zusammengestellt.", en: "Documents, trigger, FMEA baseline, snippets, library, and scoring model are assembled first." },
-  "premium.completenessGate": { de: "Vollständigkeitsgate", en: "Completeness gate" },
-  "premium.completenessText": { de: "Fehlende technische Eingaben gehen zurück an Author/Ops. Der Critic wird nicht bei unvollständigen Paketen aufgerufen.", en: "Missing technical input goes back to Author/Ops. The Critic is not called on partial packages." },
-  "premium.demoScenario": { de: "Demo-Szenario", en: "Demo scenario" },
-  "premium.demoText": { de: "CC-2026-014, nur Validierung alter Schwelle, fehlender Schulungsnachweis, fehlendes Validierungsaddendum.", en: "CC-2026-014, old-threshold validation only, missing training record, missing validation addendum." },
+  "premium.reviewPackages": { de: "Prüfpakete", en: "Review packages" },
+  "premium.headline": { de: "Vom Change Control zur prüfbaren Risikomappe.", en: "From change control to reviewable risk pack." },
+  "premium.subline": { de: "Für den Demo-Fall erstellt das System Arbeitspakete mit Quelle, Lücke, Prüffrage und nächstem Review-Schritt. Unvollständige Pakete werden blockiert, bevor der Plausibilitätscheck startet.", en: "For the demo case, the system builds work packages with source, gap, review question, and next review step. Incomplete packages are blocked before plausibility check starts." },
+  "premium.generatePackages": { de: "Prüfpakete erstellen", en: "Build review packages" },
+  "premium.runAllChecks": { de: "Plausibilität prüfen", en: "Run plausibility checks" },
+  "premium.draftNote": { de: "ENTWURF • Quellen sichtbar • Entscheidung bleibt beim Menschen", en: "DRAFT • sources visible • decisions stay with humans" },
+  "premium.architecture": { de: "1. Unterlagen sammeln", en: "1. Gather documents" },
+  "premium.architectureText": { de: "Change Control, bestehende FMEA, SOP-Auszug und Validierungsevidenz werden zu einem prüfbaren Paket verbunden.", en: "Change control, existing FMEA, SOP excerpt, and validation evidence are connected into a reviewable package." },
+  "premium.completenessGate": { de: "2. Vollständigkeit prüfen", en: "2. Check completeness" },
+  "premium.completenessText": { de: "Fehlt eine Quelle oder Evidenz, wird nicht weitergeprüft. Das Paket geht zurück an Author/Ops.", en: "If a source or evidence is missing, the system stops the check and routes the package back to Author/Ops." },
+  "premium.demoScenario": { de: "3. Demo-Fall verstehen", en: "3. Understand the demo case" },
+  "premium.demoText": { de: "AVI-Schwellenänderung mit alter Validierung, fehlendem Trainingsnachweis und fehlendem Addendum für die neue Schwelle.", en: "AVI threshold change with old validation, missing training record, and missing addendum for the new threshold." },
   "premium.sterileNote": { de: "Sterile Injektion • AVI-Schwellen-Review", en: "Sterile injectable • AVI threshold review" },
 
   // Executive Risk Summary
-  "executive.reviewSummary": { de: "Review-Zusammenfassung", en: "Review summary" },
+  "executive.reviewSummary": { de: "Aufwand und Review-Status", en: "Workload and review status" },
   "executive.total": { de: "Gesamt", en: "Total" },
   "executive.ready": { de: "Bereit", en: "Ready" },
   "executive.incomplete": { de: "Unvollständig", en: "Incomplete" },
@@ -268,13 +268,13 @@ export const translations = {
   "executive.fail": { de: "Fehlgeschlagen", en: "Fail" },
   "executive.reduction": { de: "Reduktion", en: "Reduction" },
   "executive.manualBaseline": { de: "Geschätzter manueller Basisaufwand", en: "Estimated manual baseline" },
-  "executive.manualBaselineDesc": { de: "Klassische Dokumentensuche und breite manuelle Risikobewertungsschätzung.", en: "Classic document search and broad manual risk review estimate." },
+  "executive.manualBaselineDesc": { de: "Schätzung für klassische Dokumentensuche, breite Durchsicht und manuelle Vorstrukturierung.", en: "Estimate for classic document search, broad review, and manual pre-structuring." },
   "executive.assistedReview": { de: "Geschätzte unterstützte Prüfung", en: "Estimated assisted review" },
-  "executive.assistedReviewDesc": { de: "Nur indikative MVP-Schätzung. Dies ist keine regulatorische oder Einreichungsaussage.", en: "Indicative MVP estimate only. It is not a regulatory or submission claim." },
+  "executive.assistedReviewDesc": { de: "Indikative MVP-Schätzung für die Demo. Keine regulatorische Aussage und keine Zusage für echte Projekte.", en: "Indicative MVP estimate for the demo. Not a regulatory statement and not a commitment for real projects." },
 
   // Evidence Confidence Panel
-  "evidence.confidence": { de: "Evidenz-Konfidenz", en: "Evidence confidence" },
-  "evidence.confidenceDesc": { de: "Signale für die Review-Planung, keine Genehmigung.", en: "Signals for review planning, not approval." },
+  "evidence.confidence": { de: "Wie belastbar sind die Quellen?", en: "How strong is the evidence?" },
+  "evidence.confidenceDesc": { de: "Orientierung für die Review-Planung. Das ist keine Freigabe und kein regulatorisches Urteil.", en: "Guidance for review planning. This is not approval and not a regulatory judgement." },
   "evidence.sourceCoverage": { de: "Quellenabdeckung", en: "Source coverage" },
   "evidence.plausibilityChecked": { de: "Plausibilität geprüft", en: "Plausibility checked" },
   "evidence.evidenceLinked": { de: "Evidenz verknüpft", en: "Evidence linked" },
@@ -283,17 +283,17 @@ export const translations = {
   "evidence.gapsInputs": { de: "Lücken / Eingaben", en: "Gaps / inputs" },
 
   // Progress Wizard
-  "wizard.generate": { de: "Generieren", en: "Generate" },
-  "wizard.generateDesc": { de: "Review-Pakete erstellen", en: "Build review packages" },
-  "wizard.plausibility": { de: "Plausibilität", en: "Plausibility" },
-  "wizard.plausibilityDesc": { de: "KI-Prüfungen ausführen", en: "Run AI checks" },
-  "wizard.smeReview": { de: "SME-Review", en: "SME Review" },
-  "wizard.smeDesc": { de: "Technische Prüfung", en: "Technical review" },
-  "wizard.qaApproval": { de: "QA-Freigabe", en: "QA Approval" },
-  "wizard.qaDesc": { de: "Qualitätsfreigabe", en: "Quality sign-off" },
-  "wizard.export": { de: "Export", en: "Export" },
-  "wizard.exportDesc": { de: "Paket liefern", en: "Deliver package" },
-  "wizard.navigation": { de: "Review-Fortschritt", en: "Review progress" },
+  "wizard.generate": { de: "Pakete", en: "Packages" },
+  "wizard.generateDesc": { de: "Prüfpakete erstellen", en: "Build review packages" },
+  "wizard.plausibility": { de: "Quellencheck", en: "Source check" },
+  "wizard.plausibilityDesc": { de: "Plausibilität prüfen", en: "Check plausibility" },
+  "wizard.smeReview": { de: "Fachreview", en: "Expert review" },
+  "wizard.smeDesc": { de: "SME-Fragen klären", en: "Resolve SME questions" },
+  "wizard.qaApproval": { de: "QA-Entscheid", en: "QA decision" },
+  "wizard.qaDesc": { de: "Menschlich dokumentieren", en: "Document human decision" },
+  "wizard.export": { de: "Lieferpaket", en: "Deliverable" },
+  "wizard.exportDesc": { de: "Draft Review Pack exportieren", en: "Export draft review pack" },
+  "wizard.navigation": { de: "Wo steht der Fall?", en: "Where does the case stand?" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

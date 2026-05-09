@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { consultantReviewCopy } from "@/src/lib/review-ui";
 
 export function ReviewShell({ children }: { children: ReactNode }) {
   return (
@@ -8,23 +9,21 @@ export function ReviewShell({ children }: { children: ReactNode }) {
         <header className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-5 md:flex-row md:items-end md:justify-between">
           <div>
             <Link href="/" className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-700">
-              Pharma QRM Delta Engine
+              {consultantReviewCopy.productName}
             </Link>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] md:text-4xl">
-              Review Workbench
+              {consultantReviewCopy.workspaceTitle}
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Source-based review packs for qualified QA and Regulatory reviewers. This UI
-              shows cited evidence and captures human review decisions; it does not approve
-              or close regulated risk decisions by itself.
+              {consultantReviewCopy.workspaceDescription}
             </p>
           </div>
           <nav className="flex flex-wrap gap-2 text-sm">
             <Link className="rounded-full border border-slate-200 bg-white px-4 py-2" href="/delta-analysis">
-              Risk-Orchestrierung
+              {consultantReviewCopy.nav.cockpit}
             </Link>
             <Link className="rounded-full border border-slate-200 bg-white px-4 py-2" href="/review-ui">
-              DocumentSets
+              {consultantReviewCopy.nav.packages}
             </Link>
           </nav>
         </header>
