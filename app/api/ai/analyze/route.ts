@@ -11,7 +11,8 @@
 
 import { NextResponse } from "next/server";
 import { createOrchestrator, type SourceSnippet, type RiskItemDraft } from "@/src/lib/agents";
-import { demoSnippets, demoProject } from "@/src/lib/demo-data";
+import { demoProject } from "@/src/lib/demo-data";
+import { getRealisticSourceSnippets } from "@/src/lib/mock-documents";
 
 export async function POST(request: Request) {
   try {
@@ -20,16 +21,10 @@ export async function POST(request: Request) {
     const projectId = body.projectId || demoProject.id;
     const changeControlId = body.changeControlId || "CC-2026-014";
 
-    // Load source documents (use demo data if not provided)
-    const sourceDocuments: SourceSnippet[] = body.sourceDocuments || demoSnippets.map(s => ({
-      id: s.id,
-      documentId: s.documentId,
-      documentType: s.documentType,
-      sectionTitle: s.sectionTitle,
-      content: s.text, // Demo data uses 'text' instead of 'content'
-      lineReference: s.lineReference,
-      snippetHash: s.snippetHash,
-    }));
+    // Load source documents (use realistic mock data if not provided)
+    // These documents contain intentional issues for the AI to find
+    const realisticSnippets = getRealisticSourceSnippets();
+    const sourceDocuments: SourceSnippet[] = body.sourceDocuments || realisticSnippets;
 
     // Existing risk items (for delta analysis)
     const existingRiskItems: RiskItemDraft[] = body.existingRiskItems || [];

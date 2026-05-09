@@ -165,58 +165,137 @@ export function buildAuthorPrompt(context: {
   sourceSnippets: Array<{ id: string; content: string; documentType: string }>;
   existingRisks?: Array<{ id: string; failureMode: string }>;
 }): string {
+  // Include full document content for proper analysis
   const snippetList = context.sourceSnippets
-    .map(s => `[${s.id}] (${s.documentType}): ${s.content.slice(0, 500)}...`)
-    .join("\n\n");
+    .map(s => `[${s.id}] (${s.documentType}):\n${s.content}`)
+    .join("\n\n---\n\n");
 
   const existingList = context.existingRisks
     ?.map(r => `- ${r.id}: ${r.failureMode}`)
     .join("\n") || "Keine bestehenden Risiken";
 
-  return `## Change Control Analyse
+  return `## Change Control Analyse: AVI Threshold Modification
 
 ### Änderung
 ${context.changeControlSummary}
 
-### Verfügbare Source-Dokumente
+### WICHTIG: Analysiere ALLE folgenden Dokumente sorgfältig auf:
+- Fehlende Validierung oder Evidenz
+- Training-Lücken
+- Data Integrity Risiken
+- Unklare Prozesse oder Formulierungen
+- Widersprüche zwischen Dokumenten
+
+### Source-Dokumente (VOLLSTÄNDIG LESEN!)
 ${snippetList}
 
 ### Bestehende Risiken (Baseline)
 ${existingList}
 
 ### Deine Aufgabe
-1. Identifiziere alle Risiken, die durch diese Änderung entstehen oder beeinflusst werden
-2. Für JEDEN Claim: Verlinke das Source-Snippet [ID]
-3. Bewerte S/O/D (1-10)
-4. Dokumentiere Gaps explizit
-5. Formuliere SME-Fragen
+1. **FINDE ALLE RISIKEN** in diesen Dokumenten - sie enthalten echte Probleme!
+2. Achte besonders auf:
+   - ⚠️ Validierung nur für alte Schwelle (0.85), nicht für neue (0.72)
+   - ⚠️ Fehlende Training-Curricula für neue Schwelle
+   - ⚠️ Audit Trail Review deckt Threshold-Änderungen nicht ab
+   - ⚠️ Batch Reconciliation Formel ist unklar (DEV-2026-118)
+   - ⚠️ Engineering Assessment basiert auf Modellierung, nicht Tests
+3. Für JEDEN Claim: Verlinke das Source-Snippet [ID]
+4. Bewerte Severity (1-10), Occurrence (1-10), Detectability (1-10)
+5. Dokumentiere ALLE gefundenen Gaps explizit
+6. Formuliere SME-Fragen für unklare Punkte
 
-Liefere deine Analyse als strukturiertes JSON.`;
+**ERWARTETE RISIKEN (mindestens diese finden!):**
+- Missing validation evidence for new threshold
+- Training gap for operators
+- Data integrity gap in audit trail review scope
+- Batch reconciliation formula ambiguity
+- Engineering assessment limitations (modeling vs. testing)
+
+**REQUIRED JSON OUTPUT FORMAT:**
+\`\`\`json
+{
+  "riskItems": [
+    {
+      "riskId": "RISK-001",
+      "processStep": "AVI Threshold Change",
+      "failureMode": "Description of what could go wrong",
+      "potentialCause": "Why this could happen",
+      "potentialEffect": "Impact on patient/product/compliance",
+      "severity": 8,
+      "occurrence": 4,
+      "detectability": 5,
+      "existingControls": ["Control 1", "Control 2"],
+      "proposedControls": ["New control needed"],
+      "requiredEvidence": ["Evidence needed"],
+      "impactCategories": ["PATIENT_SAFETY", "GMP_COMPLIANCE"],
+      "claims": [
+        {
+          "claim": "The specific claim being made",
+          "sourceId": "snip-val-scope",
+          "sourceText": "Quote from document",
+          "verified": true
+        }
+      ],
+      "confidence": "HIGH"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "GAP-001",
+      "riskItemId": "RISK-001",
+      "priority": "CRITICAL",
+      "category": "EVIDENCE",
+      "description": "What is missing",
+      "resolution": "How to fix it"
+    }
+  ],
+  "smeQuestions": ["Question for SME review?"]
+}
+\`\`\`
+
+Du MUSST mindestens 4-5 riskItems und 3-4 gaps liefern!`;
 }
 
 export function buildCriticPrompt(context: {
   authorDraft: string;
   sourceSnippets: Array<{ id: string; content: string; documentType: string }>;
 }): string {
+  // Include full document content for verification
   const snippetList = context.sourceSnippets
-    .map(s => `[${s.id}] (${s.documentType}): ${s.content.slice(0, 500)}...`)
-    .join("\n\n");
+    .map(s => `[${s.id}] (${s.documentType}):\n${s.content}`)
+    .join("\n\n---\n\n");
 
-  return `## Review der Author-Analyse
+  return `## Kritische Review der Author-Analyse
 
 ### Author's Draft
 ${context.authorDraft}
 
-### Verfügbare Source-Dokumente (zur Verifikation)
+### Source-Dokumente (für Verifikation - VOLLSTÄNDIG LESEN!)
 ${snippetList}
 
-### Deine Aufgabe
-1. Prüfe JEDEN Risk Item
-2. Verifiziere JEDEN Claim gegen die Sources
-3. Kategorisiere Findings: BLOCKER / CONCERN / SUGGESTION
-4. Lobe gute Arbeit!
+### Deine kritische Aufgabe
+1. **Prüfe JEDEN Risk Item** des Authors auf Vollständigkeit
+2. **Verifiziere JEDEN Claim** gegen die Source-Dokumente
+3. **Suche nach FEHLENDEN Risiken** die der Author übersehen hat:
+   - Hat er die fehlende Validierung für 0.72 erkannt?
+   - Hat er das Training-Gap identifiziert?
+   - Hat er das Audit Trail Scope Problem gefunden?
+   - Hat er die Batch Reconciliation Ambiguität erkannt?
+4. Kategorisiere Findings:
+   - **BLOCKER**: Muss vor menschlicher Review behoben werden
+   - **CONCERN**: Sollte adressiert werden
+   - **SUGGESTION**: Nice-to-have
 
-Sei gnadenlos präzise, aber konstruktiv. Liefere deine Review als strukturiertes JSON.`;
+### ERWARTETE KRITIKPUNKTE (falls Author diese übersehen hat):
+- Validation report deckt nur 0.85 ab, nicht 0.72 → BLOCKER
+- Kein Training-Curriculum für neue Schwelle entwickelt → BLOCKER
+- Audit Trail Review Checklist schließt Threshold-Änderungen nicht ein → CONCERN
+- DEV-2026-118 zeigt unklare Reconciliation-Formel → CONCERN
+- Engineering Assessment basiert nur auf Modellierung → CONCERN
+
+Sei gnadenlos präzise aber konstruktiv. Diese Risiken sind REAL und müssen gefunden werden!
+Liefere deine Review als strukturiertes JSON.`;
 }
 
 export function buildResolverPrompt(context: {
