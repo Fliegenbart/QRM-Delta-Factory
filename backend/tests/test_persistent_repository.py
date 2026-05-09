@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
 from app.db.persistent import PersistentSnapshotRepository
@@ -19,16 +20,43 @@ def test_persistent_repository_restores_snapshot_from_sqlite(tmp_path) -> None: 
     assert second.list_document_sets()[0].document_set_id == "ds_persist_demo"
 
 
-def _document_set() -> DocumentSet:
+def test_persistent_repository_handles_parallel_snapshot_writes(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    database_url = f"sqlite:///{tmp_path / 'qrm_parallel_state.db'}"
+    repository = PersistentSnapshotRepository(database_url=database_url)
+    repository.create_requirement_set(_requirement_set())
+
+    def create_document_set(index: int) -> str:
+        document_set = _document_set(
+            document_set_id=f"ds_persist_parallel_{index}",
+            uploaded_by=f"user_qrm_author_{index}",
+        )
+        repository.create_document_set(document_set)
+        return document_set.document_set_id
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        document_set_ids = list(executor.map(create_document_set, range(20)))
+
+    restored = PersistentSnapshotRepository(database_url=database_url)
+
+    assert {
+        document_set.document_set_id for document_set in restored.list_document_sets()
+    }.issuperset(document_set_ids)
+
+
+def _document_set(
+    *,
+    document_set_id: str = "ds_persist_demo",
+    uploaded_by: str = "user_qrm_author",
+) -> DocumentSet:
     return DocumentSet(
-        document_set_id="ds_persist_demo",
+        document_set_id=document_set_id,
         tenant_id="tenant_demo_pharma",
         requirement_set_id="rset_persist_demo",
         upload_timestamp=datetime.now(UTC),
         document_ids=[],
         declared_document_type="change_control",
         declared_process_area="aseptic_filling",
-        uploaded_by="user_qrm_author",
+        uploaded_by=uploaded_by,
         status="uploaded",
     )
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
+from threading import RLock
 from typing import TypeVar
 
 from pydantic import BaseModel
@@ -346,14 +347,16 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
     def __init__(self, *, database_url: str) -> None:
         self._engine: Engine = create_engine(_normalize_database_url(database_url), future=True)
         self._is_loading = False
+        self._lock = RLock()
         super().__init__()
         self._create_table()
         self._load_snapshot()
 
     def reset(self) -> None:
-        super().reset()
-        if hasattr(self, "_engine"):
-            self._save_snapshot()
+        with self._lock:
+            super().reset()
+            if hasattr(self, "_engine"):
+                self._save_snapshot()
 
     def create_document_set(self, document_set: DocumentSet) -> DocumentSet:
         return self._persist_after(
@@ -507,10 +510,11 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
         )
 
     def _persist_after(self, operation: Callable[[], OperationT]) -> OperationT:
-        result = operation()
-        if not self._is_loading:
-            self._save_snapshot()
-        return result
+        with self._lock:
+            result = operation()
+            if not self._is_loading:
+                self._save_snapshot()
+            return result
 
     def _create_table(self) -> None:
         with self._engine.begin() as connection:
@@ -606,29 +610,25 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             self._is_loading = False
 
     def _save_snapshot(self) -> None:
-        payload = json.dumps(self._snapshot(), sort_keys=True)
+        with self._lock:
+            payload = json.dumps(self._snapshot(), sort_keys=True)
+            updated_at = datetime.now(UTC).isoformat()
         with self._engine.begin() as connection:
-            connection.execute(
-                text(
-                    """
-                    DELETE FROM qrm_repository_snapshots
-                    WHERE snapshot_id = :snapshot_id
-                    """
-                ),
-                {"snapshot_id": "default"},
-            )
             connection.execute(
                 text(
                     """
                     INSERT INTO qrm_repository_snapshots
                     (snapshot_id, payload, updated_at)
                     VALUES (:snapshot_id, :payload, :updated_at)
+                    ON CONFLICT (snapshot_id) DO UPDATE SET
+                        payload = EXCLUDED.payload,
+                        updated_at = EXCLUDED.updated_at
                     """
                 ),
                 {
                     "snapshot_id": "default",
                     "payload": payload,
-                    "updated_at": datetime.now(UTC).isoformat(),
+                    "updated_at": updated_at,
                 },
             )
 
