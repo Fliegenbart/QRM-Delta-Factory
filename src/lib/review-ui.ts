@@ -125,10 +125,12 @@ export const consultantReviewCopy = {
     rationale: "Begründung",
     placeholder:
       "Dokumentiere kurz, warum du den Befund bestätigst, herabstufst, zurückweist oder weitere Unterlagen brauchst. Nicht allein auf die Modellantwort stützen.",
-    defaultRationalePrefix: "Reviewer hat ausgewählt",
+    rationaleRequired: "Bitte dokumentiere eine kurze menschliche Begründung, bevor du die Entscheidung speicherst.",
     savedMessage: "Review-Entscheidung wurde im Backend-Audit Trail gespeichert."
   }
 } as const;
+
+export const reviewDecisionRequiresHumanRationale = true;
 
 export const caseWorkspaceStructure = {
   route: "/case-workspace",

@@ -5,6 +5,7 @@ import {
   decisionOptions,
   findTopRiskById,
   normalizeReviewDecisionPayload,
+  reviewDecisionRequiresHumanRationale,
   supabasePublicEnvKeys,
   hasSupabasePublicConfig,
   riskOrchestrationEntry,
@@ -34,6 +35,8 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.list.title).toBe("Vorbereitete Prüfpakete");
     expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt mit Quelle");
     expect(consultantReviewCopy.decision.savedMessage).toContain("Audit Trail");
+    expect(reviewDecisionRequiresHumanRationale).toBe(true);
+    expect(consultantReviewCopy.decision.rationaleRequired).toContain("Begründung");
   });
 
   it("defines a simpler case workspace structure for consultants", () => {

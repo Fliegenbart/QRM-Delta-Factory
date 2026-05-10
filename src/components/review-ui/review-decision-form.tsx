@@ -12,6 +12,13 @@ export function ReviewDecisionForm({ findingId }: { findingId: string }) {
 
   async function submitDecision(nextDecision: ReviewDecisionValue) {
     setDecision(nextDecision);
+    const trimmedRationale = rationale.trim();
+    if (!trimmedRationale) {
+      setStatus("error");
+      setMessage(consultantReviewCopy.decision.rationaleRequired);
+      return;
+    }
+
     setStatus("saving");
     setMessage("");
 
@@ -21,9 +28,7 @@ export function ReviewDecisionForm({ findingId }: { findingId: string }) {
       body: JSON.stringify({
         reviewerId,
         decision: nextDecision,
-        rationale:
-          rationale ||
-          `${consultantReviewCopy.decision.defaultRationalePrefix}: ${nextDecision.replaceAll("_", " ")}.`
+        rationale: trimmedRationale
       })
     });
 

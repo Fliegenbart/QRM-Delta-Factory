@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -96,7 +97,6 @@ const legacySectionSlugs = [
   "source-snippets",
   "trigger-input",
   "qrm-matrix",
-  "review-packages",
   "plausibility-checks",
   "red-team-findings",
   "review-queue",
@@ -115,7 +115,6 @@ const pageTitleKeys: Record<string, TranslationKey> = Object.fromEntries(
     ["source-snippets", "nav.sourceSnippets"],
     ["trigger-input", "nav.triggerInput"],
     ["qrm-matrix", "nav.qrmMatrix"],
-    ["review-packages", "nav.reviewPackages"],
     ["plausibility-checks", "nav.plausibilityChecks"],
     ["red-team-findings", "nav.redTeamFindings"],
     ["review-queue", "nav.reviewQueue"],
@@ -136,12 +135,15 @@ function getPageTitle(slug: string, t: (key: TranslationKey) => string): string 
 
 export function AppShell({ section, projectId }: { section: string; projectId?: string }) {
   const active = sectionSlugs.includes(section as (typeof sectionSlugs)[number]) || section === "project-detail" ? section : "dashboard";
+  const router = useRouter();
   const [role, setRole] = useState("QRM_AUTHOR");
   const { locale, setLocale, t } = useI18n();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [reviewPackages, setReviewPackages] = useState<ReviewPackage[]>([]);
   const [packageResults, setPackageResults] = useState<Record<string, PackageReviewResult>>({});
   const [riskDeltaExport, setRiskDeltaExport] = useState<ReturnType<typeof generateRiskDeltaReviewPack> | null>(null);
+  const [backendDemoStatus, setBackendDemoStatus] = useState<"idle" | "running" | "ready" | "error">("idle");
+  const [backendDemoMessage, setBackendDemoMessage] = useState("");
   const [loginMessage, setLoginMessage] = useState("Demo-Rollen nutzen Passwort demo123.");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
@@ -158,47 +160,45 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   );
 
   async function generateReviewPackages() {
-    const response = await fetch("/api/review-packages", { method: "POST" });
-    const data = (await response.json()) as { packages: ReviewPackage[] };
-    setReviewPackages(data.packages);
-    setPackageResults({});
-    setRiskDeltaExport(null);
+    await startBackendDemo();
   }
 
   async function runPackageReview(packageId: string) {
-    const response = await fetch("/api/review-packages/plausibility", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ packageId })
-    });
-    const data = (await response.json()) as PackageReviewResult;
-    setPackageResults((current) => ({ ...current, [packageId]: data }));
-    setReviewPackages((current) =>
-      current.map((pkg) => (pkg.id === packageId && data.input_status === "COMPLETE" ? { ...pkg, package_status: "PLAUSIBILITY_CHECKED" } : pkg))
-    );
+    void packageId;
+    await startBackendDemo();
   }
 
   async function runAllPackageReviews() {
-    const readyPackages = reviewPackages.filter((pkg) => pkg.package_status === "READY_FOR_PLAUSIBILITY_CHECK");
-    const entries = await Promise.all(
-      readyPackages.map(async (pkg) => {
-        const response = await fetch("/api/review-packages/plausibility", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ packageId: pkg.id })
-        });
-        return [pkg.id, (await response.json()) as PackageReviewResult] as const;
-      })
-    );
-    const nextResults = Object.fromEntries(entries);
-    setPackageResults((current) => ({ ...current, ...nextResults }));
-    setReviewPackages((current) =>
-      current.map((pkg) => (nextResults[pkg.id]?.input_status === "COMPLETE" ? { ...pkg, package_status: "PLAUSIBILITY_CHECKED" } : pkg))
-    );
+    await startBackendDemo();
   }
 
   function generateDeltaExport() {
     setRiskDeltaExport(generateRiskDeltaReviewPack({ packages: reviewPackages, results: packageResults, approvedExport: false }));
+  }
+
+  async function startBackendDemo() {
+    setBackendDemoStatus("running");
+    setBackendDemoMessage("");
+    try {
+      const response = await fetch(riskOrchestrationEntry.demoSeedRoute, { method: "POST" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Backend-Demo konnte nicht gestartet werden.");
+      }
+
+      const documentSetId = payload.document_set?.document_set_id;
+      setBackendDemoStatus("ready");
+      setBackendDemoMessage("Backend-Pipeline ist gelaufen. Die Prüfmappe wird geöffnet.");
+      router.push(documentSetId ? `/review-ui/document-sets/${documentSetId}/review-pack` : riskOrchestrationEntry.reviewWorkbenchRoute);
+    } catch (error) {
+      setBackendDemoStatus("error");
+      const message = error instanceof Error ? error.message : "Backend-Demo konnte nicht gestartet werden.";
+      setBackendDemoMessage(
+        message === "fetch failed"
+          ? "Backend nicht erreichbar. Prüfe QRM_BACKEND_URL oder starte lokal den FastAPI-Backend-Service."
+          : message
+      );
+    }
   }
 
   function toggleCategory(categoryName: string) {
@@ -403,7 +403,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
           <Notice text={t("notice.text")} />
           <div className="mt-4 text-sm text-slate-600">{loginMessage}</div>
-          <div className="mt-6">{renderSection(active, { exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport })}</div>
+          <div className="mt-6">{renderSection(active, { exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, startBackendDemo, backendDemoStatus, backendDemoMessage })}</div>
         </div>
       </main>
     </div>
@@ -424,6 +424,9 @@ function renderSection(
     runAllPackageReviews: () => Promise<void>;
     generateDeltaExport: () => void;
     riskDeltaExport: ReturnType<typeof generateRiskDeltaReviewPack> | null;
+    startBackendDemo: () => Promise<void>;
+    backendDemoStatus: "idle" | "running" | "ready" | "error";
+    backendDemoMessage: string;
   }
 ) {
   switch (section) {
@@ -443,8 +446,6 @@ function renderSection(
       return <TriggerSection />;
     case "delta-analysis":
       return <DeltaSection />;
-    case "review-packages":
-      return <ReviewPackagesSection {...context} />;
     case "qrm-matrix":
       return <MatrixSection />;
     case "evidence-map":
@@ -512,11 +513,12 @@ function CaseWorkspaceSection(context: Parameters<typeof renderSection>[1]) {
             <div className="mt-7 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={() => void context.generateReviewPackages()}
-                className="inline-flex h-12 items-center gap-2 rounded-2xl bg-teal px-5 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(0,155,141,0.22)]"
+                onClick={() => void context.startBackendDemo()}
+                disabled={context.backendDemoStatus === "running"}
+                className="inline-flex h-12 items-center gap-2 rounded-2xl bg-teal px-5 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(0,155,141,0.22)] disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 <PackageCheck className="h-4 w-4" />
-                Prüfpakete erstellen
+                {context.backendDemoStatus === "running" ? "Backend-Pipeline läuft..." : "Backend-Demo starten"}
               </button>
               <Link
                 href={riskOrchestrationEntry.reviewWorkbenchRoute}
@@ -526,12 +528,21 @@ function CaseWorkspaceSection(context: Parameters<typeof renderSection>[1]) {
                 Backend-Prüfmappe öffnen
               </Link>
             </div>
+            {context.backendDemoMessage ? (
+              <div className={`mt-4 rounded-2xl px-4 py-3 text-sm leading-6 ${
+                context.backendDemoStatus === "error"
+                  ? "border border-red-200 bg-red-50 text-red-800"
+                  : "border border-emerald-200 bg-emerald-50 text-emerald-800"
+              }`}>
+                {context.backendDemoMessage}
+              </div>
+            ) : null}
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Stat label="Prüfpakete" value={packages.length || 5} tone="teal" />
-            <Stat label="Bereit für Check" value={readyCount || 4} tone="teal" />
-            <Stat label="Zurück an Author/Ops" value={incompleteCount || 1} tone="amber" />
-            <Stat label="Geschätzte Reduktion" value={`${workload.estimated_reduction_percent || 65}%`} tone="danger" />
+            <Stat label="Backend-Prozess" value="aktiv" tone="teal" />
+            <Stat label="Prüfpakete lokal" value={packages.length || "—"} tone="slate" />
+            <Stat label="Bereit lokal" value={packages.length ? readyCount : "—"} tone="slate" />
+            <Stat label="Author/Ops lokal" value={packages.length ? incompleteCount : "—"} tone="slate" />
           </div>
         </div>
         <div className="border-t border-black/10 bg-white/55 px-5 py-4 dark:border-white/10 dark:bg-slate-800/55">
@@ -560,7 +571,7 @@ function CaseWorkspaceSection(context: Parameters<typeof renderSection>[1]) {
       {activeTab === "overview" ? <CaseOverviewTab packages={packages} workload={workload} /> : null}
       {activeTab === "sources" ? <CaseSourcesTab /> : null}
       {activeTab === "risk-deltas" ? <CaseRiskDeltasTab context={context} /> : null}
-      {activeTab === "review-queue" ? <CaseReviewQueueTab queue={queue} packages={packages} onGenerate={context.generateReviewPackages} /> : null}
+      {activeTab === "review-queue" ? <CaseReviewQueueTab queue={queue} packages={packages} onStartBackendDemo={context.startBackendDemo} /> : null}
       {activeTab === "export" ? <CaseExportTab context={context} exportPack={exportPack} /> : null}
     </div>
   );
@@ -595,13 +606,13 @@ function CaseOverviewTab({
       </Panel>
       <Panel title="Risk Review Summary">
         <div className="grid gap-3 md:grid-cols-3">
-          <Metric label="Total packages" value={String(packages.length || 5)} tone="teal" />
-          <Metric label="Ready for review" value={String(workload.ready_for_review || 4)} tone="teal" />
-          <Metric label="Input incomplete" value={String(workload.input_incomplete || 1)} />
+          <Metric label="Total packages" value={packages.length ? String(packages.length) : "Backend"} tone="teal" />
+          <Metric label="Ready for review" value={packages.length ? String(workload.ready_for_review) : "siehe Prüfmappe"} tone="teal" />
+          <Metric label="Input incomplete" value={packages.length ? String(workload.input_incomplete) : "siehe Prüfmappe"} />
         </div>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <SummaryBlock title="Manual baseline" text={`${workload.manual_baseline_hours || 10}.0 h geschätzter klassischer Vorbereitungsaufwand.`} />
-          <SummaryBlock title="Assisted review" text={`${workload.assisted_review_hours || 3.5} h indikative MVP-Schätzung mit priorisierter Fallakte.`} />
+          <SummaryBlock title="Manual baseline" text={packages.length ? `${workload.manual_baseline_hours.toFixed(1)} h geschätzter klassischer Vorbereitungsaufwand.` : "Die belastbaren Zahlen kommen aus der Backend-Prüfmappe oder dem Draft Export."} />
+          <SummaryBlock title="Assisted review" text={packages.length ? `${workload.assisted_review_hours.toFixed(1)} h indikative MVP-Schätzung mit priorisierter Fallakte.` : "Starte die Backend-Demo, um den echten Review Pack für den synthetischen Fall zu öffnen."} />
         </div>
       </Panel>
     </div>
@@ -642,14 +653,15 @@ function CaseRiskDeltasTab({ context }: { context: Parameters<typeof renderSecti
       <Panel
         title="Risiko-Deltas vorbereiten"
         action={
-          <button type="button" className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" onClick={() => void context.generateReviewPackages()}>
-            Prüfpakete erstellen
+          <button type="button" className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" onClick={() => void context.startBackendDemo()}>
+            Backend-Demo starten
           </button>
         }
       >
         <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
-          Noch keine Pakete erzeugt. Starte hier den Package Builder. Danach siehst du pro Risiko:
-          Quellen, Evidenzlinks, Lücken, Bibliotheksbasis, Baseline-FMEA und Plausibilitätsstatus.
+          Die echten Risiko-Deltas entstehen jetzt in der Backend-Pipeline. Starte den synthetischen
+          AVI-Fall, dann öffnet sich die Prüfmappe mit Findings, Quellenzitaten, Verifier-Status,
+          offenen Unterlagen und Review-Entscheidung.
         </p>
       </Panel>
     );
@@ -693,19 +705,22 @@ function CaseRiskDeltasTab({ context }: { context: Parameters<typeof renderSecti
 function CaseReviewQueueTab({
   queue,
   packages,
-  onGenerate
+  onStartBackendDemo
 }: {
   queue: ReviewQueueItem[];
   packages: ReviewPackage[];
-  onGenerate: () => Promise<void>;
+  onStartBackendDemo: () => Promise<void>;
 }) {
   if (packages.length === 0) {
     return (
       <Panel
         title="Review Queue"
-        action={<button type="button" className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" onClick={() => void onGenerate()}>Queue vorbereiten</button>}
+        action={<button type="button" className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" onClick={() => void onStartBackendDemo()}>Backend-Queue öffnen</button>}
       >
-        <RiskRows items={reviewQueue} compact />
+        <p className="text-sm leading-7 text-slate-600 dark:text-slate-300">
+          Die priorisierte Queue kommt aus der Backend-Risk-Fusion. Im Demo-Fall wird sie als Review
+          Pack mit High/Medium Findings, offenen Unterlagen und menschlichen Aktionen angezeigt.
+        </p>
       </Panel>
     );
   }
@@ -749,8 +764,8 @@ function CaseExportTab({
         </pre>
       ) : (
         <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          Erzeuge den Draft Export erst, wenn die Pakete erstellt und idealerweise plausibilisiert wurden.
-          Der Export bleibt klar als Entwurf gekennzeichnet.
+          Der belastbare Export kommt aus der Backend-Prüfmappe. Diese Fallakte zeigt nur noch den
+          Produktpfad; die alte synthetische Frontend-Paketdemo ist nicht mehr der normale Ablauf.
         </div>
       )}
     </Panel>
@@ -1149,7 +1164,7 @@ function ProjectDetail({ id }: { id: string }) {
           ))}
         </dl>
       </Panel>
-      <DashboardSection {...({ exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null } as Parameters<typeof renderSection>[1])} />
+      <DashboardSection {...({ exportDraft: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: false }), approvedStyleExport: exportPackage({ project: demoProject, riskItems: demoRiskItems, gaps: demoGaps, approvedPackage: true }), role: "QRM_AUTHOR", reviewPackages: [], packageResults: {}, generateReviewPackages: async () => undefined, runPackageReview: async () => undefined, runAllPackageReviews: async () => undefined, generateDeltaExport: () => undefined, riskDeltaExport: null, startBackendDemo: async () => undefined, backendDemoStatus: "idle", backendDemoMessage: "" } as Parameters<typeof renderSection>[1])} />
     </div>
   );
 }
@@ -1225,7 +1240,7 @@ function DeltaSection() {
         description:
           "Der neue Pfad zeigt nicht mehr nur eine KI-Auswertung. Er sammelt Quellen, prüft Anforderungen, markiert Lücken und erzeugt ein kompaktes Review Pack für SME, QA oder Regulatory.",
         primary: "Prüfmappe öffnen",
-        secondary: "Demo-Pakete ansehen",
+        secondary: "Fallakte öffnen",
         decisionSupport: "Decision Support",
         noVoting: "Keine Modell-Abstimmung",
         evidenceFirst: "Quellenpflicht",
@@ -1239,10 +1254,10 @@ function DeltaSection() {
         routesTitle: "Was du testen solltest",
         routeReviewUi: "Neue Prüfmappen-UI",
         routeReviewUiText: "Prüfpaket öffnen, Quellenzitate ansehen und Review-Entscheidungen erfassen.",
-        routeReviewPackages: "Demo-Cockpit",
-        routeReviewPackagesText: "Zeigt Review Queue, Quellenkarte, Arbeitsaufwand und Draft Export für den synthetischen Fall.",
-        routeBackend: "Backend-Pipeline",
-        routeBackendText: "FastAPI verarbeitet Upload, Requirements, Claims, Reviewer, Verifier, Risk Fusion und Audit Trail."
+        routeReviewPackages: "Fallakte",
+        routeReviewPackagesText: "Zentraler Einstieg mit verständlicher Reihenfolge und Start der Backend-Demo.",
+        routeBackend: "API-Zugang",
+        routeBackendText: "Die FastAPI-Pipeline läuft im Hintergrund und wird für Nutzer über die Prüfmappe erreichbar gemacht."
       }
     : {
         eyebrow: "New core workflow",
@@ -1251,7 +1266,7 @@ function DeltaSection() {
         description:
           "The new path analyzes documents backend-first, builds a cited claim ledger, checks versioned requirements, verifies findings, and creates review packs for human QA and Regulatory review.",
         primary: "Open Review Workbench",
-        secondary: "View synthetic demo packages",
+        secondary: "Open case workspace",
         decisionSupport: "Decision Support",
         noVoting: "No majority voting",
         evidenceFirst: "Evidence obligation",
@@ -1265,10 +1280,10 @@ function DeltaSection() {
         routesTitle: "What to test",
         routeReviewUi: "New backend review UI",
         routeReviewUiText: "Open DocumentSets, inspect Review Packs, and capture reviewer decisions.",
-        routeReviewPackages: "Old frontend demo",
-        routeReviewPackagesText: "Kept as a synthetic demo for packages, queue, evidence map, and export.",
-        routeBackend: "Backend pipeline",
-        routeBackendText: "FastAPI handles upload, requirements, claims, reviewers, verifier, risk fusion, and audit trail."
+        routeReviewPackages: "Case workspace",
+        routeReviewPackagesText: "Central entry with a clear workflow and the backend demo start.",
+        routeBackend: "API access",
+        routeBackendText: "The FastAPI pipeline runs in the background and is exposed to users through the review workbench."
       };
 
   const workflow = isGerman
@@ -1317,7 +1332,7 @@ function DeltaSection() {
                 {copy.primary}
               </Link>
               <Link
-                href="/review-packages"
+                href="/case-workspace"
                 className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-white dark:hover:bg-slate-700"
               >
                 <FileDown className="h-5 w-5" />
@@ -1401,12 +1416,12 @@ function DeltaSection() {
             <h3 className="mt-4 font-semibold text-ink dark:text-white">{copy.routeReviewUi}</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{copy.routeReviewUiText}</p>
           </Link>
-          <Link href="/review-packages" className="rounded-[22px] border border-black/10 bg-white/78 p-5 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/78">
+          <Link href="/case-workspace" className="rounded-[22px] border border-black/10 bg-white/78 p-5 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/78">
             <ClipboardCheck className="h-5 w-5 text-teal" />
             <h3 className="mt-4 font-semibold text-ink dark:text-white">{copy.routeReviewPackages}</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{copy.routeReviewPackagesText}</p>
           </Link>
-          <Link href="http://localhost:8000/docs" className="rounded-[22px] border border-black/10 bg-white/78 p-5 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/78">
+          <Link href={riskOrchestrationEntry.reviewWorkbenchRoute} className="rounded-[22px] border border-black/10 bg-white/78 p-5 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-slate-800/78">
             <Database className="h-5 w-5 text-teal" />
             <h3 className="mt-4 font-semibold text-ink dark:text-white">{copy.routeBackend}</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{copy.routeBackendText}</p>

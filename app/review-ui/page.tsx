@@ -43,7 +43,7 @@ export default async function ReviewUiDocumentSetsPage() {
                     <td className="px-4 py-4">{documentSet.declared_document_type}</td>
                     <td className="px-4 py-4">{documentSet.declared_process_area}</td>
                     <td className="px-4 py-4">
-                      <StatusBadge tone={documentSet.status.includes("review") ? "amber" : "green"}>
+                      <StatusBadge tone={statusTone(documentSet.status)}>
                         {documentSet.status}
                       </StatusBadge>
                     </td>
@@ -65,4 +65,11 @@ export default async function ReviewUiDocumentSetsPage() {
       </ReviewPanel>
     </ReviewShell>
   );
+}
+
+function statusTone(status: string): "green" | "amber" | "red" | "slate" {
+  if (status.includes("failed") || status.includes("blocked") || status.includes("error")) return "red";
+  if (status.includes("review") || status.includes("pending") || status.includes("incomplete")) return "amber";
+  if (status.includes("ready") || status.includes("completed")) return "green";
+  return "slate";
 }

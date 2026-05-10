@@ -32,6 +32,24 @@ export default async function FindingDetailPage({ params }: PageProps) {
       );
     }
 
+    const uniqueEvidenceRows = Array.from(
+      new Map(
+        [
+          ...evidenceRows,
+          ...risk.evidence_quotes.map((quote) => ({
+            finding_id: risk.finding_id,
+            risk_statement: risk.risk_statement,
+            document_id: quote.document_id,
+            page: quote.page,
+            chunk_id: quote.chunk_id,
+            quote: quote.quote,
+            requirement_references: risk.requirement_references,
+            verifier_status: risk.verifier_status
+          }))
+        ].map((row) => [`${row.document_id}:${row.chunk_id}:${row.page}:${row.quote}`, row])
+      ).values()
+    );
+
     return (
       <ReviewShell>
         <div className="mb-4">
@@ -65,20 +83,11 @@ export default async function FindingDetailPage({ params }: PageProps) {
             </ReviewPanel>
 
             <ReviewPanel title={consultantReviewCopy.finding.evidenceTitle}>
-              {evidenceRows.length === 0 && risk.evidence_quotes.length === 0 ? (
+              {uniqueEvidenceRows.length === 0 ? (
                 <EmptyState message={consultantReviewCopy.finding.noEvidence} />
               ) : (
                 <div className="space-y-3">
-                  {[...evidenceRows, ...risk.evidence_quotes.map((quote) => ({
-                    finding_id: risk.finding_id,
-                    risk_statement: risk.risk_statement,
-                    document_id: quote.document_id,
-                    page: quote.page,
-                    chunk_id: quote.chunk_id,
-                    quote: quote.quote,
-                    requirement_references: risk.requirement_references,
-                    verifier_status: risk.verifier_status
-                  }))].map((row, index) => (
+                  {uniqueEvidenceRows.map((row, index) => (
                     <blockquote key={`${row.document_id}-${row.chunk_id}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                       <p className="text-sm leading-6 text-slate-800">"{row.quote}"</p>
                       <footer className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
