@@ -28,6 +28,7 @@ import {
   Bell,
   BookOpen,
   HelpCircle,
+  SearchCheck,
   ShieldCheck,
   Sun,
   Users,
@@ -50,7 +51,7 @@ import {
   reviewQueue
 } from "@/src/lib/demo-data";
 import { exportPackage, runDeterministicGates } from "@/src/lib/qrm-engine";
-import { caseWorkspaceStructure, riskOrchestrationEntry } from "@/src/lib/review-ui";
+import { aiArchitectureConcept, caseWorkspaceStructure, riskOrchestrationEntry } from "@/src/lib/review-ui";
 import {
   buildEvidenceMap,
   buildReviewQueue,
@@ -75,6 +76,7 @@ const navCategories: NavCategory[] = [
       ["dashboard", "nav.dashboard", Gauge],
       ["case-workspace", "nav.caseWorkspace", PackageCheck],
       ["delta-analysis", "nav.deltaAnalysis", Bot],
+      ["ai-architecture", "nav.aiArchitecture", Brain],
       ["review-ui", "nav.backendReview", ShieldCheck],
     ]
   },
@@ -446,6 +448,8 @@ function renderSection(
       return <TriggerSection />;
     case "delta-analysis":
       return <DeltaSection />;
+    case "ai-architecture":
+      return <AiArchitectureSection />;
     case "qrm-matrix":
       return <MatrixSection />;
     case "evidence-map":
@@ -526,6 +530,13 @@ function CaseWorkspaceSection(context: Parameters<typeof renderSection>[1]) {
               >
                 <ShieldCheck className="h-4 w-4" />
                 Backend-Prüfmappe öffnen
+              </Link>
+              <Link
+                href="/ai-architecture"
+                className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-white"
+              >
+                <Brain className="h-4 w-4" />
+                KI-Aufbau verstehen
               </Link>
             </div>
             {context.backendDemoMessage ? (
@@ -1428,6 +1439,109 @@ function DeltaSection() {
           </Link>
         </div>
       </Panel>
+    </div>
+  );
+}
+
+function AiArchitectureSection() {
+  const roleIcons: Record<string, React.ReactNode> = {
+    "Claim Extractor": <FileText className="h-5 w-5" />,
+    "Primary Reviewer Agents": <Brain className="h-5 w-5" />,
+    "Evidence Verifier": <SearchCheck className="h-5 w-5" />,
+    "Adversarial Reviewer": <AlertTriangle className="h-5 w-5" />,
+    "Risk Fusion": <ShieldCheck className="h-5 w-5" />
+  };
+
+  return (
+    <div className="space-y-6">
+      <section className="premium-surface overflow-hidden rounded-[32px] border border-black/10 dark:border-white/10">
+        <div className="grid gap-8 p-8 lg:grid-cols-[0.95fr_1.05fr] lg:p-10">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-teal-700 dark:text-teal-300">
+              <Brain className="h-3.5 w-3.5" />
+              KI-Architektur
+            </div>
+            <h2 className="mt-6 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
+              {aiArchitectureConcept.title}
+            </h2>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300">
+              {aiArchitectureConcept.subtitle}
+            </p>
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <Stat label="Mehrheitsvoting" value="0" tone="danger" />
+              <Stat label="Quellenpflicht" value="100%" tone="teal" />
+              <Stat label="Letzte Entscheidung" value="Mensch" tone="amber" />
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-black/10 bg-white/76 p-5 shadow-[0_22px_70px_rgba(17,24,29,0.08)] dark:border-white/10 dark:bg-slate-800/72">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Kontrollierte Prüfkette</span>
+              <Badge tone="slate">Decision Support</Badge>
+            </div>
+            <div className="space-y-3">
+              {aiArchitectureConcept.flow.map((step, index) => (
+                <div key={step.id} className="grid gap-3 rounded-2xl border border-black/5 bg-slate-50/82 p-4 dark:border-white/10 dark:bg-slate-900/38 md:grid-cols-[44px_1fr]">
+                  <div className="grid h-10 w-10 place-items-center rounded-full bg-teal text-sm font-semibold text-white">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <div className="font-semibold tracking-[-0.025em] text-ink dark:text-white">{step.title}</div>
+                    <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">{step.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Panel title="Welche KI macht was?">
+        <div className="grid gap-4 lg:grid-cols-5">
+          {aiArchitectureConcept.aiRoles.map((role) => (
+            <div key={role.role} className="rounded-[22px] border border-black/10 bg-white/78 p-5 dark:border-white/10 dark:bg-slate-800/78">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal-500/10 text-teal">
+                {roleIcons[role.role] ?? <Brain className="h-5 w-5" />}
+              </div>
+              <h3 className="mt-4 font-semibold tracking-[-0.025em] text-ink dark:text-white">{role.role}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{role.purpose}</p>
+              <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-900/50 dark:text-slate-300">
+                <span className="font-semibold text-ink dark:text-white">Gate:</span> {role.guardrail}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Panel>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <Panel title="Warum das nicht einfach ein Multi-Agent-Chat ist">
+          <div className="space-y-4">
+            <SummaryBlock
+              title="Keine Abstimmung nach Stimmen"
+              text="Wenn zwei Modelle nichts sehen, aber ein Modell ein plausibles High/Critical-Risiko findet, wird nicht überstimmt. Der Fall geht in Human Review."
+            />
+            <SummaryBlock
+              title="Jede Aussage braucht Herkunft"
+              text="Claims und Findings müssen über Dokument-ID, Seite, Chunk-ID und Zitat nachvollziehbar sein oder als fehlende Evidenz markiert werden."
+            />
+            <SummaryBlock
+              title="Verifier vor Review Pack"
+              text="Ein Finding wird nicht einfach übernommen. Der Verifier prüft Zitat, Chunk, Seite und Requirement-Anwendbarkeit."
+            />
+          </div>
+        </Panel>
+
+        <Panel title="Was unverhandelbar ist">
+          <div className="space-y-2">
+            {aiArchitectureConcept.nonNegotiables.map((rule) => (
+              <div key={rule} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal" />
+                <span>{rule}</span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
     </div>
   );
 }

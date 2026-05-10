@@ -132,6 +132,78 @@ export const consultantReviewCopy = {
 
 export const reviewDecisionRequiresHumanRationale = true;
 
+export const aiArchitectureConcept = {
+  title: "So wird KI im System eingesetzt",
+  subtitle:
+    "Die KI arbeitet nicht als Entscheider, sondern als kontrollierte Prüfkette: extrahieren, prüfen, widersprechen, verifizieren und für Menschen aufbereiten.",
+  flow: [
+    {
+      id: "source",
+      title: "1. Quellen & Anforderungen",
+      description: "Dokumente, Chunks, Claims und versionierte Requirements bilden die einzige erlaubte Arbeitsbasis."
+    },
+    {
+      id: "primary-reviewers",
+      title: "2. Fachliche Reviewer-KIs",
+      description: "Spezialisierte Reviewer suchen parallel nach Risiken in Data Integrity, Deviation, CAPA, Batch Impact und Regulatory Consistency."
+    },
+    {
+      id: "evidence-verifier",
+      title: "3. Evidence Verifier",
+      description: "Findings werden gegen Dokument-ID, Seite, Chunk, Zitat und Requirement-Anwendbarkeit geprüft."
+    },
+    {
+      id: "adversarial",
+      title: "4. Adversarial Review",
+      description: "Eine separate KI sucht gezielt nach übersehenen Risiken, Widersprüchen und falschen Entwarnungen."
+    },
+    {
+      id: "risk-fusion",
+      title: "5. Conservative Risk Fusion",
+      description: "Das System aggregiert konservativ. Ein plausibles High/Critical-Risiko reicht für Human Review."
+    },
+    {
+      id: "human-review",
+      title: "6. Menschliche Review-Entscheidung",
+      description: "SME, QA oder Regulatory prüfen das Review Pack und dokumentieren die Entscheidung mit Begründung."
+    }
+  ],
+  aiRoles: [
+    {
+      role: "Claim Extractor",
+      purpose: "Macht aus Dokumentstellen zitierte Claims.",
+      guardrail: "Kein Claim ohne Quote, Dokument, Seite und Chunk."
+    },
+    {
+      role: "Primary Reviewer Agents",
+      purpose: "Suchen fachbereichsspezifische Risiken.",
+      guardrail: "Findings brauchen EvidenceItems oder benannte fehlende Information."
+    },
+    {
+      role: "Evidence Verifier",
+      purpose: "Prüft, ob die zitierte Stelle die konkrete Aussage wirklich trägt.",
+      guardrail: "Schwache, fehlende oder falsche Evidenz wird nicht still geschlossen."
+    },
+    {
+      role: "Adversarial Reviewer",
+      purpose: "Sucht nach blinden Flecken und falschen Entwarnungen.",
+      guardrail: "Darf Findings nicht schließen, nur neue Fragen oder Challenges erzeugen."
+    },
+    {
+      role: "Risk Fusion",
+      purpose: "Bündelt Findings, Verifier-Ergebnisse, OOD und Coverage.",
+      guardrail: "Kein simples Mehrheitsvoting; High/Critical bleibt konservativ."
+    }
+  ],
+  nonNegotiables: [
+    "Keine regulatorische Entscheidung durch KI.",
+    "Kein simples Modell-Mehrheitsvoting.",
+    "Keine Aussage ohne Quelle oder klar markierte fehlende Evidenz.",
+    "High/Critical Findings werden nicht automatisch geschlossen.",
+    "Menschliche QA-/SME-Entscheidung bleibt der letzte Schritt."
+  ]
+} as const;
+
 export const caseWorkspaceStructure = {
   route: "/case-workspace",
   title: "Fallakte",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   caseWorkspaceStructure,
+  aiArchitectureConcept,
   consultantReviewCopy,
   decisionOptions,
   findTopRiskById,
@@ -51,6 +52,20 @@ describe("review UI helpers", () => {
     expect(caseWorkspaceStructure.hiddenTechnicalPages).toContain("source-snippets");
     expect(caseWorkspaceStructure.hiddenTechnicalPages).toContain("plausibility-checks");
     expect(caseWorkspaceStructure.hiddenTechnicalPages).toContain("red-team-findings");
+  });
+
+  it("documents the AI architecture as a controlled review chain, not model voting", () => {
+    expect(aiArchitectureConcept.flow.map((step) => step.id)).toEqual([
+      "source",
+      "primary-reviewers",
+      "evidence-verifier",
+      "adversarial",
+      "risk-fusion",
+      "human-review"
+    ]);
+    expect(aiArchitectureConcept.nonNegotiables).toContain("Kein simples Modell-Mehrheitsvoting.");
+    expect(aiArchitectureConcept.nonNegotiables).toContain("Menschliche QA-/SME-Entscheidung bleibt der letzte Schritt.");
+    expect(aiArchitectureConcept.aiRoles.map((role) => role.role)).toContain("Evidence Verifier");
   });
 
   it("exposes the reviewer decisions required by the workflow", () => {
