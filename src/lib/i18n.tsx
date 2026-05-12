@@ -14,24 +14,24 @@ export type Locale = "de" | "en";
 // Translation keys - fully typed
 export const translations = {
   // Navigation Categories
-  "nav.category.workspace": { de: "Arbeitsbereich", en: "Workspace" },
+  "nav.category.workspace": { de: "Arbeiten", en: "Work" },
   "nav.category.riskAnalysis": { de: "Analyse vorbereiten", en: "Prepare Analysis" },
   "nav.category.reviewQA": { de: "Prüfung steuern", en: "Steer Review" },
   "nav.category.evidenceGaps": { de: "Quellen & Lücken", en: "Sources & Gaps" },
   "nav.category.output": { de: "Lieferpakete", en: "Deliverables" },
-  "nav.category.admin": { de: "Administration", en: "Admin" },
+  "nav.category.admin": { de: "Setup", en: "Setup" },
 
   // Navigation Items
-  "nav.dashboard": { de: "Dashboard", en: "Dashboard" },
+  "nav.dashboard": { de: "Cockpit", en: "Cockpit" },
   "nav.caseWorkspace": { de: "Fallakte", en: "Case Workspace" },
   "nav.aiArchitecture": { de: "KI-Aufbau", en: "AI Architecture" },
-  "nav.backendReview": { de: "Backend-Prüfmappe", en: "Backend Review Pack" },
+  "nav.backendReview": { de: "Review Packs", en: "Review Packs" },
   "nav.projects": { de: "Projekte", en: "Projects" },
   "nav.documents": { de: "Dokumente", en: "Documents" },
   "nav.sourceSnippets": { de: "Quellausschnitte", en: "Source Snippets" },
   "nav.riskLibrary": { de: "Risikobibliothek", en: "Risk Library" },
   "nav.triggerInput": { de: "Change/CAPA Eingabe", en: "Change/CAPA Input" },
-  "nav.deltaAnalysis": { de: "Risk Delta Prozess", en: "Risk Delta Process" },
+  "nav.deltaAnalysis": { de: "Delta-Prozess", en: "Delta Process" },
   "nav.qrmMatrix": { de: "QRM-Matrix", en: "QRM Matrix" },
   "nav.reviewPackages": { de: "Prüfpakete", en: "Review Packages" },
   "nav.plausibilityChecks": { de: "Plausibilitätscheck", en: "Plausibility Check" },
@@ -56,22 +56,22 @@ export const translations = {
   // Brand
   "brand.name": { de: "Pharma QRM", en: "Pharma QRM" },
   "brand.subtitle": { de: "Delta Factory", en: "Delta Factory" },
-  "brand.tagline": { de: "Ein auditierbares Assistenzsystem: Es bereitet Risiko-Deltas vor, verlinkt Quellen und hält die Entscheidung beim Menschen.", en: "An auditable assistance system: it prepares risk deltas, links sources, and keeps decisions with humans." },
+  "brand.tagline": { de: "Risiko-Deltas. Quellenbasiert. Review-ready.", en: "Risk deltas. Evidence-first. Review-ready." },
 
   // Dashboard
-  "dashboard.openHighGaps": { de: "Offene High/Critical-Lücken", en: "Open high/critical gaps" },
-  "dashboard.level3Review": { de: "Vollprüfung nötig", en: "Full review needed" },
-  "dashboard.aiDraftItems": { de: "Entwurfsrisiken", en: "Draft risk items" },
-  "dashboard.sourceSnippets": { de: "Quellausschnitte", en: "Source snippets" },
-  "dashboard.riskBasedQueue": { de: "Was zuerst geprüft werden sollte", en: "What should be reviewed first" },
-  "dashboard.openQueue": { de: "Prioritäten ansehen", en: "View priorities" },
-  "dashboard.deltaSummary": { de: "Wo stehen wir in diesem Fall?", en: "Where are we in this case?" },
+  "dashboard.openHighGaps": { de: "High/Critical offen", en: "High/Critical open" },
+  "dashboard.level3Review": { de: "Vollreview", en: "Full review" },
+  "dashboard.aiDraftItems": { de: "Draft Items", en: "Draft items" },
+  "dashboard.sourceSnippets": { de: "Quellen", en: "Sources" },
+  "dashboard.riskBasedQueue": { de: "Nächste Prüfung", en: "Next review" },
+  "dashboard.openQueue": { de: "Queue öffnen", en: "Open queue" },
+  "dashboard.deltaSummary": { de: "Der Nutzen", en: "The point" },
   "dashboard.trigger": { de: "Auslöser", en: "Trigger" },
   "dashboard.triggerText": { de: "Change Control für geänderte automatisierte visuelle Inspektions-Ablehnungsschwelle.", en: "Change control for modified automated visual inspection rejection threshold." },
-  "dashboard.mainConcern": { de: "Wichtigster Punkt", en: "Main point" },
-  "dashboard.mainConcernText": { de: "Evidenzpaket deckt alte Schwelle ab; Wirksamkeitsnachweis für neue Schwelle fehlt.", en: "Evidence package covers old threshold; new-threshold effectiveness evidence is missing." },
-  "dashboard.routing": { de: "Nächster Review-Schritt", en: "Next review step" },
-  "dashboard.routingText": { de: "Das Tool sortiert den Fall vor: unvollständige Pakete zurück an Author/Ops, fachliche Risiken gezielt zu SME und QA.", en: "The tool pre-sorts the case: incomplete packages return to Author/Ops, technical risks go to SME and QA." },
+  "dashboard.mainConcern": { de: "Top-Lücke", en: "Top gap" },
+  "dashboard.mainConcernText": { de: "Validierung deckt die alte Schwelle ab. Die neue Schwelle braucht Evidenz.", en: "Validation covers the old threshold. The new threshold needs evidence." },
+  "dashboard.routing": { de: "Nächster Schritt", en: "Next step" },
+  "dashboard.routingText": { de: "Unvollständiges zurück an Author/Ops. Relevantes zu SME/QA.", en: "Incomplete input goes to Author/Ops. Relevant risk goes to SME/QA." },
 
   // Document Upload
   "upload.title": { de: "Dokumente für Analyse", en: "Documents for Analysis" },
@@ -119,8 +119,8 @@ export const translations = {
   "review.downloadJson": { de: "JSON herunterladen", en: "Download JSON" },
 
   // Notice
-  "notice.draft": { de: "Entwurfsmodus:", en: "Draft mode:" },
-  "notice.text": { de: "Dieses Tool bereitet Arbeitspakete für menschliche Prüfung vor. Es sammelt Quellen, zeigt Lücken und priorisiert den Review; es trifft keine regulatorischen Entscheidungen.", en: "This tool prepares work packages for human review. It gathers sources, shows gaps, and prioritizes review; it does not make regulatory decisions." },
+  "notice.draft": { de: "DRAFT", en: "DRAFT" },
+  "notice.text": { de: "KI bereitet vor. QA entscheidet.", en: "AI prepares. QA decides." },
 
   // Actions
   "action.save": { de: "Speichern", en: "Save" },
@@ -215,21 +215,21 @@ export const translations = {
 
   // Premium Review Hero
   "premium.reviewPackages": { de: "Prüfpakete", en: "Review packages" },
-  "premium.headline": { de: "Vom Change Control zur prüfbaren Risikomappe.", en: "From change control to reviewable risk pack." },
-  "premium.subline": { de: "Für den Demo-Fall erstellt das System Arbeitspakete mit Quelle, Lücke, Prüffrage und nächstem Review-Schritt. Unvollständige Pakete werden blockiert, bevor der Plausibilitätscheck startet.", en: "For the demo case, the system builds work packages with source, gap, review question, and next review step. Incomplete packages are blocked before plausibility check starts." },
+  "premium.headline": { de: "Change Control rein. Review Pack raus.", en: "Change control in. Review pack out." },
+  "premium.subline": { de: "Das System findet relevante Deltas, zeigt Quellen und blockiert unvollständige Pakete.", en: "The system finds relevant deltas, shows sources, and blocks incomplete packages." },
   "premium.generatePackages": { de: "Prüfpakete erstellen", en: "Build review packages" },
   "premium.runAllChecks": { de: "Plausibilität prüfen", en: "Run plausibility checks" },
-  "premium.draftNote": { de: "ENTWURF • Quellen sichtbar • Entscheidung bleibt beim Menschen", en: "DRAFT • sources visible • decisions stay with humans" },
-  "premium.architecture": { de: "1. Unterlagen sammeln", en: "1. Gather documents" },
-  "premium.architectureText": { de: "Change Control, bestehende FMEA, SOP-Auszug und Validierungsevidenz werden zu einem prüfbaren Paket verbunden.", en: "Change control, existing FMEA, SOP excerpt, and validation evidence are connected into a reviewable package." },
-  "premium.completenessGate": { de: "2. Vollständigkeit prüfen", en: "2. Check completeness" },
-  "premium.completenessText": { de: "Fehlt eine Quelle oder Evidenz, wird nicht weitergeprüft. Das Paket geht zurück an Author/Ops.", en: "If a source or evidence is missing, the system stops the check and routes the package back to Author/Ops." },
-  "premium.demoScenario": { de: "3. Demo-Fall verstehen", en: "3. Understand the demo case" },
-  "premium.demoText": { de: "AVI-Schwellenänderung mit alter Validierung, fehlendem Trainingsnachweis und fehlendem Addendum für die neue Schwelle.", en: "AVI threshold change with old validation, missing training record, and missing addendum for the new threshold." },
+  "premium.draftNote": { de: "Draft. Quellen sichtbar. Mensch entscheidet.", en: "Draft. Sources visible. Human decides." },
+  "premium.architecture": { de: "Quellen", en: "Sources" },
+  "premium.architectureText": { de: "Change Control, FMEA, SOP, Validierung.", en: "Change control, FMEA, SOP, validation." },
+  "premium.completenessGate": { de: "Gate", en: "Gate" },
+  "premium.completenessText": { de: "Fehlt Evidenz, stoppt der Check.", en: "Missing evidence stops the check." },
+  "premium.demoScenario": { de: "Demo", en: "Demo" },
+  "premium.demoText": { de: "AVI-Schwelle geändert. Validierung und Training offen.", en: "AVI threshold changed. Validation and training open." },
   "premium.sterileNote": { de: "Sterile Injektion • AVI-Schwellen-Review", en: "Sterile injectable • AVI threshold review" },
 
   // Executive Risk Summary
-  "executive.reviewSummary": { de: "Aufwand und Review-Status", en: "Workload and review status" },
+  "executive.reviewSummary": { de: "Review-Aufwand", en: "Review workload" },
   "executive.total": { de: "Gesamt", en: "Total" },
   "executive.ready": { de: "Bereit", en: "Ready" },
   "executive.incomplete": { de: "Unvollständig", en: "Incomplete" },
@@ -238,9 +238,9 @@ export const translations = {
   "executive.fail": { de: "Fehlgeschlagen", en: "Fail" },
   "executive.reduction": { de: "Reduktion", en: "Reduction" },
   "executive.manualBaseline": { de: "Geschätzter manueller Basisaufwand", en: "Estimated manual baseline" },
-  "executive.manualBaselineDesc": { de: "Schätzung für klassische Dokumentensuche, breite Durchsicht und manuelle Vorstrukturierung.", en: "Estimate for classic document search, broad review, and manual pre-structuring." },
+  "executive.manualBaselineDesc": { de: "Klassische Suche und Vorstrukturierung.", en: "Classic search and pre-structuring." },
   "executive.assistedReview": { de: "Geschätzte unterstützte Prüfung", en: "Estimated assisted review" },
-  "executive.assistedReviewDesc": { de: "Indikative MVP-Schätzung für die Demo. Keine regulatorische Aussage und keine Zusage für echte Projekte.", en: "Indicative MVP estimate for the demo. Not a regulatory statement and not a commitment for real projects." },
+  "executive.assistedReviewDesc": { de: "Demo-Schätzung. Keine regulatorische Aussage.", en: "Demo estimate. Not a regulatory statement." },
 
   // Evidence Confidence Panel
   "evidence.confidence": { de: "Wie belastbar sind die Quellen?", en: "How strong is the evidence?" },

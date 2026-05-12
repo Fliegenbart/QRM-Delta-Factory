@@ -23,32 +23,32 @@ export const riskOrchestrationEntry = {
   reviewWorkbenchRoute: "/review-ui",
   demoSeedRoute: "/api/review-ui/demo-seed",
   replacesLegacyDeltaAnalysis: true,
-  name: "Prüfbare Risiko-Deltas",
+  name: "Risk Delta Review",
   shortDescription:
-    "Für Berater und QA-Teams: Dokumente, Anforderungen, Quellenzitate und Modellbefunde werden zu prüfbaren Review Packs zusammengeführt. Die Entscheidung bleibt beim Menschen.",
+    "Aus GMP-Dokumenten wird ein Review Pack mit Quellen, Lücken und nächstem Prüfschritt.",
   workflow: [
-    "1. Demo-Fall oder Kundendokumente bereitstellen",
-    "2. Quellen und Anforderungen prüfen lassen",
-    "3. Review Pack für SME/QA öffnen",
-    "4. Evidenz, Lücken und Modellpositionen nachvollziehen",
-    "5. Menschliche Review-Entscheidung dokumentieren"
+    "Dokumente laden",
+    "Claims und Requirements prüfen",
+    "Findings verifizieren",
+    "Review Pack öffnen",
+    "Entscheidung dokumentieren"
   ]
 } as const;
 
 export const consultantReviewCopy = {
   productName: "Pharma QRM Delta Engine",
-  workspaceTitle: "Prüfbare Risiko-Deltas",
+  workspaceTitle: "Risk Delta Review",
   workspaceDescription:
-    "Aus Change Controls, FMEAs und GMP-Dokumenten entstehen quellenbasierte Prüfpakete. Das System sortiert vor, zeigt Lücken und bereitet Entscheidungen für SME/QA vor. Es entscheidet nicht selbst.",
+    "Quellen rein. Review Pack raus. QA entscheidet.",
   nav: {
-    cockpit: "Demo-Cockpit",
-    packages: "Prüfpakete"
+    cockpit: "Fallakte",
+    packages: "Review Packs"
   },
   list: {
-    title: "Vorbereitete Prüfpakete",
+    title: "Review Packs",
     empty:
-      "Noch kein Prüfpaket vorhanden. Lege den synthetischen AVI-Demo-Fall an, um Quellen, Pipeline und Review Pack zu sehen.",
-    loadErrorPrefix: "Backend nicht erreichbar oder noch nicht konfiguriert",
+      "Noch kein Fall. Starte die Demo und öffne das Review Pack.",
+    loadErrorPrefix: "Backend nicht erreichbar",
     columns: {
       package: "Paket",
       trigger: "Anlass",
@@ -56,19 +56,19 @@ export const consultantReviewCopy = {
       status: "Status",
       sources: "Quellen"
     },
-    open: "Paket öffnen"
+    open: "Öffnen"
   },
   seed: {
-    idle: "Demo-Fall anlegen",
-    seeding: "Demo-Fall wird aufgebaut...",
-    created: "Demo-Fall angelegt: Quellen, Pipeline und Prüfmappe sind bereit.",
-    refreshed: "Demo-Fall war vorhanden. Pipeline und Prüfmappe wurden aktualisiert.",
-    error: "Demo-Fall konnte nicht angelegt werden."
+    idle: "Demo starten",
+    seeding: "Pipeline läuft...",
+    created: "Review Pack bereit.",
+    refreshed: "Review Pack aktualisiert.",
+    error: "Demo konnte nicht starten."
   },
   detail: {
-    title: "Paket-Übersicht",
-    openReviewPack: "Prüfmappe öffnen",
-    sourcesTitle: "Quellen im Paket",
+    title: "Fall",
+    openReviewPack: "Review Pack öffnen",
+    sourcesTitle: "Quellen",
     noSources: "Keine Quellen verknüpft.",
     loadErrorPrefix: "Prüfpaket konnte nicht geladen werden",
     labels: {
@@ -83,36 +83,36 @@ export const consultantReviewCopy = {
     }
   },
   pack: {
-    title: "Prüfmappe",
+    title: "Review Pack",
     humanNotice:
-      "Menschliche Prüfung bleibt erforderlich. Diese Ansicht zeigt nur die relevanten Zitate und Prüfpunkte, nicht das vollständige Quelldokument.",
-    humanReasons: "Warum menschliche Prüfung nötig ist",
-    missingInformation: "Offene Unterlagen oder Fragen",
-    findingsTitle: "Prüfpunkte",
-    emptyFindings: "Diese Prüfmappe enthält aktuell keine Prüfpunkte.",
+      "Draft. Nur Entscheidungsunterstützung.",
+    humanReasons: "Warum Review nötig ist",
+    missingInformation: "Fehlt noch",
+    findingsTitle: "Findings",
+    emptyFindings: "Keine Findings.",
     requirement: "Regelwerk",
     notLinked: "nicht verknüpft",
-    openFinding: "Prüfpunkt ansehen",
+    openFinding: "Ansehen",
     noEntries: "Keine Einträge.",
     loadError:
-      "Prüfmappe konnte nicht geladen werden. Starte vorher den Demo-Fall oder die Backend-Pipeline."
+      "Review Pack nicht verfügbar. Starte zuerst die Demo."
   },
   finding: {
-    backToPack: "Zurück zur Prüfmappe",
-    title: "Prüfpunkt mit Quelle",
-    notFound: "Prüfpunkt wurde in der Prüfmappe nicht gefunden.",
-    humanReason: "Warum menschliche Prüfung nötig ist",
-    evidenceTitle: "Quellenzitate",
-    noEvidence: "Keine Quellenzitate in der Prüfmappe verknüpft.",
+    backToPack: "Zurück",
+    title: "Finding",
+    notFound: "Finding nicht gefunden.",
+    humanReason: "Review-Grund",
+    evidenceTitle: "Evidenz",
+    noEvidence: "Keine Evidenz verknüpft.",
     document: "Dokument",
     page: "Seite",
     chunk: "Chunk",
-    modelPositions: "Systemeinschätzung",
+    modelPositions: "Modellpositionen",
     foundBy: "Gefunden durch",
     contradictedBy: "Widerspruch von",
     noIssueAgents: "Ohne Befund gemeldet",
-    decisionForm: "Review-Entscheidung erfassen",
-    loadErrorPrefix: "Prüfpunkt konnte nicht geladen werden",
+    decisionForm: "Entscheidung",
+    loadErrorPrefix: "Finding konnte nicht geladen werden",
     labels: {
       findingId: "Prüfpunkt-ID",
       riskCategory: "Risikobereich",
@@ -124,83 +124,83 @@ export const consultantReviewCopy = {
     reviewerId: "Reviewer-ID",
     rationale: "Begründung",
     placeholder:
-      "Dokumentiere kurz, warum du den Befund bestätigst, herabstufst, zurückweist oder weitere Unterlagen brauchst. Nicht allein auf die Modellantwort stützen.",
-    rationaleRequired: "Bitte dokumentiere eine kurze menschliche Begründung, bevor du die Entscheidung speicherst.",
-    savedMessage: "Review-Entscheidung wurde im Backend-Audit Trail gespeichert."
+      "Kurz begründen. Nicht allein auf das Modell stützen.",
+    rationaleRequired: "Bitte kurz begründen.",
+    savedMessage: "Entscheidung gespeichert."
   }
 } as const;
 
 export const reviewDecisionRequiresHumanRationale = true;
 
 export const aiArchitectureConcept = {
-  title: "So wird KI im System eingesetzt",
+  title: "KI als Prüfteam. Nicht als Entscheider.",
   subtitle:
-    "Die KI arbeitet nicht als Entscheider, sondern als kontrollierte Prüfkette: extrahieren, prüfen, widersprechen, verifizieren und für Menschen aufbereiten.",
+    "Mehrere Modelle prüfen arbeitsteilig. Jede Aussage braucht Evidenz. Risk Fusion eskaliert konservativ.",
   flow: [
     {
       id: "source",
-      title: "1. Quellen & Anforderungen",
-      description: "Dokumente, Chunks, Claims und versionierte Requirements bilden die einzige erlaubte Arbeitsbasis."
+      title: "Quellen",
+      description: "Dokumente, Chunks, Claims, Requirements."
     },
     {
       id: "primary-reviewers",
-      title: "2. Fachliche Reviewer-KIs",
-      description: "Spezialisierte Reviewer suchen parallel nach Risiken in Data Integrity, Deviation, CAPA, Batch Impact und Regulatory Consistency."
+      title: "Reviewer-KIs",
+      description: "OpenAI, Claude und Gemini prüfen getrennte Risikobereiche."
     },
     {
       id: "evidence-verifier",
-      title: "3. Evidence Verifier",
-      description: "Findings werden gegen Dokument-ID, Seite, Chunk, Zitat und Requirement-Anwendbarkeit geprüft."
+      title: "Verifier",
+      description: "Zitat, Seite, Chunk und Requirement müssen passen."
     },
     {
       id: "adversarial",
-      title: "4. Adversarial Review",
-      description: "Eine separate KI sucht gezielt nach übersehenen Risiken, Widersprüchen und falschen Entwarnungen."
+      title: "Adversarial Review",
+      description: "Sucht blinde Flecken und falsche Entwarnungen."
     },
     {
       id: "risk-fusion",
-      title: "5. Conservative Risk Fusion",
-      description: "Das System aggregiert konservativ. Ein plausibles High/Critical-Risiko reicht für Human Review."
+      title: "Risk Fusion",
+      description: "Kein Voting. High/Critical bleibt bei Menschen."
     },
     {
       id: "human-review",
-      title: "6. Menschliche Review-Entscheidung",
-      description: "SME, QA oder Regulatory prüfen das Review Pack und dokumentieren die Entscheidung mit Begründung."
+      title: "Human Review",
+      description: "SME/QA entscheidet mit Begründung."
     }
   ],
   aiRoles: [
     {
       role: "Claim Extractor",
-      purpose: "Macht aus Dokumentstellen zitierte Claims.",
-      guardrail: "Kein Claim ohne Quote, Dokument, Seite und Chunk."
+      purpose: "Extrahiert zitierte Aussagen.",
+      guardrail: "Kein Claim ohne Quelle."
     },
     {
       role: "Primary Reviewer Agents",
-      purpose: "Suchen fachbereichsspezifische Risiken.",
-      guardrail: "Findings brauchen EvidenceItems oder benannte fehlende Information."
+      purpose: "Suchen fachliche Risiken.",
+      guardrail: "Kein Finding ohne Evidenz oder Gap."
     },
     {
       role: "Evidence Verifier",
-      purpose: "Prüft, ob die zitierte Stelle die konkrete Aussage wirklich trägt.",
-      guardrail: "Schwache, fehlende oder falsche Evidenz wird nicht still geschlossen."
+      purpose: "Prüft Zitat gegen Aussage.",
+      guardrail: "Schwache Evidenz bleibt offen."
     },
     {
       role: "Adversarial Reviewer",
-      purpose: "Sucht nach blinden Flecken und falschen Entwarnungen.",
-      guardrail: "Darf Findings nicht schließen, nur neue Fragen oder Challenges erzeugen."
+      purpose: "Sucht übersehene Risiken.",
+      guardrail: "Darf nichts schließen."
     },
     {
       role: "Risk Fusion",
-      purpose: "Bündelt Findings, Verifier-Ergebnisse, OOD und Coverage.",
-      guardrail: "Kein simples Mehrheitsvoting; High/Critical bleibt konservativ."
+      purpose: "Bündelt konservativ.",
+      guardrail: "Kein Mehrheitsvoting."
     }
   ],
   nonNegotiables: [
-    "Keine regulatorische Entscheidung durch KI.",
-    "Kein simples Modell-Mehrheitsvoting.",
-    "Keine Aussage ohne Quelle oder klar markierte fehlende Evidenz.",
-    "High/Critical Findings werden nicht automatisch geschlossen.",
-    "Menschliche QA-/SME-Entscheidung bleibt der letzte Schritt."
+    "KI entscheidet nicht.",
+    "Keine Mehrheitsabstimmung.",
+    "Keine Aussage ohne Quelle oder Gap.",
+    "High/Critical wird nicht automatisch geschlossen.",
+    "QA/SME bleibt letzter Schritt."
   ]
 } as const;
 
@@ -208,32 +208,32 @@ export const caseWorkspaceStructure = {
   route: "/case-workspace",
   title: "Fallakte",
   description:
-    "Ein zentraler Arbeitsbereich für den gesamten Risiko-Delta-Fall: Überblick, Quellen, Risiko-Deltas, Review Queue und Export.",
+    "Ein Fall. Quellen, Findings, Review und Export.",
   primaryTabs: [
     {
       id: "overview",
-      label: "Übersicht",
-      helper: "Status, Blocker, Aufwand und nächster Schritt"
+      label: "Status",
+      helper: "Was ist offen?"
     },
     {
       id: "sources",
-      label: "Quellen & Anforderungen",
-      helper: "Dokumente, Zitate, Risikobibliothek und Regelwerk"
+      label: "Quellen",
+      helper: "Worauf basiert es?"
     },
     {
       id: "risk-deltas",
-      label: "Risiko-Deltas",
-      helper: "Betroffene Risiken, neue Prüfpunkte und Plausibilitätscheck"
+      label: "Deltas",
+      helper: "Was hat sich geändert?"
     },
     {
       id: "review-queue",
-      label: "Review Queue",
-      helper: "Priorisierte Arbeit für Author/Ops, SME und QA"
+      label: "Review",
+      helper: "Wer muss prüfen?"
     },
     {
       id: "export",
       label: "Export",
-      helper: "Draft Review Pack, CSV/JSON und Audit-Zusammenfassung"
+      helper: "Was wird geliefert?"
     }
   ],
   hiddenTechnicalPages: [

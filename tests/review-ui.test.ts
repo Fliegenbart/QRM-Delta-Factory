@@ -19,34 +19,30 @@ describe("review UI helpers", () => {
     expect(riskOrchestrationEntry.legacyDeltaRoute).toBe("/delta-analysis");
     expect(riskOrchestrationEntry.reviewWorkbenchRoute).toBe("/review-ui");
     expect(riskOrchestrationEntry.demoSeedRoute).toBe("/api/review-ui/demo-seed");
-    expect(riskOrchestrationEntry.name).toBe("Prüfbare Risiko-Deltas");
-    expect(riskOrchestrationEntry.shortDescription).toContain("Berater");
+    expect(riskOrchestrationEntry.name).toBe("Risk Delta Review");
+    expect(riskOrchestrationEntry.shortDescription).toContain("Review Pack");
     expect(riskOrchestrationEntry.shortDescription).toContain("Quellen");
-    expect(riskOrchestrationEntry.workflow).toContain(
-      "1. Demo-Fall oder Kundendokumente bereitstellen"
-    );
-    expect(riskOrchestrationEntry.workflow).toContain(
-      "3. Review Pack für SME/QA öffnen"
-    );
+    expect(riskOrchestrationEntry.workflow).toContain("Dokumente laden");
+    expect(riskOrchestrationEntry.workflow).toContain("Review Pack öffnen");
   });
 
   it("uses consultant-friendly copy for the backend review UI", () => {
-    expect(consultantReviewCopy.workspaceTitle).toBe("Prüfbare Risiko-Deltas");
-    expect(consultantReviewCopy.workspaceDescription).toContain("Es entscheidet nicht selbst");
-    expect(consultantReviewCopy.list.title).toBe("Vorbereitete Prüfpakete");
-    expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt mit Quelle");
-    expect(consultantReviewCopy.decision.savedMessage).toContain("Audit Trail");
+    expect(consultantReviewCopy.workspaceTitle).toBe("Risk Delta Review");
+    expect(consultantReviewCopy.workspaceDescription).toBe("Quellen rein. Review Pack raus. QA entscheidet.");
+    expect(consultantReviewCopy.list.title).toBe("Review Packs");
+    expect(consultantReviewCopy.finding.title).toBe("Finding");
+    expect(consultantReviewCopy.decision.savedMessage).toBe("Entscheidung gespeichert.");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
-    expect(consultantReviewCopy.decision.rationaleRequired).toContain("Begründung");
+    expect(consultantReviewCopy.decision.rationaleRequired).toContain("begründen");
   });
 
   it("defines a simpler case workspace structure for consultants", () => {
     expect(caseWorkspaceStructure.route).toBe("/case-workspace");
     expect(caseWorkspaceStructure.primaryTabs.map((tab) => tab.label)).toEqual([
-      "Übersicht",
-      "Quellen & Anforderungen",
-      "Risiko-Deltas",
-      "Review Queue",
+      "Status",
+      "Quellen",
+      "Deltas",
+      "Review",
       "Export"
     ]);
     expect(caseWorkspaceStructure.hiddenTechnicalPages).toContain("source-snippets");
@@ -63,8 +59,8 @@ describe("review UI helpers", () => {
       "risk-fusion",
       "human-review"
     ]);
-    expect(aiArchitectureConcept.nonNegotiables).toContain("Kein simples Modell-Mehrheitsvoting.");
-    expect(aiArchitectureConcept.nonNegotiables).toContain("Menschliche QA-/SME-Entscheidung bleibt der letzte Schritt.");
+    expect(aiArchitectureConcept.nonNegotiables).toContain("Keine Mehrheitsabstimmung.");
+    expect(aiArchitectureConcept.nonNegotiables).toContain("QA/SME bleibt letzter Schritt.");
     expect(aiArchitectureConcept.aiRoles.map((role) => role.role)).toContain("Evidence Verifier");
   });
 

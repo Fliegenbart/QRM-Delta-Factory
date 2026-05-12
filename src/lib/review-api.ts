@@ -65,11 +65,18 @@ async function backendFetch<T>(path: string, init: RequestInit = {}): Promise<T>
     headers.set("X-API-Key", apiKey);
   }
 
-  const response = await fetch(`${backendUrl}${path}`, {
-    ...init,
-    headers,
-    cache: "no-store"
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${backendUrl}${path}`, {
+      ...init,
+      headers,
+      cache: "no-store"
+    });
+  } catch {
+    throw new ReviewApiError(
+      "Backend nicht verbunden. Prüfe QRM_BACKEND_URL und QRM_BACKEND_API_KEY."
+    );
+  }
 
   if (!response.ok) {
     const message = await response.text();

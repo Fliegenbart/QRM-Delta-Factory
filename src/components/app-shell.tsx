@@ -6,7 +6,6 @@ import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   Archive,
-  Bot,
   Brain,
   CheckCircle2,
   ChevronDown,
@@ -20,14 +19,10 @@ import {
   Globe,
   History,
   Library,
-  Lock,
   Menu,
   Moon,
   PackageCheck,
   Play,
-  Bell,
-  BookOpen,
-  HelpCircle,
   SearchCheck,
   ShieldCheck,
   Sun,
@@ -75,9 +70,8 @@ const navCategories: NavCategory[] = [
     items: [
       ["dashboard", "nav.dashboard", Gauge],
       ["case-workspace", "nav.caseWorkspace", PackageCheck],
-      ["delta-analysis", "nav.deltaAnalysis", Bot],
-      ["ai-architecture", "nav.aiArchitecture", Brain],
       ["review-ui", "nav.backendReview", ShieldCheck],
+      ["ai-architecture", "nav.aiArchitecture", Brain],
     ]
   },
   {
@@ -86,9 +80,8 @@ const navCategories: NavCategory[] = [
       ["projects", "nav.projects", Archive],
       ["documents", "nav.documents", FileText],
       ["risk-library", "nav.riskLibrary", Library],
-      ["validation-pack", "nav.validationPack", FlaskConical],
       ["audit-trail", "nav.auditTrail", History],
-      ["admin-users", "nav.adminUsers", Users],
+      ["validation-pack", "nav.validationPack", FlaskConical],
     ]
   },
 ];
@@ -146,7 +139,6 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
   const [riskDeltaExport, setRiskDeltaExport] = useState<ReturnType<typeof generateRiskDeltaReviewPack> | null>(null);
   const [backendDemoStatus, setBackendDemoStatus] = useState<"idle" | "running" | "ready" | "error">("idle");
   const [backendDemoMessage, setBackendDemoMessage] = useState("");
-  const [loginMessage, setLoginMessage] = useState("Demo-Rollen nutzen Passwort demo123.");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navCategories.map(cat => [cat.nameKey, true]))
@@ -232,9 +224,9 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
                   key={slug}
                   href={slug === "dashboard" ? "/" : `/${slug}`}
                   onClick={() => setMobileNavOpen(false)}
-                  className={`flex items-center justify-between rounded-2xl px-3 py-2.5 text-sm transition ${
+                  className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm transition ${
                     active === slug
-                      ? "bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 shadow-[0_12px_35px_rgba(17,24,29,0.07)] dark:shadow-[0_12px_35px_rgba(0,0,0,0.3)] ring-1 ring-black/5 dark:ring-white/10"
+                      ? "bg-white dark:bg-slate-700 text-teal-600 dark:text-teal-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10"
                       : "text-slate-600 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-slate-700/50 hover:text-ink dark:hover:text-white"
                   }`}
                   aria-current={active === slug ? "page" : undefined}
@@ -266,7 +258,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
 
       {/* Mobile Navigation Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[300px] transform border-r border-black/10 dark:border-white/10 bg-[#fbfcfb] dark:bg-slate-800 transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-[280px] transform border-r border-black/10 dark:border-white/10 bg-[#fbfcfb] dark:bg-slate-800 transition-transform duration-300 ease-in-out lg:hidden ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Mobile navigation"
@@ -275,7 +267,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
           <div className="flex items-center justify-between border-b border-black/10 px-5 py-4">
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-ink">Pharma QRM</div>
-              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-teal-600">Delta Factory</div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-teal-600">Review Engine</div>
             </div>
             <button
               type="button"
@@ -293,13 +285,13 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 hidden w-[300px] border-r border-black/10 dark:border-white/10 bg-[#fbfcfb]/90 dark:bg-slate-800/90 backdrop-blur-2xl lg:flex lg:flex-col" aria-label="Desktop navigation">
+      <aside className="fixed inset-y-0 left-0 hidden w-[280px] border-r border-black/10 dark:border-white/10 bg-[#fbfcfb]/90 dark:bg-slate-800/90 backdrop-blur-2xl lg:flex lg:flex-col" aria-label="Desktop navigation">
         <div className="border-b border-black/10 px-5 py-6">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-teal-500 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(0,155,141,0.26)]">Q</div>
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(0,155,141,0.22)]">Q</div>
             <div>
               <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-ink">Pharma QRM</div>
-              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-teal-600">Delta Factory</div>
+              <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-teal-600">Review Engine</div>
             </div>
           </div>
           <div className="mt-4 text-xs leading-5 text-slate-600">{t("brand.tagline")}</div>
@@ -307,22 +299,12 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
           {navigationContent}
         </nav>
-        <div className="border-t border-black/10 px-5 py-4">
-          <div className="flex items-center justify-center gap-4 text-slate-600">
-            <button type="button" className="grid h-9 w-9 place-items-center rounded-xl hover:bg-slate-100 hover:text-ink transition-colors" aria-label="Notifications">
-              <Bell className="h-4 w-4" />
-            </button>
-            <button type="button" className="grid h-9 w-9 place-items-center rounded-xl hover:bg-slate-100 hover:text-ink transition-colors" aria-label="Help">
-              <HelpCircle className="h-4 w-4" />
-            </button>
-            <button type="button" className="grid h-9 w-9 place-items-center rounded-xl hover:bg-slate-100 hover:text-ink transition-colors" aria-label="Documentation">
-              <BookOpen className="h-4 w-4" />
-            </button>
-          </div>
+        <div className="border-t border-black/10 px-5 py-4 text-xs leading-5 text-slate-500">
+          Draft system. Human decision required.
         </div>
       </aside>
 
-      <main id="main-content" className="lg:pl-[300px]">
+      <main id="main-content" className="lg:pl-[280px]">
         <header className="sticky top-0 z-10 border-b border-black/10 dark:border-white/10 bg-[#fbfcfb]/78 dark:bg-slate-900/78 px-4 py-4 backdrop-blur-2xl lg:px-8">
           <div className="mx-auto flex max-w-[1500px] flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
@@ -336,22 +318,21 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
                 <Menu className="h-5 w-5" />
               </button>
               <div>
-                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400">Workspace / {demoProject.name}</div>
+                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400">{demoProject.name}</div>
                 <h1 className="mt-1 text-[26px] font-medium leading-tight tracking-[-0.045em] md:text-[30px] text-ink dark:text-white">{getPageTitle(active, t)}</h1>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 xl:flex-nowrap">
               <span className="hidden rounded-full border border-teal-500/20 bg-white/70 dark:bg-slate-800/70 dark:border-teal-500/30 px-3 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 shadow-sm md:inline-flex">
                 <ShieldCheck className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                {t("header.auditTrailActive")}
+                Draft
               </span>
-              <span className="hidden rounded-full border border-teal-500/20 bg-white/70 dark:bg-slate-800/70 dark:border-teal-500/30 px-3 py-1.5 text-xs font-medium text-teal-600 dark:text-teal-400 shadow-sm lg:inline-flex">v1.2.0</span>
 
               {/* Language Toggle */}
               <button
                 type="button"
                 onClick={() => setLocale(locale === "de" ? "en" : "de")}
-                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 px-3 text-sm shadow-sm hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                className="hidden h-10 items-center gap-2 rounded-xl border border-black/10 bg-white/80 px-3 text-sm shadow-sm transition-colors hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:hover:bg-slate-700 sm:inline-flex"
                 aria-label={locale === "de" ? "Switch to English" : "Auf Deutsch wechseln"}
               >
                 <Globe className="h-4 w-4 text-slate-600 dark:text-slate-300" />
@@ -362,7 +343,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
               <button
                 type="button"
                 onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className="grid h-10 w-10 place-items-center rounded-2xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 shadow-sm hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                className="hidden h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white/80 shadow-sm transition-colors hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:hover:bg-slate-700 sm:grid"
                 aria-label={resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
               >
                 <AnimatePresence mode="wait">
@@ -379,7 +360,7 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
               </button>
 
               <select
-                className="h-10 rounded-2xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 dark:text-white px-3 text-sm shadow-sm"
+                className="hidden h-10 rounded-xl border border-black/10 bg-white/80 px-3 text-sm shadow-sm dark:border-white/10 dark:bg-slate-800/80 dark:text-white sm:block"
                 value={role}
                 onChange={(event) => setRole(event.target.value)}
                 aria-label="Current role"
@@ -390,21 +371,12 @@ export function AppShell({ section, projectId }: { section: string; projectId?: 
                   </option>
                 ))}
               </select>
-              <button
-                type="button"
-                className="inline-flex h-10 items-center gap-2 rounded-2xl bg-ink dark:bg-teal-600 px-4 text-sm font-medium text-white shadow-[0_16px_40px_rgba(17,24,29,0.18)] transition-transform hover:scale-[1.02] active:scale-[0.98]"
-                onClick={() => setLoginMessage(`Aktive Demo-Rolle: ${role.replaceAll("_", " ")}`)}
-              >
-                <Lock className="h-4 w-4" aria-hidden />
-                <span className="hidden sm:inline">{t("header.localAuth")}</span>
-              </button>
             </div>
           </div>
         </header>
 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
           <Notice text={t("notice.text")} />
-          <div className="mt-4 text-sm text-slate-600">{loginMessage}</div>
           <div className="mt-6">{renderSection(active, { exportDraft, approvedStyleExport, role, projectId, reviewPackages, packageResults, generateReviewPackages, runPackageReview, runAllPackageReviews, generateDeltaExport, riskDeltaExport, startBackendDemo, backendDemoStatus, backendDemoMessage })}</div>
         </div>
       </main>
@@ -483,10 +455,10 @@ function Notice({ text }: { text: string }) {
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-[22px] border border-amber/25 dark:border-amber-500/30 bg-[#fff9ed]/82 dark:bg-amber-950/30 px-5 py-4 text-sm leading-6 text-slate-800 dark:text-amber-100 shadow-[0_18px_50px_rgba(183,121,31,0.08)]"
+      className="inline-flex items-center rounded-full border border-amber/25 bg-[#fff9ed]/82 px-4 py-2 text-sm text-slate-800 shadow-sm dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-100"
     >
-      <span className="mr-3 inline-flex h-2 w-2 rounded-full bg-amber animate-pulse align-middle" />
-      <strong className="font-semibold">{t("notice.draft")}</strong> {text}
+      <span className="mr-2 inline-flex h-2 w-2 rounded-full bg-amber align-middle" />
+      <strong className="mr-2 font-semibold">{t("notice.draft")}</strong>{text}
     </motion.div>
   );
 }
@@ -507,12 +479,10 @@ function CaseWorkspaceSection(context: Parameters<typeof renderSection>[1]) {
         <div className="grid gap-6 p-7 lg:grid-cols-[1.15fr_0.85fr] lg:p-9">
           <div>
             <h2 className="max-w-3xl text-4xl font-light leading-[1.05] tracking-[-0.055em] text-ink dark:text-white md:text-5xl">
-              Ein Fall. Eine klare Arbeitsreihenfolge.
+              Ein Fall. Eine Queue.
             </h2>
             <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600 dark:text-slate-300">
-              Diese Fallakte bündelt den gesamten Risiko-Delta-Prozess: Quellen prüfen,
-              betroffene Risiken verstehen, Review-Aufwand priorisieren und am Ende ein
-              Draft Review Pack erzeugen. Die technischen Module bleiben im Hintergrund.
+              Quellen, Findings, Lücken und Review-Schritte an einem Ort.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <button
@@ -522,21 +492,21 @@ function CaseWorkspaceSection(context: Parameters<typeof renderSection>[1]) {
                 className="inline-flex h-12 items-center gap-2 rounded-2xl bg-teal px-5 text-sm font-semibold text-white shadow-[0_20px_45px_rgba(0,155,141,0.22)] disabled:cursor-not-allowed disabled:bg-slate-400"
               >
                 <PackageCheck className="h-4 w-4" />
-                {context.backendDemoStatus === "running" ? "Backend-Pipeline läuft..." : "Backend-Demo starten"}
+                {context.backendDemoStatus === "running" ? "Pipeline läuft" : "Demo starten"}
               </button>
               <Link
                 href={riskOrchestrationEntry.reviewWorkbenchRoute}
                 className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-white"
               >
                 <ShieldCheck className="h-4 w-4" />
-                Backend-Prüfmappe öffnen
+                Review Pack öffnen
               </Link>
               <Link
                 href="/ai-architecture"
                 className="inline-flex h-12 items-center gap-2 rounded-2xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-white"
               >
                 <Brain className="h-4 w-4" />
-                KI-Aufbau verstehen
+                KI-Aufbau
               </Link>
             </div>
             {context.backendDemoMessage ? (
@@ -550,10 +520,10 @@ function CaseWorkspaceSection(context: Parameters<typeof renderSection>[1]) {
             ) : null}
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Stat label="Backend-Prozess" value="aktiv" tone="teal" />
-            <Stat label="Prüfpakete lokal" value={packages.length || "—"} tone="slate" />
-            <Stat label="Bereit lokal" value={packages.length ? readyCount : "—"} tone="slate" />
-            <Stat label="Author/Ops lokal" value={packages.length ? incompleteCount : "—"} tone="slate" />
+            <Stat label="Pipeline" value="aktiv" tone="teal" />
+            <Stat label="Pakete" value={packages.length || "—"} tone="slate" />
+            <Stat label="Bereit" value={packages.length ? readyCount : "—"} tone="slate" />
+            <Stat label="Zurück" value={packages.length ? incompleteCount : "—"} tone="slate" />
           </div>
         </div>
         <div className="border-t border-black/10 bg-white/55 px-5 py-4 dark:border-white/10 dark:bg-slate-800/55">
@@ -601,9 +571,9 @@ function CaseOverviewTab({
         <div className="space-y-4">
           {[
             ["1", "Unterlagen liegen vor", "Synthetischer AVI-Threshold-Change mit FMEA, SOP und Validierungsevidenz."],
-            ["2", "Wichtigste Lücke ist sichtbar", "Validierung und Training decken die neue Schwelle noch nicht belastbar ab."],
-            ["3", "Review wird priorisiert", "High/Critical- und Evidenzlücken gehen zuerst an SME/QA."],
-            ["4", "Export bleibt Draft", "Das Lieferpaket ist prüfbar, aber keine regulatorische Entscheidung."]
+            ["2", "Top-Lücke sichtbar", "Validierung und Training decken die neue Schwelle nicht ab."],
+            ["3", "Review priorisiert", "High/Critical und Evidenzlücken zuerst."],
+            ["4", "Export bleibt Draft", "Prüfbar, aber keine Entscheidung."]
           ].map(([step, title, text]) => (
             <div key={step} className="flex gap-4 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-teal text-sm font-semibold text-white">{step}</span>
@@ -622,8 +592,8 @@ function CaseOverviewTab({
           <Metric label="Input incomplete" value={packages.length ? String(workload.input_incomplete) : "siehe Prüfmappe"} />
         </div>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <SummaryBlock title="Manual baseline" text={packages.length ? `${workload.manual_baseline_hours.toFixed(1)} h geschätzter klassischer Vorbereitungsaufwand.` : "Die belastbaren Zahlen kommen aus der Backend-Prüfmappe oder dem Draft Export."} />
-          <SummaryBlock title="Assisted review" text={packages.length ? `${workload.assisted_review_hours.toFixed(1)} h indikative MVP-Schätzung mit priorisierter Fallakte.` : "Starte die Backend-Demo, um den echten Review Pack für den synthetischen Fall zu öffnen."} />
+          <SummaryBlock title="Manual baseline" text={packages.length ? `${workload.manual_baseline_hours.toFixed(1)} h klassischer Aufwand.` : "Zahlen kommen aus dem Review Pack."} />
+          <SummaryBlock title="Assisted review" text={packages.length ? `${workload.assisted_review_hours.toFixed(1)} h mit priorisierter Queue.` : "Demo starten, Review Pack öffnen."} />
         </div>
       </Panel>
     </div>
@@ -789,13 +759,13 @@ function Panel({ title, children, action }: { title: string; children: React.Rea
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="premium-surface overflow-hidden rounded-[26px] border border-black/10 dark:border-white/10"
+      className="premium-surface overflow-hidden rounded-[20px] border border-black/10 dark:border-white/10"
     >
-      <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 px-6 py-5">
+      <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 px-5 py-4">
         <h2 className="text-base font-semibold tracking-[-0.025em] text-ink dark:text-white">{title}</h2>
         {action}
       </div>
-      <div className="p-6">{children}</div>
+      <div className="p-5">{children}</div>
     </motion.section>
   );
 }
@@ -811,19 +781,19 @@ function Stat({ label, value, tone = "slate" }: { label: string; value: string |
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -4, boxShadow: "0 20px 50px rgba(17,24,29,0.08)" }}
+      whileHover={{ y: -2 }}
       transition={{ duration: 0.2 }}
-      className="rounded-[22px] border border-black/10 dark:border-white/10 bg-white/88 dark:bg-slate-800/88 px-6 py-5 shadow-[0_16px_45px_rgba(17,24,29,0.045)] dark:shadow-[0_16px_45px_rgba(0,0,0,0.2)] cursor-default"
+      className="cursor-default rounded-[18px] border border-black/10 bg-white/88 px-5 py-4 shadow-sm dark:border-white/10 dark:bg-slate-800/88"
     >
       <motion.div
         key={value}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`text-4xl font-light tracking-[-0.07em] ${toneClass}`}
+        className={`text-3xl font-light tracking-[-0.06em] ${toneClass}`}
       >
         {value}
       </motion.div>
-      <div className="mt-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400">{label}</div>
+      <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-400">{label}</div>
     </motion.div>
   );
 }
@@ -832,26 +802,53 @@ function DashboardSection(context: Parameters<typeof renderSection>[1]) {
   const { t } = useI18n();
   return (
     <div className="space-y-6">
+      <section className="premium-surface rounded-[26px] border border-black/10 p-7 dark:border-white/10 lg:p-9">
+        <div className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">Risk Delta Review</div>
+            <h2 className="mt-5 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
+              Risiko-Deltas schneller prüfen.
+            </h2>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+              Quellen, Lücken und nächste Review-Schritte in einem Pack.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => void context.startBackendDemo()}
+                disabled={context.backendDemoStatus === "running"}
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-teal px-5 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:bg-slate-400"
+              >
+                <PackageCheck className="h-4 w-4" />
+                {context.backendDemoStatus === "running" ? "Pipeline läuft" : "Demo starten"}
+              </button>
+              <Link
+                href={riskOrchestrationEntry.reviewWorkbenchRoute}
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-white"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Review Packs öffnen
+              </Link>
+            </div>
+          </div>
+          <div className="grid gap-3">
+            <SummaryBlock title={t("dashboard.trigger")} text={t("dashboard.triggerText")} />
+            <SummaryBlock title={t("dashboard.mainConcern")} text={t("dashboard.mainConcernText")} />
+            <SummaryBlock title={t("dashboard.routing")} text={t("dashboard.routingText")} />
+          </div>
+        </div>
+      </section>
       <div className="grid gap-3 md:grid-cols-4">
         <Stat label={t("dashboard.openHighGaps")} value={demoGaps.filter((gap) => gap.status === "OPEN" && ["HIGH", "CRITICAL"].includes(gap.priority)).length} tone="danger" />
         <Stat label={t("dashboard.level3Review")} value={demoRiskItems.filter((item) => item.reviewLevel === 3).length} tone="amber" />
         <Stat label={t("dashboard.aiDraftItems")} value={demoRiskItems.filter((item) => item.status === "AI_DRAFT").length} tone="teal" />
         <Stat label={t("dashboard.sourceSnippets")} value={demoSnippets.length} />
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Panel
-          title={t("dashboard.riskBasedQueue")}
-          action={<Link className="text-sm font-medium text-teal dark:text-teal-400" href="/review-queue">{t("dashboard.openQueue")}</Link>}
-        >
-          <RiskRows items={reviewQueue.slice(0, 4)} compact />
-        </Panel>
-      </div>
-      <Panel title={t("dashboard.deltaSummary")}>
-        <div className="grid gap-4 md:grid-cols-3">
-          <SummaryBlock title={t("dashboard.trigger")} text={t("dashboard.triggerText")} />
-          <SummaryBlock title={t("dashboard.mainConcern")} text={t("dashboard.mainConcernText")} />
-          <SummaryBlock title={t("dashboard.routing")} text={t("dashboard.routingText")} />
-        </div>
+      <Panel
+        title={t("dashboard.riskBasedQueue")}
+        action={<Link className="text-sm font-medium text-teal dark:text-teal-400" href="/review-queue">{t("dashboard.openQueue")}</Link>}
+      >
+        <RiskRows items={reviewQueue.slice(0, 4)} compact />
       </Panel>
     </div>
   );
@@ -1474,14 +1471,14 @@ function AiArchitectureSection() {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-black/10 bg-white/76 p-5 shadow-[0_22px_70px_rgba(17,24,29,0.08)] dark:border-white/10 dark:bg-slate-800/72">
+          <div className="rounded-[22px] border border-black/10 bg-white/76 p-5 shadow-sm dark:border-white/10 dark:bg-slate-800/72">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Kontrollierte Prüfkette</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Prüfkette</span>
               <Badge tone="slate">Decision Support</Badge>
             </div>
             <div className="space-y-3">
               {aiArchitectureConcept.flow.map((step, index) => (
-                <div key={step.id} className="grid gap-3 rounded-2xl border border-black/5 bg-slate-50/82 p-4 dark:border-white/10 dark:bg-slate-900/38 md:grid-cols-[44px_1fr]">
+                <div key={step.id} className="grid gap-3 rounded-xl border border-black/5 bg-slate-50/82 p-4 dark:border-white/10 dark:bg-slate-900/38 md:grid-cols-[44px_1fr]">
                   <div className="grid h-10 w-10 place-items-center rounded-full bg-teal text-sm font-semibold text-white">
                     {index + 1}
                   </div>
@@ -1496,7 +1493,7 @@ function AiArchitectureSection() {
         </div>
       </section>
 
-      <Panel title="Welche KI macht was?">
+      <Panel title="KI-Rollen">
         <div className="grid gap-4 lg:grid-cols-5">
           {aiArchitectureConcept.aiRoles.map((role) => (
             <div key={role.role} className="rounded-[22px] border border-black/10 bg-white/78 p-5 dark:border-white/10 dark:bg-slate-800/78">
@@ -1505,7 +1502,7 @@ function AiArchitectureSection() {
               </div>
               <h3 className="mt-4 font-semibold tracking-[-0.025em] text-ink dark:text-white">{role.role}</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{role.purpose}</p>
-              <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-900/50 dark:text-slate-300">
+              <div className="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-900/50 dark:text-slate-300">
                 <span className="font-semibold text-ink dark:text-white">Gate:</span> {role.guardrail}
               </div>
             </div>
@@ -1514,24 +1511,24 @@ function AiArchitectureSection() {
       </Panel>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <Panel title="Warum das nicht einfach ein Multi-Agent-Chat ist">
+        <Panel title="Warum es smart ist">
           <div className="space-y-4">
             <SummaryBlock
-              title="Keine Abstimmung nach Stimmen"
-              text="Wenn zwei Modelle nichts sehen, aber ein Modell ein plausibles High/Critical-Risiko findet, wird nicht überstimmt. Der Fall geht in Human Review."
+              title="Kein Voting"
+              text="Ein plausibles High/Critical-Risiko reicht für Human Review."
             />
             <SummaryBlock
-              title="Jede Aussage braucht Herkunft"
-              text="Claims und Findings müssen über Dokument-ID, Seite, Chunk-ID und Zitat nachvollziehbar sein oder als fehlende Evidenz markiert werden."
+              title="Quelle vor Aussage"
+              text="Findings brauchen Dokument, Seite, Chunk und Zitat."
             />
             <SummaryBlock
-              title="Verifier vor Review Pack"
-              text="Ein Finding wird nicht einfach übernommen. Der Verifier prüft Zitat, Chunk, Seite und Requirement-Anwendbarkeit."
+              title="Verifier vor Pack"
+              text="Nur geprüfte Evidenz kommt in die Review-Ansicht."
             />
           </div>
         </Panel>
 
-        <Panel title="Was unverhandelbar ist">
+        <Panel title="Guardrails">
           <div className="space-y-2">
             {aiArchitectureConcept.nonNegotiables.map((rule) => (
               <div key={rule} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
