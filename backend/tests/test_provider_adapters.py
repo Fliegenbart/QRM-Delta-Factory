@@ -20,7 +20,11 @@ from app.audit.events import audit_log
 from app.core.config import get_settings
 from app.db.in_memory import repository
 from app.schemas.domain import DocumentSet, RequirementSet
-from app.services.review_orchestrator import PrimaryReviewOrchestrator, ReviewerAgent
+from app.services.review_orchestrator import (
+    PrimaryReviewOrchestrator,
+    ReviewerAgent,
+    default_reviewer_agents,
+)
 from app.services.risk_fusion import RiskFusionService
 
 
@@ -30,6 +34,9 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
     audit_log.clear()
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "false")
     monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mock")
+    monkeypatch.delenv("QRM_OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("QRM_ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("QRM_GEMINI_API_KEY", raising=False)
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
@@ -114,6 +121,148 @@ def test_external_provider_does_not_fallback_to_disallowed_provider(
             input_schema={},
             output_schema=SimpleOutput,
         )
+
+
+def test_openai_provider_runs_structured_call_with_mocked_http(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai")
+    monkeypatch.setenv("QRM_OPENAI_API_KEY", "test-openai-key")
+    get_settings.cache_clear()
+    provider = OpenAIProvider(configured_model_id="gpt-test")
+
+    def fake_post_json(
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, Any],
+    ) -> dict[str, Any]:
+        assert url.endswith("/v1/chat/completions")
+        assert headers["Authorization"] == "Bearer test-openai-key"
+        assert json_body["model"] == "gpt-test"
+        return {
+            "choices": [{"message": {"content": '{"value": "ok-openai"}'}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+        }
+
+    monkeypatch.setattr(provider, "_post_json", fake_post_json)
+
+    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert output == {"value": "ok-openai"}
+    assert provider.last_run_metadata is not None
+    assert provider.last_run_metadata.token_usage is not None
+    assert provider.last_run_metadata.token_usage.total_tokens == 15
+
+
+def test_anthropic_provider_runs_structured_call_with_mocked_http(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
+    monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-anthropic-key")
+    get_settings.cache_clear()
+    provider = AnthropicProvider(configured_model_id="claude-test")
+
+    def fake_post_json(
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, Any],
+    ) -> dict[str, Any]:
+        assert url.endswith("/v1/messages")
+        assert headers["x-api-key"] == "test-anthropic-key"
+        assert json_body["model"] == "claude-test"
+        return {
+            "content": [{"type": "text", "text": '{"value": "ok-anthropic"}'}],
+            "usage": {"input_tokens": 12, "output_tokens": 6},
+        }
+
+    monkeypatch.setattr(provider, "_post_json", fake_post_json)
+
+    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert output == {"value": "ok-anthropic"}
+    assert provider.last_run_metadata is not None
+    assert provider.last_run_metadata.token_usage is not None
+    assert provider.last_run_metadata.token_usage.total_tokens == 18
+
+
+def test_gemini_provider_runs_structured_call_with_mocked_http(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "gemini")
+    monkeypatch.setenv("QRM_GEMINI_API_KEY", "test-gemini-key")
+    get_settings.cache_clear()
+    provider = GeminiProvider(configured_model_id="gemini-test")
+
+    def fake_post_json(
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, Any],
+    ) -> dict[str, Any]:
+        assert "models/gemini-test:generateContent" in url
+        assert headers["Content-Type"] == "application/json"
+        assert headers["x-goog-api-key"] == "test-gemini-key"
+        assert json_body["generationConfig"]["responseMimeType"] == "application/json"
+        return {
+            "candidates": [
+                {"content": {"parts": [{"text": '{"value": "ok-gemini"}'}]}}
+            ],
+            "usageMetadata": {
+                "promptTokenCount": 11,
+                "candidatesTokenCount": 7,
+                "totalTokenCount": 18,
+            },
+        }
+
+    monkeypatch.setattr(provider, "_post_json", fake_post_json)
+
+    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert output == {"value": "ok-gemini"}
+    assert provider.last_run_metadata is not None
+    assert provider.last_run_metadata.token_usage is not None
+    assert provider.last_run_metadata.token_usage.total_tokens == 18
+
+
+def test_external_provider_requires_api_key_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai")
+    monkeypatch.delenv("QRM_OPENAI_API_KEY", raising=False)
+    get_settings.cache_clear()
+    provider = OpenAIProvider(configured_model_id="gpt-test")
+
+    with pytest.raises(ProviderConfigurationError):
+        provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+
+def test_default_agents_use_real_provider_mapping_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai,anthropic,gemini")
+    monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
+    monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
+    monkeypatch.setenv("QRM_GEMINI_MODEL_ID", "gemini-test")
+    get_settings.cache_clear()
+
+    agents = default_reviewer_agents()
+    providers_by_role = {agent.role: agent.provider.provider_name for agent in agents}
+
+    assert providers_by_role == {
+        "GMPDataIntegrityReviewer": "openai",
+        "DeviationReviewer": "anthropic",
+        "CAPAReviewer": "gemini",
+        "BatchImpactReviewer": "openai",
+        "RegulatoryConsistencyReviewer": "anthropic",
+        "ContradictionHunter": "gemini",
+    }
 
 
 def test_provider_error_reaches_risk_fusion_as_coverage_risk() -> None:

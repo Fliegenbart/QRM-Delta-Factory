@@ -5,6 +5,7 @@ description = "FastAPI backend skeleton for evidence-first pharmaceutical AI ris
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115",
+  "httpx>=0.27",
   "pydantic>=2.9",
   "pydantic-settings>=2.5",
   "psycopg[binary]>=3.2",
@@ -18,7 +19,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "httpx>=0.27",
   "mypy>=1.11",
   "reportlab>=4.2",
   "pytest>=8.3",

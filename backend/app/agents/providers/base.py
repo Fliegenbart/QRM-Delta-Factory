@@ -128,7 +128,10 @@ class BaseModelProvider(ABC):
                     input_schema=input_schema,
                     output_schema=output_schema,
                 )
-                parsed = output_schema.model_validate(raw_output)
+                token_usage = self._extract_token_usage(raw_output)
+                validation_payload = dict(raw_output)
+                validation_payload.pop("token_usage", None)
+                parsed = output_schema.model_validate(validation_payload)
                 structured_output = parsed.model_dump(mode="json")
                 response_hash = _hash_json(structured_output)
                 self.last_run_metadata = ProviderRunMetadata(
@@ -140,7 +143,7 @@ class BaseModelProvider(ABC):
                     request_hash=request_hash,
                     response_hash=response_hash,
                     latency_ms=int((time.perf_counter() - started) * 1000),
-                    token_usage=self._extract_token_usage(raw_output),
+                    token_usage=token_usage,
                 )
                 self._failure_count = 0
                 return structured_output

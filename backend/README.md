@@ -44,7 +44,8 @@ Current implemented scope is intentionally small:
 - TXT and PDF parsing behind a testable `DocumentParser` abstraction
 - page-level chunk creation and parsing-quality escalation
 - deterministic mock claim extraction behind a `ClaimExtractor` interface
-- parallel mock reviewer agents behind a `BaseModelProvider` interface
+- parallel reviewer agents behind a `BaseModelProvider` interface, with mock default and
+  fail-closed OpenAI/Anthropic/Gemini adapters
 - versioned reviewer prompt templates under `app/agents/prompts/`
 - deterministic evidence verification for reviewer findings
 - adversarial challenges and risk-fusion storage for human review
@@ -529,9 +530,9 @@ Security defaults:
 - `QRM_ALLOWED_MODEL_PROVIDERS="mock"`
 - `QRM_ALLOWED_NETWORK_DOMAINS=""`
 
-External model provider classes are stubs in this MVP. If external model calls are disabled, they
-fail closed before making any provider request. No real API keys should be committed; use
-environment variables or a deployment secret manager.
+External model provider classes are implemented behind a fail-closed switch. If external model
+calls are disabled, they fail before making any provider request. No real API keys should be
+committed; use environment variables or a deployment secret manager.
 
 ## Model Provider Adapters
 
@@ -545,7 +546,11 @@ Provider adapter modules are prepared under `app/agents/providers/`:
 
 All providers implement the same typed `BaseModelProvider` interface and return structured output
 validated against a Pydantic schema. `MockProvider` remains the default for tests and local
-deterministic behavior.
+deterministic behavior. When external model calls are enabled, default reviewer roles are routed as:
+
+- OpenAI: `GMPDataIntegrityReviewer`, `BatchImpactReviewer`
+- Anthropic: `DeviationReviewer`, `RegulatoryConsistencyReviewer`
+- Gemini: `CAPAReviewer`, `ContradictionHunter`
 
 External providers are fail-closed by default:
 
@@ -554,8 +559,8 @@ QRM_EXTERNAL_MODEL_CALLS_ENABLED=false
 QRM_ALLOWED_MODEL_PROVIDERS="mock"
 ```
 
-To prepare a later real-provider deployment, configure explicit provider allowlists, model IDs,
-and secrets through environment variables only:
+To enable a real-provider deployment, configure explicit provider allowlists, model IDs, and
+secrets through environment variables only:
 
 ```bash
 QRM_EXTERNAL_MODEL_CALLS_ENABLED=true
@@ -571,9 +576,14 @@ QRM_MODEL_PROVIDER_MAX_RETRIES=0
 QRM_MODEL_PROVIDER_CIRCUIT_BREAKER_THRESHOLD=3
 ```
 
-The MVP adapters still do not make real network calls. They validate configuration and raise clear
-provider errors. Provider failures are persisted as failed model runs by the orchestrator, and Risk
-Fusion treats failed model coverage as an auto-clear blocker.
+The adapters send only the orchestrator prompt, Claim Ledger, Requirement Library context, and
+output JSON schema to the configured provider. They do not provide browser tools or live internet
+access to model agents. Provider output is parsed as JSON, validated against Pydantic schemas, and
+stored through `ModelRun` records with provider, configured model ID, prompt version, request hash,
+response hash, latency, and token usage when available.
+
+Provider failures are persisted as failed model runs by the orchestrator, and Risk Fusion treats
+failed model coverage as an auto-clear blocker.
 
 Log and audit metadata is redacted before storage. Secret-like keys and full-text-like fields are
 stored only as hash/length summaries. The MVP should not log full document text.

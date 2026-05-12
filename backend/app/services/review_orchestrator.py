@@ -10,8 +10,16 @@ from hashlib import sha256
 from typing import Any
 
 from app.agents.prompt_templates import PromptTemplate, PromptTemplateLoader
-from app.agents.providers import BaseModelProvider, MockProvider
+from app.agents.providers import (
+    AnthropicProvider,
+    BaseModelProvider,
+    GeminiProvider,
+    MockProvider,
+    OpenAIProvider,
+    ProviderRuntimeOptions,
+)
 from app.audit.events import InMemoryAuditLog
+from app.core.config import Settings, get_settings
 from app.db.in_memory import InMemoryDocumentRepository
 from app.schemas.domain import (
     Claim,
@@ -235,6 +243,7 @@ class PrimaryReviewOrchestrator:
         output: ReviewerAgentOutput | None = None
         raw_output_text = ""
         status = ModelRunStatus.SUCCEEDED
+        agent.provider.last_run_metadata = None
         try:
             output = agent.run(claims, requirements, document_set_id=document_set_id)
             raw_output_text = output.model_dump_json()
@@ -257,7 +266,7 @@ class PrimaryReviewOrchestrator:
             started_at=started_at,
             completed_at=completed_at,
             latency_ms=latency_ms,
-            token_usage=_estimate_token_usage(input_hash, raw_output_text),
+            token_usage=_token_usage_for_model_run(agent.provider, input_hash, raw_output_text),
             status=status,
         )
         self.repository.add_model_run(document_set_id=document_set_id, model_run=model_run)
@@ -413,8 +422,40 @@ def _agent_from_template(
         role=role,
         prompt_version=template.prompt_version,
         applicable_risk_categories=applicable_risk_categories,
-        provider=MockModelProvider(),
+        provider=_provider_for_role(role),
         prompt_template=template,
+    )
+
+
+def _provider_for_role(role: str) -> BaseModelProvider:
+    settings = get_settings()
+    if not settings.external_model_calls_enabled:
+        return MockModelProvider()
+
+    runtime_options = _runtime_options_from_settings(settings)
+    if role in {"GMPDataIntegrityReviewer", "BatchImpactReviewer"}:
+        return OpenAIProvider(
+            configured_model_id=settings.openai_model_id,
+            runtime_options=runtime_options,
+        )
+    if role in {"DeviationReviewer", "RegulatoryConsistencyReviewer"}:
+        return AnthropicProvider(
+            configured_model_id=settings.anthropic_model_id,
+            runtime_options=runtime_options,
+        )
+    if role in {"CAPAReviewer", "ContradictionHunter"}:
+        return GeminiProvider(
+            configured_model_id=settings.gemini_model_id,
+            runtime_options=runtime_options,
+        )
+    return MockModelProvider()
+
+
+def _runtime_options_from_settings(settings: Settings) -> ProviderRuntimeOptions:
+    return ProviderRuntimeOptions(
+        timeout_seconds=settings.model_provider_timeout_seconds,
+        max_retries=settings.model_provider_max_retries,
+        circuit_breaker_failure_threshold=settings.model_provider_circuit_breaker_threshold,
     )
 
 
@@ -590,6 +631,21 @@ def _estimate_token_usage(input_hash: str, raw_output_text: str) -> TokenUsage:
         output_tokens=output_tokens,
         total_tokens=input_tokens + output_tokens,
     )
+
+
+def _token_usage_for_model_run(
+    provider: BaseModelProvider,
+    input_hash: str,
+    raw_output_text: str,
+) -> TokenUsage:
+    metadata = provider.last_run_metadata
+    if metadata is not None and metadata.token_usage is not None:
+        return TokenUsage(
+            input_tokens=metadata.token_usage.input_tokens,
+            output_tokens=metadata.token_usage.output_tokens,
+            total_tokens=metadata.token_usage.total_tokens,
+        )
+    return _estimate_token_usage(input_hash, raw_output_text)
 
 
 def _configured_model_id(provider: BaseModelProvider) -> str:
