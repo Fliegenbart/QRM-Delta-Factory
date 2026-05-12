@@ -18,7 +18,6 @@ describe("review UI helpers", () => {
     expect(riskOrchestrationEntry.replacesLegacyDeltaAnalysis).toBe(true);
     expect(riskOrchestrationEntry.legacyDeltaRoute).toBe("/delta-analysis");
     expect(riskOrchestrationEntry.reviewWorkbenchRoute).toBe("/review-ui");
-    expect(riskOrchestrationEntry.demoSeedRoute).toBe("/api/review-ui/demo-seed");
     expect(riskOrchestrationEntry.name).toBe("Risk Delta Review");
     expect(riskOrchestrationEntry.shortDescription).toContain("Review Pack");
     expect(riskOrchestrationEntry.shortDescription).toContain("Quellen");
@@ -30,6 +29,7 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.workspaceTitle).toBe("Risk Delta Review");
     expect(consultantReviewCopy.workspaceDescription).toBe("Quellen rein. Review Pack raus. QA entscheidet.");
     expect(consultantReviewCopy.list.title).toBe("Review Packs");
+    expect(consultantReviewCopy.list.empty).toContain("externes Testpaket");
     expect(consultantReviewCopy.finding.title).toBe("Finding");
     expect(consultantReviewCopy.decision.savedMessage).toBe("Entscheidung gespeichert.");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
@@ -83,17 +83,17 @@ describe("review UI helpers", () => {
 
   it("finds a risk inside a review pack by finding id", () => {
     const pack: ReviewPack = {
-      review_pack_id: "rpack_demo",
-      document_set_id: "ds_demo",
+      review_pack_id: "rpack_sample",
+      document_set_id: "ds_sample",
       decision: { decision: "human_review_required" },
       summary: "Human review required.",
       top_risks: [
         {
-          finding_id: "finding_demo",
+          finding_id: "finding_sample",
           risk_statement: "Potential QA approval gap.",
           severity: "high",
           risk_category: "qa_approval",
-          requirement_references: ["req_demo"],
+          requirement_references: ["req_sample"],
           evidence_quotes: [],
           found_by_agents: [],
           contradicted_by_agents: [],
@@ -113,7 +113,7 @@ describe("review UI helpers", () => {
       audit_references: []
     };
 
-    expect(findTopRiskById(pack, "finding_demo")?.risk_statement).toContain("QA");
+    expect(findTopRiskById(pack, "finding_sample")?.risk_statement).toContain("QA");
     expect(findTopRiskById(pack, "finding_missing")).toBeUndefined();
   });
 

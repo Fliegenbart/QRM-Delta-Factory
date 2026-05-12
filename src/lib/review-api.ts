@@ -1,7 +1,6 @@
 import "server-only";
 
 import type {
-  DemoSeedResponse,
   DocumentSet,
   ReviewDecisionValue,
   ReviewPack
@@ -31,10 +30,6 @@ export async function getReviewPack(documentSetId: string): Promise<ReviewPack> 
   return backendFetch<ReviewPack>(
     `/document-sets/${encodeURIComponent(documentSetId)}/review-pack`
   );
-}
-
-export async function seedDemoData(): Promise<DemoSeedResponse> {
-  return backendFetch<DemoSeedResponse>("/demo/seed", { method: "POST" });
 }
 
 export async function submitReviewDecision(input: {

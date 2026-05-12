@@ -1,17 +1,8 @@
 import { NextResponse } from "next/server";
-import { demoDocuments, demoGaps, demoProject, demoRiskItems, reviewQueue } from "@/src/lib/demo-data";
 
 export async function GET() {
   return NextResponse.json({
-    projects: [
-      {
-        ...demoProject,
-        documentCount: demoDocuments.length,
-        riskItemCount: demoRiskItems.length,
-        openHighGapCount: demoGaps.filter((gap) => gap.status === "OPEN" && (gap.priority === "HIGH" || gap.priority === "CRITICAL")).length,
-        reviewQueueCount: reviewQueue.length
-      }
-    ]
+    projects: []
   });
 }
 

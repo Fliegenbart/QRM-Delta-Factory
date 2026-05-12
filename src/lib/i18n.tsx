@@ -224,8 +224,8 @@ export const translations = {
   "premium.architectureText": { de: "Change Control, FMEA, SOP, Validierung.", en: "Change control, FMEA, SOP, validation." },
   "premium.completenessGate": { de: "Gate", en: "Gate" },
   "premium.completenessText": { de: "Fehlt Evidenz, stoppt der Check.", en: "Missing evidence stops the check." },
-  "premium.demoScenario": { de: "Demo", en: "Demo" },
-  "premium.demoText": { de: "AVI-Schwelle geändert. Validierung und Training offen.", en: "AVI threshold changed. Validation and training open." },
+  "premium.testScenario": { de: "Testfall", en: "Test case" },
+  "premium.testScenarioText": { de: "Lade ein synthetisches Prüfpaket hoch und starte die Analyse.", en: "Upload a synthetic test package and start the analysis." },
   "premium.sterileNote": { de: "Sterile Injektion • AVI-Schwellen-Review", en: "Sterile injectable • AVI threshold review" },
 
   // Executive Risk Summary
@@ -240,7 +240,7 @@ export const translations = {
   "executive.manualBaseline": { de: "Geschätzter manueller Basisaufwand", en: "Estimated manual baseline" },
   "executive.manualBaselineDesc": { de: "Klassische Suche und Vorstrukturierung.", en: "Classic search and pre-structuring." },
   "executive.assistedReview": { de: "Geschätzte unterstützte Prüfung", en: "Estimated assisted review" },
-  "executive.assistedReviewDesc": { de: "Demo-Schätzung. Keine regulatorische Aussage.", en: "Demo estimate. Not a regulatory statement." },
+  "executive.assistedReviewDesc": { de: "Indikative Schätzung. Keine regulatorische Aussage.", en: "Indicative estimate. Not a regulatory statement." },
 
   // Evidence Confidence Panel
   "evidence.confidence": { de: "Wie belastbar sind die Quellen?", en: "How strong is the evidence?" },

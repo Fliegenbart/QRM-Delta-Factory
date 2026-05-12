@@ -1,15 +1,15 @@
 # Pilot Readiness Check
 
 Date: 2026-05-09  
-Scope: Pharma QRM Delta Factory demo application, backend-first risk orchestration workflow, Vercel production deployment.
+Scope: Pharma QRM Delta Factory prototype application, backend-first risk orchestration workflow, Vercel production deployment.
 
 ## Executive Summary
 
-The system is ready for a controlled synthetic demo.
+The system is ready for a controlled synthetic walkthrough.
 
 It is not yet ready for unsupervised customer document processing or production-like regulated use. The main blocker is not code stability; it is operational readiness around secrets, access boundaries, provider activation, customer data handling, and pilot governance.
 
-Recommended next step: use the current deployment for a Szilard/internal demo, then complete the P0 actions below before accepting real customer documents.
+Recommended next step: use the current deployment for a Szilard/internal walkthrough, then complete the P0 actions below before accepting real customer documents.
 
 ## Verified Working
 
@@ -19,11 +19,7 @@ Recommended next step: use the current deployment for a Szilard/internal demo, t
 - Review UI production route is reachable:
   - `https://qrm-delta-factory.vercel.app/review-ui`
   - HTTP status: `200`
-- Demo seed and pipeline proxy are working through the frontend:
-  - Document set: `ds_demo_avi_threshold`
-  - Pipeline status: `needs_human_review`
-  - Risk decision: `blocked_due_to_unverified_high_risk`
-  - Top risks generated: `6`
+- Built-in sample seeding has been removed from the visible tool. Synthetic test packages should be generated externally and uploaded through the backend workflow.
 - Review decision write path works through the frontend API proxy:
   - Decision tested: `request_more_information`
   - Response status: `200`
@@ -38,17 +34,17 @@ Recommended next step: use the current deployment for a Szilard/internal demo, t
 - Old frontend ensemble/agent layer has been removed from the Next.js app.
 - Live Vercel frontend deployment is on commit `44cfed9`.
 
-## Current Demo Story
+## Current Walkthrough Story
 
-The demo successfully shows the intended safety posture:
+The prototype should show the intended safety posture:
 
-1. A synthetic AVI threshold-change case is created.
+1. A synthetic, externally generated test package is uploaded.
 2. The backend pipeline generates a human-review dossier.
-3. The system does not auto-clear the case.
-4. Missing validation/training evidence and potential high-risk impacts route the case to human review.
+3. The system does not auto-clear unclear or high-risk cases.
+4. Missing evidence, contradictions, weak citations, OOD signals, and potential high-risk impacts route the case to human review.
 5. A reviewer can record a decision.
 
-This is a good demonstration of decision support, not autonomous regulatory decision-making.
+This is a good walkthrough of decision support, not autonomous regulatory decision-making.
 
 ## P0 Before Real Customer Pilot
 
@@ -73,24 +69,24 @@ The backend deployment is protected by Vercel Authentication when accessed direc
 
 Actions:
 
-- For an internal demo: keep protection as-is.
+- For an internal walkthrough: keep protection as-is.
 - For a customer pilot: either keep all access through the frontend or configure a deliberate API access path with API key, tenant isolation, and clear logging.
 - Do not open the backend publicly without confirming tenant-scoped API-key enforcement on every pilot endpoint.
 
 ### 3. Create a Dedicated Pilot Tenant and API Key
 
-Current demo data uses a synthetic tenant and shared demo flow.
+Pilot data must be separated from synthetic test packages and local evaluation fixtures.
 
 Actions:
 
 - Create one tenant ID per pilot.
 - Create a dedicated API key per tenant.
 - Confirm cross-tenant access tests still pass against persistent storage.
-- Avoid mixing pilot data with demo data.
+- Avoid mixing pilot data with synthetic test packages.
 
 ### 4. Lock the Pilot to Mock Providers Unless Explicitly Approved
 
-The current architecture supports real provider adapters, but the demo works with deterministic mock providers.
+The current architecture supports real provider adapters, but tests should continue to use deterministic mock providers.
 
 Actions:
 
@@ -147,7 +143,7 @@ Do not automatically suppress high or critical findings. Any prompt, requirement
 
 Add a short runbook:
 
-- How to start a demo.
+- How to start a synthetic walkthrough.
 - How to seed data.
 - How to confirm backend health.
 - How to recover if Supabase or Vercel fails.
@@ -167,17 +163,17 @@ Add a short runbook:
 - This is still a prototype.
 - It does not claim GMP compliance, validation, approval, or regulatory acceptance.
 - It does not replace qualified SME, QA, or Regulatory reviewers.
-- The current production deployment is suitable for synthetic demo data.
+- The current production deployment is suitable for synthetic, non-customer test packages.
 - Real customer use requires agreed governance, security review, privacy review, and customer QA oversight.
 
 ## Readiness Verdict
 
-Status: Demo-ready, not customer-production-ready.
+Status: Prototype walkthrough-ready, not customer-production-ready.
 
 Use now for:
 
-- Internal demo with Szilard.
-- Demo with synthetic AVI threshold-change case.
+- Internal walkthrough with Szilard.
+- Walkthrough with externally generated synthetic adversarial test packages.
 - Discussion of workflow, review queue, evidence map, and human workload reduction.
 
 Do not use yet for:
@@ -186,4 +182,3 @@ Do not use yet for:
 - Unsupervised customer upload.
 - External LLM processing of customer data.
 - Any regulated decision or approval workflow.
-

@@ -38,7 +38,6 @@ Current implemented scope is intentionally small:
 - synchronous end-to-end pipeline runs at `POST /document-sets/{id}/pipeline-runs`
 - pipeline-run retrieval at `GET /pipeline-runs/{id}`
 - human review decisions at `POST /findings/{id}/review-decision`
-- synthetic AVI threshold demo seed at `POST /demo/seed`
 - evaluation harness at `POST /evals/run`
 - local filesystem storage behind a storage interface
 - TXT and PDF parsing behind a testable `DocumentParser` abstraction
@@ -71,8 +70,8 @@ Create a document set:
 curl -X POST http://localhost:8000/document-sets \
   -H "Content-Type: application/json" \
   -d '{
-    "tenant_id": "tenant_demo_pharma",
-    "requirement_set_id": "rset_demo_gmp_qrm_2026_1",
+    "tenant_id": "tenant_example_pharma",
+    "requirement_set_id": "rset_example_gmp_qrm_2026_1",
     "declared_document_type": "change_control_package",
     "declared_process_area": "automated_visual_inspection",
     "uploaded_by": "user_qrm_author"
@@ -104,7 +103,7 @@ Build or read the claim ledger for a document set:
 curl http://localhost:8000/document-sets/ds_example/claims
 ```
 
-The MVP uses `MockClaimExtractor` for deterministic tests and demo fixtures. `LLMClaimExtractor`
+The MVP uses `MockClaimExtractor` for deterministic tests and eval fixtures. `LLMClaimExtractor`
 exists only as a stub and does not call external APIs. Every stored claim must include source
 traceability: `document_id`, `chunk_id`, `page`, `raw_text_quote`, and `confidence`.
 
@@ -295,20 +294,6 @@ curl -X POST http://localhost:8000/findings/finding_example/review-decision \
 Supported reviewer actions include confirm, downgrade, reject false positive, request more
 information, link to CAPA, and escalate to QA. Each stored decision writes an audit event.
 
-## Synthetic Demo Seed
-
-Create the built-in synthetic AVI threshold-change demo:
-
-```bash
-curl -X POST http://localhost:8000/demo/seed
-```
-
-The seed creates a synthetic `change_control` DocumentSet, versioned demo RequirementSet, cited
-document chunks, then runs the full pipeline and returns the generated Review Pack. The endpoint is
-idempotent for the demo DocumentSet: calling it again re-runs the pipeline but does not create a
-second demo DocumentSet. All content is synthetic and intended only to demonstrate the backend-first
-review workflow.
-
 ## False-Positive Analytics
 
 Analyze repeated human overrides:
@@ -440,7 +425,7 @@ curl -X POST http://localhost:8000/requirement-sets/import \
 Activate the imported version:
 
 ```bash
-curl -X POST http://localhost:8000/requirement-sets/rset_demo_gmp_qrm_2026_1/activate
+curl -X POST http://localhost:8000/requirement-sets/rset_example_gmp_qrm_2026_1/activate
 ```
 
 Search active requirements:
@@ -455,8 +440,9 @@ Validation rules enforced on import:
 - `source_version`, `effective_from`, and `criticality` are required
 - `required_evidence` cannot be empty for `high` or `critical` requirements
 
-The synthetic example library covers Deviation Management, CAPA, Batch Impact Assessment,
-QA Approval, Data Integrity, and Change Control.
+The example requirement library covers Deviation Management, CAPA, Batch Impact Assessment,
+QA Approval, Data Integrity, and Change Control. It is for development and validation exercises,
+not a production-controlled customer library.
 
 ## Local Development
 
@@ -498,7 +484,7 @@ Configuration keys use the `QRM_` prefix.
 ## Optional Supabase Persistence
 
 By default, the MVP repository is in-memory. That is fine for local tests, but Vercel serverless
-instances can reset between requests. To persist demo data and review decisions, use a Supabase
+instances can reset between requests. To persist review data and decisions, use a Supabase
 Postgres connection string:
 
 ```bash
@@ -516,7 +502,7 @@ secret manager; do not commit it.
 MVP authentication uses `X-API-Key`. Configure tenant-scoped keys with:
 
 ```bash
-QRM_API_KEYS="tenant_demo_pharma=replace-with-real-secret"
+QRM_API_KEYS="tenant_example_pharma=replace-with-real-secret"
 ```
 
 When `QRM_API_KEYS` is set, protected endpoints reject missing or invalid keys with `401`.

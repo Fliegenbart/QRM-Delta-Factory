@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from app.api.adversarial_review import router as adversarial_review_router
 from app.api.analytics import router as analytics_router
 from app.api.claim_ledger import router as claim_ledger_router
-from app.api.demo import router as demo_router
 from app.api.document_sets import router as document_sets_router
 from app.api.evals import router as evals_router
 from app.api.health import router as health_router
@@ -31,7 +30,6 @@ def create_app() -> FastAPI:
     )
     application.middleware("http")(api_key_auth_middleware)
     application.include_router(analytics_router)
-    application.include_router(demo_router)
     application.include_router(requirement_sets_router)
     application.include_router(document_sets_router)
     application.include_router(claim_ledger_router)

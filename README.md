@@ -4,13 +4,13 @@ MVP/prototype web application for AI-assisted Quality Risk Management delta anal
 
 ## Kurz erklärt für Consultants
 
-Dieses Projekt ist ein Demo-Cockpit für vorbereitende pharmazeutische Risikoarbeit. Es nimmt einen Change-/Deviation-/CAPA-Fall, verknüpft ihn mit vorhandenen Quellen und baut daraus eine kurze, prüfbare Risikomappe für SME, QA oder Regulatory.
+Dieses Projekt ist ein Review-Cockpit für vorbereitende pharmazeutische Risikoarbeit. Es nimmt hochgeladene Change-/Deviation-/CAPA-Unterlagen, verknüpft sie mit Quellen und Anforderungen und baut daraus eine kurze, prüfbare Risikomappe für SME, QA oder Regulatory.
 
 Das Tool entscheidet nicht selbst. Es spart vor allem Such- und Sortieraufwand: Welche Risiken sind betroffen? Welche Quelle stützt welche Aussage? Welche Evidenz fehlt? Was muss ein Mensch als Nächstes prüfen?
 
 Der wichtigste Pfad ist:
 
-1. Unterlagen oder Demo-Fall bereitstellen.
+1. Unterlagen bereitstellen.
 2. Quellen, Anforderungen und Prüfpunkte erzeugen.
 3. Unvollständige Pakete zurück an Author/Ops geben.
 4. Vollständige Pakete plausibilisieren.
@@ -19,14 +19,13 @@ Der wichtigste Pfad ist:
 
 ## What this MVP does
 
-- Creates and displays a QRM project for a synthetic sterile injectable / automated visual inspection change-control scenario.
 - Stores a Prisma/SQLite data model for users, projects, source documents, snippets, risk-library items, risk items, evidence, gaps, plausibility checks, red-team findings, approvals, audit logs, exports, and validation artifacts.
 - **Backend-first orchestration direction**: A new Python/FastAPI backend foundation under `backend/` provides the clean service structure for future claim-ledger, verifier, risk, audit, storage, and reviewer-agent modules.
-- **Document Upload**: Upload your own documents (PDF, DOCX, TXT, MD, CSV) for analysis, or use realistic demo documents.
+- **Document Upload**: Upload your own synthetic or customer-cleared documents for analysis.
 - Marks AI-generated content as `DRAFT`.
 - Produces source-based draft risk updates, evidence gaps, plausibility checks, red-team missing-risk findings, a review queue, audit trail view, export preview, and draft validation-pack templates.
 - Builds Risk Review Packages before independent plausibility review, so the Critic is not called on empty or incomplete technical input.
-- Shows a customer-demo-ready Risk Review Summary, Risk-Based Review Queue, Evidence Map, workload-reduction estimate, and Draft Risk Delta Review Pack export.
+- Shows a Risk Review Summary, Risk-Based Review Queue, Evidence Map, workload-reduction estimate, and Draft Risk Delta Review Pack export once backend data exists.
 
 ## Backend-first Orchestration Direction
 
@@ -58,7 +57,7 @@ Production use would require formal validation, SOPs, supplier assessment, secur
 - Tailwind CSS
 - SQLite with Prisma schema and Prisma Client
 - Vitest automated tests
-- Simple local demo authentication data
+- Local role selector for MVP review-state testing
 - Python 3.12 backend foundation in `backend/`
 - FastAPI, Pydantic v2 settings
 - Docker Compose services for PostgreSQL, Redis, and the app
@@ -84,10 +83,7 @@ The backend-first review workflow now has a minimal reviewer UI at:
 /review-ui
 ```
 
-In the main product navigation, the previous `Delta-Analyse` entry now acts as the
-entry point for the backend-first Risk Orchestration workflow. Conceptually, this
-replaces the earlier frontend-only delta analysis as the primary process. The old
-synthetic Review Package screens remain available for demo/export presentation only.
+In the main product navigation, `Review Packs` is the entry point for the backend-first Risk Orchestration workflow. The previous frontend-only synthetic sample path has been removed from the visible tool.
 
 Die Review-UI zeigt keine technische Modell-Spielerei, sondern vorbereitete Prüfpakete. Man sieht den Anlass, den Prozessbereich, die Quellen im Paket, die wichtigsten Prüfpunkte, die Zitate mit Seite/Chunk und den Grund, warum menschliche Prüfung erforderlich ist. Review-Entscheidungen werden über das FastAPI-Backend dokumentiert.
 
@@ -100,9 +96,11 @@ NEXT_PUBLIC_SUPABASE_URL=""
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=""
 ```
 
-The Review UI also includes a `Demo-Daten erzeugen` action. It calls the backend demo seed,
-creates a synthetic AVI threshold-change package, runs the pipeline, and opens a generated
-human-review dossier.
+The Review UI no longer creates built-in sample cases. Generate adversarial synthetic test packages externally and upload them through the backend. A ready-to-copy briefing is available at:
+
+```text
+docs/adversarial-test-data-briefing.md
+```
 
 Supabase browser/server helpers live under `utils/supabase/`. The middleware refreshes Supabase
 sessions when the public Supabase URL and publishable key are configured, and safely passes through
@@ -110,7 +108,7 @@ when they are missing.
 
 ## Environment Variables
 
-The retired TypeScript frontend-agent layer has been removed. The new backend-first flow does not require real API keys for local fixtures or tests; it uses mock providers by default. Backend configuration uses `QRM_*` variables. See:
+The retired TypeScript frontend-agent layer has been removed. The new backend-first flow uses mock providers by default in tests and can use real configured providers in deployment. Backend configuration uses `QRM_*` variables. See:
 
 ```bash
 backend/.env.example
@@ -146,19 +144,7 @@ Infrastructure:
 docker compose up --build
 ```
 
-Demo local users use password:
-
-```text
-demo123
-```
-
-Example users:
-
-- `author@demo.local` as QRM Author
-- `sme@demo.local` as SME Reviewer
-- `qa@demo.local` as QA Approver
-- `audit@demo.local` as Auditor/Read-only Inspector
-- `admin@demo.local` as Admin
+The frontend role selector is an MVP convenience only. It is not authentication.
 
 ## Notes on database setup
 
@@ -188,7 +174,7 @@ The Prisma schema is the source for the SQLite structure. In this local environm
 
 ## MVP ingestion scope
 
-Supported demo/MVP inputs:
+Supported MVP inputs:
 
 - `.txt`
 - `.md`

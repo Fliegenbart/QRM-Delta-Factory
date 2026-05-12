@@ -1,7 +1,5 @@
-import { demoUsers } from "./demo-data";
-
-export function authenticateDemoUser(email: string, password: string) {
-  const user = demoUsers.find((candidate) => candidate.email === email);
-  if (!user || password !== "demo123") return null;
-  return user;
+export function authenticateLocalUser(email: string, password: string) {
+  void email;
+  void password;
+  return null;
 }

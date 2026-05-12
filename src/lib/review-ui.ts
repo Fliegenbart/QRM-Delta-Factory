@@ -21,7 +21,6 @@ export function hasSupabasePublicConfig(
 export const riskOrchestrationEntry = {
   legacyDeltaRoute: "/delta-analysis",
   reviewWorkbenchRoute: "/review-ui",
-  demoSeedRoute: "/api/review-ui/demo-seed",
   replacesLegacyDeltaAnalysis: true,
   name: "Risk Delta Review",
   shortDescription:
@@ -47,7 +46,7 @@ export const consultantReviewCopy = {
   list: {
     title: "Review Packs",
     empty:
-      "Noch kein Fall. Starte die Demo und öffne das Review Pack.",
+      "Noch kein Fall. Lade ein externes Testpaket hoch und starte die Pipeline.",
     loadErrorPrefix: "Backend nicht erreichbar",
     columns: {
       package: "Paket",
@@ -57,13 +56,6 @@ export const consultantReviewCopy = {
       sources: "Quellen"
     },
     open: "Öffnen"
-  },
-  seed: {
-    idle: "Demo starten",
-    seeding: "Pipeline läuft...",
-    created: "Review Pack bereit.",
-    refreshed: "Review Pack aktualisiert.",
-    error: "Demo konnte nicht starten."
   },
   detail: {
     title: "Fall",
@@ -95,7 +87,7 @@ export const consultantReviewCopy = {
     openFinding: "Ansehen",
     noEntries: "Keine Einträge.",
     loadError:
-      "Review Pack nicht verfügbar. Starte zuerst die Demo."
+      "Review Pack nicht verfügbar. Lade zuerst ein DocumentSet hoch und starte die Pipeline."
   },
   finding: {
     backToPack: "Zurück",
@@ -331,13 +323,6 @@ export type ReviewPack = {
   missing_information: string[];
   recommended_reviewer_actions: unknown[];
   audit_references: string[];
-};
-
-export type DemoSeedResponse = {
-  created: boolean;
-  document_set: DocumentSet;
-  pipeline_run: PipelineRun;
-  review_pack: ReviewPack;
 };
 
 export const decisionOptions: Array<{ value: ReviewDecisionValue; label: string }> = [

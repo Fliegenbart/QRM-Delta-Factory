@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { listDocumentSets } from "@/src/lib/review-api";
-import { DemoSeedButton } from "@/src/components/review-ui/demo-seed-button";
+import { listDocumentSets, ReviewApiError } from "@/src/lib/review-api";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import { consultantReviewCopy, type DocumentSet } from "@/src/lib/review-ui";
 
@@ -13,12 +12,16 @@ export default async function ReviewUiDocumentSetsPage() {
   try {
     documentSets = await listDocumentSets();
   } catch (caught) {
-    error = caught instanceof Error ? caught.message : "Prüfpakete konnten nicht geladen werden.";
+    if (caught instanceof ReviewApiError && caught.status === 404) {
+      documentSets = [];
+    } else {
+      error = caught instanceof Error ? caught.message : "Prüfpakete konnten nicht geladen werden.";
+    }
   }
 
   return (
     <ReviewShell>
-      <ReviewPanel title={consultantReviewCopy.list.title} action={<DemoSeedButton />}>
+      <ReviewPanel title={consultantReviewCopy.list.title}>
         {error ? (
           <EmptyState message={`${consultantReviewCopy.list.loadErrorPrefix}: ${error}`} />
         ) : documentSets.length === 0 ? (
