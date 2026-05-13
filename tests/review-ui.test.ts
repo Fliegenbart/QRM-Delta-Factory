@@ -29,7 +29,7 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.workspaceTitle).toBe("Risk Delta Review");
     expect(consultantReviewCopy.workspaceDescription).toBe("Quellen rein. Review Pack raus. QA entscheidet.");
     expect(consultantReviewCopy.list.title).toBe("Review Packs");
-    expect(consultantReviewCopy.list.empty).toContain("externes Testpaket");
+    expect(consultantReviewCopy.list.empty).toContain("Startseite");
     expect(consultantReviewCopy.finding.title).toBe("Finding");
     expect(consultantReviewCopy.decision.savedMessage).toBe("Entscheidung gespeichert.");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);

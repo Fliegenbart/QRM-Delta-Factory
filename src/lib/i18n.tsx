@@ -22,7 +22,7 @@ export const translations = {
   "nav.category.admin": { de: "Setup", en: "Setup" },
 
   // Navigation Items
-  "nav.dashboard": { de: "Cockpit", en: "Cockpit" },
+  "nav.dashboard": { de: "Start", en: "Start" },
   "nav.caseWorkspace": { de: "Fallakte", en: "Case Workspace" },
   "nav.aiArchitecture": { de: "KI-Aufbau", en: "AI Architecture" },
   "nav.backendReview": { de: "Review Packs", en: "Review Packs" },
@@ -224,8 +224,6 @@ export const translations = {
   "premium.architectureText": { de: "Change Control, FMEA, SOP, Validierung.", en: "Change control, FMEA, SOP, validation." },
   "premium.completenessGate": { de: "Gate", en: "Gate" },
   "premium.completenessText": { de: "Fehlt Evidenz, stoppt der Check.", en: "Missing evidence stops the check." },
-  "premium.testScenario": { de: "Testfall", en: "Test case" },
-  "premium.testScenarioText": { de: "Lade ein synthetisches Prüfpaket hoch und starte die Analyse.", en: "Upload a synthetic test package and start the analysis." },
   "premium.sterileNote": { de: "Sterile Injektion • AVI-Schwellen-Review", en: "Sterile injectable • AVI threshold review" },
 
   // Executive Risk Summary

@@ -26,6 +26,7 @@ import {
 import { useI18n, type TranslationKey } from "@/src/lib/i18n";
 import { useTheme } from "@/src/lib/theme";
 import { motion } from "@/src/components/ui/motion";
+import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { aiArchitectureConcept, riskOrchestrationEntry } from "@/src/lib/review-ui";
 import type { LucideIcon } from "lucide-react";
 
@@ -178,7 +179,7 @@ export function AppShell({ section }: { section: string; projectId?: string }) {
           {navigation}
         </nav>
         <div className="border-t border-black/10 px-5 py-4 text-xs leading-5 text-slate-500 dark:border-white/10 dark:text-slate-400">
-          Draft system. Human decision required.
+          Draft output. QA/SME entscheidet.
         </div>
       </aside>
 
@@ -306,7 +307,7 @@ function renderSection(section: string) {
     case "audit-trail":
       return <EmptyAdminSection title="Audit Trail" description="Audit Events entstehen nach Upload, Pipeline und Review." />;
     case "validation-pack":
-      return <EmptyAdminSection title="Validierungsunterlagen" description="Draft-Templates werden nicht mehr mit Beispieldaten vorbelegt." />;
+      return <EmptyAdminSection title="Validierungsunterlagen" description="Draft-Templates werden nach Projektanlage erzeugt." />;
     default:
       return <DashboardSection />;
   }
@@ -315,56 +316,39 @@ function renderSection(section: string) {
 function DashboardSection() {
   return (
     <div className="space-y-6">
-      <section className="premium-surface rounded-[26px] border border-black/10 p-7 dark:border-white/10 lg:p-9">
-        <div className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">
-              Risk Delta Review
-            </div>
-            <h2 className="mt-5 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
-              Testfälle rein. Review Pack raus.
-            </h2>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-              Die App enthält keine eingebauten Beispielfälle mehr. Lade externe Testpakete über das
-              Backend und prüfe, ob Findings, Quellen und Gaps erkannt werden.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link
-                href={riskOrchestrationEntry.reviewWorkbenchRoute}
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-teal px-5 text-sm font-semibold text-white shadow-sm"
-              >
-                <ShieldCheck className="h-4 w-4" />
-                Review Packs öffnen
-              </Link>
-              <Link
-                href="/case-workspace"
-                className="inline-flex h-11 items-center gap-2 rounded-xl border border-black/10 bg-white/80 px-5 text-sm font-semibold text-ink shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:text-white"
-              >
-                <PackageCheck className="h-4 w-4" />
-                Fallakte öffnen
-              </Link>
-            </div>
+      <section className="grid gap-6 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
+        <div className="pt-3">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">
+            Risk Delta Review
           </div>
-          <div className="grid gap-3">
-            <SummaryBlock title="1. Testpaket erzeugen" text="Synthetische GMP-Dokumente mit versteckten Fehlern." />
-            <SummaryBlock title="2. Backend-Pipeline laufen lassen" text="Claims, Requirements, Reviewer, Verifier, Risk Fusion." />
-            <SummaryBlock title="3. Ergebnis bewerten" text="Gefunden, übersehen, falscher Alarm. Danach Guardrail oder Eval ergänzen." />
+          <h2 className="mt-5 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
+            Dokumente hochladen. Review Pack erhalten.
+          </h2>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Lade Change-Control-, Abweichungs-, CAPA- oder Audit-Unterlagen hoch. Das System prüft Quellen, Anforderungen und Evidenz und bereitet die Entscheidung für QA und SME vor.
+          </p>
+          <div className="mt-7 grid gap-3 sm:grid-cols-2">
+            <SummaryBlock title="Quellenpflicht" text="Findings brauchen Dokument, Seite, Chunk und Zitat." />
+            <SummaryBlock title="Konservative Gates" text="Unklare oder hohe Risiken bleiben in menschlicher Prüfung." />
+            <SummaryBlock title="Mehrere Reviewer" text="Fachrollen prüfen parallel, der Verifier kontrolliert die Evidenz." />
+            <SummaryBlock title="Auditierbar" text="Modell, Prompt, Regelwerk und Entscheidung bleiben nachvollziehbar." />
           </div>
         </div>
+        <IntakeUploader />
       </section>
 
       <div className="grid gap-3 md:grid-cols-4">
-        <Stat label="Vorbefüllte Fälle" value="0" tone="teal" />
-        <Stat label="Entscheidung durch KI" value="0" />
+        <Stat label="KI-Entscheidung" value="0" />
         <Stat label="Quelle Pflicht" value="100%" tone="teal" />
+        <Stat label="Review Pack" value="Draft" tone="teal" />
         <Stat label="Letzter Schritt" value="QA/SME" />
       </div>
 
-      <Panel title="Nächster sinnvoller Schritt">
+      <Panel title="So arbeitet der Prüfflow">
         <div className="grid gap-4 md:grid-cols-3">
-          <SummaryBlock title="Schwere Fälle" text="Mehrere Dokumente, widersprüchliche Aussagen, alte Anhänge, indirekte Evidenz." />
-          <SummaryBlock title="Goldstandard" text="Vorher festlegen, welche Findings gefunden werden müssen." />
-          <SummaryBlock title="Regression Gate" text="Jeder übersehene High/Critical-Fall wird ein neuer Test." />
+          <SummaryBlock title="1. Unterlagen laden" text="Fallunterlagen, FMEA, SOP, Batch Record, Validierung oder Audit-Auszug." />
+          <SummaryBlock title="2. Evidenz prüfen" text="Claims werden aus Quellen gezogen und gegen das Regelwerk geprüft." />
+          <SummaryBlock title="3. Review fokussieren" text="QA und SME sehen nur die relevanten Findings, Lücken und Fragen." />
         </div>
       </Panel>
     </div>
@@ -377,15 +361,15 @@ function CaseWorkspaceSection() {
       <Panel title="Fallakte">
         <EmptyState
           title="Kein Fall geladen"
-          text="Die Fallakte zeigt erst Inhalte, wenn ein DocumentSet mit Dokumenten, RequirementSet und PipelineRun im Backend angelegt wurde."
+          text="Die Fallakte zeigt Inhalte, sobald auf der Startseite ein Prüffall angelegt und analysiert wurde."
         />
       </Panel>
       <Panel title="Import-Pfad">
         <ol className="space-y-3 text-sm leading-6 text-slate-700 dark:text-slate-300">
           <li>1. RequirementSet importieren oder aktivieren.</li>
-          <li>2. DocumentSet anlegen.</li>
+          <li>2. Prüffall anlegen.</li>
           <li>3. PDF/TXT/DOCX hochladen.</li>
-          <li>4. PipelineRun starten.</li>
+          <li>4. Analyse starten.</li>
           <li>5. Review Pack öffnen.</li>
         </ol>
       </Panel>
@@ -398,7 +382,7 @@ function ReviewEntrySection() {
     <Panel title="Review Packs">
       <EmptyState
         title="Keine vorbefüllten Packs"
-        text="Diese Ansicht liest nur Backend-Daten. Erzeuge Testdokumente extern und lade sie dann als DocumentSet."
+        text="Lege auf der Startseite einen Prüffall an. Danach erscheinen hier die Review Packs."
         action={
           <Link
             href="/review-ui"

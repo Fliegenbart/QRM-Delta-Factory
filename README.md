@@ -21,7 +21,7 @@ Der wichtigste Pfad ist:
 
 - Stores a Prisma/SQLite data model for users, projects, source documents, snippets, risk-library items, risk items, evidence, gaps, plausibility checks, red-team findings, approvals, audit logs, exports, and validation artifacts.
 - **Backend-first orchestration direction**: A new Python/FastAPI backend foundation under `backend/` provides the clean service structure for future claim-ledger, verifier, risk, audit, storage, and reviewer-agent modules.
-- **Document Upload**: Upload your own synthetic or customer-cleared documents for analysis.
+- **Document Upload**: Start on the home page by uploading customer-cleared GMP source documents.
 - Marks AI-generated content as `DRAFT`.
 - Produces source-based draft risk updates, evidence gaps, plausibility checks, red-team missing-risk findings, a review queue, audit trail view, export preview, and draft validation-pack templates.
 - Builds Risk Review Packages before independent plausibility review, so the Critic is not called on empty or incomplete technical input.
@@ -92,11 +92,14 @@ The browser never receives the backend API key. Configure the server-side proxy 
 ```bash
 QRM_BACKEND_URL="http://localhost:8000"
 QRM_BACKEND_API_KEY=""
+QRM_BACKEND_TENANT_ID="tenant_example_pharma"
+QRM_DEFAULT_REQUIREMENT_SET_ID="rset_example_gmp_qrm_2026_1"
 NEXT_PUBLIC_SUPABASE_URL=""
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=""
 ```
 
-The Review UI no longer creates built-in sample cases. Generate adversarial synthetic test packages externally and upload them through the backend. A ready-to-copy briefing is available at:
+The start page can create a new review case, upload documents, and start the backend pipeline.
+For adversarial internal test data, use the ready-to-copy briefing at:
 
 ```text
 docs/adversarial-test-data-briefing.md

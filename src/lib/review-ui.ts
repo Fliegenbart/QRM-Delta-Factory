@@ -46,7 +46,7 @@ export const consultantReviewCopy = {
   list: {
     title: "Review Packs",
     empty:
-      "Noch kein Fall. Lade ein externes Testpaket hoch und starte die Pipeline.",
+      "Noch kein Fall. Starte auf der Startseite eine neue Prüfung.",
     loadErrorPrefix: "Backend nicht erreichbar",
     columns: {
       package: "Paket",
