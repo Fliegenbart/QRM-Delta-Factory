@@ -7,8 +7,7 @@ import type {
   ReviewPack
 } from "@/src/lib/review-ui";
 import { normalizeReviewDecisionPayload } from "@/src/lib/review-ui";
-
-const DEFAULT_BACKEND_URL = "http://localhost:8000";
+import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
 
 export class ReviewApiError extends Error {
   constructor(
@@ -28,13 +27,7 @@ export async function createDocumentSet(input: {
   declaredProcessArea: string;
   uploadedBy: string;
 }): Promise<DocumentSet> {
-  const tenantId =
-    process.env.QRM_BACKEND_TENANT_ID ??
-    process.env.QRM_TENANT_ID ??
-    "tenant_example_pharma";
-  const requirementSetId =
-    process.env.QRM_DEFAULT_REQUIREMENT_SET_ID ??
-    "rset_example_gmp_qrm_2026_1";
+  const { tenantId, requirementSetId } = getReviewBackendConfig();
 
   return backendFetch<DocumentSet>("/document-sets", {
     method: "POST",
@@ -101,8 +94,7 @@ export async function submitReviewDecision(input: {
 }
 
 async function backendFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const backendUrl = process.env.QRM_BACKEND_URL ?? DEFAULT_BACKEND_URL;
-  const apiKey = process.env.QRM_BACKEND_API_KEY;
+  const { backendUrl, apiKey } = getReviewBackendConfig();
   const headers = new Headers(init.headers);
   headers.set("accept", "application/json");
   if (apiKey) {

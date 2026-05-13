@@ -12,6 +12,7 @@ import {
   riskOrchestrationEntry,
   type ReviewPack
 } from "@/src/lib/review-ui";
+import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
 
 describe("review UI helpers", () => {
   it("marks the backend review workbench as the replacement for legacy delta analysis", () => {
@@ -34,6 +35,22 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.decision.savedMessage).toBe("Entscheidung gespeichert.");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
     expect(consultantReviewCopy.decision.rationaleRequired).toContain("begründen");
+  });
+
+  it("trims backend runtime environment values", () => {
+    const config = getReviewBackendConfig({
+      QRM_BACKEND_URL: " https://backend.example.com \n",
+      QRM_BACKEND_API_KEY: " key-123\n",
+      QRM_BACKEND_TENANT_ID: "tenant_demo_pharma\n",
+      QRM_DEFAULT_REQUIREMENT_SET_ID: "rset_demo_gmp_qrm_2026_1\n"
+    });
+
+    expect(config).toEqual({
+      backendUrl: "https://backend.example.com",
+      apiKey: "key-123",
+      tenantId: "tenant_demo_pharma",
+      requirementSetId: "rset_demo_gmp_qrm_2026_1"
+    });
   });
 
   it("defines a simpler case workspace structure for consultants", () => {
