@@ -36,7 +36,28 @@ type IntakeStatus = "idle" | "creating" | "uploading" | "running" | "done" | "er
 type IntakeResult = {
   documentSetId: string;
   pipelineStatus?: string;
+  failedStep?: string | null;
 };
+
+function resultCopy(status?: string, failedStep?: string | null) {
+  if (status === "failed") {
+    return {
+      title: "Der Prüffall wurde angelegt, aber die automatische Analyse ist fehlgeschlagen.",
+      description:
+        failedStep
+          ? `Die Fallübersicht zeigt deine hochgeladenen Unterlagen. Die Analyse ist beim Schritt "${failedStep}" stehen geblieben.`
+          : "Die Fallübersicht zeigt deine hochgeladenen Unterlagen. Die Prüfmappe zeigt erst dann Prüfpunkte und fehlende Nachweise, wenn die Analyse erfolgreich durchgelaufen ist.",
+      tone: "warning" as const
+    };
+  }
+
+  return {
+    title: "Die Prüfmappe wird vorbereitet.",
+    description:
+      "Die Fallübersicht zeigt die hochgeladenen Unterlagen. Die Prüfmappe zeigt die daraus erstellten Prüfpunkte, Quellen und fehlenden Nachweise.",
+    tone: "success" as const
+  };
+}
 
 export function IntakeUploader() {
   const [declaredDocumentType, setDeclaredDocumentType] = useState(documentTypes[0].value);
@@ -52,6 +73,7 @@ export function IntakeUploader() {
     () => files.reduce((sum, file) => sum + file.size, 0),
     [files]
   );
+  const resultState = result ? resultCopy(result.pipelineStatus, result.failedStep) : null;
 
   function addFiles(nextFiles: FileList | null) {
     if (!nextFiles) return;
@@ -109,7 +131,8 @@ export function IntakeUploader() {
 
       setResult({
         documentSetId,
-        pipelineStatus: pipeline.pipelineRun?.status
+        pipelineStatus: pipeline.pipelineRun?.status,
+        failedStep: pipeline.pipelineRun?.failed_step
       });
       setStatus("done");
     } catch (caught) {
@@ -242,22 +265,34 @@ export function IntakeUploader() {
         </div>
       ) : null}
 
-      {result ? (
-        <div className="mt-4 rounded-xl border border-teal-500/25 bg-teal-500/[0.055] px-4 py-4">
+      {result && resultState ? (
+        <div className={`mt-4 rounded-xl border px-4 py-4 ${
+          resultState.tone === "warning"
+            ? "border-amber-400/45 bg-amber-50 text-amber-950 dark:border-amber-400/30 dark:bg-amber-950/25 dark:text-amber-50"
+            : "border-teal-500/25 bg-teal-500/[0.055]"
+        }`}>
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal" />
+            {resultState.tone === "warning" ? (
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
+            ) : (
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal" />
+            )}
             <div>
-              <div className="font-semibold text-ink dark:text-white">Prüfmappe wird vorbereitet.</div>
+              <div className="font-semibold text-ink dark:text-white">
+                {resultState.title}
+              </div>
               <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                Status: {result.pipelineStatus ?? "gestartet"}. Öffne die Fallakte oder die Prüfmappe.
+                {resultState.description}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Link className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" href={`/review-ui/document-sets/${result.documentSetId}/review-pack`}>
-                  Prüfmappe öffnen
+                <Link className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" href={`/review-ui/document-sets/${result.documentSetId}`}>
+                  Fallübersicht öffnen
                 </Link>
-                <Link className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-ink dark:border-white/10 dark:bg-slate-800 dark:text-white" href={`/review-ui/document-sets/${result.documentSetId}`}>
-                  Fallakte öffnen
-                </Link>
+                {resultState.tone === "success" ? (
+                  <Link className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-ink dark:border-white/10 dark:bg-slate-800 dark:text-white" href={`/review-ui/document-sets/${result.documentSetId}/review-pack`}>
+                    Prüfmappe öffnen
+                  </Link>
+                ) : null}
               </div>
             </div>
           </div>
