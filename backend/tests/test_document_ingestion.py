@@ -71,6 +71,30 @@ def test_upload_txt_document_creates_chunks_and_audit_events() -> None:
     ]
 
 
+def test_delete_document_set_removes_case_and_uploaded_documents() -> None:
+    client = TestClient(app)
+    document_set_id = _create_document_set(client)
+    upload_response = client.post(
+        f"/document-sets/{document_set_id}/documents",
+        files={
+            "file": (
+                "process.txt",
+                b"This is a meaningful process control document.",
+                "text/plain",
+            )
+        },
+        data={"uploaded_by": "user_qrm_author"},
+    )
+    assert upload_response.status_code == 201
+    document_id = upload_response.json()["document"]["document_id"]
+
+    response = client.delete(f"/document-sets/{document_set_id}")
+
+    assert response.status_code == 204
+    assert client.get(f"/document-sets/{document_set_id}").status_code == 404
+    assert repository.get_document(document_id) is None
+
+
 def test_upload_normal_pdf_creates_chunks() -> None:
     client = TestClient(app)
     document_set_id = _create_document_set(client)

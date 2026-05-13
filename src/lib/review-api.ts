@@ -51,6 +51,12 @@ export async function getDocumentSet(documentSetId: string): Promise<DocumentSet
   return backendFetch<DocumentSet>(`/document-sets/${encodeURIComponent(documentSetId)}`);
 }
 
+export async function deleteDocumentSet(documentSetId: string): Promise<void> {
+  await backendFetchWithoutJson(`/document-sets/${encodeURIComponent(documentSetId)}`, {
+    method: "DELETE"
+  });
+}
+
 export async function uploadDocumentToDocumentSet(input: {
   documentSetId: string;
   file: File;
@@ -99,6 +105,15 @@ export async function submitReviewDecision(input: {
 }
 
 async function backendFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await rawBackendFetch(path, init);
+  return (await response.json()) as T;
+}
+
+async function backendFetchWithoutJson(path: string, init: RequestInit = {}): Promise<void> {
+  await rawBackendFetch(path, init);
+}
+
+async function rawBackendFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const { backendUrl, apiKey } = getReviewBackendConfig();
   const headers = new Headers(init.headers);
   headers.set("accept", "application/json");
@@ -124,7 +139,7 @@ async function backendFetch<T>(path: string, init: RequestInit = {}): Promise<T>
     throw new ReviewApiError(message || response.statusText, response.status);
   }
 
-  return (await response.json()) as T;
+  return response;
 }
 
 function postDocumentSet(payload: {

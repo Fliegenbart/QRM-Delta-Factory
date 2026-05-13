@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listDocumentSets, ReviewApiError } from "@/src/lib/review-api";
+import { DeleteDocumentSetButton } from "@/src/components/review-ui/delete-document-set-button";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import {
   consultantReviewCopy,
@@ -56,13 +57,16 @@ export default async function ReviewUiDocumentSetsPage() {
                       </StatusBadge>
                     </td>
                     <td className="px-4 py-4">{documentSet.document_ids.length}</td>
-                    <td className="px-4 py-4 text-right">
-                      <Link
-                        className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white"
-                        href={`/review-ui/document-sets/${documentSet.document_set_id}`}
-                      >
-                        {consultantReviewCopy.list.open}
-                      </Link>
+                    <td className="px-4 py-4">
+                      <div className="flex items-start justify-end gap-2">
+                        <Link
+                          className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white"
+                          href={`/review-ui/document-sets/${documentSet.document_set_id}`}
+                        >
+                          {consultantReviewCopy.list.open}
+                        </Link>
+                        <DeleteDocumentSetButton documentSetId={documentSet.document_set_id} />
+                      </div>
                     </td>
                   </tr>
                 ))}
