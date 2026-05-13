@@ -136,6 +136,26 @@ def test_pipeline_marks_run_failed_when_parse_step_has_no_uploaded_documents() -
     assert any(event.event_type == "pipeline_run_failed" for event in audit_log.list_events())
 
 
+def test_pipeline_keeps_no_text_document_as_human_review_instead_of_failed() -> None:
+    repository.create_requirement_set(_requirement_set())
+    repository.create_document_set(_document_set(document_set_id="ds_pipeline_no_text"))
+    repository.add_document(
+        document=_document(document_set_id="ds_pipeline_no_text", parsing_quality_score=0),
+        chunks=[],
+    )
+
+    pipeline_run = PipelineService(repository=repository, audit_log=audit_log).run_pipeline(
+        "ds_pipeline_no_text"
+    )
+
+    assert pipeline_run.status == "needs_human_review"
+    assert pipeline_run.failed_step is None
+    assert pipeline_run.error_summary is None
+    document_set = repository.get_document_set("ds_pipeline_no_text")
+    assert document_set is not None
+    assert document_set.status == "needs_human_review"
+
+
 class FailingProvider(BaseModelProvider):
     def __init__(self) -> None:
         super().__init__(
@@ -223,10 +243,15 @@ def _requirement_set(
     )
 
 
-def _document() -> Document:
+def _document(
+    *,
+    document_id: str = "doc_pipeline_failure",
+    document_set_id: str = "ds_pipeline_failure",
+    parsing_quality_score: float = 0.95,
+) -> Document:
     return Document(
-        document_id="doc_pipeline_failure",
-        document_set_id="ds_pipeline_failure",
+        document_id=document_id,
+        document_set_id=document_set_id,
         filename="deviation.txt",
         file_hash_sha256=sha256(b"deviation.txt").hexdigest(),
         mime_type="text/plain",
@@ -234,7 +259,7 @@ def _document() -> Document:
         storage_uri="local://pipeline/deviation.txt",
         parser_version="test-parser",
         parsing_status="parsed",
-        parsing_quality_score=0.95,
+        parsing_quality_score=parsing_quality_score,
         language="en",
         metadata={},
     )

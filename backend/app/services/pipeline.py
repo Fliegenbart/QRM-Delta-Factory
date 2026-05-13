@@ -199,15 +199,16 @@ class PipelineService:
             for document in documents
             if document is not None and not self.repository.list_chunks(document.document_id)
         ]
-        if missing_chunks:
-            raise ValueError(f"Parsed chunks missing for document(s): {', '.join(missing_chunks)}")
         parser_failures = [
             document.document_id
             for document in documents
             if document is not None and document.parsing_status == ParsingStatus.FAILED
         ]
+        if missing_chunks or parser_failures:
+            self._mark_document_set_for_human_review(document_set)
         return {
             "document_count": len(document_set.document_ids),
+            "document_without_text_count": len(missing_chunks),
             "parser_failure_count": len(parser_failures),
         }
 
