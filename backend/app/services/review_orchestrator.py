@@ -433,17 +433,22 @@ def _provider_for_role(role: str) -> BaseModelProvider:
         return MockModelProvider()
 
     runtime_options = _runtime_options_from_settings(settings)
-    if role in {"GMPDataIntegrityReviewer", "BatchImpactReviewer"}:
+    if role == "BatchImpactReviewer":
         return OpenAIProvider(
             configured_model_id=settings.openai_model_id,
             runtime_options=runtime_options,
         )
-    if role in {"DeviationReviewer", "RegulatoryConsistencyReviewer"}:
+    if role in {
+        "GMPDataIntegrityReviewer",
+        "DeviationReviewer",
+        "CAPAReviewer",
+        "RegulatoryConsistencyReviewer",
+    }:
         return AnthropicProvider(
             configured_model_id=settings.anthropic_model_id,
             runtime_options=runtime_options,
         )
-    if role in {"CAPAReviewer", "ContradictionHunter"}:
+    if role == "ContradictionHunter":
         return GeminiProvider(
             configured_model_id=settings.gemini_model_id,
             runtime_options=runtime_options,

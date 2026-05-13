@@ -256,9 +256,9 @@ def test_default_agents_use_real_provider_mapping_when_enabled(
     providers_by_role = {agent.role: agent.provider.provider_name for agent in agents}
 
     assert providers_by_role == {
-        "GMPDataIntegrityReviewer": "openai",
+        "GMPDataIntegrityReviewer": "anthropic",
         "DeviationReviewer": "anthropic",
-        "CAPAReviewer": "gemini",
+        "CAPAReviewer": "anthropic",
         "BatchImpactReviewer": "openai",
         "RegulatoryConsistencyReviewer": "anthropic",
         "ContradictionHunter": "gemini",
