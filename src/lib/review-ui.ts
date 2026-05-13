@@ -22,49 +22,49 @@ export const riskOrchestrationEntry = {
   legacyDeltaRoute: "/delta-analysis",
   reviewWorkbenchRoute: "/review-ui",
   replacesLegacyDeltaAnalysis: true,
-  name: "Risk Delta Review",
+  name: "QA-Prüfung vorbereiten",
   shortDescription:
-    "Aus GMP-Dokumenten wird ein Review Pack mit Quellen, Lücken und nächstem Prüfschritt.",
+    "Aus GMP-Unterlagen wird eine Prüfmappe mit Quellen, offenen Fragen und nächstem Schritt.",
   workflow: [
-    "Dokumente laden",
-    "Claims und Requirements prüfen",
-    "Findings verifizieren",
-    "Review Pack öffnen",
-    "Entscheidung dokumentieren"
+    "Unterlagen hochladen",
+    "Aussagen und Anforderungen prüfen",
+    "Nachweise abgleichen",
+    "Prüfmappe öffnen",
+    "Menschliche Entscheidung dokumentieren"
   ]
 } as const;
 
 export const consultantReviewCopy = {
   productName: "Pharma QRM Delta Engine",
-  workspaceTitle: "Risk Delta Review",
+  workspaceTitle: "QA-Prüfung vorbereiten",
   workspaceDescription:
-    "Quellen rein. Review Pack raus. QA entscheidet.",
+    "Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.",
   nav: {
     cockpit: "Fallakte",
-    packages: "Review Packs"
+    packages: "Prüfmappen"
   },
   list: {
-    title: "Review Packs",
+    title: "Prüfmappen",
     empty:
-      "Noch kein Fall. Starte auf der Startseite eine neue Prüfung.",
+      "Noch kein echter Prüffall vorhanden. Lade auf der Startseite Unterlagen hoch, dann erscheint hier die Prüfmappe.",
     loadErrorPrefix: "Backend nicht erreichbar",
     columns: {
-      package: "Paket",
+      package: "Prüffall",
       trigger: "Anlass",
       area: "Bereich",
       status: "Status",
-      sources: "Quellen"
+      sources: "Unterlagen"
     },
     open: "Öffnen"
   },
   detail: {
-    title: "Fall",
-    openReviewPack: "Review Pack öffnen",
-    sourcesTitle: "Quellen",
-    noSources: "Keine Quellen verknüpft.",
-    loadErrorPrefix: "Prüfpaket konnte nicht geladen werden",
+    title: "Prüffall",
+    openReviewPack: "Prüfmappe öffnen",
+    sourcesTitle: "Hochgeladene Unterlagen",
+    noSources: "Keine Unterlagen verknüpft.",
+    loadErrorPrefix: "Prüffall konnte nicht geladen werden",
     labels: {
-      packageId: "Paket-ID",
+      packageId: "Interne Fall-ID",
       tenant: "Mandant",
       requirementSet: "Regelwerk-Version",
       uploadedBy: "Angelegt durch",
@@ -75,36 +75,36 @@ export const consultantReviewCopy = {
     }
   },
   pack: {
-    title: "Review Pack",
+    title: "Prüfmappe",
     humanNotice:
-      "Draft. Nur Entscheidungsunterstützung.",
-    humanReasons: "Warum Review nötig ist",
-    missingInformation: "Fehlt noch",
-    findingsTitle: "Findings",
-    emptyFindings: "Keine Findings.",
+      "Entwurf. Das ist nur eine Vorbereitung für die menschliche Prüfung.",
+    humanReasons: "Warum ein Mensch prüfen muss",
+    missingInformation: "Was noch fehlt",
+    findingsTitle: "Prüfpunkte",
+    emptyFindings: "Keine Prüfpunkte.",
     requirement: "Regelwerk",
     notLinked: "nicht verknüpft",
-    openFinding: "Ansehen",
+    openFinding: "Prüfpunkt ansehen",
     noEntries: "Keine Einträge.",
     loadError:
-      "Review Pack nicht verfügbar. Lade zuerst ein DocumentSet hoch und starte die Pipeline."
+      "Prüfmappe nicht verfügbar. Lade zuerst Unterlagen hoch und starte die Prüfung."
   },
   finding: {
-    backToPack: "Zurück",
-    title: "Finding",
-    notFound: "Finding nicht gefunden.",
-    humanReason: "Review-Grund",
-    evidenceTitle: "Evidenz",
-    noEvidence: "Keine Evidenz verknüpft.",
+    backToPack: "Zurück zur Prüfmappe",
+    title: "Prüfpunkt",
+    notFound: "Prüfpunkt nicht gefunden.",
+    humanReason: "Warum ein Mensch prüfen muss",
+    evidenceTitle: "Nachweise",
+    noEvidence: "Keine Nachweise verknüpft.",
     document: "Dokument",
     page: "Seite",
-    chunk: "Chunk",
-    modelPositions: "Modellpositionen",
-    foundBy: "Gefunden durch",
-    contradictedBy: "Widerspruch von",
-    noIssueAgents: "Ohne Befund gemeldet",
+    chunk: "Textstelle",
+    modelPositions: "Was die Prüfhelfer gemeldet haben",
+    foundBy: "Hat ein Problem gesehen",
+    contradictedBy: "Hat widersprochen",
+    noIssueAgents: "Hat kein Problem gesehen",
     decisionForm: "Entscheidung",
-    loadErrorPrefix: "Finding konnte nicht geladen werden",
+    loadErrorPrefix: "Prüfpunkt konnte nicht geladen werden",
     labels: {
       findingId: "Prüfpunkt-ID",
       riskCategory: "Risikobereich",
@@ -125,38 +125,38 @@ export const consultantReviewCopy = {
 export const reviewDecisionRequiresHumanRationale = true;
 
 export const aiArchitectureConcept = {
-  title: "KI als Prüfteam. Nicht als Entscheider.",
+  title: "KI hilft beim Sortieren. Sie entscheidet nicht.",
   subtitle:
-    "Mehrere Modelle prüfen arbeitsteilig. Jede Aussage braucht Evidenz. Risk Fusion eskaliert konservativ.",
+    "Das System sucht Risiken, Lücken und passende Quellen. Alles Kritische bleibt bei QA oder Fachexperten.",
   flow: [
     {
       id: "source",
       title: "Quellen",
-      description: "Dokumente, Chunks, Claims, Requirements."
+      description: "Hochgeladene Unterlagen, Textstellen, Aussagen und Regeln."
     },
     {
       id: "primary-reviewers",
-      title: "Reviewer-KIs",
-      description: "OpenAI, Claude und Gemini prüfen getrennte Risikobereiche."
+      title: "Prüfhelfer",
+      description: "Mehrere Prüfhelfer schauen aus unterschiedlichen Blickwinkeln auf den Fall."
     },
     {
       id: "evidence-verifier",
-      title: "Verifier",
-      description: "Zitat, Seite, Chunk und Requirement müssen passen."
+      title: "Quellencheck",
+      description: "Zitat, Seite, Textstelle und Regel müssen zusammenpassen."
     },
     {
       id: "adversarial",
-      title: "Adversarial Review",
-      description: "Sucht blinde Flecken und falsche Entwarnungen."
+      title: "Gegenprüfung",
+      description: "Sucht übersehene Risiken und falsche Entwarnungen."
     },
     {
       id: "risk-fusion",
-      title: "Risk Fusion",
-      description: "Kein Voting. High/Critical bleibt bei Menschen."
+      title: "Zusammenfassung",
+      description: "Kein Mehrheitsentscheid. Hohes Risiko bleibt bei Menschen."
     },
     {
       id: "human-review",
-      title: "Human Review",
+      title: "Menschliche Prüfung",
       description: "SME/QA entscheidet mit Begründung."
     }
   ],
@@ -164,12 +164,12 @@ export const aiArchitectureConcept = {
     {
       role: "Claim Extractor",
       purpose: "Extrahiert zitierte Aussagen.",
-      guardrail: "Kein Claim ohne Quelle."
+      guardrail: "Keine Aussage ohne Quelle."
     },
     {
       role: "Primary Reviewer Agents",
       purpose: "Suchen fachliche Risiken.",
-      guardrail: "Kein Finding ohne Evidenz oder Gap."
+      guardrail: "Kein Prüfpunkt ohne Nachweis oder klare Lücke."
     },
     {
       role: "Evidence Verifier",
@@ -190,8 +190,8 @@ export const aiArchitectureConcept = {
   nonNegotiables: [
     "KI entscheidet nicht.",
     "Keine Mehrheitsabstimmung.",
-    "Keine Aussage ohne Quelle oder Gap.",
-    "High/Critical wird nicht automatisch geschlossen.",
+    "Keine Aussage ohne Quelle oder klare Lücke.",
+    "Hohe und kritische Risiken werden nicht automatisch geschlossen.",
     "QA/SME bleibt letzter Schritt."
   ]
 } as const;
@@ -200,7 +200,7 @@ export const caseWorkspaceStructure = {
   route: "/case-workspace",
   title: "Fallakte",
   description:
-    "Ein Fall. Quellen, Findings, Review und Export.",
+    "Ein Fall. Quellen, Prüfpunkte, Prüfung und Export.",
   primaryTabs: [
     {
       id: "overview",
@@ -324,6 +324,72 @@ export type ReviewPack = {
   recommended_reviewer_actions: unknown[];
   audit_references: string[];
 };
+
+export const hiddenDemoDocumentSetIds = new Set(["ds_demo_avi_threshold"]);
+
+export function isHiddenDemoDocumentSetId(documentSetId: string): boolean {
+  return hiddenDemoDocumentSetIds.has(documentSetId);
+}
+
+export function isVisibleReviewDocumentSet(documentSet: DocumentSet): boolean {
+  return !isHiddenDemoDocumentSetId(documentSet.document_set_id);
+}
+
+const plainGermanLabels: Record<string, string> = {
+  aseptic_filling: "Sterile Abfüllung",
+  batch_impact_assessment: "Chargenauswirkung",
+  blocked_due_to_unverified_high_risk: "Blockiert: hohes Risiko noch nicht geprüft",
+  capa: "CAPA / Korrekturmaßnahme",
+  change_control: "Geplante Änderung",
+  critical: "Kritisch",
+  deviation_management: "Abweichungsmanagement",
+  high: "Hoch",
+  medium: "Mittel",
+  missed_critical_risk: "Mögliches übersehenes Risiko",
+  missing_required_evidence: "Pflichtnachweis fehlt",
+  needs_human_review: "Menschliche Prüfung nötig",
+  none: "Nicht belegt",
+  partial: "Teilweise belegt",
+  qa_approval: "QA-Freigabe",
+  ready: "Bereit",
+  ready_for_review: "Bereit zur Prüfung"
+};
+
+const reasonLabels: Record<string, string> = {
+  "adversarial challenge involves possible high/critical risk":
+    "Eine Gegenprüfung sieht möglicherweise ein hohes oder kritisches Risiko.",
+  "audit trail review evidence":
+    "Nachweis, dass der Audit Trail geprüft wurde.",
+  "batch record reconciliation evidence":
+    "Nachweis, dass der Chargenbezug abgeglichen wurde.",
+  "documented QA approval decision":
+    "Dokumentierte QA-Entscheidung.",
+  "human assessment of whether the high-risk impact is covered":
+    "Menschliche Bewertung, ob die hohe Auswirkung ausreichend abgedeckt ist.",
+  "human review required for high/critical risk":
+    "Bei hohem oder kritischem Risiko muss ein qualifizierter Mensch prüfen.",
+  "missing information must be resolved by reviewer":
+    "Fehlende Informationen müssen in der Prüfung geklärt werden.",
+  "missing required document: training record for revised AVI SOP":
+    "Pflichtunterlage fehlt: Trainingsnachweis zur geänderten AVI-SOP.",
+  "missing required document: validation addendum for new rejection threshold":
+    "Pflichtunterlage fehlt: Validierungsnachtrag zum neuen Ausschleuse-Grenzwert.",
+  "model disagreement on possible high/critical severity":
+    "Die Prüfhelfer sind sich bei einem möglichen hohen oder kritischen Risiko nicht einig.",
+  "single high/critical finding is sufficient for human review":
+    "Ein einzelner hoher oder kritischer Prüfpunkt reicht aus, damit ein Mensch prüfen muss.",
+  "verifier did not pass all deterministic checks":
+    "Die automatische Quellenprüfung konnte nicht alles sicher bestätigen."
+};
+
+export function displayReviewValue(value?: string | null): string {
+  if (!value) return "nicht angegeben";
+  return plainGermanLabels[value] ?? value.replaceAll("_", " ");
+}
+
+export function displayReviewReason(reason: string): string {
+  return reasonLabels[reason] ?? displayReviewValue(reason);
+}
 
 export const decisionOptions: Array<{ value: ReviewDecisionValue; label: string }> = [
   { value: "confirm", label: "Befund bestätigen" },

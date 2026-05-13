@@ -2,8 +2,11 @@ import Link from "next/link";
 import { getReviewPack } from "@/src/lib/review-api";
 import {
   consultantReviewCopy,
+  displayReviewReason,
+  displayReviewValue,
   evidenceRowsForFinding,
   findTopRiskById,
+  isHiddenDemoDocumentSetId,
   modelPositionForFinding
 } from "@/src/lib/review-ui";
 import { ReviewDecisionForm } from "@/src/components/review-ui/review-decision-form";
@@ -17,6 +20,14 @@ type PageProps = {
 
 export default async function FindingDetailPage({ params }: PageProps) {
   const { id, findingId } = await params;
+
+  if (isHiddenDemoDocumentSetId(id)) {
+    return (
+      <ReviewShell>
+        <EmptyState message={consultantReviewCopy.list.empty} />
+      </ReviewShell>
+    );
+  }
 
   try {
     const pack = await getReviewPack(id);
@@ -63,22 +74,22 @@ export default async function FindingDetailPage({ params }: PageProps) {
             <ReviewPanel title={consultantReviewCopy.finding.title}>
               <div className="flex flex-wrap gap-2">
                 <StatusBadge tone={risk.severity === "critical" || risk.severity === "high" ? "red" : "amber"}>
-                  {risk.severity}
+                  {displayReviewValue(risk.severity)}
                 </StatusBadge>
-                <StatusBadge>{risk.risk_category ?? "risk"}</StatusBadge>
-                <StatusBadge>{risk.verifier_status}</StatusBadge>
+                <StatusBadge>{displayReviewValue(risk.risk_category ?? "risk")}</StatusBadge>
+                <StatusBadge>{displayReviewValue(risk.verifier_status)}</StatusBadge>
               </div>
 
               <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">{risk.risk_statement}</h2>
               <dl className="mt-5 grid gap-4 md:grid-cols-2">
                 <Detail label={consultantReviewCopy.finding.labels.findingId} value={risk.finding_id} mono />
-                <Detail label={consultantReviewCopy.finding.labels.riskCategory} value={risk.risk_category ?? "nicht angegeben"} />
+                <Detail label={consultantReviewCopy.finding.labels.riskCategory} value={displayReviewValue(risk.risk_category)} />
                 <Detail label={consultantReviewCopy.finding.labels.requirementReference} value={risk.requirement_references.join(", ") || "nicht verknüpft"} mono />
-                <Detail label={consultantReviewCopy.finding.labels.verifierResult} value={risk.verifier_status} />
+                <Detail label={consultantReviewCopy.finding.labels.verifierResult} value={displayReviewValue(risk.verifier_status)} />
               </dl>
 
               <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-                <strong>{consultantReviewCopy.finding.humanReason}:</strong> {risk.human_review_reason}
+                <strong>{consultantReviewCopy.finding.humanReason}:</strong> {displayReviewReason(risk.human_review_reason)}
               </div>
             </ReviewPanel>
 

@@ -24,8 +24,8 @@ export const translations = {
   // Navigation Items
   "nav.dashboard": { de: "Start", en: "Start" },
   "nav.caseWorkspace": { de: "Fallakte", en: "Case Workspace" },
-  "nav.aiArchitecture": { de: "KI-Aufbau", en: "AI Architecture" },
-  "nav.backendReview": { de: "Review Packs", en: "Review Packs" },
+  "nav.aiArchitecture": { de: "So prüft das System", en: "AI Architecture" },
+  "nav.backendReview": { de: "Prüfmappen", en: "Review Packs" },
   "nav.projects": { de: "Projekte", en: "Projects" },
   "nav.documents": { de: "Dokumente", en: "Documents" },
   "nav.sourceSnippets": { de: "Quellausschnitte", en: "Source Snippets" },
@@ -33,14 +33,14 @@ export const translations = {
   "nav.triggerInput": { de: "Change/CAPA Eingabe", en: "Change/CAPA Input" },
   "nav.deltaAnalysis": { de: "Delta-Prozess", en: "Delta Process" },
   "nav.qrmMatrix": { de: "QRM-Matrix", en: "QRM Matrix" },
-  "nav.reviewPackages": { de: "Prüfpakete", en: "Review Packages" },
+  "nav.reviewPackages": { de: "Prüfmappen", en: "Review Packages" },
   "nav.plausibilityChecks": { de: "Plausibilitätscheck", en: "Plausibility Check" },
   "nav.redTeamFindings": { de: "Blind-Spot-Prüfung", en: "Blind-Spot Review" },
   "nav.reviewQueue": { de: "Review-Prioritäten", en: "Review Priorities" },
   "nav.approvals": { de: "QA-Entscheidungen", en: "QA Decisions" },
   "nav.evidenceMap": { de: "Quellenkarte", en: "Evidence Map" },
   "nav.gaps": { de: "Lücken", en: "Gaps" },
-  "nav.exportPackage": { de: "Review-Pack Export", en: "Review Pack Export" },
+  "nav.exportPackage": { de: "Prüfmappe exportieren", en: "Review Pack Export" },
   "nav.validationPack": { de: "Validierungsunterlagen", en: "Validation Documents" },
   "nav.auditTrail": { de: "Audit-Trail", en: "Audit Trail" },
   "nav.adminUsers": { de: "Admin/Benutzer", en: "Admin/Users" },
@@ -79,8 +79,8 @@ export const translations = {
   // Risk Items
   "risk.title": { de: "Risiko-Items", en: "Risk Items" },
   "risk.riskItems": { de: "Risk Items", en: "Risk Items" },
-  "risk.findings": { de: "Findings", en: "Findings" },
-  "risk.gapsIdentified": { de: "Gaps identifiziert", en: "Gaps identified" },
+  "risk.findings": { de: "Prüfpunkte", en: "Findings" },
+  "risk.gapsIdentified": { de: "Lücken gefunden", en: "Gaps identified" },
   "risk.escalated": { de: "Eskaliert", en: "Escalated" },
   "risk.rpn": { de: "RPN", en: "RPN" },
 
@@ -101,9 +101,9 @@ export const translations = {
   "docs.placeholder": { de: "TODO Platzhalter: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum Ingestion.", en: "TODO placeholders: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum ingestion." },
 
   // Review Packages
-  "review.packages": { de: "Prüfpakete", en: "Review Packages" },
-  "review.riskBasedQueue": { de: "Risk-Based Review Queue", en: "Risk-Based Review Queue" },
-  "review.generatedPackages": { de: "Erstellte Prüfpakete", en: "Generated packages" },
+  "review.packages": { de: "Prüfmappen", en: "Review Packages" },
+  "review.riskBasedQueue": { de: "Prüfung nach Dringlichkeit", en: "Risk-Based Review Queue" },
+  "review.generatedPackages": { de: "Erstellte Prüfmappen", en: "Generated packages" },
   "review.readyForReview": { de: "Bereit für Quellencheck", en: "Ready for source check" },
   "review.inputIncomplete": { de: "Zurück an Author/Ops", en: "Back to Author/Ops" },
   "review.total": { de: "Gesamt", en: "Total" },
@@ -113,9 +113,9 @@ export const translations = {
   "review.partial": { de: "Teilweise", en: "Partial" },
   "review.fail": { de: "Fehlgeschlagen", en: "Fail" },
   "review.reduction": { de: "Reduktion", en: "Reduction" },
-  "review.generatePackages": { de: "Prüfpakete erstellen", en: "Build Review Packages" },
+  "review.generatePackages": { de: "Prüfmappen erstellen", en: "Build Review Packages" },
   "review.runAllChecks": { de: "Plausibilität prüfen", en: "Run Plausibility Checks" },
-  "review.generateExport": { de: "Draft Review Pack erzeugen", en: "Generate Draft Review Pack" },
+  "review.generateExport": { de: "Prüfmappe als Entwurf erzeugen", en: "Generate Draft Review Pack" },
   "review.downloadJson": { de: "JSON herunterladen", en: "Download JSON" },
 
   // Notice
@@ -214,10 +214,10 @@ export const translations = {
   "docs.todoPlaceholder": { de: "TODO Platzhalter: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum Anbindung.", en: "TODO placeholders: PDF, DOCX, XLSX, OCR, SharePoint/Teams, Veeva, TrackWise, Documentum ingestion." },
 
   // Premium Review Hero
-  "premium.reviewPackages": { de: "Prüfpakete", en: "Review packages" },
-  "premium.headline": { de: "Change Control rein. Review Pack raus.", en: "Change control in. Review pack out." },
+  "premium.reviewPackages": { de: "Prüfmappen", en: "Review packages" },
+  "premium.headline": { de: "Unterlagen rein. Prüfmappe raus.", en: "Change control in. Review pack out." },
   "premium.subline": { de: "Das System findet relevante Deltas, zeigt Quellen und blockiert unvollständige Pakete.", en: "The system finds relevant deltas, shows sources, and blocks incomplete packages." },
-  "premium.generatePackages": { de: "Prüfpakete erstellen", en: "Build review packages" },
+  "premium.generatePackages": { de: "Prüfmappen erstellen", en: "Build review packages" },
   "premium.runAllChecks": { de: "Plausibilität prüfen", en: "Run plausibility checks" },
   "premium.draftNote": { de: "Draft. Quellen sichtbar. Mensch entscheidet.", en: "Draft. Sources visible. Human decides." },
   "premium.architecture": { de: "Quellen", en: "Sources" },
@@ -251,8 +251,8 @@ export const translations = {
   "evidence.gapsInputs": { de: "Lücken / Eingaben", en: "Gaps / inputs" },
 
   // Progress Wizard
-  "wizard.generate": { de: "Pakete", en: "Packages" },
-  "wizard.generateDesc": { de: "Prüfpakete erstellen", en: "Build review packages" },
+  "wizard.generate": { de: "Prüfmappen", en: "Packages" },
+  "wizard.generateDesc": { de: "Prüfmappen erstellen", en: "Build review packages" },
   "wizard.plausibility": { de: "Quellencheck", en: "Source check" },
   "wizard.plausibilityDesc": { de: "Plausibilität prüfen", en: "Check plausibility" },
   "wizard.smeReview": { de: "Fachreview", en: "Expert review" },
@@ -260,7 +260,7 @@ export const translations = {
   "wizard.qaApproval": { de: "QA-Entscheid", en: "QA decision" },
   "wizard.qaDesc": { de: "Menschlich dokumentieren", en: "Document human decision" },
   "wizard.export": { de: "Lieferpaket", en: "Deliverable" },
-  "wizard.exportDesc": { de: "Draft Review Pack exportieren", en: "Export draft review pack" },
+  "wizard.exportDesc": { de: "Prüfmappe als Entwurf exportieren", en: "Export draft review pack" },
   "wizard.navigation": { de: "Wo steht der Fall?", en: "Where does the case stand?" },
 } as const;
 

@@ -28,18 +28,23 @@ export async function createDocumentSet(input: {
   uploadedBy: string;
 }): Promise<DocumentSet> {
   const { tenantId, requirementSetId } = getReviewBackendConfig();
+  const payload = {
+    tenant_id: tenantId,
+    requirement_set_id: requirementSetId,
+    declared_document_type: input.declaredDocumentType,
+    declared_process_area: input.declaredProcessArea,
+    uploaded_by: input.uploadedBy
+  };
 
-  return backendFetch<DocumentSet>("/document-sets", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      tenant_id: tenantId,
-      requirement_set_id: requirementSetId,
-      declared_document_type: input.declaredDocumentType,
-      declared_process_area: input.declaredProcessArea,
-      uploaded_by: input.uploadedBy
-    })
-  });
+  try {
+    return await postDocumentSet(payload);
+  } catch (error) {
+    if (!isRecoverableRequirementSetError(error, requirementSetId)) {
+      throw error;
+    }
+    await ensureRequirementSet({ requirementSetId, tenantId });
+    return postDocumentSet(payload);
+  }
 }
 
 export async function getDocumentSet(documentSetId: string): Promise<DocumentSet> {
@@ -120,4 +125,120 @@ async function backendFetch<T>(path: string, init: RequestInit = {}): Promise<T>
   }
 
   return (await response.json()) as T;
+}
+
+function postDocumentSet(payload: {
+  tenant_id: string;
+  requirement_set_id: string;
+  declared_document_type: string;
+  declared_process_area: string;
+  uploaded_by: string;
+}): Promise<DocumentSet> {
+  return backendFetch<DocumentSet>("/document-sets", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+async function activateRequirementSet(requirementSetId: string): Promise<void> {
+  await backendFetch(`/requirement-sets/${encodeURIComponent(requirementSetId)}/activate`, {
+    method: "POST"
+  });
+}
+
+async function ensureRequirementSet(input: {
+  requirementSetId: string;
+  tenantId: string;
+}): Promise<void> {
+  try {
+    await activateRequirementSet(input.requirementSetId);
+    return;
+  } catch (error) {
+    if (!isMissingRequirementSetError(error, input.requirementSetId)) {
+      throw error;
+    }
+  }
+
+  await importDefaultRequirementSet(input);
+  await activateRequirementSet(input.requirementSetId);
+}
+
+async function importDefaultRequirementSet(input: {
+  requirementSetId: string;
+  tenantId: string;
+}): Promise<void> {
+  const formData = new FormData();
+  const requirementSet = defaultRequirementSet(input);
+  formData.set(
+    "file",
+    new Blob([JSON.stringify(requirementSet, null, 2)], { type: "application/json" }),
+    `${input.requirementSetId}.json`
+  );
+  formData.set("imported_by", requirementSet.imported_by);
+
+  await backendFetch("/requirement-sets/import", {
+    method: "POST",
+    body: formData
+  });
+}
+
+function defaultRequirementSet(input: { requirementSetId: string; tenantId: string }) {
+  return {
+    requirement_set_id: input.requirementSetId,
+    tenant_id: input.tenantId,
+    name: "Default GMP QRM Requirement Library",
+    version: "2026.1",
+    imported_at: "2026-05-09T09:00:00Z",
+    imported_by: "user_quality_admin",
+    active: true,
+    requirements: [
+      {
+        requirement_id: "req_val_threshold_current_evidence",
+        source_type: "internal_sop",
+        source_name: "SOP-QRM-AVI-001",
+        source_version: "3.0",
+        section: "6.4",
+        requirement_text:
+          "Changed automated inspection thresholds require verification or validation evidence applicable to the changed setting.",
+        applies_to_document_types: ["change_control_package", "validation_report"],
+        applies_to_process_areas: ["automated_visual_inspection", "aseptic_filling"],
+        criticality: "high",
+        required_evidence: ["current validation report", "approved validation addendum"],
+        auto_close_allowed: false,
+        effective_from: "2026-01-01T00:00:00Z",
+        effective_to: null
+      }
+    ]
+  };
+}
+
+function isRecoverableRequirementSetError(
+  error: unknown,
+  requirementSetId: string
+): boolean {
+  return (
+    isInactiveRequirementSetError(error, requirementSetId) ||
+    isMissingRequirementSetError(error, requirementSetId)
+  );
+}
+
+function isInactiveRequirementSetError(error: unknown, requirementSetId: string): boolean {
+  if (!(error instanceof ReviewApiError)) {
+    return false;
+  }
+  return (
+    error.status === 422 &&
+    error.message.includes(`RequirementSet ${requirementSetId} is not active`)
+  );
+}
+
+function isMissingRequirementSetError(error: unknown, requirementSetId: string): boolean {
+  if (!(error instanceof ReviewApiError)) {
+    return false;
+  }
+  return (
+    error.status === 404 &&
+    error.message.includes(`RequirementSet ${requirementSetId} not found`)
+  );
 }

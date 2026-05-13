@@ -130,7 +130,7 @@ export function IntakeUploader() {
             Dokumente hochladen
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Lade die Unterlagen zum Change, zur Abweichung oder CAPA hoch. Das System erstellt daraus ein quellenbasiertes Review Pack.
+            Lade die Unterlagen zur Änderung, Abweichung oder CAPA hoch. Das System erstellt daraus eine Prüfmappe mit Quellen, offenen Fragen und fehlenden Nachweisen.
           </p>
         </div>
         <div className="hidden rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 dark:border-white/10 dark:text-slate-300 sm:block">
@@ -247,13 +247,13 @@ export function IntakeUploader() {
           <div className="flex items-start gap-3">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal" />
             <div>
-              <div className="font-semibold text-ink dark:text-white">Review Pack wird vorbereitet.</div>
+              <div className="font-semibold text-ink dark:text-white">Prüfmappe wird vorbereitet.</div>
               <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                Status: {result.pipelineStatus ?? "gestartet"}. Öffne die Fallakte oder das Review Pack.
+                Status: {result.pipelineStatus ?? "gestartet"}. Öffne die Fallakte oder die Prüfmappe.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white" href={`/review-ui/document-sets/${result.documentSetId}/review-pack`}>
-                  Review Pack öffnen
+                  Prüfmappe öffnen
                 </Link>
                 <Link className="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-ink dark:border-white/10 dark:bg-slate-800 dark:text-white" href={`/review-ui/document-sets/${result.documentSetId}`}>
                   Fallakte öffnen
@@ -266,7 +266,7 @@ export function IntakeUploader() {
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-          Jede Aussage im Review Pack braucht Quelle, Zitat und Chunk-ID.
+          Jede Aussage in der Prüfmappe braucht Quelle, Zitat und genaue Textstelle.
         </div>
         <button
           type="button"

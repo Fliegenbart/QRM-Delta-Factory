@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 from typing import Literal
 
@@ -5,6 +6,12 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 EnvironmentName = Literal["local", "test", "staging", "production"]
+
+
+def _default_local_storage_root() -> str:
+    if os.getenv("VERCEL"):
+        return "/tmp/qrm-local-storage"
+    return "./.local-storage"
 
 
 class Settings(BaseSettings):
@@ -28,7 +35,7 @@ class Settings(BaseSettings):
         default="postgresql+psycopg://qrm_app:qrm_app_dev@postgres:5432/qrm_orchestration"
     )
     redis_url: str = Field(default="redis://redis:6379/0")
-    local_storage_root: str = Field(default="./.local-storage")
+    local_storage_root: str = Field(default_factory=_default_local_storage_root)
     parsing_quality_threshold: float = Field(default=0.65, ge=0, le=1)
     ood_score_threshold: float = Field(default=0.5, ge=0, le=1)
     supported_document_languages: str = Field(default="en")

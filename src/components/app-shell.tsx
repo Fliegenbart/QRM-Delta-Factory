@@ -71,6 +71,23 @@ function pageTitle(slug: string, t: (key: TranslationKey) => string) {
 
 export function AppShell({ section }: { section: string; projectId?: string }) {
   const active = sectionSlugs.includes(section) ? section : "dashboard";
+
+  return (
+    <AppFrame section={active}>
+      <Notice />
+      <div className="mt-6">{renderSection(active)}</div>
+    </AppFrame>
+  );
+}
+
+export function AppFrame({
+  section,
+  children,
+}: {
+  section: string;
+  children: React.ReactNode;
+}) {
+  const active = sectionSlugs.includes(section) ? section : "dashboard";
   const [role, setRole] = useState<(typeof roles)[number]>("QRM_AUTHOR");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
@@ -249,8 +266,7 @@ export function AppShell({ section }: { section: string; projectId?: string }) {
         </header>
 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
-          <Notice />
-          <div className="mt-6">{renderSection(active)}</div>
+          {children}
         </div>
       </main>
     </div>
@@ -319,18 +335,18 @@ function DashboardSection() {
       <section className="grid gap-6 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
         <div className="pt-3">
           <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">
-            Risk Delta Review
+            QA-Prüfung vorbereiten
           </div>
           <h2 className="mt-5 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
-            Dokumente hochladen. Review Pack erhalten.
+            Unterlagen hochladen. Prüfmappe erhalten.
           </h2>
           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Lade Change-Control-, Abweichungs-, CAPA- oder Audit-Unterlagen hoch. Das System prüft Quellen, Anforderungen und Evidenz und bereitet die Entscheidung für QA und SME vor.
+            Lade Unterlagen zu einer Änderung, Abweichung, CAPA oder einem Audit hoch. Das System sortiert Quellen, offene Nachweise und Prüfpunkte, damit QA oder ein Fachexperte schneller entscheiden kann.
           </p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
-            <SummaryBlock title="Quellenpflicht" text="Findings brauchen Dokument, Seite, Chunk und Zitat." />
-            <SummaryBlock title="Konservative Gates" text="Unklare oder hohe Risiken bleiben in menschlicher Prüfung." />
-            <SummaryBlock title="Mehrere Reviewer" text="Fachrollen prüfen parallel, der Verifier kontrolliert die Evidenz." />
+            <SummaryBlock title="Quelle sichtbar" text="Jeder Prüfpunkt braucht Dokument, Seite und Zitat." />
+            <SummaryBlock title="Keine Auto-Freigabe" text="Unklare oder hohe Risiken bleiben bei einem Menschen." />
+            <SummaryBlock title="Mehrere Blickwinkel" text="Das System sucht Risiken, Lücken und Widersprüche." />
             <SummaryBlock title="Auditierbar" text="Modell, Prompt, Regelwerk und Entscheidung bleiben nachvollziehbar." />
           </div>
         </div>
@@ -340,15 +356,15 @@ function DashboardSection() {
       <div className="grid gap-3 md:grid-cols-4">
         <Stat label="KI-Entscheidung" value="0" />
         <Stat label="Quelle Pflicht" value="100%" tone="teal" />
-        <Stat label="Review Pack" value="Draft" tone="teal" />
+        <Stat label="Prüfmappe" value="Entwurf" tone="teal" />
         <Stat label="Letzter Schritt" value="QA/SME" />
       </div>
 
       <Panel title="So arbeitet der Prüfflow">
         <div className="grid gap-4 md:grid-cols-3">
           <SummaryBlock title="1. Unterlagen laden" text="Fallunterlagen, FMEA, SOP, Batch Record, Validierung oder Audit-Auszug." />
-          <SummaryBlock title="2. Evidenz prüfen" text="Claims werden aus Quellen gezogen und gegen das Regelwerk geprüft." />
-          <SummaryBlock title="3. Review fokussieren" text="QA und SME sehen nur die relevanten Findings, Lücken und Fragen." />
+          <SummaryBlock title="2. Nachweise prüfen" text="Aussagen werden aus Quellen gezogen und gegen das Regelwerk geprüft." />
+          <SummaryBlock title="3. Prüfung fokussieren" text="QA und SME sehen nur die relevanten Prüfpunkte, Lücken und Fragen." />
         </div>
       </Panel>
     </div>
@@ -366,11 +382,11 @@ function CaseWorkspaceSection() {
       </Panel>
       <Panel title="Import-Pfad">
         <ol className="space-y-3 text-sm leading-6 text-slate-700 dark:text-slate-300">
-          <li>1. RequirementSet importieren oder aktivieren.</li>
+          <li>1. Regelwerk importieren oder aktivieren.</li>
           <li>2. Prüffall anlegen.</li>
           <li>3. PDF/TXT/DOCX hochladen.</li>
           <li>4. Analyse starten.</li>
-          <li>5. Review Pack öffnen.</li>
+          <li>5. Prüfmappe öffnen.</li>
         </ol>
       </Panel>
     </div>
@@ -379,10 +395,10 @@ function CaseWorkspaceSection() {
 
 function ReviewEntrySection() {
   return (
-    <Panel title="Review Packs">
+    <Panel title="Prüfmappen">
       <EmptyState
-        title="Keine vorbefüllten Packs"
-        text="Lege auf der Startseite einen Prüffall an. Danach erscheinen hier die Review Packs."
+        title="Keine Demo-Fälle mehr"
+        text="Lege auf der Startseite einen echten Prüffall an. Danach erscheint hier die Prüfmappe."
         action={
           <Link
             href="/review-ui"

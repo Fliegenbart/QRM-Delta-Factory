@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { getReviewPack } from "@/src/lib/review-api";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
-import { consultantReviewCopy } from "@/src/lib/review-ui";
+import {
+  consultantReviewCopy,
+  displayReviewReason,
+  displayReviewValue,
+  isHiddenDemoDocumentSetId
+} from "@/src/lib/review-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +16,14 @@ type PageProps = {
 
 export default async function ReviewPackPage({ params }: PageProps) {
   const { id } = await params;
+
+  if (isHiddenDemoDocumentSetId(id)) {
+    return (
+      <ReviewShell>
+        <EmptyState message={consultantReviewCopy.list.empty} />
+      </ReviewShell>
+    );
+  }
 
   try {
     const pack = await getReviewPack(id);
@@ -25,7 +38,7 @@ export default async function ReviewPackPage({ params }: PageProps) {
         <div className="space-y-5">
           <ReviewPanel
             title={consultantReviewCopy.pack.title}
-            action={<StatusBadge tone={pack.decision.auto_clear_allowed ? "green" : "amber"}>{pack.decision.decision}</StatusBadge>}
+            action={<StatusBadge tone={pack.decision.auto_clear_allowed ? "green" : "amber"}>{displayReviewValue(pack.decision.decision)}</StatusBadge>}
           >
             <div className="grid gap-4 lg:grid-cols-[1fr_0.7fr]">
               <div>
@@ -52,13 +65,13 @@ export default async function ReviewPackPage({ params }: PageProps) {
                       <div>
                         <div className="flex flex-wrap gap-2">
                           <StatusBadge tone={risk.severity === "critical" || risk.severity === "high" ? "red" : "amber"}>
-                            {risk.severity}
+                            {displayReviewValue(risk.severity)}
                           </StatusBadge>
-                          <StatusBadge>{risk.risk_category ?? "risk"}</StatusBadge>
-                          <StatusBadge>{risk.verifier_status}</StatusBadge>
+                          <StatusBadge>{displayReviewValue(risk.risk_category ?? "risk")}</StatusBadge>
+                          <StatusBadge>{displayReviewValue(risk.verifier_status)}</StatusBadge>
                         </div>
                         <h3 className="mt-3 text-lg font-semibold tracking-[-0.02em]">{risk.risk_statement}</h3>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">{risk.human_review_reason}</p>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">{displayReviewReason(risk.human_review_reason)}</p>
                         <div className="mt-3 text-xs text-slate-500">
                           {consultantReviewCopy.pack.requirement}: {risk.requirement_references.join(", ") || consultantReviewCopy.pack.notLinked}
                         </div>
@@ -98,7 +111,7 @@ function ReasonList({ title, reasons }: { title: string; reasons: string[] }) {
         <ul className="mt-2 space-y-1">
           {uniqueReasons.map((reason) => (
             <li key={reason} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
-              {reason}
+              {displayReviewReason(reason)}
             </li>
           ))}
         </ul>

@@ -4,7 +4,11 @@ import {
   aiArchitectureConcept,
   consultantReviewCopy,
   decisionOptions,
+  displayReviewReason,
+  displayReviewValue,
   findTopRiskById,
+  isHiddenDemoDocumentSetId,
+  isVisibleReviewDocumentSet,
   normalizeReviewDecisionPayload,
   reviewDecisionRequiresHumanRationale,
   supabasePublicEnvKeys,
@@ -19,22 +23,46 @@ describe("review UI helpers", () => {
     expect(riskOrchestrationEntry.replacesLegacyDeltaAnalysis).toBe(true);
     expect(riskOrchestrationEntry.legacyDeltaRoute).toBe("/delta-analysis");
     expect(riskOrchestrationEntry.reviewWorkbenchRoute).toBe("/review-ui");
-    expect(riskOrchestrationEntry.name).toBe("Risk Delta Review");
-    expect(riskOrchestrationEntry.shortDescription).toContain("Review Pack");
+    expect(riskOrchestrationEntry.name).toBe("QA-Prüfung vorbereiten");
+    expect(riskOrchestrationEntry.shortDescription).toContain("Prüfmappe");
     expect(riskOrchestrationEntry.shortDescription).toContain("Quellen");
-    expect(riskOrchestrationEntry.workflow).toContain("Dokumente laden");
-    expect(riskOrchestrationEntry.workflow).toContain("Review Pack öffnen");
+    expect(riskOrchestrationEntry.workflow).toContain("Unterlagen hochladen");
+    expect(riskOrchestrationEntry.workflow).toContain("Prüfmappe öffnen");
   });
 
   it("uses consultant-friendly copy for the backend review UI", () => {
-    expect(consultantReviewCopy.workspaceTitle).toBe("Risk Delta Review");
-    expect(consultantReviewCopy.workspaceDescription).toBe("Quellen rein. Review Pack raus. QA entscheidet.");
-    expect(consultantReviewCopy.list.title).toBe("Review Packs");
+    expect(consultantReviewCopy.workspaceTitle).toBe("QA-Prüfung vorbereiten");
+    expect(consultantReviewCopy.workspaceDescription).toBe("Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.");
+    expect(consultantReviewCopy.list.title).toBe("Prüfmappen");
     expect(consultantReviewCopy.list.empty).toContain("Startseite");
-    expect(consultantReviewCopy.finding.title).toBe("Finding");
+    expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt");
     expect(consultantReviewCopy.decision.savedMessage).toBe("Entscheidung gespeichert.");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
     expect(consultantReviewCopy.decision.rationaleRequired).toContain("begründen");
+  });
+
+  it("hides the retired public demo case from the review UI", () => {
+    const demoCase = {
+      document_set_id: "ds_demo_avi_threshold",
+      tenant_id: "tenant_demo_pharma",
+      requirement_set_id: "rset_demo",
+      upload_timestamp: "2026-01-01T00:00:00Z",
+      document_ids: [],
+      declared_document_type: "change_control",
+      declared_process_area: "aseptic_filling",
+      uploaded_by: "demo",
+      status: "needs_human_review"
+    };
+
+    expect(isHiddenDemoDocumentSetId(demoCase.document_set_id)).toBe(true);
+    expect(isVisibleReviewDocumentSet(demoCase)).toBe(false);
+    expect(isVisibleReviewDocumentSet({ ...demoCase, document_set_id: "ds_real_case" })).toBe(true);
+  });
+
+  it("shows backend codes as plain German labels", () => {
+    expect(displayReviewValue("needs_human_review")).toBe("Menschliche Prüfung nötig");
+    expect(displayReviewValue("change_control")).toBe("Geplante Änderung");
+    expect(displayReviewReason("human review required for high/critical risk")).toContain("Mensch");
   });
 
   it("trims backend runtime environment values", () => {
@@ -51,6 +79,18 @@ describe("review UI helpers", () => {
       tenantId: "tenant_demo_pharma",
       requirementSetId: "rset_demo_gmp_qrm_2026_1"
     });
+  });
+
+  it("removes literal escaped newlines from backend runtime environment values", () => {
+    const config = getReviewBackendConfig({
+      QRM_BACKEND_URL: "https://backend.example.com\\n",
+      QRM_BACKEND_TENANT_ID: "tenant_demo_pharma\\n",
+      QRM_DEFAULT_REQUIREMENT_SET_ID: "rset_demo_gmp_qrm_2026_1\\n"
+    });
+
+    expect(config.backendUrl).toBe("https://backend.example.com");
+    expect(config.tenantId).toBe("tenant_demo_pharma");
+    expect(config.requirementSetId).toBe("rset_demo_gmp_qrm_2026_1");
   });
 
   it("defines a simpler case workspace structure for consultants", () => {
