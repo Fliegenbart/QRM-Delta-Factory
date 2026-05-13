@@ -640,10 +640,12 @@ def _token_usage_for_model_run(
 ) -> TokenUsage:
     metadata = provider.last_run_metadata
     if metadata is not None and metadata.token_usage is not None:
+        input_tokens = metadata.token_usage.input_tokens
+        output_tokens = metadata.token_usage.output_tokens
         return TokenUsage(
-            input_tokens=metadata.token_usage.input_tokens,
-            output_tokens=metadata.token_usage.output_tokens,
-            total_tokens=metadata.token_usage.total_tokens,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=input_tokens + output_tokens,
         )
     return _estimate_token_usage(input_hash, raw_output_text)
 
