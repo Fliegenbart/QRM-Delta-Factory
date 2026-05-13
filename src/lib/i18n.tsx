@@ -23,9 +23,9 @@ export const translations = {
 
   // Navigation Items
   "nav.dashboard": { de: "Start", en: "Start" },
-  "nav.caseWorkspace": { de: "Fallakte", en: "Case Workspace" },
+  "nav.caseWorkspace": { de: "Fallübersicht", en: "Case Overview" },
   "nav.aiArchitecture": { de: "So prüft das System", en: "AI Architecture" },
-  "nav.backendReview": { de: "Prüfmappen", en: "Review Packs" },
+  "nav.backendReview": { de: "Fallübersicht", en: "Case Overview" },
   "nav.projects": { de: "Projekte", en: "Projects" },
   "nav.documents": { de: "Dokumente", en: "Documents" },
   "nav.sourceSnippets": { de: "Quellausschnitte", en: "Source Snippets" },

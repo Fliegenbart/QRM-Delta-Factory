@@ -40,13 +40,13 @@ export const consultantReviewCopy = {
   workspaceDescription:
     "Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.",
   nav: {
-    cockpit: "Fallakte",
-    packages: "Prüfmappen"
+    cockpit: "Fallübersicht",
+    packages: "Fallübersicht"
   },
   list: {
-    title: "Prüfmappen",
+    title: "Fallübersicht",
     empty:
-      "Noch kein echter Prüffall vorhanden. Lade auf der Startseite Unterlagen hoch, dann erscheint hier die Prüfmappe.",
+      "Noch kein echter Prüffall vorhanden. Lade auf der Startseite Unterlagen hoch, dann erscheint hier der Fall.",
     loadErrorPrefix: "Backend nicht erreichbar",
     columns: {
       package: "Prüffall",

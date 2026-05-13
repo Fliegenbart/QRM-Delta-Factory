@@ -33,7 +33,7 @@ describe("review UI helpers", () => {
   it("uses consultant-friendly copy for the backend review UI", () => {
     expect(consultantReviewCopy.workspaceTitle).toBe("QA-Prüfung vorbereiten");
     expect(consultantReviewCopy.workspaceDescription).toBe("Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.");
-    expect(consultantReviewCopy.list.title).toBe("Prüfmappen");
+    expect(consultantReviewCopy.list.title).toBe("Fallübersicht");
     expect(consultantReviewCopy.list.empty).toContain("Startseite");
     expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt");
     expect(consultantReviewCopy.decision.savedMessage).toBe("Entscheidung gespeichert.");

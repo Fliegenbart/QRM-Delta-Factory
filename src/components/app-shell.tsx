@@ -17,7 +17,6 @@ import {
   Library,
   Menu,
   Moon,
-  PackageCheck,
   SearchCheck,
   ShieldCheck,
   Sun,
@@ -38,7 +37,6 @@ const navCategories: NavCategory[] = [
     nameKey: "nav.category.workspace",
     items: [
       ["dashboard", "nav.dashboard", Gauge],
-      ["case-workspace", "nav.caseWorkspace", PackageCheck],
       ["review-ui", "nav.backendReview", ShieldCheck],
       ["ai-architecture", "nav.aiArchitecture", Brain],
     ],
@@ -374,10 +372,18 @@ function DashboardSection() {
 function CaseWorkspaceSection() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_0.8fr]">
-      <Panel title="Fallakte">
+      <Panel title="Fallübersicht">
         <EmptyState
-          title="Kein Fall geladen"
-          text="Die Fallakte zeigt Inhalte, sobald auf der Startseite ein Prüffall angelegt und analysiert wurde."
+          title="Fallübersicht öffnen"
+          text="Alle angelegten Prüffälle liegen in der Fallübersicht. Von dort öffnest du entweder den Fall selbst oder seine Prüfmappe."
+          action={
+            <Link
+              href="/review-ui"
+              className="inline-flex h-10 items-center rounded-xl bg-teal px-4 text-sm font-semibold text-white"
+            >
+              Zur Fallübersicht
+            </Link>
+          }
         />
       </Panel>
       <Panel title="Import-Pfad">
@@ -395,16 +401,16 @@ function CaseWorkspaceSection() {
 
 function ReviewEntrySection() {
   return (
-    <Panel title="Prüfmappen">
+    <Panel title="Fallübersicht">
       <EmptyState
         title="Keine Demo-Fälle mehr"
-        text="Lege auf der Startseite einen echten Prüffall an. Danach erscheint hier die Prüfmappe."
+        text="Lege auf der Startseite einen echten Prüffall an. Danach erscheint hier der Fall mit Link zur Prüfmappe."
         action={
           <Link
             href="/review-ui"
             className="inline-flex h-10 items-center rounded-xl bg-teal px-4 text-sm font-semibold text-white"
           >
-            Backend-Liste öffnen
+            Fallübersicht öffnen
           </Link>
         }
       />
