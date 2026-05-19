@@ -63,6 +63,13 @@ def test_pipeline_endpoint_runs_end_to_end_after_document_upload() -> None:
     assert payload["status"] == "completed"
     assert payload["failed_step"] is None
     assert payload["completed_at"] is not None
+    assert payload["model_manifest"]
+    assert {
+        entry["agent_role"]: entry["configured_model_id"]
+        for entry in payload["model_manifest"]
+    }["ContradictionHunter"]
+    assert all("knowledge_pack_ids" in entry for entry in payload["model_manifest"])
+    assert all("case_signals" in entry for entry in payload["model_manifest"])
     assert repository.get_latest_risk_decision(document_set_id) is not None
 
     review_pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
@@ -113,6 +120,11 @@ def test_model_run_failure_in_pipeline_does_not_allow_auto_clear() -> None:
     decision = repository.get_latest_risk_decision("ds_pipeline_failure")
     assert pipeline_run.status == "needs_human_review"
     assert pipeline_run.failed_step is None
+    assert {
+        item.agent_role: item.configured_model_id
+        for item in pipeline_run.model_manifest
+    }["DeviationReviewer"] == "failing-reviewer-v0.1"
+    assert all(item.knowledge_pack_ids for item in pipeline_run.model_manifest)
     assert decision is not None
     assert decision.auto_clear_allowed is False
     assert decision.decision == "blocked_due_to_model_failure"

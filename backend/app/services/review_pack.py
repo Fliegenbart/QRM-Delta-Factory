@@ -60,11 +60,20 @@ class ReviewPackService:
             )
 
         findings = _findings_for_pack(self.repository, document_set_id)
+        review_decisions_by_finding = {
+            finding.finding_id: self.repository.list_review_decisions(finding.finding_id)
+            for finding in findings
+        }
+        review_progress = _review_progress(
+            findings=findings,
+            review_decisions_by_finding=review_decisions_by_finding,
+        )
         challenges = self.repository.list_adversarial_challenges(document_set_id)
         coverage_summaries = self.repository.list_coverage_summaries(document_set_id)
         top_risks = [
             _top_risk(
                 finding=finding,
+                review_decisions=review_decisions_by_finding.get(finding.finding_id, []),
                 challenges=challenges,
                 coverage_summaries=coverage_summaries,
                 decision_reasons=decision.required_human_review_reasons,
@@ -109,6 +118,9 @@ class ReviewPackService:
                 ood_reason_count=len(decision.ood_reasons),
                 coverage_gap_count=len(decision.coverage_gap_reasons),
             ),
+            review_progress_percent=review_progress["percent"],
+            reviewed_finding_count=review_progress["reviewed"],
+            total_finding_count=review_progress["total"],
             top_risks=top_risks,
             finding_clusters=decision.finding_clusters,
             evidence_table=evidence_table,
@@ -132,6 +144,9 @@ class ReviewPackService:
                 "top_risk_count": len(review_pack.top_risks),
                 "evidence_row_count": len(review_pack.evidence_table),
                 "missing_information_count": len(review_pack.missing_information),
+                "review_progress_percent": review_pack.review_progress_percent,
+                "reviewed_finding_count": review_pack.reviewed_finding_count,
+                "total_finding_count": review_pack.total_finding_count,
             },
         )
         return review_pack
@@ -199,10 +214,12 @@ def _findings_for_pack(
 def _top_risk(
     *,
     finding: RiskFinding,
+    review_decisions: Sequence[ReviewDecision],
     challenges: Sequence[AdversarialChallenge],
     coverage_summaries: Sequence[CoverageSummary],
     decision_reasons: Sequence[str],
 ) -> ReviewPackTopRisk:
+    latest_review_decision = _latest_review_decision(review_decisions)
     return ReviewPackTopRisk(
         finding_id=finding.finding_id,
         risk_statement=finding.risk_statement,
@@ -215,6 +232,14 @@ def _top_risk(
         no_issue_agents=_no_issue_agents(coverage_summaries),
         verifier_status=_verifier_status(finding),
         human_review_reason=_human_review_reason(finding, decision_reasons),
+        review_status="reviewed" if review_decisions else "open",
+        review_decision_count=len(review_decisions),
+        latest_review_decision=(
+            latest_review_decision.decision if latest_review_decision is not None else None
+        ),
+        latest_reviewed_at=(
+            latest_review_decision.created_at if latest_review_decision is not None else None
+        ),
     )
 
 
@@ -348,6 +373,21 @@ def _recommended_actions(
             ),
             finding_id=first_finding_id,
         ),
+        ReviewerActionRecommendation(
+            action=ReviewDecisionValue.EVIDENCE_INCORRECT,
+            rationale="Mark when the cited source does not prove the finding.",
+            finding_id=first_finding_id,
+        ),
+        ReviewerActionRecommendation(
+            action=ReviewDecisionValue.REQUIREMENT_INCORRECT,
+            rationale="Mark when the linked requirement does not fit the case.",
+            finding_id=first_finding_id,
+        ),
+        ReviewerActionRecommendation(
+            action=ReviewDecisionValue.MISSED_FINDING,
+            rationale="Record an omitted risk so it becomes part of calibration data.",
+            finding_id=first_finding_id,
+        ),
     ]
     if missing_information:
         actions.append(
@@ -376,6 +416,29 @@ def _recommended_actions(
             )
         )
     return actions
+
+
+def _review_progress(
+    *,
+    findings: Sequence[RiskFinding],
+    review_decisions_by_finding: dict[str, list[ReviewDecision]],
+) -> dict[str, int]:
+    total = len(findings)
+    reviewed = sum(
+        1
+        for finding in findings
+        if review_decisions_by_finding.get(finding.finding_id)
+    )
+    percent = 100 if total == 0 else round((reviewed / total) * 100)
+    return {"percent": percent, "reviewed": reviewed, "total": total}
+
+
+def _latest_review_decision(
+    review_decisions: Sequence[ReviewDecision],
+) -> ReviewDecision | None:
+    if not review_decisions:
+        return None
+    return max(review_decisions, key=lambda review_decision: review_decision.created_at)
 
 
 def _sort_findings(findings: Sequence[RiskFinding]) -> list[RiskFinding]:

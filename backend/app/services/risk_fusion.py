@@ -14,6 +14,7 @@ from app.schemas.domain import (
     Document,
     DocumentSet,
     EvidenceSupport,
+    ModelRun,
     ModelRunStatus,
     RiskFinding,
     Severity,
@@ -120,6 +121,8 @@ class RiskFusionService:
             challenges=challenges,
         )
         failed_model_runs_exist = any(run.status == ModelRunStatus.FAILED for run in model_runs)
+        missing_knowledge_pack_ids = _missing_knowledge_pack_ids(model_runs)
+        missing_knowledge_packs_exist = bool(missing_knowledge_pack_ids)
         unverified_high_risk_exists = any(
             _high_or_critical_is_unverified(finding) for finding in high_or_critical_findings
         )
@@ -139,6 +142,8 @@ class RiskFusionService:
             auto_clear_blockers.append("coverage gap for high/critical scope")
         if failed_model_runs_exist:
             auto_clear_blockers.append("failed model run affects review coverage")
+        if missing_knowledge_packs_exist:
+            auto_clear_blockers.append("required knowledge pack was not retrieved")
         if unverified_high_risk_exists:
             auto_clear_blockers.append("high/critical finding has weak or partial evidence")
         for attachment in missing_attachments:
@@ -166,6 +171,10 @@ class RiskFusionService:
             required_human_review_reasons.append(
                 "adversarial challenge involves possible high/critical risk"
             )
+        for knowledge_pack_id in missing_knowledge_pack_ids:
+            required_human_review_reasons.append(
+                f"required knowledge pack not retrieved: {knowledge_pack_id}"
+            )
 
         decision_class = _select_decision(
             document_quality_score=document_quality_score,
@@ -175,6 +184,7 @@ class RiskFusionService:
             coverage_gap_exists=bool(coverage_result.gap_reasons),
             coverage_high_or_critical_gap=coverage_result.high_or_critical_coverage_gap,
             failed_model_runs_exist=failed_model_runs_exist,
+            missing_knowledge_packs_exist=missing_knowledge_packs_exist,
             unverified_high_risk_exists=unverified_high_risk_exists,
             missing_attachments=missing_attachments,
             findings=findings,
@@ -217,6 +227,7 @@ class RiskFusionService:
             "cluster_count": len(clusters),
             "auto_clear_allowed": decision.auto_clear_allowed,
             "auto_clear_blockers": decision.auto_clear_blockers,
+            "missing_knowledge_pack_ids": missing_knowledge_pack_ids,
             "ood_score": decision.ood_score,
             "ood_reasons": decision.ood_reasons,
             "coverage_score": decision.coverage_score,
@@ -251,6 +262,7 @@ def _select_decision(
     coverage_gap_exists: bool,
     coverage_high_or_critical_gap: bool,
     failed_model_runs_exist: bool,
+    missing_knowledge_packs_exist: bool,
     unverified_high_risk_exists: bool,
     missing_attachments: list[str],
     findings: Sequence[RiskFinding],
@@ -264,6 +276,8 @@ def _select_decision(
         return RiskDecisionClass.OUT_OF_SCOPE
     if failed_model_runs_exist:
         return RiskDecisionClass.BLOCKED_DUE_TO_MODEL_FAILURE
+    if missing_knowledge_packs_exist:
+        return RiskDecisionClass.HUMAN_REVIEW_REQUIRED
     if unverified_high_risk_exists:
         return RiskDecisionClass.BLOCKED_DUE_TO_UNVERIFIED_HIGH_RISK
     if missing_attachments or any(finding.missing_information for finding in findings):
@@ -349,6 +363,15 @@ def _model_disagreement_score(
     if any(challenge.target_type == "no_issue_claim" for challenge in challenges):
         max_score = max(max_score, 0.5)
     return round(min(max_score, 1.0), 3)
+
+
+def _missing_knowledge_pack_ids(model_runs: Sequence[ModelRun]) -> list[str]:
+    missing: list[str] = []
+    for model_run in model_runs:
+        if model_run.status != ModelRunStatus.SUCCEEDED:
+            continue
+        missing.extend(model_run.missing_knowledge_pack_ids)
+    return _dedupe_text(missing)
 
 
 def _max_severity(findings: Sequence[RiskFinding]) -> Severity:

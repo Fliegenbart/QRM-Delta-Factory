@@ -20,6 +20,7 @@ export const translations = {
   "nav.category.evidenceGaps": { de: "Quellen & Lücken", en: "Sources & Gaps" },
   "nav.category.output": { de: "Lieferpakete", en: "Deliverables" },
   "nav.category.admin": { de: "Setup", en: "Setup" },
+  "nav.category.howItWorks": { de: "Funktionsweise", en: "How it works" },
 
   // Navigation Items
   "nav.dashboard": { de: "Start", en: "Start" },

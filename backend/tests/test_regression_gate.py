@@ -50,6 +50,42 @@ def test_regression_gate_blocks_missed_critical_must_detect() -> None:
     assert "Status: FAIL" in report.markdown_report
 
 
+def test_regression_gate_blocks_missed_high_must_detect() -> None:
+    baseline = _run(
+        run_id="regrun_baseline_high",
+        config_id="cfg_baseline",
+        reports=[
+            _report(
+                dataset_id="evalds_high_miss",
+                severity="high",
+                matched_gold_ids=["gold_high_batch_release"],
+                unmatched_gold_ids=[],
+                recall=1.0,
+            )
+        ],
+    )
+    candidate = _run(
+        run_id="regrun_candidate_high",
+        config_id="cfg_candidate",
+        reports=[
+            _report(
+                dataset_id="evalds_high_miss",
+                severity="high",
+                matched_gold_ids=[],
+                unmatched_gold_ids=["gold_high_batch_release"],
+                recall=0.0,
+            )
+        ],
+    )
+
+    report = RegressionGateService().compare(baseline=baseline, candidate=candidate)
+
+    assert report.passed is False
+    assert "MISSED_HIGH_MUST_DETECT" in {
+        criterion.criterion for criterion in report.blocking_criteria
+    }
+
+
 def test_regression_gate_blocks_auto_clear_with_known_high_or_critical_gold() -> None:
     baseline = _run(
         run_id="regrun_baseline_autoclear",

@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
   FileUp,
   Loader2,
-  ShieldCheck,
   UploadCloud,
   X
 } from "lucide-react";
+import type { PipelineModelManifestItem } from "@/src/lib/review-ui";
 
 const documentTypes = [
   { value: "change_control_package", label: "Change Control" },
@@ -37,7 +37,51 @@ type IntakeResult = {
   documentSetId: string;
   pipelineStatus?: string;
   failedStep?: string | null;
+  modelManifest: PipelineModelManifestItem[];
 };
+
+const expectedAgentRuns = [
+  {
+    role: "Deviation",
+    action: "prüft Abweichungslogik",
+    model: "Claude Sonnet"
+  },
+  {
+    role: "CAPA",
+    action: "prüft Maßnahmen und Wirksamkeit",
+    model: "Claude Sonnet"
+  },
+  {
+    role: "Batch Impact",
+    action: "prüft Chargenbezug",
+    model: "OpenAI / ChatGPT"
+  },
+  {
+    role: "GMP Data Integrity",
+    action: "prüft Datenintegrität",
+    model: "Claude Sonnet"
+  },
+  {
+    role: "Regulatory Consistency",
+    action: "prüft Regelwerkslogik",
+    model: "Claude Sonnet"
+  },
+  {
+    role: "Validation / Sterility",
+    action: "prüft Validierung und Sterilität",
+    model: "Claude Sonnet"
+  },
+  {
+    role: "Contradiction Hunter",
+    action: "sucht Widersprüche",
+    model: "OpenAI / ChatGPT"
+  },
+  {
+    role: "Evidence Verifier",
+    action: "prüft Quellen und Zitate",
+    model: "Regelprüfung"
+  }
+] as const;
 
 function resultCopy(status?: string, failedStep?: string | null) {
   if (status === "failed") {
@@ -67,6 +111,7 @@ export function IntakeUploader() {
   const [status, setStatus] = useState<IntakeStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<IntakeResult | null>(null);
+  const [activeAgentIndex, setActiveAgentIndex] = useState(0);
 
   const canSubmit = files.length > 0 && status !== "creating" && status !== "uploading" && status !== "running";
   const totalSize = useMemo(
@@ -74,6 +119,18 @@ export function IntakeUploader() {
     [files]
   );
   const resultState = result ? resultCopy(result.pipelineStatus, result.failedStep) : null;
+
+  useEffect(() => {
+    if (status !== "running") {
+      setActiveAgentIndex(0);
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setActiveAgentIndex((current) => (current + 1) % expectedAgentRuns.length);
+    }, 1800);
+    return () => window.clearInterval(timer);
+  }, [status]);
 
   function addFiles(nextFiles: FileList | null) {
     if (!nextFiles) return;
@@ -132,7 +189,10 @@ export function IntakeUploader() {
       setResult({
         documentSetId,
         pipelineStatus: pipeline.pipelineRun?.status,
-        failedStep: pipeline.pipelineRun?.failed_step
+        failedStep: pipeline.pipelineRun?.failed_step,
+        modelManifest: Array.isArray(pipeline.pipelineRun?.model_manifest)
+          ? pipeline.pipelineRun.model_manifest
+          : []
       });
       setStatus("done");
     } catch (caught) {
@@ -143,23 +203,11 @@ export function IntakeUploader() {
 
   return (
     <section className="rounded-[22px] border border-black/10 bg-white/88 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-800/88">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 px-3 py-1 text-xs font-semibold text-teal-700 dark:text-teal-300">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Neuer Prüffall
-          </div>
-          <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-ink dark:text-white">
-            Dokumente hochladen
-          </h2>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Lade die Unterlagen zur Änderung, Abweichung oder CAPA hoch. Das System erstellt daraus eine Prüfmappe mit Quellen, offenen Fragen und fehlenden Nachweisen.
-          </p>
-        </div>
-        <div className="hidden rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 dark:border-white/10 dark:text-slate-300 sm:block">
-          PDF · DOCX · TXT · MD · CSV
-        </div>
-      </div>
+      <AgentActivityPopup
+        status={status}
+        activeAgentIndex={activeAgentIndex}
+        modelManifest={result?.modelManifest ?? []}
+      />
 
       <div className="mt-5 grid gap-3 md:grid-cols-3">
         <label className="block">
@@ -299,10 +347,7 @@ export function IntakeUploader() {
         </div>
       ) : null}
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-          Jede Aussage in der Prüfmappe braucht Quelle, Zitat und genaue Textstelle.
-        </div>
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
         <button
           type="button"
           onClick={submit}
@@ -319,6 +364,80 @@ export function IntakeUploader() {
       </div>
     </section>
   );
+}
+
+function AgentActivityPopup({
+  status,
+  activeAgentIndex,
+  modelManifest
+}: {
+  status: IntakeStatus;
+  activeAgentIndex: number;
+  modelManifest: PipelineModelManifestItem[];
+}) {
+  const visible = status === "creating" || status === "uploading" || status === "running" || modelManifest.length > 0;
+  if (!visible) return null;
+
+  const activeAgent = expectedAgentRuns[activeAgentIndex] ?? expectedAgentRuns[0];
+  const isRunning = status === "creating" || status === "uploading" || status === "running";
+
+  return (
+    <aside className="fixed bottom-4 left-4 z-40 w-[min(320px,calc(100vw-2rem))] rounded-2xl border border-black/10 bg-white/95 p-3 text-left shadow-2xl shadow-slate-950/15 backdrop-blur dark:border-white/10 dark:bg-slate-900/95 lg:w-[248px]">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 grid h-8 w-8 place-items-center rounded-xl bg-teal-500/10 text-teal-700 dark:text-teal-300">
+          {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+        </div>
+        <div className="min-w-0 flex-1">
+          {isRunning ? (
+            <>
+              <div className="text-sm font-semibold text-slate-950 dark:text-white">
+                {activeAgent.role}
+              </div>
+              <div className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                {activeAgent.action} · {activeAgent.model}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mt-1 text-sm font-semibold text-slate-950 dark:text-white">
+                Modellverteilung gespeichert
+              </div>
+              <div className="mt-2 space-y-1">
+                {modelManifest.slice(0, 4).map((entry) => (
+                  <div key={`${entry.agent_role}-${entry.model_run_id ?? entry.configured_model_id}`} className="flex min-w-0 items-center justify-between gap-2 text-xs">
+                    <span className="min-w-0 truncate text-slate-600 dark:text-slate-300">{displayAgentRole(entry.agent_role)}</span>
+                    <span className="max-w-[128px] shrink-0 truncate rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200 lg:max-w-[112px]">
+                      {displayModelName(entry)}
+                    </span>
+                  </div>
+                ))}
+                {modelManifest.length > 4 ? (
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    + {modelManifest.length - 4} weitere Modellläufe gespeichert
+                  </div>
+                ) : null}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function displayAgentRole(role: string) {
+  return role
+    .replace("Reviewer", "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace("GMPData", "GMP Data")
+    .trim();
+}
+
+function displayModelName(entry: PipelineModelManifestItem) {
+  if (entry.configured_model_id && entry.configured_model_id !== "not_recorded") {
+    return entry.configured_model_id;
+  }
+  return entry.model_name;
 }
 
 async function readJson(response: Response) {

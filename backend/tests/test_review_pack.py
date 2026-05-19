@@ -42,6 +42,9 @@ def test_review_pack_is_deterministic_from_latest_risk_decision() -> None:
     assert first_pack.review_pack_id == second_pack.review_pack_id
     assert first_pack.decision == risk_decision
     assert first_pack.summary == second_pack.summary
+    assert first_pack.review_progress_percent == 0
+    assert first_pack.reviewed_finding_count == 0
+    assert first_pack.total_finding_count == 1
     assert first_pack.top_risks[0].finding_id == "finding_pack_high"
     assert first_pack.top_risks[0].risk_statement == (
         "Threshold change may allow false accept of defective containers."
@@ -69,6 +72,9 @@ def test_review_pack_contains_evidence_model_positions_and_verifier_status() -> 
     assert pack.top_risks[0].no_issue_agents == ["RegulatoryConsistencyReviewer"]
     assert pack.top_risks[0].verifier_status == "weak"
     assert "human review" in pack.top_risks[0].human_review_reason.lower()
+    assert pack.top_risks[0].review_status == "open"
+    assert pack.top_risks[0].review_decision_count == 0
+    assert pack.top_risks[0].latest_review_decision is None
     assert pack.verifier_results[0].finding_id == "finding_pack_high"
 
 
@@ -131,6 +137,34 @@ def test_review_decision_endpoint_persists_decision_and_writes_audit_event() -> 
     assert event.event_type == "review_decision_recorded"
     assert event.payload["finding_id"] == "finding_pack_high"
     assert event.payload["decision"] == "request_more_information"
+
+
+def test_review_pack_progress_reflects_human_review_decisions() -> None:
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+    client = TestClient(app)
+
+    response = client.post(
+        "/findings/finding_pack_high/review-decision",
+        json={
+            "reviewer_id": "reviewer_qa_1",
+            "decision": "downgrade",
+            "rationale": "Reviewer confirmed lower impact after checking the source.",
+        },
+    )
+
+    assert response.status_code == 200
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+    assert pack.review_progress_percent == 100
+    assert pack.reviewed_finding_count == 1
+    assert pack.total_finding_count == 1
+    assert pack.top_risks[0].review_status == "reviewed"
+    assert pack.top_risks[0].review_decision_count == 1
+    assert pack.top_risks[0].latest_review_decision == "downgrade"
+    assert pack.top_risks[0].latest_reviewed_at is not None
 
 
 def _setup_review_pack_context() -> None:

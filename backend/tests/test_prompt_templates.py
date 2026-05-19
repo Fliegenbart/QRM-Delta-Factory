@@ -20,6 +20,7 @@ PROMPT_FILES = [
     "deviation_reviewer_v1.md",
     "capa_reviewer_v1.md",
     "batch_impact_reviewer_v1.md",
+    "validation_and_sterility_reviewer_v1.md",
     "regulatory_consistency_reviewer_v1.md",
     "contradiction_hunter_v1.md",
 ]
@@ -78,6 +79,7 @@ def test_default_agents_load_prompt_versions_from_template_files() -> None:
         "deviation_reviewer_v1",
         "capa_reviewer_v1",
         "batch_impact_reviewer_v1",
+        "validation_and_sterility_reviewer_v1",
         "regulatory_consistency_reviewer_v1",
         "contradiction_hunter_v1",
     ]

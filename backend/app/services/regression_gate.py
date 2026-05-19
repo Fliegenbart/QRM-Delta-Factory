@@ -37,6 +37,7 @@ class RegressionGateService:
         candidate_summary = _run_summary(candidate)
         blocking_criteria = [
             *self._critical_miss_blockers(candidate.eval_reports),
+            *self._high_miss_blockers(candidate.eval_reports),
             *self._auto_clear_blockers(candidate.eval_reports),
             *self._metric_threshold_blockers(candidate.eval_reports),
             *self._human_review_rate_blockers(
@@ -110,6 +111,34 @@ class RegressionGateService:
                             baseline_value="detected or baseline reference",
                             candidate_value="missed",
                             threshold="Critical must_detect recall must be complete",
+                        )
+                    )
+        return blockers
+
+    def _high_miss_blockers(
+        self,
+        reports: Sequence[EvalReport],
+    ) -> list[RegressionBlockingCriterion]:
+        blockers: list[RegressionBlockingCriterion] = []
+        for report in reports:
+            unmatched_gold_ids = set(report.unmatched_gold_finding_ids)
+            for gold in report.dataset.gold_findings:
+                if (
+                    gold.must_detect
+                    and gold.expected_severity == Severity.HIGH
+                    and gold.gold_finding_id in unmatched_gold_ids
+                ):
+                    blockers.append(
+                        RegressionBlockingCriterion(
+                            criterion=RegressionGateCriterionType.MISSED_HIGH_MUST_DETECT,
+                            dataset_id=report.dataset.dataset_id,
+                            reason=(
+                                "Candidate missed a High must_detect gold finding: "
+                                f"{gold.gold_finding_id}."
+                            ),
+                            baseline_value="detected or baseline reference",
+                            candidate_value="missed",
+                            threshold="High must_detect recall must be complete",
                         )
                     )
         return blockers

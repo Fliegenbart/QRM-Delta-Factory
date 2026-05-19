@@ -123,6 +123,10 @@ class ReviewDecisionValue(StrEnum):
     DOWNGRADE = "downgrade"
     REJECT = "reject"
     REJECT_FALSE_POSITIVE = "reject_false_positive"
+    SEVERITY_INCORRECT = "severity_incorrect"
+    EVIDENCE_INCORRECT = "evidence_incorrect"
+    REQUIREMENT_INCORRECT = "requirement_incorrect"
+    MISSED_FINDING = "missed_finding"
     REQUEST_MORE_INFO = "request_more_info"
     REQUEST_MORE_INFORMATION = "request_more_information"
     LINK_TO_CAPA = "link_to_capa"
@@ -222,6 +226,14 @@ class Claim(StrictSchema):
 
 class Requirement(StrictSchema):
     requirement_id: RequirementId
+    title: str | None = None
+    domain: str | None = None
+    knowledge_packs: list[str] = Field(default_factory=list)
+    applies_to_agents: list[str] = Field(default_factory=list)
+    applies_when_signals_present: list[str] = Field(default_factory=list)
+    red_flags: list[str] = Field(default_factory=list)
+    source_refs: list[str] = Field(default_factory=list)
+    required_reviewer_roles: list[str] = Field(default_factory=list)
     source_type: RequirementSourceType
     source_name: str = Field(min_length=1)
     source_version: str = Field(min_length=1)
@@ -353,11 +365,18 @@ class AdversarialChallenge(StrictSchema):
 
 class ModelRun(StrictSchema):
     model_run_id: ModelRunId
+    agent_id: str = Field(default="not_recorded", min_length=1)
+    agent_role: str = Field(default="not_recorded", min_length=1)
     provider: str = Field(min_length=1)
     model_name: str = Field(min_length=1)
     model_version: str = Field(min_length=1)
     configured_model_id: str = Field(default="not_recorded", min_length=1)
     prompt_version: str = Field(min_length=1)
+    requirement_ids: list[RequirementId] = Field(default_factory=list)
+    requirement_package_hash: Sha256Hash | None = Field(default=None)
+    knowledge_pack_ids: list[str] = Field(default_factory=list)
+    missing_knowledge_pack_ids: list[str] = Field(default_factory=list)
+    case_signals: list[str] = Field(default_factory=list)
     input_hash: Sha256Hash
     output_hash: Sha256Hash
     started_at: datetime

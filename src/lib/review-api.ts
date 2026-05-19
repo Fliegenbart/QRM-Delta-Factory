@@ -2,12 +2,17 @@ import "server-only";
 
 import type {
   DocumentSet,
+  HumanFeedbackRegistryReport,
   PipelineRun,
+  Requirement,
+  RequirementLibraryOverview,
+  RequirementSet,
   ReviewDecisionValue,
   ReviewPack
 } from "@/src/lib/review-ui";
 import { normalizeReviewDecisionPayload } from "@/src/lib/review-ui";
 import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
+import gruenewaldSyntheticRequirementSet from "@/src/data/gruenewald-synthetic-requirement-set.json";
 
 export class ReviewApiError extends Error {
   constructor(
@@ -28,6 +33,7 @@ export async function createDocumentSet(input: {
   uploadedBy: string;
 }): Promise<DocumentSet> {
   const { tenantId, requirementSetId } = getReviewBackendConfig();
+  await ensureRequirementSet({ requirementSetId, tenantId });
   const payload = {
     tenant_id: tenantId,
     requirement_set_id: requirementSetId,
@@ -83,6 +89,46 @@ export async function getReviewPack(documentSetId: string): Promise<ReviewPack> 
   return backendFetch<ReviewPack>(
     `/document-sets/${encodeURIComponent(documentSetId)}/review-pack`
   );
+}
+
+export async function getRequirementLibraryOverview(): Promise<RequirementLibraryOverview> {
+  const { requirementSetId, tenantId } = getReviewBackendConfig();
+  await ensureRequirementSet({ requirementSetId, tenantId });
+  try {
+    return await fetchRequirementLibraryOverview(requirementSetId);
+  } catch (error) {
+    if (!isMissingRequirementSetError(error, requirementSetId)) {
+      throw error;
+    }
+    await ensureRequirementSet({ requirementSetId, tenantId });
+    return fetchRequirementLibraryOverview(requirementSetId);
+  }
+}
+
+export async function getHumanFeedbackRegistry(): Promise<HumanFeedbackRegistryReport> {
+  return backendFetch<HumanFeedbackRegistryReport>("/analytics/human-feedback");
+}
+
+export async function importRequirementLibrary(input: {
+  file: File;
+  importedBy: string;
+}): Promise<RequirementLibraryOverview> {
+  const { requirementSetId } = getReviewBackendConfig();
+  const formData = new FormData();
+  formData.set("file", input.file);
+  formData.set("imported_by", input.importedBy);
+
+  const requirementSet = await backendFetch<RequirementSet>("/requirement-sets/import", {
+    method: "POST",
+    body: formData
+  });
+  if (requirementSet.requirement_set_id !== requirementSetId) {
+    throw new ReviewApiError(
+      `Das importierte Regelwerk hat die ID ${requirementSet.requirement_set_id}. Für neue Analysen ist aktuell ${requirementSetId} konfiguriert.`
+    );
+  }
+  await activateRequirementSet(requirementSet.requirement_set_id);
+  return fetchRequirementLibraryOverview(requirementSetId);
 }
 
 export async function submitReviewDecision(input: {
@@ -156,27 +202,54 @@ function postDocumentSet(payload: {
   });
 }
 
-async function activateRequirementSet(requirementSetId: string): Promise<void> {
-  await backendFetch(`/requirement-sets/${encodeURIComponent(requirementSetId)}/activate`, {
+async function activateRequirementSet(requirementSetId: string): Promise<RequirementSet> {
+  return backendFetch<RequirementSet>(`/requirement-sets/${encodeURIComponent(requirementSetId)}/activate`, {
     method: "POST"
   });
+}
+
+async function getRequirementSet(requirementSetId: string): Promise<RequirementSet> {
+  return backendFetch<RequirementSet>(`/requirement-sets/${encodeURIComponent(requirementSetId)}`);
+}
+
+async function searchActiveRequirements(): Promise<Requirement[]> {
+  return backendFetch<Requirement[]>("/requirements/search");
+}
+
+async function fetchRequirementLibraryOverview(
+  requirementSetId: string
+): Promise<RequirementLibraryOverview> {
+  const [requirementSet, activeRequirements] = await Promise.all([
+    getRequirementSet(requirementSetId),
+    searchActiveRequirements()
+  ]);
+  return {
+    configuredRequirementSetId: requirementSetId,
+    requirementSet,
+    activeRequirements
+  };
 }
 
 async function ensureRequirementSet(input: {
   requirementSetId: string;
   tenantId: string;
 }): Promise<void> {
+  let existingRequirementSet: RequirementSet | null = null;
   try {
-    await activateRequirementSet(input.requirementSetId);
-    return;
+    existingRequirementSet = await activateRequirementSet(input.requirementSetId);
   } catch (error) {
     if (!isMissingRequirementSetError(error, input.requirementSetId)) {
       throw error;
     }
   }
 
-  await importDefaultRequirementSet(input);
-  await activateRequirementSet(input.requirementSetId);
+  if (
+    existingRequirementSet === null ||
+    shouldReplaceLegacyDefaultRequirementSet(existingRequirementSet)
+  ) {
+    await importDefaultRequirementSet(input);
+    await activateRequirementSet(input.requirementSetId);
+  }
 }
 
 async function importDefaultRequirementSet(input: {
@@ -199,33 +272,26 @@ async function importDefaultRequirementSet(input: {
 }
 
 function defaultRequirementSet(input: { requirementSetId: string; tenantId: string }) {
+  const template = gruenewaldSyntheticRequirementSet as unknown as RequirementSet;
   return {
+    ...template,
     requirement_set_id: input.requirementSetId,
     tenant_id: input.tenantId,
-    name: "Default GMP QRM Requirement Library",
-    version: "2026.1",
-    imported_at: "2026-05-09T09:00:00Z",
+    imported_at: new Date().toISOString(),
     imported_by: "user_quality_admin",
     active: true,
-    requirements: [
-      {
-        requirement_id: "req_val_threshold_current_evidence",
-        source_type: "internal_sop",
-        source_name: "SOP-QRM-AVI-001",
-        source_version: "3.0",
-        section: "6.4",
-        requirement_text:
-          "Changed automated inspection thresholds require verification or validation evidence applicable to the changed setting.",
-        applies_to_document_types: ["change_control_package", "validation_report"],
-        applies_to_process_areas: ["automated_visual_inspection", "aseptic_filling"],
-        criticality: "high",
-        required_evidence: ["current validation report", "approved validation addendum"],
-        auto_close_allowed: false,
-        effective_from: "2026-01-01T00:00:00Z",
-        effective_to: null
-      }
-    ]
+    requirements: template.requirements.map((requirement) => ({ ...requirement }))
   };
+}
+
+function shouldReplaceLegacyDefaultRequirementSet(requirementSet: RequirementSet): boolean {
+  return (
+    requirementSet.name === "Default GMP QRM Requirement Library" ||
+    (
+      requirementSet.requirements.length === 1 &&
+      requirementSet.requirements[0]?.requirement_id === "req_val_threshold_current_evidence"
+    )
+  );
 }
 
 function isRecoverableRequirementSetError(

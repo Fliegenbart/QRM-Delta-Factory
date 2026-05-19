@@ -9,7 +9,7 @@ from app.audit.events import InMemoryAuditLog
 from app.core.config import get_settings
 from app.db.in_memory import InMemoryDocumentRepository
 from app.schemas.domain import DocumentSet, DocumentSetStatus, ModelRunStatus, ParsingStatus
-from app.schemas.pipeline import PipelineRun, PipelineRunStatus
+from app.schemas.pipeline import PipelineModelManifestItem, PipelineRun, PipelineRunStatus
 from app.schemas.risk import RiskDecision, RiskDecisionClass
 from app.services.adversarial_review import AdversarialReviewService
 from app.services.claim_ledger import ClaimLedgerService, MockClaimExtractor
@@ -139,6 +139,7 @@ class PipelineService:
                 update={
                     "status": completed_status,
                     "completed_at": datetime.now(UTC),
+                    "model_manifest": self._model_manifest(document_set_id),
                 }
             )
             self.repository.update_pipeline_run(completed_run)
@@ -162,6 +163,7 @@ class PipelineService:
                     "completed_at": datetime.now(UTC),
                     "failed_step": current_step,
                     "error_summary": str(exc),
+                    "model_manifest": self._model_manifest(document_set_id),
                 }
             )
             self.repository.update_pipeline_run(failed_run)
@@ -270,6 +272,27 @@ class PipelineService:
             "failed_model_run_count": len(result.failed_model_runs),
             "coverage_summary_count": len(result.coverage_summaries),
         }
+
+    def _model_manifest(self, document_set_id: str) -> list[PipelineModelManifestItem]:
+        return [
+            PipelineModelManifestItem(
+                agent_id=model_run.agent_id,
+                agent_role=model_run.agent_role,
+                provider=model_run.provider,
+                model_name=model_run.model_name,
+                model_version=model_run.model_version,
+                configured_model_id=model_run.configured_model_id,
+                prompt_version=model_run.prompt_version,
+                requirement_ids=model_run.requirement_ids,
+                requirement_package_hash=model_run.requirement_package_hash,
+                knowledge_pack_ids=model_run.knowledge_pack_ids,
+                missing_knowledge_pack_ids=model_run.missing_knowledge_pack_ids,
+                case_signals=model_run.case_signals,
+                status=str(model_run.status),
+                model_run_id=model_run.model_run_id,
+            )
+            for model_run in self.repository.list_model_runs(document_set_id)
+        ]
 
     def _evidence_verification(self, document_set_id: str) -> dict[str, Any]:
         findings = self.repository.list_risk_findings(document_set_id)

@@ -31,4 +31,25 @@ describe("legacy frontend AI cleanup", () => {
     expect(appShell).not.toContain("/api/ai/analyze");
     expect(appShell).not.toContain("DocumentUpload");
   });
+
+  it("keeps the landing page free from redundant proof-flow explainer blocks", () => {
+    const appShell = readFileSync(join(repoRoot, "src/components/app-shell.tsx"), "utf8");
+
+    expect(appShell).not.toContain("KI-Entscheidung");
+    expect(appShell).not.toContain("Quelle Pflicht");
+    expect(appShell).not.toContain('Stat label="Prüfmappe"');
+    expect(appShell).not.toContain("Letzter Schritt");
+    expect(appShell).not.toContain("So arbeitet der Prüfflow");
+    expect(appShell).not.toContain("Unterlagen laden");
+    expect(appShell).not.toContain("Nachweise prüfen");
+    expect(appShell).not.toContain("Prüfung fokussieren");
+  });
+
+  it("keeps the landing intro full-width and removes duplicate upload copy", () => {
+    const appShell = readFileSync(join(repoRoot, "src/components/app-shell.tsx"), "utf8");
+    const intakeUploader = readFileSync(join(repoRoot, "src/components/review-ui/intake-uploader.tsx"), "utf8");
+
+    expect(appShell).not.toContain("lg:grid-cols-[0.86fr_1.14fr]");
+    expect(intakeUploader).not.toContain("Lade die Unterlagen zur Änderung, Abweichung oder CAPA hoch.");
+  });
 });

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import Field
 
 from app.schemas.domain import (
@@ -37,6 +39,10 @@ class ReviewPackTopRisk(StrictSchema):
     no_issue_agents: list[str] = Field(default_factory=list)
     verifier_status: str = Field(min_length=1)
     human_review_reason: str = Field(min_length=1)
+    review_status: str = Field(default="open")
+    review_decision_count: int = Field(default=0, ge=0)
+    latest_review_decision: ReviewDecisionValue | None = None
+    latest_reviewed_at: datetime | None = None
 
 
 class ReviewPackEvidenceRow(StrictSchema):
@@ -68,6 +74,9 @@ class ReviewPack(StrictSchema):
     document_set_id: DocumentSetId
     decision: RiskDecision
     summary: str = Field(min_length=1)
+    review_progress_percent: int = Field(default=0, ge=0, le=100)
+    reviewed_finding_count: int = Field(default=0, ge=0)
+    total_finding_count: int = Field(default=0, ge=0)
     top_risks: list[ReviewPackTopRisk] = Field(default_factory=list)
     finding_clusters: list[FindingCluster] = Field(default_factory=list)
     evidence_table: list[ReviewPackEvidenceRow] = Field(default_factory=list)
