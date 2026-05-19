@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import {
+  displayFeedbackCount,
   displayFeedbackOutcome,
   displayReviewValue,
   type HumanFeedbackRegistryReport
@@ -102,9 +103,9 @@ export function HumanFeedbackRegistryPanel() {
               <MiniMetric label="Fehlalarm" value={formatRate(card.false_positive_rate)} />
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-              <MiniMetric label="Quelle falsch" value={String(card.evidence_issue_count)} />
-              <MiniMetric label="Regelwerk falsch" value={String(card.requirement_issue_count)} />
-              <MiniMetric label="Fehlt" value={String(card.missed_finding_count)} />
+              <MiniMetric label="Quelle falsch" value={displayFeedbackCount(card.evidence_issue_count)} />
+              <MiniMetric label="Regelwerk falsch" value={displayFeedbackCount(card.requirement_issue_count)} />
+              <MiniMetric label="Fehlt" value={displayFeedbackCount(card.missed_finding_count)} />
             </div>
           </article>
         ))}

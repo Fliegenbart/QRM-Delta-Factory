@@ -12,6 +12,7 @@ import {
   displayRiskStatement,
   displayReviewValue,
   displayFeedbackOutcome,
+  displayFeedbackCount,
   evidenceSourceLabel,
   findTopRiskById,
   reviewPackProgress,
@@ -108,6 +109,12 @@ describe("review UI helpers", () => {
     expect(displayFeedbackOutcome("evidence_issue")).toBe("Quelle falsch");
     expect(displayFeedbackOutcome("requirement_issue")).toBe("Regelwerk falsch");
     expect(displayFeedbackOutcome("missed_finding")).toBe("Fehlender Befund");
+  });
+
+  it("shows missing human feedback counters as zero", () => {
+    expect(displayFeedbackCount(undefined)).toBe("0");
+    expect(displayFeedbackCount(null)).toBe("0");
+    expect(displayFeedbackCount(4)).toBe("4");
   });
 
   it("hides internal reviewer routing failures from human review reasons", () => {

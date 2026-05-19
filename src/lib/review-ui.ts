@@ -336,10 +336,10 @@ export type HumanFeedbackModelCard = {
   confirmed_count: number;
   downgrade_count: number;
   false_positive_count: number;
-  severity_issue_count: number;
-  evidence_issue_count: number;
-  requirement_issue_count: number;
-  missed_finding_count: number;
+  severity_issue_count?: number;
+  evidence_issue_count?: number;
+  requirement_issue_count?: number;
+  missed_finding_count?: number;
   more_information_count: number;
   escalation_count: number;
   confirmation_rate: number;
@@ -550,6 +550,10 @@ export function displayFeedbackOutcome(outcome: string): string {
     missed_finding: "Fehlender Befund"
   };
   return labels[outcome] ?? displayReviewValue(outcome);
+}
+
+export function displayFeedbackCount(value?: number | null): string {
+  return String(value ?? 0);
 }
 
 export function displayRiskStatement(statement: string): string {
