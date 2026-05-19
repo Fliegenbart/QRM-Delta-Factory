@@ -534,9 +534,9 @@ All providers implement the same typed `BaseModelProvider` interface and return 
 validated against a Pydantic schema. `MockProvider` remains the default for tests and local
 deterministic behavior. When external model calls are enabled, default reviewer roles are routed as:
 
-- OpenAI: `GMPDataIntegrityReviewer`, `BatchImpactReviewer`
-- Anthropic: `DeviationReviewer`, `RegulatoryConsistencyReviewer`
-- Gemini: `CAPAReviewer`, `ContradictionHunter`
+- OpenAI: `BatchImpactReviewer`, `ContradictionHunter`
+- Anthropic: `GMPDataIntegrityReviewer`, `DeviationReviewer`, `CAPAReviewer`, `RegulatoryConsistencyReviewer`
+- Gemini: no default reviewer role
 
 External providers are fail-closed by default:
 
@@ -550,13 +550,11 @@ secrets through environment variables only:
 
 ```bash
 QRM_EXTERNAL_MODEL_CALLS_ENABLED=true
-QRM_ALLOWED_MODEL_PROVIDERS="openai,anthropic,gemini"
+QRM_ALLOWED_MODEL_PROVIDERS="openai,anthropic"
 QRM_OPENAI_API_KEY="..."
 QRM_ANTHROPIC_API_KEY="..."
-QRM_GEMINI_API_KEY="..."
 QRM_OPENAI_MODEL_ID="..."
 QRM_ANTHROPIC_MODEL_ID="..."
-QRM_GEMINI_MODEL_ID="..."
 QRM_MODEL_PROVIDER_TIMEOUT_SECONDS=30
 QRM_MODEL_PROVIDER_MAX_RETRIES=0
 QRM_MODEL_PROVIDER_CIRCUIT_BREAKER_THRESHOLD=3

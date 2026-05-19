@@ -2,6 +2,10 @@ export type ReviewDecisionValue =
   | "confirm"
   | "downgrade"
   | "reject_false_positive"
+  | "severity_incorrect"
+  | "evidence_incorrect"
+  | "requirement_incorrect"
+  | "missed_finding"
   | "request_more_information"
   | "escalate_to_qa";
 
@@ -22,49 +26,49 @@ export const riskOrchestrationEntry = {
   legacyDeltaRoute: "/delta-analysis",
   reviewWorkbenchRoute: "/review-ui",
   replacesLegacyDeltaAnalysis: true,
-  name: "Risk Delta Review",
+  name: "QA-Prüfung vorbereiten",
   shortDescription:
-    "Aus GMP-Dokumenten wird ein Review Pack mit Quellen, Lücken und nächstem Prüfschritt.",
+    "Aus GMP-Unterlagen wird eine Prüfmappe mit Quellen, offenen Fragen und nächstem Schritt.",
   workflow: [
-    "Dokumente laden",
-    "Claims und Requirements prüfen",
-    "Findings verifizieren",
-    "Review Pack öffnen",
-    "Entscheidung dokumentieren"
+    "Unterlagen hochladen",
+    "Aussagen und Anforderungen prüfen",
+    "Nachweise abgleichen",
+    "Prüfmappe öffnen",
+    "Menschliche Entscheidung dokumentieren"
   ]
 } as const;
 
 export const consultantReviewCopy = {
   productName: "Pharma QRM Delta Engine",
-  workspaceTitle: "Risk Delta Review",
+  workspaceTitle: "QA-Prüfung vorbereiten",
   workspaceDescription:
-    "Quellen rein. Review Pack raus. QA entscheidet.",
+    "Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.",
   nav: {
-    cockpit: "Fallakte",
-    packages: "Review Packs"
+    cockpit: "Fallübersicht",
+    packages: "Fallübersicht"
   },
   list: {
-    title: "Review Packs",
+    title: "Fallübersicht",
     empty:
-      "Noch kein Fall. Starte auf der Startseite eine neue Prüfung.",
+      "Noch kein echter Prüffall vorhanden. Lade auf der Startseite Unterlagen hoch, dann erscheint hier der Fall.",
     loadErrorPrefix: "Backend nicht erreichbar",
     columns: {
-      package: "Paket",
+      package: "Prüffall",
       trigger: "Anlass",
       area: "Bereich",
       status: "Status",
-      sources: "Quellen"
+      sources: "Unterlagen"
     },
     open: "Öffnen"
   },
   detail: {
-    title: "Fall",
-    openReviewPack: "Review Pack öffnen",
-    sourcesTitle: "Quellen",
-    noSources: "Keine Quellen verknüpft.",
-    loadErrorPrefix: "Prüfpaket konnte nicht geladen werden",
+    title: "Prüffall",
+    openReviewPack: "Prüfmappe öffnen",
+    sourcesTitle: "Hochgeladene Unterlagen",
+    noSources: "Keine Unterlagen verknüpft.",
+    loadErrorPrefix: "Prüffall konnte nicht geladen werden",
     labels: {
-      packageId: "Paket-ID",
+      packageId: "Interne Fall-ID",
       tenant: "Mandant",
       requirementSet: "Regelwerk-Version",
       uploadedBy: "Angelegt durch",
@@ -75,36 +79,34 @@ export const consultantReviewCopy = {
     }
   },
   pack: {
-    title: "Review Pack",
-    humanNotice:
-      "Draft. Nur Entscheidungsunterstützung.",
-    humanReasons: "Warum Review nötig ist",
-    missingInformation: "Fehlt noch",
-    findingsTitle: "Findings",
-    emptyFindings: "Keine Findings.",
+    title: "Prüfmappe",
+    humanReasons: "Prüfung notwendig",
+    missingInformation: "Was noch fehlt",
+    findingsTitle: "Prüfpunkte",
+    emptyFindings: "Keine Prüfpunkte.",
     requirement: "Regelwerk",
     notLinked: "nicht verknüpft",
-    openFinding: "Ansehen",
+    openFinding: "Prüfpunkt ansehen",
     noEntries: "Keine Einträge.",
     loadError:
-      "Review Pack nicht verfügbar. Lade zuerst ein DocumentSet hoch und starte die Pipeline."
+      "Prüfmappe nicht verfügbar. Lade zuerst Unterlagen hoch und starte die Prüfung."
   },
   finding: {
-    backToPack: "Zurück",
-    title: "Finding",
-    notFound: "Finding nicht gefunden.",
-    humanReason: "Review-Grund",
-    evidenceTitle: "Evidenz",
-    noEvidence: "Keine Evidenz verknüpft.",
+    backToPack: "Zurück zur Prüfmappe",
+    title: "Prüfpunkt",
+    notFound: "Prüfpunkt nicht gefunden.",
+    humanReason: "Prüfung notwendig",
+    evidenceTitle: "Nachweise",
+    noEvidence: "Keine Nachweise verknüpft.",
     document: "Dokument",
     page: "Seite",
-    chunk: "Chunk",
-    modelPositions: "Modellpositionen",
-    foundBy: "Gefunden durch",
-    contradictedBy: "Widerspruch von",
-    noIssueAgents: "Ohne Befund gemeldet",
+    chunk: "Textstelle",
+    modelPositions: "Was die Prüfhelfer gemeldet haben",
+    foundBy: "Hat ein Problem gesehen",
+    contradictedBy: "Hat widersprochen",
+    noIssueAgents: "Hat kein Problem gesehen",
     decisionForm: "Entscheidung",
-    loadErrorPrefix: "Finding konnte nicht geladen werden",
+    loadErrorPrefix: "Prüfpunkt konnte nicht geladen werden",
     labels: {
       findingId: "Prüfpunkt-ID",
       riskCategory: "Risikobereich",
@@ -118,80 +120,93 @@ export const consultantReviewCopy = {
     placeholder:
       "Kurz begründen. Nicht allein auf das Modell stützen.",
     rationaleRequired: "Bitte kurz begründen.",
-    savedMessage: "Entscheidung gespeichert."
+    savedMessage: "Entscheidung gespeichert. Der Bearbeitungsstand wurde aktualisiert."
   }
 } as const;
 
 export const reviewDecisionRequiresHumanRationale = true;
 
+const riskStatementLabels: Record<string, string> = {
+  "Adversarial review found required evidence missing or not clearly present in the claim ledger.":
+    "Erforderliche Nachweise fehlen oder sind in den Quellen nicht klar belegt."
+};
+
 export const aiArchitectureConcept = {
-  title: "KI als Prüfteam. Nicht als Entscheider.",
+  title: "So prüft das System",
   subtitle:
-    "Mehrere Modelle prüfen arbeitsteilig. Jede Aussage braucht Evidenz. Risk Fusion eskaliert konservativ.",
+    "Ein gesteuerter Multi-Agent-Review: Uploads werden in zitierte Aussagen zerlegt, passende Regelkarten aus der Risikobibliothek geladen und von spezialisierten Reviewern geprüft. Modell, Prompt, Regelpakete und Gründe werden pro Lauf gespeichert. Freigaben bleiben menschlich.",
   flow: [
     {
       id: "source",
-      title: "Quellen",
-      description: "Dokumente, Chunks, Claims, Requirements."
+      title: "Aussagen extrahieren",
+      description: "Aus den Unterlagen entsteht ein Claim Ledger mit Dokument, Seite, Textstelle und Zitat."
     },
     {
-      id: "primary-reviewers",
-      title: "Reviewer-KIs",
-      description: "OpenAI, Claude und Gemini prüfen getrennte Risikobereiche."
+      id: "scope-router",
+      title: "Scope routen",
+      description: "Dokumenttyp, Prozessbereich und Signale bestimmen, welche Regelpakete relevant sind."
+    },
+    {
+      id: "reviewer-agents",
+      title: "Fachreview",
+      description: "Sieben Reviewer prüfen mit eigenen Briefings, Retrieval-Profilen und Requirement Cards."
     },
     {
       id: "evidence-verifier",
-      title: "Verifier",
-      description: "Zitat, Seite, Chunk und Requirement müssen passen."
-    },
-    {
-      id: "adversarial",
-      title: "Adversarial Review",
-      description: "Sucht blinde Flecken und falsche Entwarnungen."
+      title: "Quellen prüfen",
+      description: "Der Evidence Verifier gleicht Zitat, Textstelle, Seite und Regelwerksbezug ab."
     },
     {
       id: "risk-fusion",
-      title: "Risk Fusion",
-      description: "Kein Voting. High/Critical bleibt bei Menschen."
+      title: "Risiken bündeln",
+      description: "Gegenprüfung und Risk Fusion bündeln Befunde konservativ, ohne Mehrheitsvoting."
     },
     {
       id: "human-review",
-      title: "Human Review",
-      description: "SME/QA entscheidet mit Begründung."
+      title: "Entscheidung dokumentieren",
+      description: "QA oder SME prüft die offenen Punkte und dokumentiert die finale Entscheidung."
     }
   ],
   aiRoles: [
     {
       role: "Claim Extractor",
-      purpose: "Extrahiert zitierte Aussagen.",
-      guardrail: "Kein Claim ohne Quelle."
+      purpose: "Extrahiert prüfbare Aussagen aus Uploads.",
+      guardrail: "Keine Aussage ohne Quelle."
     },
     {
-      role: "Primary Reviewer Agents",
-      purpose: "Suchen fachliche Risiken.",
-      guardrail: "Kein Finding ohne Evidenz oder Gap."
+      role: "Scope & Signal Router",
+      purpose: "Erkennt Falltyp, Prozessbereich und fachliche Signale.",
+      guardrail: "Reviewer erhalten nur passende Regelpakete."
+    },
+    {
+      role: "7 Reviewer Agents",
+      purpose: "Prüfen Data Integrity, Deviation, CAPA, Batch Impact, Validation/Sterility, Regulatory Consistency und Widersprüche.",
+      guardrail: "Jeder Reviewer nutzt eigenes Briefing und eigene Requirement Cards."
     },
     {
       role: "Evidence Verifier",
-      purpose: "Prüft Zitat gegen Aussage.",
-      guardrail: "Schwache Evidenz bleibt offen."
-    },
-    {
-      role: "Adversarial Reviewer",
-      purpose: "Sucht übersehene Risiken.",
-      guardrail: "Darf nichts schließen."
+      purpose: "Prüft Zitat, Seite, Textstelle und Requirement-Bezug.",
+      guardrail: "Schwache oder fehlende Evidenz bleibt offen."
     },
     {
       role: "Risk Fusion",
-      purpose: "Bündelt konservativ.",
-      guardrail: "Kein Mehrheitsvoting."
+      purpose: "Bündelt Befunde, Modellstatus und fehlende Knowledge Packs.",
+      guardrail: "Kein Auto-Clear bei hohen Risiken, fehlender Evidenz oder fehlenden Regelpaketen."
+    },
+    {
+      role: "Human Review",
+      purpose: "QA oder SME entscheidet und begründet.",
+      guardrail: "Die KI bereitet vor, sie gibt nicht frei."
     }
   ],
   nonNegotiables: [
     "KI entscheidet nicht.",
     "Keine Mehrheitsabstimmung.",
-    "Keine Aussage ohne Quelle oder Gap.",
-    "High/Critical wird nicht automatisch geschlossen.",
+    "Jeder Prüfpunkt braucht Quelle oder klar benannte Nachweislücke.",
+    "Jeder Modelllauf speichert Modell, Prompt und Regelpakete.",
+    "Firmenspezifische SOPs können geladen werden; die Agenten ziehen daraus rollenbezogen passende Regelkarten und Textstellen.",
+    "Hohe und kritische Risiken werden nicht automatisch geschlossen.",
+    "Fehlende Knowledge Packs blockieren Auto-Clear.",
     "QA/SME bleibt letzter Schritt."
   ]
 } as const;
@@ -200,7 +215,7 @@ export const caseWorkspaceStructure = {
   route: "/case-workspace",
   title: "Fallakte",
   description:
-    "Ein Fall. Quellen, Findings, Review und Export.",
+    "Ein Fall. Quellen, Prüfpunkte, Prüfung und Export.",
   primaryTabs: [
     {
       id: "overview",
@@ -252,6 +267,95 @@ export type DocumentSet = {
   status: string;
 };
 
+export type Requirement = {
+  requirement_id: string;
+  source_type: string;
+  source_name: string;
+  source_version: string;
+  section: string;
+  requirement_text: string;
+  applies_to_document_types: string[];
+  applies_to_process_areas: string[];
+  criticality: string;
+  required_evidence: string[];
+  auto_close_allowed: boolean;
+  effective_from: string;
+  effective_to?: string | null;
+};
+
+export type RequirementSet = {
+  requirement_set_id: string;
+  tenant_id: string;
+  name: string;
+  version: string;
+  imported_at: string;
+  imported_by: string;
+  active: boolean;
+  requirements: Requirement[];
+};
+
+export type RequirementLibraryOverview = {
+  configuredRequirementSetId: string;
+  requirementSet: RequirementSet;
+  activeRequirements: Requirement[];
+};
+
+export type HumanFeedbackRecord = {
+  feedback_id: string;
+  review_id: string;
+  document_set_id: string;
+  finding_id: string;
+  tenant_id: string;
+  document_type: string;
+  process_area: string;
+  agent_role: string;
+  model_provider: string;
+  model_name: string;
+  model_version: string;
+  prompt_version: string;
+  requirement_references: string[];
+  risk_category: string;
+  original_severity: string;
+  original_evidence_support: string;
+  verifier_evidence_support?: string | null;
+  human_decision: ReviewDecisionValue;
+  feedback_outcome: string;
+  reviewer_id: string;
+  rationale: string;
+  created_at: string;
+  high_critical_recall_guard: boolean;
+};
+
+export type HumanFeedbackModelCard = {
+  model_provider: string;
+  model_name: string;
+  model_version: string;
+  prompt_version: string;
+  agent_role: string;
+  total_human_decisions: number;
+  confirmed_count: number;
+  downgrade_count: number;
+  false_positive_count: number;
+  severity_issue_count: number;
+  evidence_issue_count: number;
+  requirement_issue_count: number;
+  missed_finding_count: number;
+  more_information_count: number;
+  escalation_count: number;
+  confirmation_rate: number;
+  downgrade_rate: number;
+  false_positive_rate: number;
+};
+
+export type HumanFeedbackRegistryReport = {
+  generated_at: string;
+  total_feedback_records: number;
+  model_card_count: number;
+  records: HumanFeedbackRecord[];
+  model_cards: HumanFeedbackModelCard[];
+  limitations: string[];
+};
+
 export type PipelineRun = {
   pipeline_run_id: string;
   document_set_id: string;
@@ -261,6 +365,24 @@ export type PipelineRun = {
   failed_step?: string | null;
   error_summary?: string | null;
   config_version: string;
+  model_manifest?: PipelineModelManifestItem[];
+};
+
+export type PipelineModelManifestItem = {
+  agent_id: string;
+  agent_role: string;
+  provider: string;
+  model_name: string;
+  model_version: string;
+  configured_model_id: string;
+  prompt_version: string;
+  requirement_ids?: string[];
+  requirement_package_hash?: string | null;
+  knowledge_pack_ids?: string[];
+  missing_knowledge_pack_ids?: string[];
+  case_signals?: string[];
+  status: string;
+  model_run_id?: string | null;
 };
 
 export type EvidenceQuote = {
@@ -283,6 +405,10 @@ export type ReviewPackTopRisk = {
   no_issue_agents: string[];
   verifier_status: string;
   human_review_reason: string;
+  review_status?: "open" | "reviewed" | string;
+  review_decision_count?: number;
+  latest_review_decision?: ReviewDecisionValue | null;
+  latest_reviewed_at?: string | null;
 };
 
 export type ReviewPackEvidenceRow = {
@@ -296,6 +422,11 @@ export type ReviewPackEvidenceRow = {
   verifier_status: string;
 };
 
+export type FindingReviewChecklistEvidenceRow = Pick<
+  ReviewPackEvidenceRow,
+  "document_id" | "page" | "chunk_id" | "quote"
+>;
+
 export type ReviewPackModelPosition = {
   finding_id: string;
   found_by_agents: string[];
@@ -308,11 +439,15 @@ export type ReviewPack = {
   document_set_id: string;
   decision: {
     decision: string;
+    max_severity?: string;
     auto_clear_allowed?: boolean;
     auto_clear_blockers?: string[];
     required_human_review_reasons?: string[];
   };
   summary: string;
+  review_progress_percent?: number;
+  reviewed_finding_count?: number;
+  total_finding_count?: number;
   top_risks: ReviewPackTopRisk[];
   finding_clusters: unknown[];
   evidence_table: ReviewPackEvidenceRow[];
@@ -325,10 +460,251 @@ export type ReviewPack = {
   audit_references: string[];
 };
 
+export const hiddenDemoDocumentSetIds = new Set(["ds_demo_avi_threshold"]);
+
+export function isHiddenDemoDocumentSetId(documentSetId: string): boolean {
+  return hiddenDemoDocumentSetIds.has(documentSetId);
+}
+
+export function isVisibleReviewDocumentSet(documentSet: DocumentSet): boolean {
+  return !isHiddenDemoDocumentSetId(documentSet.document_set_id);
+}
+
+const plainGermanLabels: Record<string, string> = {
+  aseptic_filling: "Sterile Abfüllung",
+  batch_impact_assessment: "Chargenauswirkung",
+  blocked_due_to_model_failure: "Prüfung notwendig",
+  blocked_due_to_unverified_high_risk: "Blockiert: hohes Risiko noch nicht geprüft",
+  capa: "CAPA / Korrekturmaßnahme",
+  change_control: "Geplante Änderung",
+  confirm: "Befund bestätigt",
+  critical: "Kritisch",
+  deviation_management: "Abweichungsmanagement",
+  downgrade: "Herabgestuft",
+  escalate_to_qa: "An QA eskaliert",
+  high: "Hoch",
+  medium: "Mittel",
+  missed_critical_risk: "Mögliches übersehenes Risiko",
+  missing_required_evidence: "Pflichtnachweis fehlt",
+  needs_human_review: "Menschliche Prüfung nötig",
+  none: "Nicht belegt",
+  partial: "Teilweise belegt",
+  qa_approval: "QA-Freigabe",
+  ready: "Bereit",
+  ready_for_review: "Bereit zur Prüfung",
+  reject_false_positive: "Als Fehlalarm markiert",
+  request_more_information: "Weitere Unterlagen angefordert",
+  reviewed: "Geprüft"
+};
+
+const reasonLabels: Record<string, string> = {
+  "adversarial challenge involves possible high/critical risk":
+    "Eine Gegenprüfung sieht möglicherweise ein hohes oder kritisches Risiko.",
+  "audit trail review evidence":
+    "Nachweis, dass der Audit Trail geprüft wurde.",
+  "batch record reconciliation evidence":
+    "Nachweis, dass der Chargenbezug abgeglichen wurde.",
+  "documented QA approval decision":
+    "Dokumentierte QA-Entscheidung.",
+  "human assessment of whether the high-risk impact is covered":
+    "Menschliche Bewertung, ob die hohe Auswirkung ausreichend abgedeckt ist.",
+  "human review required for high/critical risk":
+    "Bei hohem oder kritischem Risiko muss ein qualifizierter Mensch prüfen.",
+  "missing information must be resolved by reviewer":
+    "Fehlende Informationen müssen in der Prüfung geklärt werden.",
+  "missing required document: training record for revised AVI SOP":
+    "Pflichtunterlage fehlt: Trainingsnachweis zur geänderten AVI-SOP.",
+  "missing required document: validation addendum for new rejection threshold":
+    "Pflichtunterlage fehlt: Validierungsnachtrag zum neuen Ausschleuse-Grenzwert.",
+  "model disagreement on possible high/critical severity":
+    "Die Prüfhelfer sind sich bei einem möglichen hohen oder kritischen Risiko nicht einig.",
+  "single high/critical finding is sufficient for human review":
+    "Ein einzelner hoher oder kritischer Prüfpunkt reicht aus, damit ein Mensch prüfen muss.",
+  "verifier did not pass all deterministic checks":
+    "Die automatische Quellenprüfung konnte nicht alles sicher bestätigen."
+};
+
+export function displayReviewValue(value?: string | null): string {
+  if (!value) return "nicht angegeben";
+  return plainGermanLabels[value] ?? value.replaceAll("_", " ");
+}
+
+export function displayReviewReason(reason: string): string {
+  if (reason.startsWith("required knowledge pack not retrieved:")) {
+    return "Ein benötigtes Regelpaket wurde für diese Analyse nicht geladen.";
+  }
+  return reasonLabels[reason] ?? displayReviewValue(reason);
+}
+
+export function displayFeedbackOutcome(outcome: string): string {
+  const labels: Record<string, string> = {
+    confirmed_risk: "Bestätigt",
+    severity_overstated: "Herabgestuft",
+    false_positive: "Fehlalarm",
+    missing_information: "Mehr Infos",
+    linked_to_capa: "CAPA-Link",
+    escalated: "Eskalation",
+    severity_issue: "Schweregrad falsch",
+    evidence_issue: "Quelle falsch",
+    requirement_issue: "Regelwerk falsch",
+    missed_finding: "Fehlender Befund"
+  };
+  return labels[outcome] ?? displayReviewValue(outcome);
+}
+
+export function displayRiskStatement(statement: string): string {
+  return riskStatementLabels[statement] ?? statement;
+}
+
+export function displayReviewPackSummary(input: {
+  decision: string;
+  findingCount: number;
+  maxSeverity?: string | null;
+}): string {
+  const parts = [
+    displayReviewValue(input.decision),
+    `${input.findingCount} Prüfpunkt${input.findingCount === 1 ? "" : "e"} gefunden`
+  ];
+
+  if (input.maxSeverity) {
+    parts.push(`höchste Einstufung: ${displayReviewValue(input.maxSeverity)}`);
+  }
+
+  return `${parts.join(". ")}.`;
+}
+
+export function reviewPackProgress(input: ReviewPack): {
+  percent: number;
+  reviewed: number;
+  total: number;
+  label: string;
+} {
+  const total = input.total_finding_count ?? input.top_risks.length;
+  const reviewed = input.reviewed_finding_count ??
+    input.top_risks.filter((risk) => risk.review_status === "reviewed").length;
+  const percent = total === 0
+    ? 100
+    : input.review_progress_percent ?? Math.round((reviewed / total) * 100);
+
+  return {
+    percent,
+    reviewed,
+    total,
+    label: `${percent}% bearbeitet (${reviewed} von ${total} Prüfpunkten)`
+  };
+}
+
+const internalReviewReasonPrefixes = [
+  "relevant reviewer role failed:",
+  "required reviewer role failed:",
+  "missing required reviewer role:",
+  "finding lacks requirement reference:",
+  "required knowledge pack not retrieved:"
+] as const;
+
+const internalReviewReasons = new Set([
+  "finding has no requirement references",
+  "single high/critical finding is sufficient for human review"
+]);
+
+function isInternalReviewReason(reason: string): boolean {
+  return internalReviewReasons.has(reason) ||
+    internalReviewReasonPrefixes.some((prefix) => reason.startsWith(prefix));
+}
+
+export function displayReviewReasons(reason: string): string[] {
+  const readableReasons = reason
+    .split(";")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .filter((entry) => !isInternalReviewReason(entry))
+    .map(displayReviewReason);
+
+  const uniqueReasons = Array.from(new Set(readableReasons));
+  return uniqueReasons.length > 0
+    ? uniqueReasons
+    : ["Analyse unvollständig. Bitte Prüfung erneut starten oder technische Details prüfen."];
+}
+
+const missingInformationLabels: Record<string, string> = {
+  "approved validation addendum": "genehmigter Validierungsnachtrag",
+  "current validation report": "aktueller Validierungsbericht"
+};
+
+function displayMissingInformation(value: string): string {
+  return missingInformationLabels[value] ?? displayReviewValue(value);
+}
+
+function shortQuote(quote: string): string {
+  return quote.length > 140 ? `${quote.slice(0, 137)}...` : quote;
+}
+
+export function cleanEvidenceQuote(quote: string): string {
+  return quote
+    .replace(/\*\*/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/^\d+\s+/, "")
+    .trim();
+}
+
+export function evidenceSourceLabel(row: FindingReviewChecklistEvidenceRow): string {
+  const cleanedQuote = cleanEvidenceQuote(row.quote);
+  const documentTypeMatch = cleanedQuote.match(/Dokumenttyp:\s*([^*]+?)(?:\s+Prozessbereich:|\s+Seiten-|$)/i);
+  const readableDocument = documentTypeMatch?.[1]?.trim();
+
+  if (readableDocument) {
+    return `${readableDocument}, Seite ${row.page}`;
+  }
+
+  if (row.document_id.startsWith("doc_")) {
+    return `Hochgeladene Unterlage, Seite ${row.page}`;
+  }
+
+  return `${row.document_id}, Seite ${row.page}`;
+}
+
+export function buildFindingReviewChecklist(input: {
+  riskStatement: string;
+  requirementReferences: string[];
+  verifierStatus: string;
+  evidenceRows: FindingReviewChecklistEvidenceRow[];
+  missingInformation: string[];
+}): string[] {
+  const items = [
+    `Prüfe den Befund: ${displayRiskStatement(input.riskStatement)}`
+  ];
+
+  for (const missing of input.missingInformation.slice(0, 4)) {
+    items.push(`Fehlender Nachweis: ${displayMissingInformation(missing)}.`);
+  }
+
+  if (input.requirementReferences.length === 0) {
+    items.push("Regelwerksbezug prüfen oder nachtragen.");
+  }
+
+  if (displayReviewValue(input.verifierStatus) === "Nicht belegt") {
+    if (input.evidenceRows.length === 0) {
+      items.push("Quelle und Zitat für diesen Befund prüfen oder ergänzen.");
+    } else {
+      for (const row of input.evidenceRows.slice(0, 2)) {
+        items.push(
+          `Belegstelle prüfen: ${evidenceSourceLabel(row)}.`
+        );
+      }
+    }
+  }
+
+  return Array.from(new Set(items));
+}
+
 export const decisionOptions: Array<{ value: ReviewDecisionValue; label: string }> = [
   { value: "confirm", label: "Befund bestätigen" },
   { value: "downgrade", label: "Bewertung herabstufen" },
   { value: "reject_false_positive", label: "Als Fehlalarm markieren" },
+  { value: "severity_incorrect", label: "Schweregrad korrigieren" },
+  { value: "evidence_incorrect", label: "Quelle passt nicht" },
+  { value: "requirement_incorrect", label: "Regelwerk passt nicht" },
+  { value: "missed_finding", label: "Fehlenden Befund melden" },
   { value: "request_more_information", label: "Weitere Unterlagen anfordern" },
   { value: "escalate_to_qa", label: "An QA eskalieren" }
 ];

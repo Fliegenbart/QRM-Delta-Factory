@@ -2,12 +2,17 @@ import "server-only";
 
 import type {
   DocumentSet,
+  HumanFeedbackRegistryReport,
   PipelineRun,
+  Requirement,
+  RequirementLibraryOverview,
+  RequirementSet,
   ReviewDecisionValue,
   ReviewPack
 } from "@/src/lib/review-ui";
 import { normalizeReviewDecisionPayload } from "@/src/lib/review-ui";
 import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
+import gruenewaldSyntheticRequirementSet from "@/src/data/gruenewald-synthetic-requirement-set.json";
 
 export class ReviewApiError extends Error {
   constructor(
@@ -28,22 +33,34 @@ export async function createDocumentSet(input: {
   uploadedBy: string;
 }): Promise<DocumentSet> {
   const { tenantId, requirementSetId } = getReviewBackendConfig();
+  await ensureRequirementSet({ requirementSetId, tenantId });
+  const payload = {
+    tenant_id: tenantId,
+    requirement_set_id: requirementSetId,
+    declared_document_type: input.declaredDocumentType,
+    declared_process_area: input.declaredProcessArea,
+    uploaded_by: input.uploadedBy
+  };
 
-  return backendFetch<DocumentSet>("/document-sets", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      tenant_id: tenantId,
-      requirement_set_id: requirementSetId,
-      declared_document_type: input.declaredDocumentType,
-      declared_process_area: input.declaredProcessArea,
-      uploaded_by: input.uploadedBy
-    })
-  });
+  try {
+    return await postDocumentSet(payload);
+  } catch (error) {
+    if (!isRecoverableRequirementSetError(error, requirementSetId)) {
+      throw error;
+    }
+    await ensureRequirementSet({ requirementSetId, tenantId });
+    return postDocumentSet(payload);
+  }
 }
 
 export async function getDocumentSet(documentSetId: string): Promise<DocumentSet> {
   return backendFetch<DocumentSet>(`/document-sets/${encodeURIComponent(documentSetId)}`);
+}
+
+export async function deleteDocumentSet(documentSetId: string): Promise<void> {
+  await backendFetchWithoutJson(`/document-sets/${encodeURIComponent(documentSetId)}`, {
+    method: "DELETE"
+  });
 }
 
 export async function uploadDocumentToDocumentSet(input: {
@@ -74,6 +91,46 @@ export async function getReviewPack(documentSetId: string): Promise<ReviewPack> 
   );
 }
 
+export async function getRequirementLibraryOverview(): Promise<RequirementLibraryOverview> {
+  const { requirementSetId, tenantId } = getReviewBackendConfig();
+  await ensureRequirementSet({ requirementSetId, tenantId });
+  try {
+    return await fetchRequirementLibraryOverview(requirementSetId);
+  } catch (error) {
+    if (!isMissingRequirementSetError(error, requirementSetId)) {
+      throw error;
+    }
+    await ensureRequirementSet({ requirementSetId, tenantId });
+    return fetchRequirementLibraryOverview(requirementSetId);
+  }
+}
+
+export async function getHumanFeedbackRegistry(): Promise<HumanFeedbackRegistryReport> {
+  return backendFetch<HumanFeedbackRegistryReport>("/analytics/human-feedback");
+}
+
+export async function importRequirementLibrary(input: {
+  file: File;
+  importedBy: string;
+}): Promise<RequirementLibraryOverview> {
+  const { requirementSetId } = getReviewBackendConfig();
+  const formData = new FormData();
+  formData.set("file", input.file);
+  formData.set("imported_by", input.importedBy);
+
+  const requirementSet = await backendFetch<RequirementSet>("/requirement-sets/import", {
+    method: "POST",
+    body: formData
+  });
+  if (requirementSet.requirement_set_id !== requirementSetId) {
+    throw new ReviewApiError(
+      `Das importierte Regelwerk hat die ID ${requirementSet.requirement_set_id}. Für neue Analysen ist aktuell ${requirementSetId} konfiguriert.`
+    );
+  }
+  await activateRequirementSet(requirementSet.requirement_set_id);
+  return fetchRequirementLibraryOverview(requirementSetId);
+}
+
 export async function submitReviewDecision(input: {
   findingId: string;
   reviewerId: string;
@@ -94,6 +151,15 @@ export async function submitReviewDecision(input: {
 }
 
 async function backendFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await rawBackendFetch(path, init);
+  return (await response.json()) as T;
+}
+
+async function backendFetchWithoutJson(path: string, init: RequestInit = {}): Promise<void> {
+  await rawBackendFetch(path, init);
+}
+
+async function rawBackendFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const { backendUrl, apiKey } = getReviewBackendConfig();
   const headers = new Headers(init.headers);
   headers.set("accept", "application/json");
@@ -119,5 +185,141 @@ async function backendFetch<T>(path: string, init: RequestInit = {}): Promise<T>
     throw new ReviewApiError(message || response.statusText, response.status);
   }
 
-  return (await response.json()) as T;
+  return response;
+}
+
+function postDocumentSet(payload: {
+  tenant_id: string;
+  requirement_set_id: string;
+  declared_document_type: string;
+  declared_process_area: string;
+  uploaded_by: string;
+}): Promise<DocumentSet> {
+  return backendFetch<DocumentSet>("/document-sets", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+}
+
+async function activateRequirementSet(requirementSetId: string): Promise<RequirementSet> {
+  return backendFetch<RequirementSet>(`/requirement-sets/${encodeURIComponent(requirementSetId)}/activate`, {
+    method: "POST"
+  });
+}
+
+async function getRequirementSet(requirementSetId: string): Promise<RequirementSet> {
+  return backendFetch<RequirementSet>(`/requirement-sets/${encodeURIComponent(requirementSetId)}`);
+}
+
+async function searchActiveRequirements(): Promise<Requirement[]> {
+  return backendFetch<Requirement[]>("/requirements/search");
+}
+
+async function fetchRequirementLibraryOverview(
+  requirementSetId: string
+): Promise<RequirementLibraryOverview> {
+  const [requirementSet, activeRequirements] = await Promise.all([
+    getRequirementSet(requirementSetId),
+    searchActiveRequirements()
+  ]);
+  return {
+    configuredRequirementSetId: requirementSetId,
+    requirementSet,
+    activeRequirements
+  };
+}
+
+async function ensureRequirementSet(input: {
+  requirementSetId: string;
+  tenantId: string;
+}): Promise<void> {
+  let existingRequirementSet: RequirementSet | null = null;
+  try {
+    existingRequirementSet = await activateRequirementSet(input.requirementSetId);
+  } catch (error) {
+    if (!isMissingRequirementSetError(error, input.requirementSetId)) {
+      throw error;
+    }
+  }
+
+  if (
+    existingRequirementSet === null ||
+    shouldReplaceLegacyDefaultRequirementSet(existingRequirementSet)
+  ) {
+    await importDefaultRequirementSet(input);
+    await activateRequirementSet(input.requirementSetId);
+  }
+}
+
+async function importDefaultRequirementSet(input: {
+  requirementSetId: string;
+  tenantId: string;
+}): Promise<void> {
+  const formData = new FormData();
+  const requirementSet = defaultRequirementSet(input);
+  formData.set(
+    "file",
+    new Blob([JSON.stringify(requirementSet, null, 2)], { type: "application/json" }),
+    `${input.requirementSetId}.json`
+  );
+  formData.set("imported_by", requirementSet.imported_by);
+
+  await backendFetch("/requirement-sets/import", {
+    method: "POST",
+    body: formData
+  });
+}
+
+function defaultRequirementSet(input: { requirementSetId: string; tenantId: string }) {
+  const template = gruenewaldSyntheticRequirementSet as unknown as RequirementSet;
+  return {
+    ...template,
+    requirement_set_id: input.requirementSetId,
+    tenant_id: input.tenantId,
+    imported_at: new Date().toISOString(),
+    imported_by: "user_quality_admin",
+    active: true,
+    requirements: template.requirements.map((requirement) => ({ ...requirement }))
+  };
+}
+
+function shouldReplaceLegacyDefaultRequirementSet(requirementSet: RequirementSet): boolean {
+  return (
+    requirementSet.name === "Default GMP QRM Requirement Library" ||
+    (
+      requirementSet.requirements.length === 1 &&
+      requirementSet.requirements[0]?.requirement_id === "req_val_threshold_current_evidence"
+    )
+  );
+}
+
+function isRecoverableRequirementSetError(
+  error: unknown,
+  requirementSetId: string
+): boolean {
+  return (
+    isInactiveRequirementSetError(error, requirementSetId) ||
+    isMissingRequirementSetError(error, requirementSetId)
+  );
+}
+
+function isInactiveRequirementSetError(error: unknown, requirementSetId: string): boolean {
+  if (!(error instanceof ReviewApiError)) {
+    return false;
+  }
+  return (
+    error.status === 422 &&
+    error.message.includes(`RequirementSet ${requirementSetId} is not active`)
+  );
+}
+
+function isMissingRequirementSetError(error: unknown, requirementSetId: string): boolean {
+  if (!(error instanceof ReviewApiError)) {
+    return false;
+  }
+  return (
+    error.status === 404 &&
+    error.message.includes(`RequirementSet ${requirementSetId} not found`)
+  );
 }

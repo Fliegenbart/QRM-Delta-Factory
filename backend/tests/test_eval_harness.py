@@ -59,6 +59,20 @@ def test_critical_must_detect_missed_fails_eval() -> None:
     assert any("Critical must_detect finding missed" in failure for failure in report.failures)
 
 
+def test_high_must_detect_missed_fails_eval() -> None:
+    dataset = _dataset(expected_severity="high")
+
+    report = EvalRunner().evaluate(
+        dataset=dataset,
+        system_findings=[],
+        risk_decision=_risk_decision(decision="human_review_required", auto_clear=False),
+    )
+
+    assert report.passed is False
+    assert report.metrics.recall_by_severity["high"] == 0.0
+    assert any("High must_detect finding missed" in failure for failure in report.failures)
+
+
 def test_auto_clear_with_known_high_or_critical_gold_fails_eval() -> None:
     dataset = _dataset(expected_severity="high")
     matching_finding = _finding(

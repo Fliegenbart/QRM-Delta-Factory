@@ -131,6 +131,10 @@ class BaseModelProvider(ABC):
                 token_usage = self._extract_token_usage(raw_output)
                 validation_payload = dict(raw_output)
                 validation_payload.pop("token_usage", None)
+                validation_payload = _normalize_structured_payload(
+                    validation_payload,
+                    output_schema=output_schema,
+                )
                 parsed = output_schema.model_validate(validation_payload)
                 structured_output = parsed.model_dump(mode="json")
                 response_hash = _hash_json(structured_output)
@@ -207,6 +211,57 @@ class BaseModelProvider(ABC):
 
 def _hash_json(payload: dict[str, Any]) -> str:
     return sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
+
+
+def _normalize_structured_payload(
+    payload: dict[str, Any],
+    *,
+    output_schema: type[BaseModel],
+) -> dict[str, Any]:
+    if output_schema.__name__ != "ReviewerAgentOutput":
+        return payload
+
+    normalized = dict(payload)
+    findings = normalized.get("findings")
+    if not isinstance(findings, list):
+        return normalized
+
+    normalized_findings: list[Any] = []
+    for finding in findings:
+        if not isinstance(finding, dict):
+            normalized_findings.append(finding)
+            continue
+
+        normalized_finding = dict(finding)
+        evidence_items = normalized_finding.get("evidence_items")
+        if isinstance(evidence_items, list):
+            normalized_finding["evidence_items"] = [
+                _normalize_evidence_item(item) for item in evidence_items
+            ]
+        normalized_findings.append(normalized_finding)
+
+    normalized["findings"] = normalized_findings
+    return normalized
+
+
+def _normalize_evidence_item(item: Any) -> Any:
+    if not isinstance(item, dict):
+        return item
+
+    normalized = dict(item)
+    quote_hash = normalized.get("quote_hash")
+    quote = normalized.get("quote")
+    if isinstance(quote, str) and not _is_sha256_hash(quote_hash):
+        normalized["quote_hash"] = sha256(quote.encode()).hexdigest()
+    return normalized
+
+
+def _is_sha256_hash(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value)
+    )
 
 
 def _int_or_zero(value: Any) -> int:

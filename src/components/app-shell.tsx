@@ -3,21 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  Archive,
   Brain,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   ClipboardCheck,
   FileText,
-  FlaskConical,
   Gauge,
   Globe,
-  History,
   Library,
   Menu,
   Moon,
-  PackageCheck,
   SearchCheck,
   ShieldCheck,
   Sun,
@@ -27,6 +23,8 @@ import { useI18n, type TranslationKey } from "@/src/lib/i18n";
 import { useTheme } from "@/src/lib/theme";
 import { motion } from "@/src/components/ui/motion";
 import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
+import { RequirementLibraryManager } from "@/src/components/review-ui/requirement-library-manager";
+import { HumanFeedbackRegistryPanel } from "@/src/components/review-ui/human-feedback-registry-panel";
 import { aiArchitectureConcept, riskOrchestrationEntry } from "@/src/lib/review-ui";
 import type { LucideIcon } from "lucide-react";
 
@@ -38,19 +36,19 @@ const navCategories: NavCategory[] = [
     nameKey: "nav.category.workspace",
     items: [
       ["dashboard", "nav.dashboard", Gauge],
-      ["case-workspace", "nav.caseWorkspace", PackageCheck],
       ["review-ui", "nav.backendReview", ShieldCheck],
-      ["ai-architecture", "nav.aiArchitecture", Brain],
     ],
   },
   {
     nameKey: "nav.category.admin",
     items: [
-      ["projects", "nav.projects", Archive],
-      ["documents", "nav.documents", FileText],
       ["risk-library", "nav.riskLibrary", Library],
-      ["audit-trail", "nav.auditTrail", History],
-      ["validation-pack", "nav.validationPack", FlaskConical],
+    ],
+  },
+  {
+    nameKey: "nav.category.howItWorks",
+    items: [
+      ["ai-architecture", "nav.aiArchitecture", Brain],
     ],
   },
 ];
@@ -63,15 +61,28 @@ const pageTitleKeys = Object.fromEntries(
   navItems.map(([slug, labelKey]) => [slug, labelKey])
 ) as Record<string, TranslationKey>;
 
-const roles = ["QRM_AUTHOR", "SME_REVIEWER", "QA_APPROVER", "AUDITOR", "ADMIN"] as const;
-
 function pageTitle(slug: string, t: (key: TranslationKey) => string) {
   return t(pageTitleKeys[slug] ?? "nav.dashboard");
 }
 
 export function AppShell({ section }: { section: string; projectId?: string }) {
   const active = sectionSlugs.includes(section) ? section : "dashboard";
-  const [role, setRole] = useState<(typeof roles)[number]>("QRM_AUTHOR");
+
+  return (
+    <AppFrame section={active}>
+      {renderSection(active)}
+    </AppFrame>
+  );
+}
+
+export function AppFrame({
+  section,
+  children,
+}: {
+  section: string;
+  children: React.ReactNode;
+}) {
+  const active = sectionSlugs.includes(section) ? section : "dashboard";
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navCategories.map((category) => [category.nameKey, true]))
@@ -178,9 +189,6 @@ export function AppShell({ section }: { section: string; projectId?: string }) {
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
           {navigation}
         </nav>
-        <div className="border-t border-black/10 px-5 py-4 text-xs leading-5 text-slate-500 dark:border-white/10 dark:text-slate-400">
-          Draft output. QA/SME entscheidet.
-        </div>
       </aside>
 
       <main id="main-content" className="lg:pl-[280px]">
@@ -205,10 +213,6 @@ export function AppShell({ section }: { section: string; projectId?: string }) {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden rounded-full border border-teal-500/20 bg-white/70 px-3 py-1.5 text-xs font-medium text-teal-600 shadow-sm dark:border-teal-500/30 dark:bg-slate-800/70 dark:text-teal-400 md:inline-flex">
-                <ShieldCheck className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-                Draft
-              </span>
               <button
                 type="button"
                 onClick={() => setLocale(locale === "de" ? "en" : "de")}
@@ -232,25 +236,12 @@ export function AppShell({ section }: { section: string; projectId?: string }) {
                   <Moon className="h-4 w-4 text-slate-600" />
                 )}
               </button>
-              <select
-                className="hidden h-10 rounded-xl border border-black/10 bg-white/80 px-3 text-sm shadow-sm dark:border-white/10 dark:bg-slate-800/80 dark:text-white sm:block"
-                value={role}
-                onChange={(event) => setRole(event.target.value as (typeof roles)[number])}
-                aria-label="Current role"
-              >
-                {roles.map((candidate) => (
-                  <option key={candidate} value={candidate}>
-                    {candidate.replaceAll("_", " ")}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         </header>
 
         <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
-          <Notice />
-          <div className="mt-6">{renderSection(active)}</div>
+          {children}
         </div>
       </main>
     </div>
@@ -275,21 +266,6 @@ function BrandMark() {
   );
 }
 
-function Notice() {
-  const { t } = useI18n();
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="inline-flex items-center rounded-full border border-amber/25 bg-[#fff9ed]/82 px-4 py-2 text-sm text-slate-800 shadow-sm dark:border-amber-500/30 dark:bg-amber-950/30 dark:text-amber-100"
-    >
-      <span className="mr-2 inline-flex h-2 w-2 rounded-full bg-amber align-middle" />
-      <strong className="mr-2 font-semibold">{t("notice.draft")}</strong>
-      {t("notice.text")}
-    </motion.div>
-  );
-}
-
 function renderSection(section: string) {
   switch (section) {
     case "case-workspace":
@@ -303,7 +279,7 @@ function renderSection(section: string) {
     case "documents":
       return <EmptyAdminSection title="Dokumente" description="Keine Dokumente im Frontend vorbefüllt." />;
     case "risk-library":
-      return <EmptyAdminSection title="Risikobibliothek" description="Regelwerke werden über das Backend importiert." />;
+      return <RequirementLibraryManager />;
     case "audit-trail":
       return <EmptyAdminSection title="Audit Trail" description="Audit Events entstehen nach Upload, Pipeline und Review." />;
     case "validation-pack":
@@ -316,41 +292,26 @@ function renderSection(section: string) {
 function DashboardSection() {
   return (
     <div className="space-y-6">
-      <section className="grid gap-6 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
-        <div className="pt-3">
+      <section className="space-y-6">
+        <div>
           <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">
-            Risk Delta Review
+            QA-Prüfung vorbereiten
           </div>
-          <h2 className="mt-5 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
-            Dokumente hochladen. Review Pack erhalten.
+          <h2 className="mt-5 max-w-5xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
+            Unterlagen hochladen. Prüfmappe erhalten.
           </h2>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Lade Change-Control-, Abweichungs-, CAPA- oder Audit-Unterlagen hoch. Das System prüft Quellen, Anforderungen und Evidenz und bereitet die Entscheidung für QA und SME vor.
+          <p className="mt-5 max-w-4xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            Lade Unterlagen zu einer Änderung, Abweichung, CAPA oder einem Audit hoch. Das System sortiert Quellen, offene Nachweise und Prüfpunkte, damit QA oder ein Fachexperte schneller entscheiden kann.
           </p>
-          <div className="mt-7 grid gap-3 sm:grid-cols-2">
-            <SummaryBlock title="Quellenpflicht" text="Findings brauchen Dokument, Seite, Chunk und Zitat." />
-            <SummaryBlock title="Konservative Gates" text="Unklare oder hohe Risiken bleiben in menschlicher Prüfung." />
-            <SummaryBlock title="Mehrere Reviewer" text="Fachrollen prüfen parallel, der Verifier kontrolliert die Evidenz." />
+          <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <SummaryBlock title="Quelle sichtbar" text="Jeder Prüfpunkt braucht Dokument, Seite und Zitat." />
+            <SummaryBlock title="Keine Auto-Freigabe" text="Unklare oder hohe Risiken bleiben bei einem Menschen." />
+            <SummaryBlock title="Mehrere Blickwinkel" text="Das System sucht Risiken, Lücken und Widersprüche." />
             <SummaryBlock title="Auditierbar" text="Modell, Prompt, Regelwerk und Entscheidung bleiben nachvollziehbar." />
           </div>
         </div>
         <IntakeUploader />
       </section>
-
-      <div className="grid gap-3 md:grid-cols-4">
-        <Stat label="KI-Entscheidung" value="0" />
-        <Stat label="Quelle Pflicht" value="100%" tone="teal" />
-        <Stat label="Review Pack" value="Draft" tone="teal" />
-        <Stat label="Letzter Schritt" value="QA/SME" />
-      </div>
-
-      <Panel title="So arbeitet der Prüfflow">
-        <div className="grid gap-4 md:grid-cols-3">
-          <SummaryBlock title="1. Unterlagen laden" text="Fallunterlagen, FMEA, SOP, Batch Record, Validierung oder Audit-Auszug." />
-          <SummaryBlock title="2. Evidenz prüfen" text="Claims werden aus Quellen gezogen und gegen das Regelwerk geprüft." />
-          <SummaryBlock title="3. Review fokussieren" text="QA und SME sehen nur die relevanten Findings, Lücken und Fragen." />
-        </div>
-      </Panel>
     </div>
   );
 }
@@ -358,19 +319,27 @@ function DashboardSection() {
 function CaseWorkspaceSection() {
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_0.8fr]">
-      <Panel title="Fallakte">
+      <Panel title="Fallübersicht">
         <EmptyState
-          title="Kein Fall geladen"
-          text="Die Fallakte zeigt Inhalte, sobald auf der Startseite ein Prüffall angelegt und analysiert wurde."
+          title="Fallübersicht öffnen"
+          text="Alle angelegten Prüffälle liegen in der Fallübersicht. Von dort öffnest du entweder den Fall selbst oder seine Prüfmappe."
+          action={
+            <Link
+              href="/review-ui"
+              className="inline-flex h-10 items-center rounded-xl bg-teal px-4 text-sm font-semibold text-white"
+            >
+              Zur Fallübersicht
+            </Link>
+          }
         />
       </Panel>
       <Panel title="Import-Pfad">
         <ol className="space-y-3 text-sm leading-6 text-slate-700 dark:text-slate-300">
-          <li>1. RequirementSet importieren oder aktivieren.</li>
+          <li>1. Regelwerk importieren oder aktivieren.</li>
           <li>2. Prüffall anlegen.</li>
           <li>3. PDF/TXT/DOCX hochladen.</li>
           <li>4. Analyse starten.</li>
-          <li>5. Review Pack öffnen.</li>
+          <li>5. Prüfmappe öffnen.</li>
         </ol>
       </Panel>
     </div>
@@ -379,16 +348,16 @@ function CaseWorkspaceSection() {
 
 function ReviewEntrySection() {
   return (
-    <Panel title="Review Packs">
+    <Panel title="Fallübersicht">
       <EmptyState
-        title="Keine vorbefüllten Packs"
-        text="Lege auf der Startseite einen Prüffall an. Danach erscheinen hier die Review Packs."
+        title="Keine Demo-Fälle mehr"
+        text="Lege auf der Startseite einen echten Prüffall an. Danach erscheint hier der Fall mit Link zur Prüfmappe."
         action={
           <Link
             href="/review-ui"
             className="inline-flex h-10 items-center rounded-xl bg-teal px-4 text-sm font-semibold text-white"
           >
-            Backend-Liste öffnen
+            Fallübersicht öffnen
           </Link>
         }
       />
@@ -399,10 +368,11 @@ function ReviewEntrySection() {
 function AiArchitectureSection() {
   const roleIcons: Record<string, React.ReactNode> = {
     "Claim Extractor": <FileText className="h-5 w-5" />,
-    "Primary Reviewer Agents": <Brain className="h-5 w-5" />,
+    "Scope & Signal Router": <SearchCheck className="h-5 w-5" />,
+    "7 Reviewer Agents": <Brain className="h-5 w-5" />,
     "Evidence Verifier": <SearchCheck className="h-5 w-5" />,
-    "Adversarial Reviewer": <ClipboardCheck className="h-5 w-5" />,
     "Risk Fusion": <ShieldCheck className="h-5 w-5" />,
+    "Human Review": <ClipboardCheck className="h-5 w-5" />,
   };
 
   return (
@@ -411,7 +381,7 @@ function AiArchitectureSection() {
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">
-              KI-Aufbau
+              Funktionsweise
             </div>
             <h2 className="mt-5 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
               {aiArchitectureConcept.title}
@@ -439,7 +409,7 @@ function AiArchitectureSection() {
       </section>
 
       <Panel title="KI-Rollen">
-        <div className="grid gap-4 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {aiArchitectureConcept.aiRoles.map((role) => (
             <div key={role.role} className="rounded-[18px] border border-black/10 bg-white/78 p-5 dark:border-white/10 dark:bg-slate-800/78">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500/10 text-teal">
@@ -456,6 +426,10 @@ function AiArchitectureSection() {
             </div>
           ))}
         </div>
+      </Panel>
+
+      <Panel title="Human Feedback Registry">
+        <HumanFeedbackRegistryPanel />
       </Panel>
 
       <Panel title="Guardrails">
@@ -533,32 +507,5 @@ function SummaryBlock({ title, text }: { title: string; text: string }) {
       </div>
       <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">{text}</p>
     </div>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  tone = "slate",
-}: {
-  label: string;
-  value: string | number;
-  tone?: "slate" | "teal";
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.2 }}
-      className="cursor-default rounded-[18px] border border-black/10 bg-white/88 px-5 py-4 shadow-sm dark:border-white/10 dark:bg-slate-800/88"
-    >
-      <div className={`text-3xl font-light tracking-[-0.06em] ${tone === "teal" ? "text-teal" : ""}`}>
-        {value}
-      </div>
-      <div className="mt-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-400">
-        {label}
-      </div>
-    </motion.div>
   );
 }

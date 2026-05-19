@@ -3,7 +3,7 @@ const DEFAULT_TENANT_ID = "tenant_example_pharma";
 const DEFAULT_REQUIREMENT_SET_ID = "rset_example_gmp_qrm_2026_1";
 
 export function cleanEnvValue(value: string | undefined): string | undefined {
-  const trimmed = value?.trim();
+  const trimmed = value?.replaceAll("\\n", "").trim();
   return trimmed ? trimmed : undefined;
 }
 

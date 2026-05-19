@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, File, Form, HTTPException, Request, Response, UploadFile, status
 
 from app.audit.events import audit_log
 from app.core.config import get_settings
@@ -44,6 +44,17 @@ def get_document_set(document_set_id: str, http_request: Request) -> DocumentSet
         document_set_id=document_set_id,
         request=http_request,
     )
+
+
+@router.delete("/{document_set_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_document_set(document_set_id: str, http_request: Request) -> Response:
+    require_document_set_for_tenant(
+        repository=repository,
+        document_set_id=document_set_id,
+        request=http_request,
+    )
+    repository.delete_document_set(document_set_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("", response_model=list[DocumentSet])

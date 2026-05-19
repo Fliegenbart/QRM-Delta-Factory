@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from hashlib import sha256
 from typing import Any
 
 import pytest
@@ -19,6 +20,7 @@ from app.agents.providers import (
 from app.audit.events import audit_log
 from app.core.config import get_settings
 from app.db.in_memory import repository
+from app.schemas.review import ReviewerAgentOutput
 from app.schemas.domain import DocumentSet, RequirementSet
 from app.services.review_orchestrator import (
     PrimaryReviewOrchestrator,
@@ -82,6 +84,62 @@ def test_mock_provider_rejects_invalid_structured_output() -> None:
             input_schema={},
             output_schema=SimpleOutput,
         )
+
+
+def test_provider_normalizes_model_supplied_quote_hashes_for_reviewer_output() -> None:
+    quote = "QA approval remains pending."
+    provider = MockProvider(
+        model_name="mock-reviewer",
+        model_version="0.1.0",
+        configured_model_id="mock-local",
+        structured_output={
+            "coverage_summary": "Reviewed one claim.",
+            "findings": [
+                {
+                    "finding_id": "finding_provider_hash",
+                    "document_set_id": "ds_provider_demo",
+                    "risk_category": "qa_approval",
+                    "severity": "medium",
+                    "likelihood": 3,
+                    "detectability": 3,
+                    "risk_statement": "QA approval appears pending.",
+                    "evidence_items": [
+                        {
+                            "document_id": "doc_provider_demo",
+                            "chunk_id": "chunk_provider_demo",
+                            "page": 1,
+                            "quote": quote,
+                            "quote_hash": "not-a-valid-sha256",
+                            "support_type": "supports",
+                            "verifier_score": 0.7,
+                        }
+                    ],
+                    "requirement_references": ["req_provider_deviation_review"],
+                    "missing_information": ["documented QA approval decision"],
+                    "model_provider": "mock",
+                    "model_name": "mock-reviewer",
+                    "model_version": "0.1.0",
+                    "prompt_version": "prompt-v1",
+                    "evidence_support": "partial",
+                    "recommended_action": "Review approval status.",
+                    "auto_close_allowed": False,
+                    "status": "needs_human_review",
+                }
+            ],
+        },
+        prompt_version="prompt-v1",
+    )
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={},
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert (
+        output["findings"][0]["evidence_items"][0]["quote_hash"]
+        == sha256(quote.encode()).hexdigest()
+    )
 
 
 @pytest.mark.parametrize(
@@ -246,22 +304,22 @@ def test_default_agents_use_real_provider_mapping_when_enabled(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai,anthropic,gemini")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai,anthropic")
     monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
     monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
-    monkeypatch.setenv("QRM_GEMINI_MODEL_ID", "gemini-test")
     get_settings.cache_clear()
 
     agents = default_reviewer_agents()
     providers_by_role = {agent.role: agent.provider.provider_name for agent in agents}
 
     assert providers_by_role == {
-        "GMPDataIntegrityReviewer": "openai",
+        "GMPDataIntegrityReviewer": "anthropic",
         "DeviationReviewer": "anthropic",
-        "CAPAReviewer": "gemini",
+        "CAPAReviewer": "anthropic",
         "BatchImpactReviewer": "openai",
+        "ValidationAndSterilityReviewer": "anthropic",
         "RegulatoryConsistencyReviewer": "anthropic",
-        "ContradictionHunter": "gemini",
+        "ContradictionHunter": "openai",
     }
 
 

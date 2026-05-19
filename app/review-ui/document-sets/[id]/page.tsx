@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { getDocumentSet } from "@/src/lib/review-api";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
-import { consultantReviewCopy } from "@/src/lib/review-ui";
+import {
+  consultantReviewCopy,
+  displayReviewValue,
+  isHiddenDemoDocumentSetId
+} from "@/src/lib/review-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +15,15 @@ type PageProps = {
 
 export default async function DocumentSetDetailPage({ params }: PageProps) {
   const { id } = await params;
+
+  if (isHiddenDemoDocumentSetId(id)) {
+    return (
+      <ReviewShell>
+        <EmptyState message={consultantReviewCopy.list.empty} />
+      </ReviewShell>
+    );
+  }
+
   try {
     const documentSet = await getDocumentSet(id);
 
@@ -33,14 +46,14 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
               <Detail label={consultantReviewCopy.detail.labels.tenant} value={documentSet.tenant_id} />
               <Detail label={consultantReviewCopy.detail.labels.requirementSet} value={documentSet.requirement_set_id} mono />
               <Detail label={consultantReviewCopy.detail.labels.uploadedBy} value={documentSet.uploaded_by} />
-              <Detail label={consultantReviewCopy.detail.labels.documentType} value={documentSet.declared_document_type} />
-              <Detail label={consultantReviewCopy.detail.labels.processArea} value={documentSet.declared_process_area} />
+              <Detail label={consultantReviewCopy.detail.labels.documentType} value={displayReviewValue(documentSet.declared_document_type)} />
+              <Detail label={consultantReviewCopy.detail.labels.processArea} value={displayReviewValue(documentSet.declared_process_area)} />
               <Detail label={consultantReviewCopy.detail.labels.uploaded} value={new Date(documentSet.upload_timestamp).toLocaleString()} />
               <div>
                 <dt className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{consultantReviewCopy.detail.labels.status}</dt>
                 <dd className="mt-2">
                   <StatusBadge tone={documentSet.status.includes("review") ? "amber" : "green"}>
-                    {documentSet.status}
+                    {displayReviewValue(documentSet.status)}
                   </StatusBadge>
                 </dd>
               </div>

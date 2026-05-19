@@ -32,6 +32,8 @@ from app.schemas.risk import RiskDecision
 
 OperationT = TypeVar("OperationT")
 
+LEGACY_DEMO_DOCUMENT_SET_IDS = {"ds_demo_avi_threshold"}
+
 
 class InMemoryDocumentRepository:
     def __init__(self) -> None:
@@ -88,6 +90,50 @@ class InMemoryDocumentRepository:
     def update_document_set(self, document_set: DocumentSet) -> DocumentSet:
         self.document_sets[document_set.document_set_id] = document_set
         return document_set
+
+    def delete_document_set(self, document_set_id: str) -> bool:
+        document_set = self.document_sets.pop(document_set_id, None)
+        if document_set is None:
+            return False
+
+        for document_id in document_set.document_ids:
+            self.documents.pop(document_id, None)
+            self.chunks_by_document.pop(document_id, None)
+
+        finding_ids = {
+            finding.finding_id
+            for finding in [
+                *self.risk_findings_by_document_set.get(document_set_id, []),
+                *self.risk_fusion_findings_by_document_set.get(document_set_id, []),
+            ]
+        }
+        for finding_id in finding_ids:
+            self.review_decisions_by_finding.pop(finding_id, None)
+
+        model_run_ids = {
+            model_run.model_run_id
+            for model_run in self.model_runs_by_document_set.get(document_set_id, [])
+        }
+        self.raw_model_outputs = {
+            output_hash: output
+            for output_hash, output in self.raw_model_outputs.items()
+            if output.model_run_id not in model_run_ids
+        }
+
+        self.claims_by_document_set.pop(document_set_id, None)
+        self.risk_findings_by_document_set.pop(document_set_id, None)
+        self.risk_fusion_findings_by_document_set.pop(document_set_id, None)
+        self.adversarial_challenges_by_document_set.pop(document_set_id, None)
+        self.coverage_summaries_by_document_set.pop(document_set_id, None)
+        self.risk_decisions_by_document_set.pop(document_set_id, None)
+        self.verification_results_by_document_set.pop(document_set_id, None)
+        self.model_runs_by_document_set.pop(document_set_id, None)
+        self.pipeline_runs = {
+            pipeline_run_id: pipeline_run
+            for pipeline_run_id, pipeline_run in self.pipeline_runs.items()
+            if pipeline_run.document_set_id != document_set_id
+        }
+        return True
 
     def add_document(
         self,
@@ -373,6 +419,11 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             lambda: super(PersistentSnapshotRepository, self).update_document_set(document_set)
         )
 
+    def delete_document_set(self, document_set_id: str) -> bool:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).delete_document_set(document_set_id)
+        )
+
     def add_document(
         self,
         *,
@@ -613,6 +664,9 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             self.requirement_sets = _model_dict(payload, "requirement_sets", RequirementSet)
         finally:
             self._is_loading = False
+
+        for document_set_id in LEGACY_DEMO_DOCUMENT_SET_IDS:
+            self.delete_document_set(document_set_id)
 
     def _save_snapshot(self) -> None:
         with self._lock:

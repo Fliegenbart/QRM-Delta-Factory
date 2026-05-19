@@ -41,8 +41,8 @@ def test_primary_review_endpoint_creates_findings_model_runs_and_audit_events() 
     }
     assert all(finding["evidence_items"] for finding in payload["findings"])
     assert all(finding["verification_result"] is not None for finding in payload["findings"])
-    assert len(payload["model_runs"]) == 6
-    assert len(repository.list_model_runs("ds_review_demo")) == 6
+    assert len(payload["model_runs"]) == 7
+    assert len(repository.list_model_runs("ds_review_demo")) == 7
     assert repository.list_raw_model_outputs()
     assert "primary_review_run_completed" in [event.event_type for event in audit_log.list_events()]
     assert "model_run_recorded" in [event.event_type for event in audit_log.list_events()]
@@ -66,6 +66,14 @@ def test_model_run_audit_includes_tenant_provider_model_id_prompt_and_hashes() -
     result = orchestrator.run_primary_review("ds_review_demo")
 
     assert result.model_runs[0].configured_model_id == "mock-reviewer-v0.1"
+    assert result.model_runs[0].agent_role == "DeviationReviewer"
+    assert result.model_runs[0].requirement_ids == [
+        "req_deviation_documented_impact_assessment",
+        "req_batch_impact_disposition_trace",
+    ]
+    assert result.model_runs[0].requirement_package_hash is not None
+    assert result.model_runs[0].knowledge_pack_ids
+    assert result.model_runs[0].case_signals
     completed_event = next(
         event for event in audit_log.list_events() if event.event_type == "model_run_completed"
     )
@@ -77,6 +85,10 @@ def test_model_run_audit_includes_tenant_provider_model_id_prompt_and_hashes() -
     assert completed_event.payload["model_version"] == "0.1.0"
     assert completed_event.payload["configured_model_id"] == "mock-reviewer-v0.1"
     assert completed_event.payload["prompt_version"] == "deviation_reviewer_v1"
+    assert completed_event.payload["requirement_ids"] == result.model_runs[0].requirement_ids
+    assert completed_event.payload["requirement_package_hash"] == result.model_runs[0].requirement_package_hash
+    assert completed_event.payload["knowledge_pack_ids"] == result.model_runs[0].knowledge_pack_ids
+    assert completed_event.payload["case_signals"] == result.model_runs[0].case_signals
 
 
 def test_orchestrator_runs_review_agents_in_parallel() -> None:

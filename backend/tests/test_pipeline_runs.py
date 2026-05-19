@@ -63,6 +63,13 @@ def test_pipeline_endpoint_runs_end_to_end_after_document_upload() -> None:
     assert payload["status"] == "completed"
     assert payload["failed_step"] is None
     assert payload["completed_at"] is not None
+    assert payload["model_manifest"]
+    assert {
+        entry["agent_role"]: entry["configured_model_id"]
+        for entry in payload["model_manifest"]
+    }["ContradictionHunter"]
+    assert all("knowledge_pack_ids" in entry for entry in payload["model_manifest"])
+    assert all("case_signals" in entry for entry in payload["model_manifest"])
     assert repository.get_latest_risk_decision(document_set_id) is not None
 
     review_pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
@@ -113,6 +120,11 @@ def test_model_run_failure_in_pipeline_does_not_allow_auto_clear() -> None:
     decision = repository.get_latest_risk_decision("ds_pipeline_failure")
     assert pipeline_run.status == "needs_human_review"
     assert pipeline_run.failed_step is None
+    assert {
+        item.agent_role: item.configured_model_id
+        for item in pipeline_run.model_manifest
+    }["DeviationReviewer"] == "failing-reviewer-v0.1"
+    assert all(item.knowledge_pack_ids for item in pipeline_run.model_manifest)
     assert decision is not None
     assert decision.auto_clear_allowed is False
     assert decision.decision == "blocked_due_to_model_failure"
@@ -134,6 +146,26 @@ def test_pipeline_marks_run_failed_when_parse_step_has_no_uploaded_documents() -
     assert pipeline_run.failed_step == "parse_document_set"
     assert "No uploaded documents" in str(pipeline_run.error_summary)
     assert any(event.event_type == "pipeline_run_failed" for event in audit_log.list_events())
+
+
+def test_pipeline_keeps_no_text_document_as_human_review_instead_of_failed() -> None:
+    repository.create_requirement_set(_requirement_set())
+    repository.create_document_set(_document_set(document_set_id="ds_pipeline_no_text"))
+    repository.add_document(
+        document=_document(document_set_id="ds_pipeline_no_text", parsing_quality_score=0),
+        chunks=[],
+    )
+
+    pipeline_run = PipelineService(repository=repository, audit_log=audit_log).run_pipeline(
+        "ds_pipeline_no_text"
+    )
+
+    assert pipeline_run.status == "needs_human_review"
+    assert pipeline_run.failed_step is None
+    assert pipeline_run.error_summary is None
+    document_set = repository.get_document_set("ds_pipeline_no_text")
+    assert document_set is not None
+    assert document_set.status == "needs_human_review"
 
 
 class FailingProvider(BaseModelProvider):
@@ -223,10 +255,15 @@ def _requirement_set(
     )
 
 
-def _document() -> Document:
+def _document(
+    *,
+    document_id: str = "doc_pipeline_failure",
+    document_set_id: str = "ds_pipeline_failure",
+    parsing_quality_score: float = 0.95,
+) -> Document:
     return Document(
-        document_id="doc_pipeline_failure",
-        document_set_id="ds_pipeline_failure",
+        document_id=document_id,
+        document_set_id=document_set_id,
         filename="deviation.txt",
         file_hash_sha256=sha256(b"deviation.txt").hexdigest(),
         mime_type="text/plain",
@@ -234,7 +271,7 @@ def _document() -> Document:
         storage_uri="local://pipeline/deviation.txt",
         parser_version="test-parser",
         parsing_status="parsed",
-        parsing_quality_score=0.95,
+        parsing_quality_score=parsing_quality_score,
         language="en",
         metadata={},
     )

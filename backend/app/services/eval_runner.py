@@ -294,6 +294,8 @@ def _failures(
     for gold in unmatched_gold:
         if gold.must_detect and gold.expected_severity == Severity.CRITICAL:
             failures.append(f"Critical must_detect finding missed: {gold.gold_finding_id}")
+        if gold.must_detect and gold.expected_severity == Severity.HIGH:
+            failures.append(f"High must_detect finding missed: {gold.gold_finding_id}")
     if risk_decision.auto_clear_allowed:
         for gold in dataset.gold_findings:
             if gold.must_detect and gold.expected_severity in {Severity.HIGH, Severity.CRITICAL}:

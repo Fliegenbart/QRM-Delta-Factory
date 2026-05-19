@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { listDocumentSets, ReviewApiError } from "@/src/lib/review-api";
+import { DeleteDocumentSetButton } from "@/src/components/review-ui/delete-document-set-button";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
-import { consultantReviewCopy, type DocumentSet } from "@/src/lib/review-ui";
+import {
+  consultantReviewCopy,
+  displayReviewValue,
+  isVisibleReviewDocumentSet,
+  type DocumentSet
+} from "@/src/lib/review-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +16,7 @@ export default async function ReviewUiDocumentSetsPage() {
   let error: string | null = null;
 
   try {
-    documentSets = await listDocumentSets();
+    documentSets = (await listDocumentSets()).filter(isVisibleReviewDocumentSet);
   } catch (caught) {
     if (caught instanceof ReviewApiError && caught.status === 404) {
       documentSets = [];
@@ -43,21 +49,24 @@ export default async function ReviewUiDocumentSetsPage() {
                 {documentSets.map((documentSet) => (
                   <tr key={documentSet.document_set_id} className="bg-white">
                     <td className="px-4 py-4 font-mono text-xs">{documentSet.document_set_id}</td>
-                    <td className="px-4 py-4">{documentSet.declared_document_type}</td>
-                    <td className="px-4 py-4">{documentSet.declared_process_area}</td>
+                    <td className="px-4 py-4">{displayReviewValue(documentSet.declared_document_type)}</td>
+                    <td className="px-4 py-4">{displayReviewValue(documentSet.declared_process_area)}</td>
                     <td className="px-4 py-4">
                       <StatusBadge tone={statusTone(documentSet.status)}>
-                        {documentSet.status}
+                        {displayReviewValue(documentSet.status)}
                       </StatusBadge>
                     </td>
                     <td className="px-4 py-4">{documentSet.document_ids.length}</td>
-                    <td className="px-4 py-4 text-right">
-                      <Link
-                        className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white"
-                        href={`/review-ui/document-sets/${documentSet.document_set_id}`}
-                      >
-                        {consultantReviewCopy.list.open}
-                      </Link>
+                    <td className="px-4 py-4">
+                      <div className="flex items-start justify-end gap-2">
+                        <Link
+                          className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white"
+                          href={`/review-ui/document-sets/${documentSet.document_set_id}`}
+                        >
+                          {consultantReviewCopy.list.open}
+                        </Link>
+                        <DeleteDocumentSetButton documentSetId={documentSet.document_set_id} />
+                      </div>
                     </td>
                   </tr>
                 ))}

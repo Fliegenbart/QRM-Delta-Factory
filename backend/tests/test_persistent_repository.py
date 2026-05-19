@@ -30,6 +30,18 @@ def test_persistent_repository_restores_snapshot_from_sqlite(tmp_path) -> None: 
     assert second.list_document_sets()[0].document_set_id == "ds_persist_demo"
 
 
+def test_persistent_repository_removes_retired_public_demo_case(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    database_url = f"sqlite:///{tmp_path / 'qrm_legacy_demo_state.db'}"
+    first = PersistentSnapshotRepository(database_url=database_url)
+    first.create_requirement_set(_requirement_set())
+    first.create_document_set(_document_set(document_set_id="ds_demo_avi_threshold"))
+
+    second = PersistentSnapshotRepository(database_url=database_url)
+
+    assert second.get_document_set("ds_demo_avi_threshold") is None
+    assert second.list_document_sets() == []
+
+
 def test_persistent_repository_handles_parallel_snapshot_writes(tmp_path) -> None:  # type: ignore[no-untyped-def]
     database_url = f"sqlite:///{tmp_path / 'qrm_parallel_state.db'}"
     repository = PersistentSnapshotRepository(database_url=database_url)

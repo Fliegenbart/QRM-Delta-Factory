@@ -3,8 +3,20 @@ import {
   caseWorkspaceStructure,
   aiArchitectureConcept,
   consultantReviewCopy,
+  buildFindingReviewChecklist,
+  cleanEvidenceQuote,
   decisionOptions,
+  displayReviewReason,
+  displayReviewReasons,
+  displayReviewPackSummary,
+  displayRiskStatement,
+  displayReviewValue,
+  displayFeedbackOutcome,
+  evidenceSourceLabel,
   findTopRiskById,
+  reviewPackProgress,
+  isHiddenDemoDocumentSetId,
+  isVisibleReviewDocumentSet,
   normalizeReviewDecisionPayload,
   reviewDecisionRequiresHumanRationale,
   supabasePublicEnvKeys,
@@ -19,22 +31,157 @@ describe("review UI helpers", () => {
     expect(riskOrchestrationEntry.replacesLegacyDeltaAnalysis).toBe(true);
     expect(riskOrchestrationEntry.legacyDeltaRoute).toBe("/delta-analysis");
     expect(riskOrchestrationEntry.reviewWorkbenchRoute).toBe("/review-ui");
-    expect(riskOrchestrationEntry.name).toBe("Risk Delta Review");
-    expect(riskOrchestrationEntry.shortDescription).toContain("Review Pack");
+    expect(riskOrchestrationEntry.name).toBe("QA-Prüfung vorbereiten");
+    expect(riskOrchestrationEntry.shortDescription).toContain("Prüfmappe");
     expect(riskOrchestrationEntry.shortDescription).toContain("Quellen");
-    expect(riskOrchestrationEntry.workflow).toContain("Dokumente laden");
-    expect(riskOrchestrationEntry.workflow).toContain("Review Pack öffnen");
+    expect(riskOrchestrationEntry.workflow).toContain("Unterlagen hochladen");
+    expect(riskOrchestrationEntry.workflow).toContain("Prüfmappe öffnen");
   });
 
   it("uses consultant-friendly copy for the backend review UI", () => {
-    expect(consultantReviewCopy.workspaceTitle).toBe("Risk Delta Review");
-    expect(consultantReviewCopy.workspaceDescription).toBe("Quellen rein. Review Pack raus. QA entscheidet.");
-    expect(consultantReviewCopy.list.title).toBe("Review Packs");
+    expect(consultantReviewCopy.workspaceTitle).toBe("QA-Prüfung vorbereiten");
+    expect(consultantReviewCopy.workspaceDescription).toBe("Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.");
+    expect(consultantReviewCopy.list.title).toBe("Fallübersicht");
     expect(consultantReviewCopy.list.empty).toContain("Startseite");
-    expect(consultantReviewCopy.finding.title).toBe("Finding");
-    expect(consultantReviewCopy.decision.savedMessage).toBe("Entscheidung gespeichert.");
+    expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt");
+    expect(consultantReviewCopy.decision.savedMessage).toContain("Bearbeitungsstand");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
     expect(consultantReviewCopy.decision.rationaleRequired).toContain("begründen");
+  });
+
+  it("hides the retired public demo case from the review UI", () => {
+    const demoCase = {
+      document_set_id: "ds_demo_avi_threshold",
+      tenant_id: "tenant_demo_pharma",
+      requirement_set_id: "rset_demo",
+      upload_timestamp: "2026-01-01T00:00:00Z",
+      document_ids: [],
+      declared_document_type: "change_control",
+      declared_process_area: "aseptic_filling",
+      uploaded_by: "demo",
+      status: "needs_human_review"
+    };
+
+    expect(isHiddenDemoDocumentSetId(demoCase.document_set_id)).toBe(true);
+    expect(isVisibleReviewDocumentSet(demoCase)).toBe(false);
+    expect(isVisibleReviewDocumentSet({ ...demoCase, document_set_id: "ds_real_case" })).toBe(true);
+  });
+
+  it("shows backend codes as plain German labels", () => {
+    expect(displayReviewValue("needs_human_review")).toBe("Menschliche Prüfung nötig");
+    expect(displayReviewValue("change_control")).toBe("Geplante Änderung");
+    expect(displayReviewValue("blocked_due_to_model_failure")).toBe("Prüfung notwendig");
+    expect(displayReviewReason("human review required for high/critical risk")).toContain("Mensch");
+  });
+
+  it("shows review pack summaries without backend decision jargon", () => {
+    expect(
+      displayReviewPackSummary({
+        decision: "blocked_due_to_model_failure",
+        findingCount: 4,
+        maxSeverity: "high"
+      })
+    ).toBe("Prüfung notwendig. 4 Prüfpunkte gefunden. höchste Einstufung: Hoch.");
+  });
+
+  it("calculates human review progress for a review pack", () => {
+    const pack = {
+      review_progress_percent: 50,
+      reviewed_finding_count: 1,
+      total_finding_count: 2,
+      top_risks: []
+    } as ReviewPack;
+
+    expect(reviewPackProgress(pack)).toEqual({
+      percent: 50,
+      reviewed: 1,
+      total: 2,
+      label: "50% bearbeitet (1 von 2 Prüfpunkten)"
+    });
+  });
+
+  it("shows human feedback outcomes as compact German labels", () => {
+    expect(displayFeedbackOutcome("confirmed_risk")).toBe("Bestätigt");
+    expect(displayFeedbackOutcome("severity_overstated")).toBe("Herabgestuft");
+    expect(displayFeedbackOutcome("false_positive")).toBe("Fehlalarm");
+    expect(displayFeedbackOutcome("missing_information")).toBe("Mehr Infos");
+    expect(displayFeedbackOutcome("evidence_issue")).toBe("Quelle falsch");
+    expect(displayFeedbackOutcome("requirement_issue")).toBe("Regelwerk falsch");
+    expect(displayFeedbackOutcome("missed_finding")).toBe("Fehlender Befund");
+  });
+
+  it("hides internal reviewer routing failures from human review reasons", () => {
+    const reasons = displayReviewReasons(
+      "single high/critical finding is sufficient for human review; relevant reviewer role failed: GMPDataIntegrityReviewer; missing required reviewer role: ContradictionHunter; finding lacks requirement reference: finding 1; adversarial challenge involves possible high/critical risk; verifier did not pass all deterministic checks"
+    );
+
+    expect(reasons).toContain("Eine Gegenprüfung sieht möglicherweise ein hohes oder kritisches Risiko.");
+    expect(reasons).toContain("Die automatische Quellenprüfung konnte nicht alles sicher bestätigen.");
+    expect(reasons.join(" ")).not.toContain("Ein einzelner hoher oder kritischer Prüfpunkt reicht aus");
+    expect(reasons.join(" ")).not.toContain("reviewer role failed");
+    expect(reasons.join(" ")).not.toContain("finding lacks requirement reference");
+  });
+
+  it("shows adversarial finding statements and review prompts as concrete German copy", () => {
+    expect(displayRiskStatement("Adversarial review found required evidence missing or not clearly present in the claim ledger.")).toBe(
+      "Erforderliche Nachweise fehlen oder sind in den Quellen nicht klar belegt."
+    );
+
+    const checklist = buildFindingReviewChecklist({
+      riskStatement: "Adversarial review found required evidence missing or not clearly present in the claim ledger.",
+      requirementReferences: [],
+      verifierStatus: "none",
+      evidenceRows: [
+        {
+          document_id: "CC-SYN-005",
+          page: 4,
+          chunk_id: "chunk_12",
+          quote: "The validation addendum is deferred pending annual supplier review."
+        }
+      ],
+      missingInformation: ["current validation report", "approved validation addendum"]
+    });
+
+    expect(checklist).toContain("Prüfe den Befund: Erforderliche Nachweise fehlen oder sind in den Quellen nicht klar belegt.");
+    expect(checklist).toContain("Fehlender Nachweis: aktueller Validierungsbericht.");
+    expect(checklist).toContain("Fehlender Nachweis: genehmigter Validierungsnachtrag.");
+    expect(checklist).toContain("Regelwerksbezug prüfen oder nachtragen.");
+    expect(checklist.join(" ")).toContain("Belegstelle prüfen: CC-SYN-005, Seite 4.");
+    expect(checklist.join(" ")).not.toContain("chunk_12");
+  });
+
+  it("shows evidence references without internal document and chunk ids", () => {
+    const row = {
+      document_id: "doc_978d9cfbc03c4111964a97eee05a2055",
+      page: 1,
+      chunk_id: "chunk_978d9cfbc03c4111964a97eee05a2055_p1",
+      quote:
+        '0 **Datum:** 2026-04-16 **Dokumenttyp:** Baseline Risk Assessment **Prozessbereich:** Supplier Change / Aseptische Verarbeitung **Seiten-/Abschnittsplatzhalter:** S.'
+    };
+
+    expect(evidenceSourceLabel(row)).toBe("Baseline Risk Assessment, Seite 1");
+    expect(cleanEvidenceQuote(row.quote)).toBe(
+      "Datum: 2026-04-16 Dokumenttyp: Baseline Risk Assessment Prozessbereich: Supplier Change / Aseptische Verarbeitung Seiten-/Abschnittsplatzhalter: S."
+    );
+  });
+
+  it("keeps finding review checklists short when many global missing items exist", () => {
+    const checklist = buildFindingReviewChecklist({
+      riskStatement: "Adversarial review found required evidence missing or not clearly present in the claim ledger.",
+      requirementReferences: [],
+      verifierStatus: "none",
+      evidenceRows: [],
+      missingInformation: [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth",
+        "sixth"
+      ]
+    });
+
+    expect(checklist.filter((item) => item.startsWith("Fehlender Nachweis:"))).toHaveLength(4);
   });
 
   it("trims backend runtime environment values", () => {
@@ -53,6 +200,18 @@ describe("review UI helpers", () => {
     });
   });
 
+  it("removes literal escaped newlines from backend runtime environment values", () => {
+    const config = getReviewBackendConfig({
+      QRM_BACKEND_URL: "https://backend.example.com\\n",
+      QRM_BACKEND_TENANT_ID: "tenant_demo_pharma\\n",
+      QRM_DEFAULT_REQUIREMENT_SET_ID: "rset_demo_gmp_qrm_2026_1\\n"
+    });
+
+    expect(config.backendUrl).toBe("https://backend.example.com");
+    expect(config.tenantId).toBe("tenant_demo_pharma");
+    expect(config.requirementSetId).toBe("rset_demo_gmp_qrm_2026_1");
+  });
+
   it("defines a simpler case workspace structure for consultants", () => {
     expect(caseWorkspaceStructure.route).toBe("/case-workspace");
     expect(caseWorkspaceStructure.primaryTabs.map((tab) => tab.label)).toEqual([
@@ -68,17 +227,23 @@ describe("review UI helpers", () => {
   });
 
   it("documents the AI architecture as a controlled review chain, not model voting", () => {
+    expect(aiArchitectureConcept.title).toBe("So prüft das System");
+    expect(aiArchitectureConcept.subtitle).toContain("Multi-Agent-Review");
+    expect(aiArchitectureConcept.subtitle).toContain("Regelkarten");
     expect(aiArchitectureConcept.flow.map((step) => step.id)).toEqual([
       "source",
-      "primary-reviewers",
+      "scope-router",
+      "reviewer-agents",
       "evidence-verifier",
-      "adversarial",
       "risk-fusion",
       "human-review"
     ]);
     expect(aiArchitectureConcept.nonNegotiables).toContain("Keine Mehrheitsabstimmung.");
+    expect(aiArchitectureConcept.nonNegotiables).toContain("Fehlende Knowledge Packs blockieren Auto-Clear.");
+    expect(aiArchitectureConcept.nonNegotiables).toContain("Firmenspezifische SOPs können geladen werden; die Agenten ziehen daraus rollenbezogen passende Regelkarten und Textstellen.");
     expect(aiArchitectureConcept.nonNegotiables).toContain("QA/SME bleibt letzter Schritt.");
     expect(aiArchitectureConcept.aiRoles.map((role) => role.role)).toContain("Evidence Verifier");
+    expect(aiArchitectureConcept.aiRoles.map((role) => role.role)).toContain("7 Reviewer Agents");
   });
 
   it("exposes the reviewer decisions required by the workflow", () => {
@@ -86,6 +251,10 @@ describe("review UI helpers", () => {
       "confirm",
       "downgrade",
       "reject_false_positive",
+      "severity_incorrect",
+      "evidence_incorrect",
+      "requirement_incorrect",
+      "missed_finding",
       "request_more_information",
       "escalate_to_qa"
     ]);
@@ -93,6 +262,10 @@ describe("review UI helpers", () => {
       "Befund bestätigen",
       "Bewertung herabstufen",
       "Als Fehlalarm markieren",
+      "Schweregrad korrigieren",
+      "Quelle passt nicht",
+      "Regelwerk passt nicht",
+      "Fehlenden Befund melden",
       "Weitere Unterlagen anfordern",
       "An QA eskalieren"
     ]);

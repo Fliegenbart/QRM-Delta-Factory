@@ -5,8 +5,9 @@ from fastapi import APIRouter, Request
 from app.audit.events import audit_log
 from app.core.security import current_tenant_id
 from app.db.in_memory import repository
-from app.schemas.analytics import FalsePositiveAnalyticsReport
+from app.schemas.analytics import FalsePositiveAnalyticsReport, HumanFeedbackRegistryReport
 from app.services.false_positive_analytics import HumanOverrideAnalyzer
+from app.services.human_feedback_registry import HumanFeedbackRegistry
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -15,3 +16,9 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 def get_false_positive_analytics(request: Request) -> FalsePositiveAnalyticsReport:
     analyzer = HumanOverrideAnalyzer(repository=repository, audit_log=audit_log)
     return analyzer.analyze(tenant_id=current_tenant_id(request))
+
+
+@router.get("/human-feedback", response_model=HumanFeedbackRegistryReport)
+def get_human_feedback_registry(request: Request) -> HumanFeedbackRegistryReport:
+    registry = HumanFeedbackRegistry(repository=repository, audit_log=audit_log)
+    return registry.report(tenant_id=current_tenant_id(request))
