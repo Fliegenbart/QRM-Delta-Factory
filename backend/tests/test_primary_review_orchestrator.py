@@ -86,7 +86,10 @@ def test_model_run_audit_includes_tenant_provider_model_id_prompt_and_hashes() -
     assert completed_event.payload["configured_model_id"] == "mock-reviewer-v0.1"
     assert completed_event.payload["prompt_version"] == "deviation_reviewer_v1"
     assert completed_event.payload["requirement_ids"] == result.model_runs[0].requirement_ids
-    assert completed_event.payload["requirement_package_hash"] == result.model_runs[0].requirement_package_hash
+    assert (
+        completed_event.payload["requirement_package_hash"]
+        == result.model_runs[0].requirement_package_hash
+    )
     assert completed_event.payload["knowledge_pack_ids"] == result.model_runs[0].knowledge_pack_ids
     assert completed_event.payload["case_signals"] == result.model_runs[0].case_signals
 

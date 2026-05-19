@@ -20,8 +20,8 @@ from app.agents.providers import (
 from app.audit.events import audit_log
 from app.core.config import get_settings
 from app.db.in_memory import repository
-from app.schemas.review import ReviewerAgentOutput
 from app.schemas.domain import DocumentSet, RequirementSet
+from app.schemas.review import ReviewerAgentOutput
 from app.services.review_orchestrator import (
     PrimaryReviewOrchestrator,
     ReviewerAgent,
