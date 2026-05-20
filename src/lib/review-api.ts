@@ -2,10 +2,13 @@ import "server-only";
 
 import type {
   DocumentSet,
+  CalibrationExample,
+  CalibrationRegressionGateReport,
   HumanFeedbackRegistryReport,
   PipelineRun,
   Requirement,
   RequirementLibraryOverview,
+  ReviewCalibrationReport,
   RequirementSet,
   ReviewDecisionValue,
   ReviewPack
@@ -109,6 +112,39 @@ export async function getHumanFeedbackRegistry(): Promise<HumanFeedbackRegistryR
   return backendFetch<HumanFeedbackRegistryReport>("/analytics/human-feedback");
 }
 
+export async function getReviewCalibrationReport(): Promise<ReviewCalibrationReport> {
+  return backendFetch<ReviewCalibrationReport>("/analytics/review-calibration");
+}
+
+export async function runReviewCalibrationRegressionGate(): Promise<CalibrationRegressionGateReport> {
+  return backendFetch<CalibrationRegressionGateReport>(
+    "/analytics/review-calibration/run-regression-gate",
+    { method: "POST" }
+  );
+}
+
+export async function approveReviewCalibrationExample(input: {
+  calibrationExampleId: string;
+  approvedBy: string;
+  activate?: boolean;
+  regressionGateReportId?: string;
+  regressionGatePassed?: boolean;
+}): Promise<CalibrationExample> {
+  return backendFetch<CalibrationExample>(
+    `/analytics/review-calibration/${encodeURIComponent(input.calibrationExampleId)}/approve`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        approved_by: normalizeReviewerId(input.approvedBy),
+        activate: Boolean(input.activate),
+        regression_gate_passed: Boolean(input.regressionGatePassed),
+        regression_gate_report_id: input.regressionGateReportId || null
+      })
+    }
+  );
+}
+
 export async function importRequirementLibrary(input: {
   file: File;
   importedBy: string;
@@ -148,6 +184,11 @@ export async function submitReviewDecision(input: {
       })
     )
   });
+}
+
+function normalizeReviewerId(value: string): string {
+  const trimmed = value.trim() || "qa_lead";
+  return trimmed.startsWith("reviewer_") ? trimmed : `reviewer_${trimmed}`;
 }
 
 async function backendFetch<T>(path: string, init: RequestInit = {}): Promise<T> {

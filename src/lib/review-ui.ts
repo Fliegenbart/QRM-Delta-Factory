@@ -356,6 +356,59 @@ export type HumanFeedbackRegistryReport = {
   limitations: string[];
 };
 
+export type CalibrationExampleStatus = "raw_feedback" | "approved_gold" | "active";
+
+export type CalibrationExample = {
+  calibration_example_id: string;
+  source_review_id: string;
+  source_feedback_id: string;
+  document_set_id: string;
+  finding_id: string;
+  tenant_id: string;
+  document_type: string;
+  process_area: string;
+  agent_role: string;
+  model_provider: string;
+  model_name: string;
+  model_version: string;
+  prompt_version: string;
+  requirement_references: string[];
+  risk_category: string;
+  original_severity: string;
+  human_decision: ReviewDecisionValue;
+  feedback_outcome: string;
+  reviewer_id: string;
+  reviewer_rationale: string;
+  risk_statement: string;
+  evidence_quotes: string[];
+  high_critical_recall_guard: boolean;
+  status: CalibrationExampleStatus;
+  created_at: string;
+  approved_by?: string | null;
+  approved_at?: string | null;
+  activated_by?: string | null;
+  activated_at?: string | null;
+  regression_gate_report_id?: string | null;
+};
+
+export type ReviewCalibrationReport = {
+  generated_at: string;
+  total_examples: number;
+  raw_feedback_count: number;
+  approved_gold_count: number;
+  active_count: number;
+  examples: CalibrationExample[];
+  limitations: string[];
+};
+
+export type CalibrationRegressionGateReport = {
+  regression_gate_report_id: string;
+  generated_at: string;
+  passed: boolean;
+  eval_dataset_count: number;
+  failed_dataset_ids: string[];
+};
+
 export type PipelineRun = {
   pipeline_run_id: string;
   document_set_id: string;
@@ -554,6 +607,15 @@ export function displayFeedbackOutcome(outcome: string): string {
 
 export function displayFeedbackCount(value?: number | null): string {
   return String(value ?? 0);
+}
+
+export function displayCalibrationStatus(status: CalibrationExampleStatus): string {
+  const labels: Record<CalibrationExampleStatus, string> = {
+    raw_feedback: "Rohfeedback",
+    approved_gold: "Gold-Beispiel",
+    active: "Aktiv"
+  };
+  return labels[status];
 }
 
 export function displayRiskStatement(statement: string): string {

@@ -84,12 +84,16 @@ def test_calibration_activation_requires_regression_gate_then_builds_prompt_pack
         case_signals=["deviation"],
     ).example_ids == []
 
+    gate_report = calibration.run_regression_gate()
+    assert gate_report.passed is True
+    assert gate_report.regression_gate_report_id.startswith("calgate_")
+
     active = calibration.approve_example(
         raw_example.calibration_example_id,
         approved_by="reviewer_qa_lead",
         activate=True,
         regression_gate_passed=True,
-        regression_gate_report_id="eval_regression_gate_demo_passed",
+        regression_gate_report_id=gate_report.regression_gate_report_id,
     )
 
     pack = calibration.build_pack(
@@ -121,13 +125,19 @@ def test_review_calibration_api_activates_only_with_gate_report() -> None:
     )
     assert rejected.status_code == 409
 
+    gate_response = client.post("/analytics/review-calibration/run-regression-gate")
+    assert gate_response.status_code == 200
+    gate_payload = gate_response.json()
+    assert gate_payload["passed"] is True
+    assert gate_payload["regression_gate_report_id"].startswith("calgate_")
+
     activated = client.post(
         f"/analytics/review-calibration/{raw_example.calibration_example_id}/approve",
         json={
             "approved_by": "reviewer_qa_lead",
             "activate": True,
             "regression_gate_passed": True,
-            "regression_gate_report_id": "eval_regression_gate_demo_passed",
+            "regression_gate_report_id": gate_payload["regression_gate_report_id"],
         },
     )
     assert activated.status_code == 200
@@ -143,12 +153,14 @@ def test_primary_review_injects_active_calibration_examples_into_agent_context()
     active = ReviewCalibrationService(
         repository=repository,
         audit_log=audit_log,
-    ).approve_example(
+    )
+    gate_report = active.run_regression_gate()
+    activated = active.approve_example(
         raw_example.calibration_example_id,
         approved_by="reviewer_qa_lead",
         activate=True,
         regression_gate_passed=True,
-        regression_gate_report_id="eval_regression_gate_demo_passed",
+        regression_gate_report_id=gate_report.regression_gate_report_id,
     )
     provider = CapturingProvider()
     orchestrator = PrimaryReviewOrchestrator(
@@ -167,18 +179,18 @@ def test_primary_review_injects_active_calibration_examples_into_agent_context()
 
     result = orchestrator.run_primary_review("ds_calibration_target")
 
-    assert result.model_runs[0].calibration_example_ids == [active.calibration_example_id]
+    assert result.model_runs[0].calibration_example_ids == [activated.calibration_example_id]
     assert result.model_runs[0].calibration_pack_hash is not None
     assert provider.last_input_schema is not None
     assert provider.last_input_schema["calibration_example_ids"] == [
-        active.calibration_example_id
+        activated.calibration_example_id
     ]
     assert "Kontrollierte Kalibrierungsbeispiele" in str(provider.last_prompt)
     completed_event = next(
         event for event in audit_log.list_events() if event.event_type == "model_run_completed"
     )
     assert completed_event.payload["calibration_example_ids"] == [
-        active.calibration_example_id
+        activated.calibration_example_id
     ]
     assert (
         completed_event.payload["calibration_pack_hash"]

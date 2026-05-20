@@ -14,6 +14,7 @@ from app.schemas.calibration import (
     CalibrationExampleStatus,
     CalibrationPack,
     CalibrationPromptExample,
+    CalibrationRegressionGateReport,
     ReviewCalibrationReport,
 )
 from app.schemas.domain import (
@@ -25,6 +26,7 @@ from app.schemas.domain import (
     RiskFinding,
     Severity,
 )
+from app.services.eval_runner import EvalRunner
 
 
 class CalibrationExampleNotFoundError(Exception):
@@ -144,6 +146,13 @@ class ReviewCalibrationService:
                 raise CalibrationActivationGateError(
                     "Activation requires a passed regression gate report"
                 )
+            gate_report = self.repository.get_calibration_gate_report(
+                regression_gate_report_id
+            )
+            if gate_report is None or not gate_report.passed:
+                raise CalibrationActivationGateError(
+                    "Activation requires a stored passed regression gate report"
+                )
             update.update(
                 {
                     "status": CalibrationExampleStatus.ACTIVE,
@@ -171,6 +180,44 @@ class ReviewCalibrationService:
             },
         )
         return updated
+
+    def run_regression_gate(self) -> CalibrationRegressionGateReport:
+        runner = EvalRunner()
+        eval_reports = [
+            runner.run_fixture(fixture.dataset.dataset_id)
+            for fixture in runner.list_datasets()
+        ]
+        failed_dataset_ids = [
+            report.dataset.dataset_id for report in eval_reports if not report.passed
+        ]
+        passed = bool(eval_reports) and not failed_dataset_ids
+        generated_at = datetime.now(UTC)
+        report = CalibrationRegressionGateReport(
+            regression_gate_report_id=_regression_gate_report_id(
+                generated_at=generated_at,
+                eval_reports=eval_reports,
+                passed=passed,
+            ),
+            generated_at=generated_at,
+            passed=passed,
+            eval_dataset_count=len(eval_reports),
+            failed_dataset_ids=failed_dataset_ids,
+            eval_reports=eval_reports,
+        )
+        self.repository.add_calibration_gate_report(report)
+        self.audit_log.append(
+            event_type="review_calibration_regression_gate_run",
+            actor_id="service_review_calibration",
+            actor_type="service",
+            entity_type="CalibrationRegressionGateReport",
+            entity_id=report.regression_gate_report_id,
+            payload={
+                "passed": report.passed,
+                "eval_dataset_count": report.eval_dataset_count,
+                "failed_dataset_ids": report.failed_dataset_ids,
+            },
+        )
+        return report
 
     def build_pack(
         self,
@@ -409,6 +456,20 @@ def _count_status(
 
 def _calibration_example_id(review_id: str) -> str:
     return f"cal_{sha256(review_id.encode()).hexdigest()[:20]}"
+
+
+def _regression_gate_report_id(
+    *,
+    generated_at: datetime,
+    eval_reports: Sequence[object],
+    passed: bool,
+) -> str:
+    payload = {
+        "generated_at": generated_at.isoformat(),
+        "passed": passed,
+        "eval_report_count": len(eval_reports),
+    }
+    return f"calgate_{sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:20]}"
 
 
 def _hash_json(payload: dict[str, object]) -> str:

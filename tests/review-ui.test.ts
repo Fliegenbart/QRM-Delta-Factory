@@ -13,6 +13,7 @@ import {
   displayReviewValue,
   displayFeedbackOutcome,
   displayFeedbackCount,
+  displayCalibrationStatus,
   evidenceSourceLabel,
   findTopRiskById,
   reviewPackProgress,
@@ -115,6 +116,12 @@ describe("review UI helpers", () => {
     expect(displayFeedbackCount(undefined)).toBe("0");
     expect(displayFeedbackCount(null)).toBe("0");
     expect(displayFeedbackCount(4)).toBe("4");
+  });
+
+  it("shows calibration status as reviewer-facing labels", () => {
+    expect(displayCalibrationStatus("raw_feedback")).toBe("Rohfeedback");
+    expect(displayCalibrationStatus("approved_gold")).toBe("Gold-Beispiel");
+    expect(displayCalibrationStatus("active")).toBe("Aktiv");
   });
 
   it("hides internal reviewer routing failures from human review reasons", () => {

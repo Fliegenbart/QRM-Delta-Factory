@@ -9,6 +9,7 @@ from app.schemas.analytics import FalsePositiveAnalyticsReport, HumanFeedbackReg
 from app.schemas.calibration import (
     CalibrationExample,
     CalibrationExampleApprovalRequest,
+    CalibrationRegressionGateReport,
     ReviewCalibrationReport,
 )
 from app.services.false_positive_analytics import HumanOverrideAnalyzer
@@ -38,6 +39,15 @@ def get_human_feedback_registry(request: Request) -> HumanFeedbackRegistryReport
 def get_review_calibration_report(request: Request) -> ReviewCalibrationReport:
     calibration = ReviewCalibrationService(repository=repository, audit_log=audit_log)
     return calibration.report(tenant_id=current_tenant_id(request))
+
+
+@router.post(
+    "/review-calibration/run-regression-gate",
+    response_model=CalibrationRegressionGateReport,
+)
+def run_review_calibration_regression_gate() -> CalibrationRegressionGateReport:
+    calibration = ReviewCalibrationService(repository=repository, audit_log=audit_log)
+    return calibration.run_regression_gate()
 
 
 @router.post(

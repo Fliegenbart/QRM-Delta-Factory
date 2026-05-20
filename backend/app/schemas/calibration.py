@@ -18,8 +18,10 @@ from app.schemas.domain import (
     StrictSchema,
     TenantId,
 )
+from app.schemas.evals import EvalReport
 
 CalibrationExampleId = Annotated[str, StringConstraints(pattern=r"^cal_[A-Za-z0-9_-]+$")]
+CalibrationGateReportId = Annotated[str, StringConstraints(pattern=r"^calgate_[A-Za-z0-9_-]+$")]
 
 
 class CalibrationExampleStatus(StrEnum):
@@ -58,7 +60,7 @@ class CalibrationExample(StrictSchema):
     approved_at: datetime | None = None
     activated_by: ReviewerId | None = None
     activated_at: datetime | None = None
-    regression_gate_report_id: str | None = Field(default=None, min_length=1)
+    regression_gate_report_id: CalibrationGateReportId | None = None
 
     @model_validator(mode="after")
     def active_examples_require_audit_trail(self) -> CalibrationExample:
@@ -104,7 +106,7 @@ class CalibrationExampleApprovalRequest(StrictSchema):
     approved_by: ReviewerId
     activate: bool = False
     regression_gate_passed: bool = False
-    regression_gate_report_id: str | None = Field(default=None, min_length=1)
+    regression_gate_report_id: CalibrationGateReportId | None = None
 
 
 class ReviewCalibrationReport(StrictSchema):
@@ -115,3 +117,12 @@ class ReviewCalibrationReport(StrictSchema):
     active_count: int = Field(ge=0)
     examples: list[CalibrationExample] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
+
+
+class CalibrationRegressionGateReport(StrictSchema):
+    regression_gate_report_id: CalibrationGateReportId
+    generated_at: datetime
+    passed: bool
+    eval_dataset_count: int = Field(ge=0)
+    failed_dataset_ids: list[str] = Field(default_factory=list)
+    eval_reports: list[EvalReport] = Field(default_factory=list)

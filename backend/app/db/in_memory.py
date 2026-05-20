@@ -11,7 +11,11 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
 from app.core.config import get_settings
-from app.schemas.calibration import CalibrationExample, CalibrationExampleStatus
+from app.schemas.calibration import (
+    CalibrationExample,
+    CalibrationExampleStatus,
+    CalibrationRegressionGateReport,
+)
 from app.schemas.domain import (
     AdversarialChallenge,
     Claim,
@@ -54,6 +58,7 @@ class InMemoryDocumentRepository:
         self.raw_model_outputs: dict[str, RawModelOutputRecord] = {}
         self.requirement_sets: dict[str, RequirementSet] = {}
         self.calibration_examples: dict[str, CalibrationExample] = {}
+        self.calibration_gate_reports: dict[str, CalibrationRegressionGateReport] = {}
 
     def reset(self) -> None:
         self.document_sets.clear()
@@ -72,6 +77,7 @@ class InMemoryDocumentRepository:
         self.raw_model_outputs.clear()
         self.requirement_sets.clear()
         self.calibration_examples.clear()
+        self.calibration_gate_reports.clear()
 
     def create_document_set(self, document_set: DocumentSet) -> DocumentSet:
         self.document_sets[document_set.document_set_id] = document_set
@@ -384,6 +390,26 @@ class InMemoryDocumentRepository:
             examples = [example for example in examples if example.agent_role == agent_role]
         return sorted(examples, key=lambda example: example.created_at, reverse=True)
 
+    def add_calibration_gate_report(
+        self,
+        report: CalibrationRegressionGateReport,
+    ) -> CalibrationRegressionGateReport:
+        self.calibration_gate_reports[report.regression_gate_report_id] = report
+        return report
+
+    def get_calibration_gate_report(
+        self,
+        regression_gate_report_id: str,
+    ) -> CalibrationRegressionGateReport | None:
+        return self.calibration_gate_reports.get(regression_gate_report_id)
+
+    def list_calibration_gate_reports(self) -> list[CalibrationRegressionGateReport]:
+        return sorted(
+            self.calibration_gate_reports.values(),
+            key=lambda report: report.generated_at,
+            reverse=True,
+        )
+
     def is_active_requirement_set(self, requirement_set_id: str) -> bool:
         requirement_set = self.get_requirement_set(requirement_set_id)
         return requirement_set is not None and requirement_set.active
@@ -633,6 +659,16 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             )
         )
 
+    def add_calibration_gate_report(
+        self,
+        report: CalibrationRegressionGateReport,
+    ) -> CalibrationRegressionGateReport:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).add_calibration_gate_report(
+                report
+            )
+        )
+
     def _persist_after(self, operation: Callable[[], OperationT]) -> OperationT:
         with self._lock:
             result = operation()
@@ -735,6 +771,11 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
                 "calibration_examples",
                 CalibrationExample,
             )
+            self.calibration_gate_reports = _model_dict(
+                payload,
+                "calibration_gate_reports",
+                CalibrationRegressionGateReport,
+            )
         finally:
             self._is_loading = False
 
@@ -796,6 +837,7 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             "raw_model_outputs": _dump_model_dict(self.raw_model_outputs),
             "requirement_sets": _dump_model_dict(self.requirement_sets),
             "calibration_examples": _dump_model_dict(self.calibration_examples),
+            "calibration_gate_reports": _dump_model_dict(self.calibration_gate_reports),
         }
 
 
