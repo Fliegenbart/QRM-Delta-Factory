@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { AlertCircle, CheckCircle2, FileUp, Loader2, UploadCloud } from "lucide-react";
+import { AlertCircle, CheckCircle2, FileUp, Loader2, RefreshCcw, UploadCloud } from "lucide-react";
 import type { Requirement, RequirementLibraryOverview } from "@/src/lib/review-ui";
 
 type LoadState = "loading" | "ready" | "uploading" | "error";
@@ -25,7 +25,7 @@ export function RequirementLibraryManager() {
       const current = bySource.get(key) ?? {
         name: requirement.source_name,
         version: requirement.source_version,
-        count: 0
+        count: 0,
       };
       current.count += 1;
       bySource.set(key, current);
@@ -38,7 +38,7 @@ export function RequirementLibraryManager() {
     setError(null);
     try {
       const response = await fetch("/api/review-ui/requirement-library", {
-        cache: "no-store"
+        cache: "no-store",
       });
       const payload = await readPayload(response);
       setOverview(payload.overview);
@@ -59,7 +59,7 @@ export function RequirementLibraryManager() {
       formData.set("importedBy", "quality_admin");
       const response = await fetch("/api/review-ui/requirement-library", {
         method: "POST",
-        body: formData
+        body: formData,
       });
       const payload = await readPayload(response);
       setOverview(payload.overview);
@@ -76,62 +76,62 @@ export function RequirementLibraryManager() {
 
   return (
     <div className="space-y-5">
-      <section className="premium-surface rounded-[24px] border border-black/10 p-6 dark:border-white/10">
-        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <section className="surface p-5">
+        <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-teal">
+            <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
               Risikobibliothek
             </div>
-            <h2 className="mt-3 text-4xl font-light leading-tight tracking-[-0.05em] text-ink dark:text-white md:text-5xl">
-              Regeln hochladen. Prüfungen steuern.
+            <h2 className="mt-2 text-[20px] font-medium leading-snug text-[var(--text-primary)]">
+              Aktives Regelwerk und Quelldokumente
             </h2>
-            <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Hier liegt das aktive Regelwerk, gegen das neue Prüffälle bewertet werden.
+            <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--text-secondary)]">
+              Diese Bibliothek wird zur Bewertung neuer Prüffälle herangezogen. Importiere ein RequirementSet, um es zu aktivieren.
             </p>
           </div>
-          <div className="rounded-2xl border border-black/10 bg-white/70 p-4 dark:border-white/10 dark:bg-slate-900/40">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+          <aside className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4">
+            <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
               Aktives Regelwerk
             </div>
             {state === "loading" && !currentSet ? (
-              <div className="mt-4 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              <div className="mt-3 flex items-center gap-2 text-[13px] text-[var(--text-secondary)]">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Lädt...
               </div>
             ) : currentSet ? (
-              <div className="mt-3 space-y-2">
-                <div className="text-lg font-semibold text-slate-950 dark:text-white">
+              <div className="mt-2 space-y-1.5">
+                <div className="text-[14px] font-medium text-[var(--text-primary)]">
                   {currentSet.name}
                 </div>
-                <div className="text-sm text-slate-600 dark:text-slate-300">
-                  Version {currentSet.version}
+                <div className="mono text-[12px] text-[var(--text-secondary)]">
+                  v{currentSet.version}
                 </div>
-                <div className="flex flex-wrap gap-2 pt-2">
+                <div className="mt-2 flex flex-wrap gap-1.5">
                   <Pill>{currentSet.requirements.length} Regeln</Pill>
-                  <Pill>{sourceDocuments.length} Quelldokumente</Pill>
+                  <Pill>{sourceDocuments.length} Quellen</Pill>
                   <Pill>{activeCount} aktiv</Pill>
                 </div>
               </div>
             ) : (
-              <div className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+              <div className="mt-2 text-[13px] text-[var(--text-secondary)]">
                 Noch kein Regelwerk geladen.
               </div>
             )}
-          </div>
+          </aside>
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[380px_1fr]">
-        <div className="rounded-[20px] border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-slate-800/80">
-          <div className="text-base font-semibold text-slate-950 dark:text-white">
+      <section className="grid gap-4 xl:grid-cols-[340px_1fr]">
+        <div className="surface p-5">
+          <div className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
             Bibliothek importieren
           </div>
-          <label className="mt-4 flex min-h-[150px] cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-teal-500/45 bg-teal-500/[0.045] px-4 py-6 text-center">
-            <UploadCloud className="h-8 w-8 text-teal" />
-            <span className="mt-3 text-sm font-semibold text-slate-950 dark:text-white">
+          <label className="mt-3 flex min-h-[130px] cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-secondary)] px-4 py-5 text-center transition-colors hover:bg-[var(--brand-soft)] hover:border-[var(--brand)]">
+            <UploadCloud className="h-7 w-7 text-[var(--brand)]" aria-hidden />
+            <span className="mt-2 text-[13px] font-medium text-[var(--text-primary)]">
               JSON oder YAML auswählen
             </span>
-            <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <span className="mt-0.5 text-[11px] text-[var(--text-tertiary)]">
               Ein RequirementSet pro Datei
             </span>
             <input
@@ -142,56 +142,64 @@ export function RequirementLibraryManager() {
             />
           </label>
           {selectedFile ? (
-            <div className="mt-3 flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:bg-slate-900/50 dark:text-slate-200">
-              <FileUp className="h-4 w-4 text-teal" />
-              <span className="truncate">{selectedFile.name}</span>
+            <div className="mt-3 flex items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-1.5 text-[13px] text-[var(--text-primary)]">
+              <FileUp className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden />
+              <span className="mono truncate text-[12px]">{selectedFile.name}</span>
             </div>
           ) : null}
           <button
             type="button"
             onClick={uploadLibrary}
             disabled={!selectedFile || state === "uploading"}
-            className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-teal px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700"
+            className="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-[var(--brand)] px-3 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:bg-[var(--border-strong)] disabled:text-[var(--text-tertiary)]"
           >
-            {state === "uploading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {state === "uploading" ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-3.5 w-3.5" />
+            )}
             Importieren und aktivieren
           </button>
           {error ? (
-            <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-100">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="mt-3 flex items-start gap-2 rounded-md border border-[color:var(--severity-critical)] bg-[var(--severity-critical-soft)] px-3 py-2 text-[12px] leading-relaxed text-[var(--severity-critical)]">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>{error}</span>
             </div>
           ) : null}
         </div>
 
-        <div className="rounded-[20px] border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-slate-800/80">
-          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div className="surface p-5">
+          <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
             <div>
-              <div className="text-base font-semibold text-slate-950 dark:text-white">
+              <div className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
                 Quelldokumente
               </div>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-[12px] leading-relaxed text-[var(--text-secondary)]">
                 Dokumente, aus denen Regeln in der aktiven Bibliothek stammen.
               </p>
             </div>
             <button
               type="button"
               onClick={loadOverview}
-              className="h-9 rounded-xl border border-black/10 bg-white px-3 text-sm font-semibold text-slate-700 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-2.5 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
             >
+              <RefreshCcw className="h-3 w-3" aria-hidden />
               Aktualisieren
             </button>
           </div>
 
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 space-y-1.5">
             {sourceDocuments.length === 0 ? (
               <EmptyLine text="Noch keine Quelldokumente gefunden." />
             ) : (
               sourceDocuments.map((source) => (
-                <div key={`${source.name}:${source.version}`} className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-slate-900/45 md:grid-cols-[1fr_auto_auto] md:items-center">
-                  <span className="font-semibold text-slate-900 dark:text-white">{source.name}</span>
-                  <span className="text-slate-500 dark:text-slate-400">Version {source.version}</span>
-                  <span className="text-slate-500 dark:text-slate-400">{source.count} Regeln</span>
+                <div
+                  key={`${source.name}:${source.version}`}
+                  className="grid gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2 text-[12px] md:grid-cols-[1fr_auto_auto] md:items-center"
+                >
+                  <span className="font-medium text-[var(--text-primary)]">{source.name}</span>
+                  <span className="mono text-[var(--text-tertiary)]">v{source.version}</span>
+                  <span className="text-[var(--text-tertiary)]">{source.count} Regeln</span>
                 </div>
               ))
             )}
@@ -199,16 +207,23 @@ export function RequirementLibraryManager() {
         </div>
       </section>
 
-      <section className="rounded-[20px] border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-slate-800/80">
-        <div className="text-base font-semibold text-slate-950 dark:text-white">
-          Regeln
+      <section className="surface p-5">
+        <div className="flex items-center justify-between">
+          <div className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+            Regeln
+          </div>
+          {currentSet ? (
+            <span className="mono text-[11px] text-[var(--text-tertiary)]">
+              {currentSet.requirements.length} insgesamt
+            </span>
+          ) : null}
         </div>
-        <div className="mt-4 space-y-2">
+        <div className="mt-3 space-y-1.5">
           {(currentSet?.requirements ?? []).slice(0, 12).map((requirement) => (
             <RequirementRow key={requirement.requirement_id} requirement={requirement} />
           ))}
           {(currentSet?.requirements.length ?? 0) > 12 ? (
-            <div className="text-sm text-slate-500 dark:text-slate-400">
+            <div className="mt-2 text-[12px] text-[var(--text-tertiary)]">
               + {(currentSet?.requirements.length ?? 0) - 12} weitere Regeln
             </div>
           ) : null}
@@ -221,22 +236,41 @@ export function RequirementLibraryManager() {
   );
 }
 
+const criticalityTone: Record<string, { fg: string; bg: string }> = {
+  critical: { fg: "var(--severity-critical)", bg: "var(--severity-critical-soft)" },
+  high: { fg: "var(--severity-major)", bg: "var(--severity-major-soft)" },
+  medium: { fg: "var(--severity-minor)", bg: "var(--severity-minor-soft)" },
+  low: { fg: "var(--text-tertiary)", bg: "var(--surface-secondary)" },
+  informational: { fg: "var(--text-tertiary)", bg: "var(--surface-secondary)" },
+};
+
 function RequirementRow({ requirement }: { requirement: Requirement }) {
+  const tone = criticalityTone[requirement.criticality] ?? criticalityTone.low;
   return (
-    <article className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-slate-900/45">
+    <article className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2.5">
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-        <div>
-          <div className="font-semibold text-slate-900 dark:text-white">
+        <div className="min-w-0">
+          <div className="mono text-[12px] text-[var(--text-tertiary)]">
+            {requirement.requirement_id}
+          </div>
+          <div className="mt-0.5 text-[13px] font-medium text-[var(--text-primary)]">
             {humanRequirementName(requirement)}
           </div>
-          <div className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          <p className="mt-1 text-[12px] leading-relaxed text-[var(--text-secondary)]">
             {requirement.requirement_text}
-          </div>
+          </p>
         </div>
-        <Pill>{displayCriticality(requirement.criticality)}</Pill>
+        <span
+          className="self-start rounded-full px-2 py-[2px] text-[11px] font-medium"
+          style={{ color: tone.fg, backgroundColor: tone.bg }}
+        >
+          {displayCriticality(requirement.criticality)}
+        </span>
       </div>
-      <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
-        <span>{requirement.source_name} · Abschnitt {requirement.section}</span>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[var(--text-tertiary)]">
+        <span className="mono">
+          {requirement.source_name} · §{requirement.section}
+        </span>
         <span>{requirement.required_evidence.length} Pflichtnachweise</span>
       </div>
     </article>
@@ -256,14 +290,14 @@ function displayCriticality(value: string) {
     high: "Hoch",
     medium: "Mittel",
     low: "Niedrig",
-    informational: "Info"
+    informational: "Info",
   };
   return labels[value] ?? value;
 }
 
 function Pill({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200">
+    <span className="inline-flex rounded-full bg-[var(--surface-primary)] border border-[var(--border-default)] px-2 py-[2px] text-[11px] font-medium text-[var(--text-secondary)]">
       {children}
     </span>
   );
@@ -271,7 +305,7 @@ function Pill({ children }: { children: ReactNode }) {
 
 function EmptyLine({ text }: { text: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 px-4 py-5 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400">
+    <div className="rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-secondary)] px-3 py-4 text-[12px] text-[var(--text-tertiary)]">
       {text}
     </div>
   );
