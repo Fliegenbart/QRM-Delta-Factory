@@ -20,6 +20,7 @@ from app.agents.providers import (
 from app.audit.events import InMemoryAuditLog
 from app.core.config import Settings, get_settings
 from app.db.in_memory import InMemoryDocumentRepository
+from app.schemas.calibration import CalibrationPromptExample
 from app.schemas.domain import (
     Claim,
     DocumentSet,
@@ -33,6 +34,7 @@ from app.schemas.domain import (
     TokenUsage,
 )
 from app.schemas.review import CoverageSummary, PrimaryReviewResponse, ReviewerAgentOutput
+from app.services.review_calibration import ReviewCalibrationService
 from app.verifiers.evidence import EvidenceVerifierService
 
 
@@ -115,14 +117,22 @@ class ReviewerAgent:
         knowledge_pack_ids: Sequence[str],
         missing_knowledge_pack_ids: Sequence[str],
         requirement_package_hash: str,
+        calibration_examples: Sequence[CalibrationPromptExample],
+        calibration_prompt_block: str,
+        calibration_pack_hash: str | None,
     ) -> ReviewerAgentOutput:
-        prompt = (
+        base_prompt = (
             self.prompt_template.content
             if self.prompt_template is not None
             else (
                 f"{self.role} primary review. Use only supplied claims and requirements. "
                 "Return structured findings with evidence or an explicit coverage summary."
             )
+        )
+        prompt = (
+            f"{base_prompt}\n\n{calibration_prompt_block}"
+            if calibration_prompt_block
+            else base_prompt
         )
         raw_output = self.provider.run_structured(
             prompt=prompt,
@@ -139,6 +149,14 @@ class ReviewerAgent:
                 "knowledge_pack_ids": list(knowledge_pack_ids),
                 "missing_knowledge_pack_ids": list(missing_knowledge_pack_ids),
                 "requirement_package_hash": requirement_package_hash,
+                "calibration_example_ids": [
+                    example.calibration_example_id for example in calibration_examples
+                ],
+                "calibration_pack_hash": calibration_pack_hash,
+                "calibration_prompt_block": calibration_prompt_block,
+                "calibration_examples": [
+                    example.model_dump(mode="json") for example in calibration_examples
+                ],
                 "claims": [claim.model_dump(mode="json") for claim in claims],
                 "requirements": [
                     requirement.model_dump(mode="json") for requirement in requirements
@@ -279,6 +297,18 @@ class PrimaryReviewOrchestrator:
                 ],
             }
         )
+        calibration_pack = ReviewCalibrationService(
+            repository=self.repository,
+            audit_log=self.audit_log,
+        ).build_pack(
+            document_set=document_set,
+            agent_role=agent.role,
+            requirements=agent_requirements,
+            case_signals=case_signals,
+        )
+        calibration_pack_hash = (
+            calibration_pack.pack_hash if calibration_pack.example_ids else None
+        )
         input_hash = _hash_json(
             {
                 "document_set_id": document_set_id,
@@ -292,6 +322,8 @@ class PrimaryReviewOrchestrator:
                 "knowledge_pack_ids": knowledge_pack_ids,
                 "missing_knowledge_pack_ids": missing_knowledge_pack_ids,
                 "case_signals": list(case_signals),
+                "calibration_example_ids": calibration_pack.example_ids,
+                "calibration_pack_hash": calibration_pack_hash,
             }
         )
         self.audit_log.append(
@@ -316,6 +348,8 @@ class PrimaryReviewOrchestrator:
                 "knowledge_pack_ids": knowledge_pack_ids,
                 "missing_knowledge_pack_ids": missing_knowledge_pack_ids,
                 "case_signals": list(case_signals),
+                "calibration_example_ids": calibration_pack.example_ids,
+                "calibration_pack_hash": calibration_pack_hash,
                 "input_hash": input_hash,
             },
         )
@@ -334,6 +368,9 @@ class PrimaryReviewOrchestrator:
                 knowledge_pack_ids=knowledge_pack_ids,
                 missing_knowledge_pack_ids=missing_knowledge_pack_ids,
                 requirement_package_hash=requirement_package_hash,
+                calibration_examples=calibration_pack.examples,
+                calibration_prompt_block=calibration_pack.prompt_block,
+                calibration_pack_hash=calibration_pack_hash,
             )
             _validate_agent_requirement_references(
                 output=output,
@@ -361,6 +398,8 @@ class PrimaryReviewOrchestrator:
             knowledge_pack_ids=knowledge_pack_ids,
             missing_knowledge_pack_ids=missing_knowledge_pack_ids,
             case_signals=list(case_signals),
+            calibration_example_ids=calibration_pack.example_ids,
+            calibration_pack_hash=calibration_pack_hash,
             input_hash=input_hash,
             output_hash=output_hash,
             started_at=started_at,
@@ -405,6 +444,8 @@ class PrimaryReviewOrchestrator:
                 "knowledge_pack_ids": model_run.knowledge_pack_ids,
                 "missing_knowledge_pack_ids": model_run.missing_knowledge_pack_ids,
                 "case_signals": model_run.case_signals,
+                "calibration_example_ids": model_run.calibration_example_ids,
+                "calibration_pack_hash": model_run.calibration_pack_hash,
                 "input_hash": input_hash,
                 "output_hash": output_hash,
             },
@@ -426,6 +467,7 @@ class PrimaryReviewOrchestrator:
                         "risk_category": finding.risk_category,
                         "severity": finding.severity,
                         "requirement_references": finding.requirement_references,
+                        "calibration_example_ids": model_run.calibration_example_ids,
                     },
                 )
         event_type = (
@@ -452,6 +494,8 @@ class PrimaryReviewOrchestrator:
                 "knowledge_pack_ids": model_run.knowledge_pack_ids,
                 "missing_knowledge_pack_ids": model_run.missing_knowledge_pack_ids,
                 "case_signals": model_run.case_signals,
+                "calibration_example_ids": model_run.calibration_example_ids,
+                "calibration_pack_hash": model_run.calibration_pack_hash,
                 "input_hash": input_hash,
                 "output_hash": output_hash,
             },

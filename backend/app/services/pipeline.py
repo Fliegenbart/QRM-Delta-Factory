@@ -288,6 +288,8 @@ class PipelineService:
                 knowledge_pack_ids=model_run.knowledge_pack_ids,
                 missing_knowledge_pack_ids=model_run.missing_knowledge_pack_ids,
                 case_signals=model_run.case_signals,
+                calibration_example_ids=model_run.calibration_example_ids,
+                calibration_pack_hash=model_run.calibration_pack_hash,
                 status=str(model_run.status),
                 model_run_id=model_run.model_run_id,
             )

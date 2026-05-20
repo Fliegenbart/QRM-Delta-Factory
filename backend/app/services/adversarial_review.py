@@ -62,14 +62,16 @@ class AdversarialAgent:
             return _run_missing_evidence_hunter(context, self.role)
         if self.role == "CrossDocumentContradictionHunter":
             return _run_cross_document_contradiction_hunter(context, self.role)
+        if self.role == "FalsePositiveSkeptic":
+            return _run_false_positive_skeptic(context, self.role)
         if self.role == "FalseClearanceChallenger":
             return _run_false_clearance_challenger(context, self.role)
         return AdversarialAgentResult(
-                additional_findings=[],
-                challenged_findings=[],
-                challenged_no_issue_claims=[],
-                unresolved_questions=[],
-                escalation_reasons=[],
+            additional_findings=[],
+            challenged_findings=[],
+            challenged_no_issue_claims=[],
+            unresolved_questions=[],
+            escalation_reasons=[],
         )
 
 
@@ -197,6 +199,10 @@ def default_adversarial_agents() -> list[AdversarialAgent]:
         AdversarialAgent(
             agent_id="agent_cross_document_contradiction_hunter",
             role="CrossDocumentContradictionHunter",
+        ),
+        AdversarialAgent(
+            agent_id="agent_false_positive_skeptic",
+            role="FalsePositiveSkeptic",
         ),
         AdversarialAgent(
             agent_id="agent_false_clearance_challenger",
@@ -408,6 +414,69 @@ def _run_cross_document_contradiction_hunter(
     )
 
 
+def _run_false_positive_skeptic(
+    context: AdversarialReviewContext,
+    role: str,
+) -> AdversarialAgentResult:
+    challenges: list[AdversarialChallenge] = []
+    for finding in context.primary_findings:
+        evidence_text = " ".join(item.quote for item in finding.evidence_items)
+        if not _looks_like_linguistic_false_positive(
+            risk_statement=finding.risk_statement,
+            evidence_text=evidence_text,
+        ):
+            continue
+        challenges.append(
+            AdversarialChallenge(
+                challenge_id=_challenge_id(
+                    role=role,
+                    target_type="finding_false_positive_check",
+                    target_id=finding.finding_id,
+                    seed=finding.risk_statement + evidence_text,
+                ),
+                document_set_id=context.document_set_id,
+                target_type="finding_false_positive_check",
+                target_id=finding.finding_id,
+                agent_role=role,
+                severity=finding.severity,
+                challenge_statement=(
+                    "Primary finding may be a false-positive caused by wording mismatch "
+                    "between the finding and cited evidence."
+                ),
+                rationale=(
+                    "The finding describes a missing or incomplete item, while the cited "
+                    "evidence appears to say that the item was assessed, documented, "
+                    "performed, or present. This challenge does not close the finding; "
+                    "it asks the human reviewer to decide whether this is a real gap or "
+                    "a linguistic misunderstanding."
+                ),
+                evidence_items=finding.evidence_items,
+                missing_evidence=[
+                    "human rationale confirming real gap versus wording mismatch"
+                ],
+                human_review_required=True,
+                created_at=datetime.now(UTC),
+            )
+        )
+
+    return AdversarialAgentResult(
+        additional_findings=[],
+        challenged_findings=challenges,
+        challenged_no_issue_claims=[],
+        unresolved_questions=[
+            "Is the cited evidence actually contradicting the finding, making it a "
+            "false-positive candidate?"
+        ]
+        if challenges
+        else [],
+        escalation_reasons=[
+            "Potential false-positive candidate requires targeted human review."
+        ]
+        if challenges
+        else [],
+    )
+
+
 def _run_false_clearance_challenger(
     context: AdversarialReviewContext,
     role: str,
@@ -615,6 +684,51 @@ def _looks_high_risk(claim: Claim) -> bool:
         "unvalidated",
     }
     return any(term in text for term in high_risk_terms)
+
+
+def _looks_like_linguistic_false_positive(
+    *,
+    risk_statement: str,
+    evidence_text: str,
+) -> bool:
+    statement = risk_statement.lower()
+    evidence = evidence_text.lower()
+    gap_markers = {
+        "missing",
+        "incomplete",
+        "lacks",
+        "lack of",
+        "without",
+        "not documented",
+        "not assessed",
+        "not justified",
+    }
+    completion_markers = {
+        "was assessed",
+        "were assessed",
+        "is assessed",
+        "documented",
+        "completed",
+        "approved",
+        "included",
+        "available",
+        "performed",
+        "present",
+        "justified",
+    }
+    evidence_gap_markers = {
+        "missing ",
+        "not documented",
+        "without ",
+        "not assessed",
+        "not justified",
+        "incomplete",
+    }
+    return (
+        any(marker in statement for marker in gap_markers)
+        and any(marker in evidence for marker in completion_markers)
+        and not any(marker in evidence for marker in evidence_gap_markers)
+    )
 
 
 def _is_unsupported_operator_error_root_cause(claim: Claim) -> bool:

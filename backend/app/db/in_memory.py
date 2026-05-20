@@ -11,6 +11,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
 from app.core.config import get_settings
+from app.schemas.calibration import CalibrationExample, CalibrationExampleStatus
 from app.schemas.domain import (
     AdversarialChallenge,
     Claim,
@@ -52,6 +53,7 @@ class InMemoryDocumentRepository:
         self.model_runs_by_document_set: dict[str, list[ModelRun]] = {}
         self.raw_model_outputs: dict[str, RawModelOutputRecord] = {}
         self.requirement_sets: dict[str, RequirementSet] = {}
+        self.calibration_examples: dict[str, CalibrationExample] = {}
 
     def reset(self) -> None:
         self.document_sets.clear()
@@ -69,6 +71,7 @@ class InMemoryDocumentRepository:
         self.model_runs_by_document_set.clear()
         self.raw_model_outputs.clear()
         self.requirement_sets.clear()
+        self.calibration_examples.clear()
 
     def create_document_set(self, document_set: DocumentSet) -> DocumentSet:
         self.document_sets[document_set.document_set_id] = document_set
@@ -118,6 +121,11 @@ class InMemoryDocumentRepository:
             output_hash: output
             for output_hash, output in self.raw_model_outputs.items()
             if output.model_run_id not in model_run_ids
+        }
+        self.calibration_examples = {
+            example_id: example
+            for example_id, example in self.calibration_examples.items()
+            if example.document_set_id != document_set_id
         }
 
         self.claims_by_document_set.pop(document_set_id, None)
@@ -335,6 +343,46 @@ class InMemoryDocumentRepository:
     def update_requirement_set(self, requirement_set: RequirementSet) -> RequirementSet:
         self.requirement_sets[requirement_set.requirement_set_id] = requirement_set
         return requirement_set
+
+    def add_calibration_example(
+        self,
+        calibration_example: CalibrationExample,
+    ) -> CalibrationExample:
+        self.calibration_examples[
+            calibration_example.calibration_example_id
+        ] = calibration_example
+        return calibration_example
+
+    def update_calibration_example(
+        self,
+        calibration_example: CalibrationExample,
+    ) -> CalibrationExample:
+        self.calibration_examples[
+            calibration_example.calibration_example_id
+        ] = calibration_example
+        return calibration_example
+
+    def get_calibration_example(
+        self,
+        calibration_example_id: str,
+    ) -> CalibrationExample | None:
+        return self.calibration_examples.get(calibration_example_id)
+
+    def list_calibration_examples(
+        self,
+        *,
+        tenant_id: str | None = None,
+        status: CalibrationExampleStatus | None = None,
+        agent_role: str | None = None,
+    ) -> list[CalibrationExample]:
+        examples = list(self.calibration_examples.values())
+        if tenant_id is not None:
+            examples = [example for example in examples if example.tenant_id == tenant_id]
+        if status is not None:
+            examples = [example for example in examples if example.status == status]
+        if agent_role is not None:
+            examples = [example for example in examples if example.agent_role == agent_role]
+        return sorted(examples, key=lambda example: example.created_at, reverse=True)
 
     def is_active_requirement_set(self, requirement_set_id: str) -> bool:
         requirement_set = self.get_requirement_set(requirement_set_id)
@@ -565,6 +613,26 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             )
         )
 
+    def add_calibration_example(
+        self,
+        calibration_example: CalibrationExample,
+    ) -> CalibrationExample:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).add_calibration_example(
+                calibration_example
+            )
+        )
+
+    def update_calibration_example(
+        self,
+        calibration_example: CalibrationExample,
+    ) -> CalibrationExample:
+        return self._persist_after(
+            lambda: super(PersistentSnapshotRepository, self).update_calibration_example(
+                calibration_example
+            )
+        )
+
     def _persist_after(self, operation: Callable[[], OperationT]) -> OperationT:
         with self._lock:
             result = operation()
@@ -662,6 +730,11 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
                 RawModelOutputRecord,
             )
             self.requirement_sets = _model_dict(payload, "requirement_sets", RequirementSet)
+            self.calibration_examples = _model_dict(
+                payload,
+                "calibration_examples",
+                CalibrationExample,
+            )
         finally:
             self._is_loading = False
 
@@ -722,6 +795,7 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             "model_runs_by_document_set": _dump_model_list_dict(self.model_runs_by_document_set),
             "raw_model_outputs": _dump_model_dict(self.raw_model_outputs),
             "requirement_sets": _dump_model_dict(self.requirement_sets),
+            "calibration_examples": _dump_model_dict(self.calibration_examples),
         }
 
 

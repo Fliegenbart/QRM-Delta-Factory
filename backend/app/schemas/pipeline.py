@@ -28,6 +28,8 @@ class PipelineModelManifestItem(StrictSchema):
     knowledge_pack_ids: list[str] = Field(default_factory=list)
     missing_knowledge_pack_ids: list[str] = Field(default_factory=list)
     case_signals: list[str] = Field(default_factory=list)
+    calibration_example_ids: list[str] = Field(default_factory=list)
+    calibration_pack_hash: str | None = None
     status: str
     model_run_id: str | None = None
 

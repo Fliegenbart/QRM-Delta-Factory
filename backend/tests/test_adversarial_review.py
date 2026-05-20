@@ -100,6 +100,33 @@ def test_false_no_issue_claim_is_challenged_and_routed_to_human_review() -> None
     assert challenge.missing_evidence or challenge.evidence_items
 
 
+def test_false_positive_skeptic_flags_linguistic_mismatch_without_suppressing_finding() -> None:
+    repository.replace_risk_findings(
+        document_set_id="ds_adversarial_demo",
+        findings=[
+            _primary_finding(),
+            _possible_false_positive_finding(),
+        ],
+    )
+    service = AdversarialReviewService(repository=repository, audit_log=audit_log)
+
+    result = service.run_adversarial_review("ds_adversarial_demo")
+
+    skeptic_challenges = [
+        challenge
+        for challenge in result.challenged_findings
+        if challenge.agent_role == "FalsePositiveSkeptic"
+    ]
+    assert skeptic_challenges
+    assert skeptic_challenges[0].target_id == "finding_possible_false_positive"
+    assert skeptic_challenges[0].human_review_required is True
+    assert "false-positive" in skeptic_challenges[0].challenge_statement
+    assert any(
+        finding.finding_id == "finding_possible_false_positive"
+        for finding in result.risk_fusion_findings
+    )
+
+
 def test_adversarial_review_flags_operator_error_root_cause_without_rationale() -> None:
     repository.replace_claim_ledger(
         document_set_id="ds_adversarial_demo",
@@ -337,6 +364,40 @@ def _primary_finding() -> RiskFinding:
         prompt_version="primary-review-v0.1",
         evidence_support="weak",
         recommended_action="Do not auto-clear; route to SME/QA.",
+        auto_close_allowed=False,
+        status="needs_human_review",
+    )
+
+
+def _possible_false_positive_finding() -> RiskFinding:
+    quote = "Impact was assessed and no product quality impact was identified."
+    return RiskFinding(
+        finding_id="finding_possible_false_positive",
+        document_set_id="ds_adversarial_demo",
+        risk_category="deviation_management",
+        severity="medium",
+        likelihood=2,
+        detectability=2,
+        risk_statement="Impact assessment may be missing or incomplete.",
+        evidence_items=[
+            {
+                "document_id": "doc_adversarial_change",
+                "chunk_id": "chunk_adversarial_change_p1",
+                "page": 1,
+                "quote": quote,
+                "quote_hash": sha256(quote.encode()).hexdigest(),
+                "support_type": "supports",
+                "verifier_score": 0.91,
+            }
+        ],
+        requirement_references=["req_visual_inspection_threshold_validation"],
+        missing_information=[],
+        model_provider="mock",
+        model_name="mock-reviewer",
+        model_version="0.1.0",
+        prompt_version="primary-review-v0.1",
+        evidence_support="partial",
+        recommended_action="Route to human review.",
         auto_close_allowed=False,
         status="needs_human_review",
     )

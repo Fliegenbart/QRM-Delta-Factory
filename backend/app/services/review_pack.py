@@ -24,6 +24,7 @@ from app.schemas.review_pack import (
     ReviewPackEvidenceRow,
     ReviewPackTopRisk,
 )
+from app.services.review_calibration import ReviewCalibrationService
 
 
 class ReviewPackDocumentSetNotFoundError(Exception):
@@ -177,11 +178,16 @@ class ReviewPackService:
             created_at=created_at,
         )
         self.repository.add_review_decision(review_decision)
+        calibration_example = ReviewCalibrationService(
+            repository=self.repository,
+            audit_log=self.audit_log,
+        ).record_feedback_decision(review_decision)
         audit_payload = {
             "finding_id": finding.finding_id,
             "document_set_id": finding.document_set_id,
             "review_id": review_decision.review_id,
             "decision": review_decision.decision,
+            "calibration_example_id": calibration_example.calibration_example_id,
         }
         self.audit_log.append(
             event_type="human_review_decision_created",
