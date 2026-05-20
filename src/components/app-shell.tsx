@@ -14,10 +14,11 @@ import {
   Library,
   Menu,
   Moon,
+  Plus,
   SearchCheck,
   ShieldCheck,
   Sun,
-  X
+  X,
 } from "lucide-react";
 import { useI18n, type TranslationKey } from "@/src/lib/i18n";
 import { useTheme } from "@/src/lib/theme";
@@ -25,7 +26,8 @@ import { motion } from "@/src/components/ui/motion";
 import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { RequirementLibraryManager } from "@/src/components/review-ui/requirement-library-manager";
 import { HumanFeedbackRegistryPanel } from "@/src/components/review-ui/human-feedback-registry-panel";
-import { aiArchitectureConcept, riskOrchestrationEntry } from "@/src/lib/review-ui";
+import { aiArchitectureConcept } from "@/src/lib/review-ui";
+import { CaseCard, type TriageCase } from "@/src/components/triage/case-card";
 import type { LucideIcon } from "lucide-react";
 
 type NavItem = [slug: string, labelKey: TranslationKey, icon: LucideIcon];
@@ -41,15 +43,11 @@ const navCategories: NavCategory[] = [
   },
   {
     nameKey: "nav.category.admin",
-    items: [
-      ["risk-library", "nav.riskLibrary", Library],
-    ],
+    items: [["risk-library", "nav.riskLibrary", Library]],
   },
   {
     nameKey: "nav.category.howItWorks",
-    items: [
-      ["ai-architecture", "nav.aiArchitecture", Brain],
-    ],
+    items: [["ai-architecture", "nav.aiArchitecture", Brain]],
   },
 ];
 
@@ -67,12 +65,7 @@ function pageTitle(slug: string, t: (key: TranslationKey) => string) {
 
 export function AppShell({ section }: { section: string; projectId?: string }) {
   const active = sectionSlugs.includes(section) ? section : "dashboard";
-
-  return (
-    <AppFrame section={active}>
-      {renderSection(active)}
-    </AppFrame>
-  );
+  return <AppFrame section={active}>{renderSection(active)}</AppFrame>;
 }
 
 export function AppFrame({
@@ -100,11 +93,11 @@ export function AppFrame({
   const navigation = (
     <>
       {navCategories.map((category) => (
-        <div key={category.nameKey} className="mb-2">
+        <div key={category.nameKey} className="mb-3">
           <button
             type="button"
             onClick={() => toggleCategory(category.nameKey)}
-            className="flex w-full items-center justify-between px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-600 transition hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+            className="flex w-full items-center justify-between px-2 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
             aria-expanded={expandedCategories[category.nameKey]}
           >
             <span>{t(category.nameKey)}</span>
@@ -116,27 +109,25 @@ export function AppFrame({
           </button>
           {expandedCategories[category.nameKey] ? (
             <div className="mt-1 space-y-0.5">
-              {category.items.map(([slug, labelKey, Icon]) => (
-                <Link
-                  key={slug}
-                  href={slug === "dashboard" ? "/" : `/${slug}`}
-                  onClick={() => setMobileNavOpen(false)}
-                  aria-current={active === slug ? "page" : undefined}
-                  className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm transition ${
-                    active === slug
-                      ? "bg-white text-teal-600 shadow-sm ring-1 ring-black/5 dark:bg-slate-700 dark:text-teal-400 dark:ring-white/10"
-                      : "text-slate-600 hover:bg-white/70 hover:text-ink dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-white"
-                  }`}
-                >
-                  <span className="flex min-w-0 items-center gap-3">
+              {category.items.map(([slug, labelKey, Icon]) => {
+                const isActive = active === slug;
+                return (
+                  <Link
+                    key={slug}
+                    href={slug === "dashboard" ? "/" : `/${slug}`}
+                    onClick={() => setMobileNavOpen(false)}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] transition-colors ${
+                      isActive
+                        ? "bg-[var(--brand-soft)] text-[var(--brand-strong)] font-medium"
+                        : "text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
+                    }`}
+                  >
                     <Icon className="h-4 w-4 shrink-0" aria-hidden />
                     <span className="truncate">{t(labelKey)}</span>
-                  </span>
-                  {active === slug ? (
-                    <span className="h-1.5 w-1.5 rounded-full bg-teal-500" aria-hidden />
-                  ) : null}
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           ) : null}
         </div>
@@ -145,32 +136,32 @@ export function AppFrame({
   );
 
   return (
-    <div className="min-h-screen bg-mist text-ink transition-colors dark:bg-slate-900 dark:text-slate-100">
+    <div className="min-h-screen text-[var(--text-primary)]">
       {mobileNavOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/45 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
           onClick={() => setMobileNavOpen(false)}
           aria-label="Close navigation"
         />
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[280px] transform border-r border-black/10 bg-[#fbfcfb] transition-transform duration-300 dark:border-white/10 dark:bg-slate-800 lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-[240px] transform border-r border-[var(--border-default)] bg-[var(--surface-secondary)] transition-transform duration-200 lg:hidden ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-label="Mobile navigation"
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b border-black/10 px-5 py-4 dark:border-white/10">
+          <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-4">
             <BrandMark />
             <button
               type="button"
               onClick={() => setMobileNavOpen(false)}
-              className="grid h-10 w-10 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="grid h-9 w-9 place-items-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-primary)]"
               aria-label="Close navigation"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
           <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
@@ -179,35 +170,39 @@ export function AppFrame({
         </div>
       </aside>
 
-      <aside className="fixed inset-y-0 left-0 hidden w-[280px] border-r border-black/10 bg-[#fbfcfb]/90 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-800/90 lg:flex lg:flex-col">
-        <div className="border-b border-black/10 px-5 py-6 dark:border-white/10">
+      <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col border-r border-[var(--border-default)] bg-[var(--surface-secondary)] lg:flex">
+        <div className="border-b border-[var(--border-default)] px-4 py-5">
           <BrandMark />
-          <div className="mt-4 text-xs leading-5 text-slate-600 dark:text-slate-400">
+          <div className="mt-3 text-[11px] leading-5 text-[var(--text-tertiary)]">
             {t("brand.tagline")}
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
           {navigation}
         </nav>
+        <div className="border-t border-[var(--border-default)] px-4 py-3 text-[11px] text-[var(--text-tertiary)]">
+          <div className="mono">ICH Q9 R1 · v2026.1</div>
+          <div className="mt-0.5">Reviewer: David</div>
+        </div>
       </aside>
 
-      <main id="main-content" className="lg:pl-[280px]">
-        <header className="sticky top-0 z-10 border-b border-black/10 bg-[#fbfcfb]/78 px-4 py-4 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/78 lg:px-8">
-          <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-3">
-            <div className="flex items-center gap-4">
+      <main id="main-content" className="lg:pl-[240px]">
+        <header className="sticky top-0 z-10 border-b border-[var(--border-default)] bg-[var(--background)] px-4 py-3 lg:px-8">
+          <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white/80 text-slate-600 lg:hidden"
+                className="grid h-9 w-9 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-secondary)] lg:hidden"
                 aria-label="Open navigation menu"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4" />
               </button>
               <div>
-                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400">
-                  Pharma QRM Delta Engine
+                <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                  Pharma QRM
                 </div>
-                <h1 className="mt-1 text-[26px] font-medium leading-tight tracking-[-0.045em] text-ink dark:text-white md:text-[30px]">
+                <h1 className="mt-0.5 text-[20px] font-medium leading-tight text-[var(--text-primary)]">
                   {pageTitle(active, t)}
                 </h1>
               </div>
@@ -216,33 +211,25 @@ export function AppFrame({
               <button
                 type="button"
                 onClick={() => setLocale(locale === "de" ? "en" : "de")}
-                className="hidden h-10 items-center gap-2 rounded-xl border border-black/10 bg-white/80 px-3 text-sm shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:hover:bg-slate-700 sm:inline-flex"
+                className="hidden h-9 items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] sm:inline-flex"
                 aria-label={locale === "de" ? "Switch to English" : "Auf Deutsch wechseln"}
               >
-                <Globe className="h-4 w-4 text-slate-600 dark:text-slate-300" />
-                <span className="font-medium text-slate-700 dark:text-slate-200">
-                  {locale.toUpperCase()}
-                </span>
+                <Globe className="h-3.5 w-3.5" />
+                <span className="font-medium">{locale.toUpperCase()}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className="hidden h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white/80 shadow-sm hover:bg-white dark:border-white/10 dark:bg-slate-800/80 dark:hover:bg-slate-700 sm:grid"
+                className="hidden h-9 w-9 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] sm:grid"
                 aria-label={resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
               >
-                {resolvedTheme === "dark" ? (
-                  <Sun className="h-4 w-4 text-amber-400" />
-                ) : (
-                  <Moon className="h-4 w-4 text-slate-600" />
-                )}
+                {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
             </div>
           </div>
         </header>
 
-        <div className="mx-auto max-w-[1500px] px-4 py-7 lg:px-8">
-          {children}
-        </div>
+        <div className="mx-auto max-w-[1280px] px-4 py-7 lg:px-8">{children}</div>
       </main>
     </div>
   );
@@ -250,17 +237,18 @@ export function AppFrame({
 
 function BrandMark() {
   return (
-    <div className="flex items-center gap-3">
-      <div className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(0,155,141,0.22)]">
+    <div className="flex items-center gap-2.5">
+      <div
+        className="grid h-7 w-7 place-items-center rounded-md bg-[var(--brand)] text-[12px] font-medium text-white"
+        aria-hidden
+      >
         Q
       </div>
-      <div>
-        <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-ink dark:text-white">
+      <div className="leading-tight">
+        <div className="text-[12px] font-medium tracking-[0.04em] text-[var(--text-primary)]">
           Pharma QRM
         </div>
-        <div className="text-[13px] font-semibold uppercase tracking-[0.18em] text-teal-600 dark:text-teal-400">
-          Review Engine
-        </div>
+        <div className="text-[11px] text-[var(--text-tertiary)]">Review Engine</div>
       </div>
     </div>
   );
@@ -268,80 +256,98 @@ function BrandMark() {
 
 function renderSection(section: string) {
   switch (section) {
-    case "case-workspace":
-      return <CaseWorkspaceSection />;
     case "review-ui":
       return <ReviewEntrySection />;
     case "ai-architecture":
       return <AiArchitectureSection />;
-    case "projects":
-      return <EmptyAdminSection title="Projekte" description="Noch keine Projekte geladen." />;
-    case "documents":
-      return <EmptyAdminSection title="Dokumente" description="Keine Dokumente im Frontend vorbefüllt." />;
     case "risk-library":
       return <RequirementLibraryManager />;
-    case "audit-trail":
-      return <EmptyAdminSection title="Audit Trail" description="Audit Events entstehen nach Upload, Pipeline und Review." />;
-    case "validation-pack":
-      return <EmptyAdminSection title="Validierungsunterlagen" description="Draft-Templates werden nach Projektanlage erzeugt." />;
     default:
       return <DashboardSection />;
   }
 }
 
+/* ----- Triage dashboard ----- */
+
+const sampleCases: TriageCase[] = [
+  {
+    id: "DEV-2025-014",
+    severity: "critical",
+    severityLabel: "Critical",
+    area: "Aseptische Abfüllung · Reinraum B",
+    title: "Abweichung im Klima-Monitoring, Bezug zu Sterilfilter unklar",
+    criticNote:
+      "Mir fehlt eine Quelle für die Aussage, dass der HEPA-Vorlauf entkoppelt ist. Annex 1 §8.123 wird zitiert, aber das Zitat passt nicht zum Snippet auf Seite 14.",
+    ageLabel: "vor 12 min",
+    sources: "3 Quellen · 1 fehlend",
+    regulation: "ICH Q9 §5.3.2",
+    primaryAction: "open",
+    href: "/review-ui",
+  },
+  {
+    id: "CAPA-2025-082",
+    severity: "major",
+    severityLabel: "Major",
+    area: "Reinigung · Charge R-1183",
+    title: "Wirksamkeitsprüfung Reinigungsmittel nach 30 Tagen offen",
+    criticNote:
+      "Maßnahmen sind dokumentiert, Wirksamkeit aber noch nicht bewertet. Du musst entscheiden, ob das ein blockierendes Gap für die Freigabe ist.",
+    ageLabel: "vor 1 std",
+    sources: "5 Quellen · vollständig",
+    regulation: "SOP-CLN-04 §4.2",
+    primaryAction: "open",
+    href: "/review-ui",
+  },
+  {
+    id: "CC-2025-211",
+    severity: "ready",
+    severityLabel: "Bereit für QA",
+    area: "QC-Labor · HPLC-04",
+    title: "Methodenänderung Gradient-Profil, SME hat abgezeichnet",
+    criticNote:
+      "Quellen vollständig, Risiken belegt, keine Widersprüche. SME-Abzeichnung vom 18.05. — wartet auf deine Freigabe.",
+    ageLabel: "seit gestern",
+    sources: "8 Quellen · vollständig",
+    regulation: "ICH Q2 R2",
+    primaryAction: "approve",
+    href: "/review-ui",
+  },
+];
+
 function DashboardSection() {
   return (
-    <div className="space-y-6">
-      <section className="space-y-6">
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">
-            QA-Prüfung vorbereiten
-          </div>
-          <h2 className="mt-5 max-w-5xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
-            Unterlagen hochladen. Prüfmappe erhalten.
-          </h2>
-          <p className="mt-5 max-w-4xl text-base leading-7 text-slate-600 dark:text-slate-300">
-            Lade Unterlagen zu einer Änderung, Abweichung, CAPA oder einem Audit hoch. Das System sortiert Quellen, offene Nachweise und Prüfpunkte, damit QA oder ein Fachexperte schneller entscheiden kann.
+    <div className="space-y-7">
+      <section>
+        <div className="flex items-baseline justify-between">
+          <p className="text-[15px] text-[var(--text-primary)]">
+            Guten Morgen, David. Drei Fälle brauchen heute deine Aufmerksamkeit.
           </p>
-          <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <SummaryBlock title="Quelle sichtbar" text="Jeder Prüfpunkt braucht Dokument, Seite und Zitat." />
-            <SummaryBlock title="Keine Auto-Freigabe" text="Unklare oder hohe Risiken bleiben bei einem Menschen." />
-            <SummaryBlock title="Mehrere Blickwinkel" text="Das System sucht Risiken, Lücken und Widersprüche." />
-            <SummaryBlock title="Auditierbar" text="Modell, Prompt, Regelwerk und Entscheidung bleiben nachvollziehbar." />
+          <div className="hidden gap-4 text-[11px] text-[var(--text-tertiary)] sm:flex">
+            <span>3 offen · 1 critical</span>
+            <span className="mono">{new Date().toLocaleDateString("de-DE")}</span>
           </div>
         </div>
-        <IntakeUploader />
-      </section>
-    </div>
-  );
-}
 
-function CaseWorkspaceSection() {
-  return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_0.8fr]">
-      <Panel title="Fallübersicht">
-        <EmptyState
-          title="Fallübersicht öffnen"
-          text="Alle angelegten Prüffälle liegen in der Fallübersicht. Von dort öffnest du entweder den Fall selbst oder seine Prüfmappe."
-          action={
-            <Link
-              href="/review-ui"
-              className="inline-flex h-10 items-center rounded-xl bg-teal px-4 text-sm font-semibold text-white"
-            >
-              Zur Fallübersicht
-            </Link>
-          }
-        />
-      </Panel>
-      <Panel title="Import-Pfad">
-        <ol className="space-y-3 text-sm leading-6 text-slate-700 dark:text-slate-300">
-          <li>1. Regelwerk importieren oder aktivieren.</li>
-          <li>2. Prüffall anlegen.</li>
-          <li>3. PDF/TXT/DOCX hochladen.</li>
-          <li>4. Analyse starten.</li>
-          <li>5. Prüfmappe öffnen.</li>
-        </ol>
-      </Panel>
+        <div className="mt-4 space-y-2.5">
+          {sampleCases.map((c) => (
+            <CaseCard key={c.id} data={c} />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+            Neuer Fall
+          </h2>
+          <span className="text-[11px] text-[var(--text-tertiary)]">
+            Lade Unterlagen zu Änderung, Abweichung, CAPA oder Audit hoch.
+          </span>
+        </div>
+        <div className="surface p-5">
+          <IntakeUploader />
+        </div>
+      </section>
     </div>
   );
 }
@@ -350,14 +356,14 @@ function ReviewEntrySection() {
   return (
     <Panel title="Fallübersicht">
       <EmptyState
-        title="Keine Demo-Fälle mehr"
-        text="Lege auf der Startseite einen echten Prüffall an. Danach erscheint hier der Fall mit Link zur Prüfmappe."
+        title="Keine Demo-Fälle"
+        text="Lege auf der Startseite einen Prüffall an. Hier erscheint danach die Liste mit Link zur Prüfmappe."
         action={
           <Link
-            href="/review-ui"
-            className="inline-flex h-10 items-center rounded-xl bg-teal px-4 text-sm font-semibold text-white"
+            href="/"
+            className="inline-flex h-9 items-center rounded-md bg-[var(--brand)] px-3 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)]"
           >
-            Fallübersicht öffnen
+            <Plus className="mr-1.5 h-3.5 w-3.5" /> Neuer Fall
           </Link>
         }
       />
@@ -367,60 +373,66 @@ function ReviewEntrySection() {
 
 function AiArchitectureSection() {
   const roleIcons: Record<string, React.ReactNode> = {
-    "Claim Extractor": <FileText className="h-5 w-5" />,
-    "Scope & Signal Router": <SearchCheck className="h-5 w-5" />,
-    "7 Reviewer Agents": <Brain className="h-5 w-5" />,
-    "Evidence Verifier": <SearchCheck className="h-5 w-5" />,
-    "Risk Fusion": <ShieldCheck className="h-5 w-5" />,
-    "Human Review": <ClipboardCheck className="h-5 w-5" />,
+    "Claim Extractor": <FileText className="h-4 w-4" />,
+    "Scope & Signal Router": <SearchCheck className="h-4 w-4" />,
+    "7 Reviewer Agents": <Brain className="h-4 w-4" />,
+    "Evidence Verifier": <SearchCheck className="h-4 w-4" />,
+    "Risk Fusion": <ShieldCheck className="h-4 w-4" />,
+    "Human Review": <ClipboardCheck className="h-4 w-4" />,
   };
 
   return (
-    <div className="space-y-6">
-      <section className="premium-surface rounded-[26px] border border-black/10 p-7 dark:border-white/10 lg:p-9">
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+    <div className="space-y-5">
+      <section className="surface p-6">
+        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal">
+            <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--brand)]">
               Funktionsweise
             </div>
-            <h2 className="mt-5 max-w-3xl text-5xl font-light leading-[1.02] tracking-[-0.055em] text-ink dark:text-white md:text-6xl">
+            <h2 className="mt-3 max-w-2xl text-[24px] font-medium leading-snug text-[var(--text-primary)]">
               {aiArchitectureConcept.title}
             </h2>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300">
+            <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-[var(--text-secondary)]">
               {aiArchitectureConcept.subtitle}
             </p>
           </div>
-          <div className="space-y-3">
+          <ol className="space-y-2">
             {aiArchitectureConcept.flow.map((step, index) => (
-              <div key={step.id} className="grid gap-3 rounded-xl border border-black/5 bg-white/76 p-4 dark:border-white/10 dark:bg-slate-800/72 md:grid-cols-[44px_1fr]">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-teal text-sm font-semibold text-white">
+              <li
+                key={step.id}
+                className="grid gap-3 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 md:grid-cols-[28px_1fr]"
+              >
+                <div className="mono grid h-6 w-6 place-items-center rounded bg-[var(--brand-soft)] text-[12px] font-medium text-[var(--brand-strong)]">
                   {index + 1}
                 </div>
                 <div>
-                  <div className="font-semibold tracking-[-0.025em]">{step.title}</div>
-                  <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  <div className="text-[13px] font-medium">{step.title}</div>
+                  <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-secondary)]">
                     {step.description}
                   </p>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
       <Panel title="KI-Rollen">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {aiArchitectureConcept.aiRoles.map((role) => (
-            <div key={role.role} className="rounded-[18px] border border-black/10 bg-white/78 p-5 dark:border-white/10 dark:bg-slate-800/78">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-teal-500/10 text-teal">
-                {roleIcons[role.role] ?? <Brain className="h-5 w-5" />}
+            <div
+              key={role.role}
+              className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4"
+            >
+              <div className="grid h-8 w-8 place-items-center rounded bg-[var(--brand-soft)] text-[var(--brand-strong)]">
+                {roleIcons[role.role] ?? <Brain className="h-4 w-4" />}
               </div>
-              <h3 className="mt-4 font-semibold tracking-[-0.025em]">{role.role}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+              <h3 className="mt-3 text-[14px] font-medium">{role.role}</h3>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--text-secondary)]">
                 {role.purpose}
               </p>
-              <div className="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-900/50 dark:text-slate-300">
-                <span className="font-semibold text-ink dark:text-white">Gate:</span>{" "}
+              <div className="mt-3 rounded border border-[var(--border-muted)] bg-[var(--surface-secondary)] p-2.5 text-[11px] leading-relaxed text-[var(--text-secondary)]">
+                <span className="font-medium text-[var(--text-primary)]">Gate:</span>{" "}
                 {role.guardrail}
               </div>
             </div>
@@ -433,24 +445,19 @@ function AiArchitectureSection() {
       </Panel>
 
       <Panel title="Guardrails">
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-2 md:grid-cols-2">
           {aiArchitectureConcept.nonNegotiables.map((rule) => (
-            <div key={rule} className="flex items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal" />
+            <div
+              key={rule}
+              className="flex items-start gap-2.5 rounded-md border border-[var(--border-muted)] bg-[var(--surface-secondary)] p-3 text-[12px] leading-relaxed text-[var(--text-secondary)]"
+            >
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand)]" />
               <span>{rule}</span>
             </div>
           ))}
         </div>
       </Panel>
     </div>
-  );
-}
-
-function EmptyAdminSection({ title, description }: { title: string; description: string }) {
-  return (
-    <Panel title={title}>
-      <EmptyState title="Leer" text={description} />
-    </Panel>
   );
 }
 
@@ -465,13 +472,13 @@ function Panel({
 }) {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="premium-surface overflow-hidden rounded-[20px] border border-black/10 dark:border-white/10"
+      transition={{ duration: 0.18 }}
+      className="surface overflow-hidden"
     >
-      <div className="flex items-center justify-between border-b border-black/10 px-5 py-4 dark:border-white/10">
-        <h2 className="text-base font-semibold tracking-[-0.025em]">{title}</h2>
+      <div className="flex items-center justify-between border-b border-[var(--border-default)] px-5 py-3">
+        <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{title}</h2>
         {action}
       </div>
       <div className="p-5">{children}</div>
@@ -489,23 +496,12 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-white/70 p-8 text-center dark:border-slate-700 dark:bg-slate-800/50">
-      <h3 className="font-semibold tracking-[-0.025em]">{title}</h3>
-      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+    <div className="rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-secondary)] p-7 text-center">
+      <h3 className="text-[14px] font-medium text-[var(--text-primary)]">{title}</h3>
+      <p className="mx-auto mt-1.5 max-w-xl text-[13px] leading-relaxed text-[var(--text-secondary)]">
         {text}
       </p>
-      {action ? <div className="mt-5">{action}</div> : null}
-    </div>
-  );
-}
-
-function SummaryBlock({ title, text }: { title: string; text: string }) {
-  return (
-    <div>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600 dark:text-slate-300">
-        {title}
-      </div>
-      <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">{text}</p>
+      {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
 }
