@@ -38,6 +38,131 @@ export const riskOrchestrationEntry = {
   ]
 } as const;
 
+export type DemoReviewCase = {
+  id: string;
+  severity: "critical" | "major" | "minor" | "ready";
+  severityLabel: string;
+  area: string;
+  title: string;
+  noteLabel: string;
+  criticNote: string;
+  ageLabel: string;
+  sources: string;
+  regulation: string;
+  primaryAction: "open" | "approve";
+  href: string;
+  summary: string;
+  nextStep: string;
+  evidence: string[];
+  openQuestions: string[];
+};
+
+export const demoReviewCases: DemoReviewCase[] = [
+  {
+    id: "DEV-2025-014",
+    severity: "critical",
+    severityLabel: "Kritisch",
+    area: "Aseptische Abfüllung · Reinraum B",
+    title: "Abweichung im Klima-Monitoring, Bezug zu Sterilfilter unklar",
+    noteLabel: "Prüfhinweis",
+    criticNote:
+      "Mir fehlt eine Quelle für die Aussage, dass der HEPA-Vorlauf entkoppelt ist. Annex 1 §8.123 wird zitiert, aber das Zitat passt nicht zur Textstelle auf Seite 14.",
+    ageLabel: "vor 12 min",
+    sources: "3 Quellen · 1 fehlt",
+    regulation: "ICH Q9 §5.3.2",
+    primaryAction: "open",
+    href: "/review-ui/demo/dev-2025-014",
+    summary:
+      "Die Abweichung kann kritisch sein, weil ein Klima-Signal und die Sterilfilter-Bewertung noch nicht sauber zusammengeführt sind.",
+    nextStep: "Quelle prüfen: Passt die zitierte Textstelle wirklich zur Aussage über den HEPA-Vorlauf?",
+    evidence: [
+      "Abweichungsbericht mit Klima-Monitoring-Verlauf",
+      "Annex-1-Referenz zur Sterilfilter-Bewertung",
+      "Chargenbezug und Reinraum-Bereich"
+    ],
+    openQuestions: [
+      "Ist die zitierte Textstelle fachlich passend?",
+      "Fehlt ein Nachweis zur Trennung von Klima- und Sterilfilter-Risiko?",
+      "Muss QA sofort entscheiden oder zuerst SME nachfordern?"
+    ]
+  },
+  {
+    id: "CAPA-2025-082",
+    severity: "major",
+    severityLabel: "Hoch",
+    area: "Reinigung · Charge R-1183",
+    title: "Wirksamkeitsprüfung Reinigungsmittel nach 30 Tagen offen",
+    noteLabel: "Prüfhinweis",
+    criticNote:
+      "Maßnahmen sind dokumentiert, die Wirksamkeit wurde aber noch nicht bewertet. Du musst entscheiden, ob das ein blockierendes Gap für die Freigabe ist.",
+    ageLabel: "vor 1 Std.",
+    sources: "5 Quellen · vollständig",
+    regulation: "SOP-CLN-04 §4.2",
+    primaryAction: "open",
+    href: "/review-ui/demo/capa-2025-082",
+    summary:
+      "Die CAPA ist formal angelegt, aber der wichtigste Wirksamkeitsnachweis ist noch offen.",
+    nextStep: "Entscheiden: Reicht der vorhandene Maßnahmenstand aus oder muss die Wirksamkeit vor Freigabe belegt werden?",
+    evidence: [
+      "CAPA-Aktionsliste",
+      "Reinigungsprotokoll Charge R-1183",
+      "SOP-CLN-04 §4.2"
+    ],
+    openQuestions: [
+      "Ist die 30-Tage-Frist verbindlich oder nur geplant?",
+      "Gibt es einen dokumentierten Zwischenstatus?",
+      "Wer muss die Wirksamkeit fachlich bestätigen?"
+    ]
+  },
+  {
+    id: "CC-2025-211",
+    severity: "ready",
+    severityLabel: "Bereit für QA",
+    area: "QC-Labor · HPLC-04",
+    title: "Methodenänderung Gradient-Profil, SME hat abgezeichnet",
+    noteLabel: "Prüfhinweis",
+    criticNote:
+      "Quellen vollständig, Risiken belegt, keine Widersprüche. Die SME-Abzeichnung vom 18.05. wartet auf deine Freigabe.",
+    ageLabel: "seit gestern",
+    sources: "8 Quellen · vollständig",
+    regulation: "ICH Q2 R2",
+    primaryAction: "approve",
+    href: "/review-ui/demo/cc-2025-211",
+    summary:
+      "Der Fall ist vorbereitet: Quellen, SME-Abzeichnung und Regelwerksbezug sind sichtbar.",
+    nextStep: "Final prüfen und Entscheidung dokumentieren.",
+    evidence: [
+      "SME-Abzeichnung vom 18.05.",
+      "Methodenänderung Gradient-Profil",
+      "Validierungsbezug ICH Q2 R2"
+    ],
+    openQuestions: [
+      "Ist die Begründung für QA ausreichend kurz dokumentiert?",
+      "Sind alle betroffenen Chargen ausgeschlossen oder bewertet?",
+      "Soll die Entscheidung als Freigabe oder als Rückfrage gespeichert werden?"
+    ]
+  }
+];
+
+export function findDemoReviewCase(id: string): DemoReviewCase | undefined {
+  return demoReviewCases.find((demoCase) => demoCase.href.endsWith(`/${id}`));
+}
+
+export function userFacingReviewLoadError(error: string): { title: string; message: string } {
+  if (error.includes("QRM_BACKEND") || error.includes("Backend nicht verbunden")) {
+    return {
+      title: "Fallliste gerade nicht verbunden",
+      message:
+        "Die echte Fallliste braucht eine Backend-Verbindung. Du kannst trotzdem einen neuen Prüffall auf der Startseite vorbereiten oder die Demo-Fälle öffnen."
+    };
+  }
+
+  return {
+    title: "Fallliste konnte nicht geladen werden",
+    message: error
+  };
+}
+
 export const consultantReviewCopy = {
   productName: "Pharma QRM Delta Engine",
   workspaceTitle: "QA-Prüfung vorbereiten",
@@ -51,7 +176,7 @@ export const consultantReviewCopy = {
     title: "Fallübersicht",
     empty:
       "Noch kein echter Prüffall vorhanden. Lade auf der Startseite Unterlagen hoch, dann erscheint hier der Fall.",
-    loadErrorPrefix: "Backend nicht erreichbar",
+    loadErrorPrefix: "Fallliste konnte nicht geladen werden",
     columns: {
       package: "Prüffall",
       trigger: "Anlass",
@@ -513,6 +638,14 @@ export type ReviewPack = {
   audit_references: string[];
 };
 
+export type ReviewPackProgressInput = Pick<
+  ReviewPack,
+  | "review_progress_percent"
+  | "reviewed_finding_count"
+  | "total_finding_count"
+  | "top_risks"
+>;
+
 export const hiddenDemoDocumentSetIds = new Set(["ds_demo_avi_threshold"]);
 
 export function isHiddenDemoDocumentSetId(documentSetId: string): boolean {
@@ -639,7 +772,7 @@ export function displayReviewPackSummary(input: {
   return `${parts.join(". ")}.`;
 }
 
-export function reviewPackProgress(input: ReviewPack): {
+export function reviewPackProgress(input: ReviewPackProgressInput): {
   percent: number;
   reviewed: number;
   total: number;

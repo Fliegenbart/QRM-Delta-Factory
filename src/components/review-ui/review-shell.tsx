@@ -46,10 +46,22 @@ export function StatusBadge({ children, tone = "slate" }: { children: ReactNode;
   );
 }
 
-export function EmptyState({ message }: { message: string }) {
+export function EmptyState({
+  message,
+  title,
+  action
+}: {
+  message: string;
+  title?: string;
+  action?: ReactNode;
+}) {
   return (
     <div className="rounded-xl border border-dashed border-slate-300 bg-white/70 p-8 text-center text-sm text-slate-600 dark:border-white/10 dark:bg-slate-900/50 dark:text-slate-300">
-      {message}
+      {title ? (
+        <h3 className="text-base font-semibold text-slate-950 dark:text-white">{title}</h3>
+      ) : null}
+      <p className={title ? "mx-auto mt-2 max-w-2xl leading-6" : "leading-6"}>{message}</p>
+      {action ? <div className="mt-5 flex flex-wrap justify-center gap-2">{action}</div> : null}
     </div>
   );
 }

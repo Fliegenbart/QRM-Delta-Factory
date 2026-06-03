@@ -3,6 +3,7 @@ import {
   caseWorkspaceStructure,
   aiArchitectureConcept,
   consultantReviewCopy,
+  demoReviewCases,
   buildFindingReviewChecklist,
   cleanEvidenceQuote,
   decisionOptions,
@@ -24,6 +25,7 @@ import {
   supabasePublicEnvKeys,
   hasSupabasePublicConfig,
   riskOrchestrationEntry,
+  userFacingReviewLoadError,
   type ReviewPack
 } from "@/src/lib/review-ui";
 import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
@@ -49,6 +51,32 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.decision.savedMessage).toContain("Bearbeitungsstand");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
     expect(consultantReviewCopy.decision.rationaleRequired).toContain("begründen");
+  });
+
+  it("keeps demo triage cards connected to concrete demo detail routes", () => {
+    expect(demoReviewCases).toHaveLength(3);
+    expect(demoReviewCases.map((demoCase) => demoCase.href)).toEqual([
+      "/review-ui/demo/dev-2025-014",
+      "/review-ui/demo/capa-2025-082",
+      "/review-ui/demo/cc-2025-211"
+    ]);
+    expect(demoReviewCases.map((demoCase) => demoCase.noteLabel)).toEqual([
+      "Prüfhinweis",
+      "Prüfhinweis",
+      "Prüfhinweis"
+    ]);
+    expect(demoReviewCases[0].nextStep).toContain("Quelle prüfen");
+  });
+
+  it("turns backend configuration failures into user-facing review list copy", () => {
+    const message = userFacingReviewLoadError(
+      "Backend nicht verbunden. Prüfe QRM_BACKEND_URL und QRM_BACKEND_API_KEY."
+    );
+
+    expect(message.title).toBe("Fallliste gerade nicht verbunden");
+    expect(message.message).toContain("Backend");
+    expect(message.message).not.toContain("QRM_BACKEND_URL");
+    expect(message.message).not.toContain("QRM_BACKEND_API_KEY");
   });
 
   it("hides the retired public demo case from the review UI", () => {
@@ -92,7 +120,7 @@ describe("review UI helpers", () => {
       reviewed_finding_count: 1,
       total_finding_count: 2,
       top_risks: []
-    } as ReviewPack;
+    };
 
     expect(reviewPackProgress(pack)).toEqual({
       percent: 50,

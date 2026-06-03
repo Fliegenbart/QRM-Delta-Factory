@@ -348,6 +348,11 @@ export function IntakeUploader() {
       ) : null}
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+        {files.length === 0 && status === "idle" ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Bitte zuerst mindestens eine Datei auswählen.
+          </p>
+        ) : null}
         <button
           type="button"
           onClick={submit}

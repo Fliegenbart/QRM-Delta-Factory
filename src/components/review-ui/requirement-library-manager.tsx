@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { AlertCircle, CheckCircle2, FileUp, Loader2, RefreshCcw, UploadCloud } from "lucide-react";
-import type { Requirement, RequirementLibraryOverview } from "@/src/lib/review-ui";
+import { userFacingReviewLoadError, type Requirement, type RequirementLibraryOverview } from "@/src/lib/review-ui";
 
 type LoadState = "loading" | "ready" | "uploading" | "error";
 
@@ -96,7 +96,11 @@ export function RequirementLibraryManager() {
             {state === "loading" && !currentSet ? (
               <div className="mt-3 flex items-center gap-2 text-[13px] text-[var(--text-secondary)]">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Lädt...
+                Regelwerk wird geladen...
+              </div>
+            ) : state === "error" && !currentSet ? (
+              <div className="mt-3 text-[13px] leading-6 text-[var(--text-secondary)]">
+                {error ? userFacingReviewLoadError(error).title : "Regelwerk konnte nicht geladen werden"}
               </div>
             ) : currentSet ? (
               <div className="mt-2 space-y-1.5">
@@ -163,7 +167,7 @@ export function RequirementLibraryManager() {
           {error ? (
             <div className="mt-3 flex items-start gap-2 rounded-md border border-[color:var(--severity-critical)] bg-[var(--severity-critical-soft)] px-3 py-2 text-[12px] leading-relaxed text-[var(--severity-critical)]">
               <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>{error}</span>
+              <span>{userFacingReviewLoadError(error).message}</span>
             </div>
           ) : null}
         </div>

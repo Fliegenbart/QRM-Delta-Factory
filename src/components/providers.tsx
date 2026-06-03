@@ -20,6 +20,8 @@ export function Providers({ children }: ProvidersProps) {
 
   // Load saved preferences on mount
   useEffect(() => {
+    localStorage.setItem("pharma-qrm-theme", "light");
+
     const savedLocale = localStorage.getItem("pharma-qrm-locale") as Locale | null;
     if (savedLocale && (savedLocale === "de" || savedLocale === "en")) {
       setInitialLocale(savedLocale);
@@ -37,7 +39,7 @@ export function Providers({ children }: ProvidersProps) {
   }
 
   return (
-    <ThemeProvider defaultTheme="system">
+    <ThemeProvider defaultTheme="light">
       <I18nProvider defaultLocale={initialLocale}>
         {children}
       </I18nProvider>

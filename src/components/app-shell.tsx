@@ -26,8 +26,8 @@ import { motion } from "@/src/components/ui/motion";
 import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { RequirementLibraryManager } from "@/src/components/review-ui/requirement-library-manager";
 import { HumanFeedbackRegistryPanel } from "@/src/components/review-ui/human-feedback-registry-panel";
-import { aiArchitectureConcept } from "@/src/lib/review-ui";
-import { CaseCard, type TriageCase } from "@/src/components/triage/case-card";
+import { aiArchitectureConcept, demoReviewCases } from "@/src/lib/review-ui";
+import { CaseCard } from "@/src/components/triage/case-card";
 import type { LucideIcon } from "lucide-react";
 
 type NavItem = [slug: string, labelKey: TranslationKey, icon: LucideIcon];
@@ -269,51 +269,6 @@ function renderSection(section: string) {
 
 /* ----- Triage dashboard ----- */
 
-const sampleCases: TriageCase[] = [
-  {
-    id: "DEV-2025-014",
-    severity: "critical",
-    severityLabel: "Critical",
-    area: "Aseptische Abfüllung · Reinraum B",
-    title: "Abweichung im Klima-Monitoring, Bezug zu Sterilfilter unklar",
-    criticNote:
-      "Mir fehlt eine Quelle für die Aussage, dass der HEPA-Vorlauf entkoppelt ist. Annex 1 §8.123 wird zitiert, aber das Zitat passt nicht zum Snippet auf Seite 14.",
-    ageLabel: "vor 12 min",
-    sources: "3 Quellen · 1 fehlend",
-    regulation: "ICH Q9 §5.3.2",
-    primaryAction: "open",
-    href: "/review-ui",
-  },
-  {
-    id: "CAPA-2025-082",
-    severity: "major",
-    severityLabel: "Major",
-    area: "Reinigung · Charge R-1183",
-    title: "Wirksamkeitsprüfung Reinigungsmittel nach 30 Tagen offen",
-    criticNote:
-      "Maßnahmen sind dokumentiert, Wirksamkeit aber noch nicht bewertet. Du musst entscheiden, ob das ein blockierendes Gap für die Freigabe ist.",
-    ageLabel: "vor 1 std",
-    sources: "5 Quellen · vollständig",
-    regulation: "SOP-CLN-04 §4.2",
-    primaryAction: "open",
-    href: "/review-ui",
-  },
-  {
-    id: "CC-2025-211",
-    severity: "ready",
-    severityLabel: "Bereit für QA",
-    area: "QC-Labor · HPLC-04",
-    title: "Methodenänderung Gradient-Profil, SME hat abgezeichnet",
-    criticNote:
-      "Quellen vollständig, Risiken belegt, keine Widersprüche. SME-Abzeichnung vom 18.05. — wartet auf deine Freigabe.",
-    ageLabel: "seit gestern",
-    sources: "8 Quellen · vollständig",
-    regulation: "ICH Q2 R2",
-    primaryAction: "approve",
-    href: "/review-ui",
-  },
-];
-
 function DashboardSection() {
   return (
     <div className="space-y-7">
@@ -328,8 +283,8 @@ function DashboardSection() {
           </div>
         </div>
 
-        <div className="mt-4 space-y-2.5">
-          {sampleCases.map((c) => (
+        <div className="mt-4 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4">
+          {demoReviewCases.map((c) => (
             <CaseCard key={c.id} data={c} />
           ))}
         </div>
