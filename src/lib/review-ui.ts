@@ -38,6 +38,30 @@ export const riskOrchestrationEntry = {
   ]
 } as const;
 
+export const productHomeCopy = {
+  title: "QA-Prüfung aus GMP-Unterlagen vorbereiten",
+  subtitle:
+    "Lade Change-, CAPA- oder Abweichungsunterlagen hoch. Das Tool zeigt Prüfpunkte, Quellen, fehlende Nachweise und den nächsten QA-Schritt.",
+  valueLine: "Unterlagen rein → Prüfmappe raus → QA entscheidet.",
+  primaryAction: "Prüffall vorbereiten",
+  workflow: [
+    "Unterlagen hochladen",
+    "Prüfpunkte und Quellen sehen",
+    "Lücken klären",
+    "QA-Entscheidung dokumentieren"
+  ],
+  outcomeChecks: [
+    "Was ist der Fall?",
+    "Was wurde gefunden?",
+    "Welche Quellen stützen das?",
+    "Was fehlt?",
+    "Was muss QA entscheiden?"
+  ],
+  exampleTitle: "Beispiele für typische QA-Prüfungen",
+  exampleDescription:
+    "So sieht eine vorbereitete Prüfmappe aus: der Fall, die Quellen, die Lücken und der nächste Entscheidungsschritt."
+} as const;
+
 export type DemoReviewCase = {
   id: string;
   severity: "critical" | "major" | "minor" | "ready";
@@ -52,9 +76,13 @@ export type DemoReviewCase = {
   primaryAction: "open" | "approve";
   href: string;
   summary: string;
+  whyItMatters: string;
   nextStep: string;
+  findings: string[];
   evidence: string[];
+  missingEvidence: string[];
   openQuestions: string[];
+  decisionActions: string[];
 };
 
 export const demoReviewCases: DemoReviewCase[] = [
@@ -74,16 +102,33 @@ export const demoReviewCases: DemoReviewCase[] = [
     href: "/review-ui/demo/dev-2025-014",
     summary:
       "Die Abweichung kann kritisch sein, weil ein Klima-Signal und die Sterilfilter-Bewertung noch nicht sauber zusammengeführt sind.",
+    whyItMatters:
+      "Warum dieser Fall wichtig ist: Eine unklare Quelle kann dazu führen, dass ein Sterilitätsrisiko zu früh als abgedeckt gilt.",
     nextStep: "Quelle prüfen: Passt die zitierte Textstelle wirklich zur Aussage über den HEPA-Vorlauf?",
+    findings: [
+      "HEPA-Vorlauf wird als entkoppelt beschrieben, die zitierte Textstelle belegt das aber nicht klar.",
+      "Klima-Monitoring und Sterilfilter-Bewertung sind fachlich verbunden, aber noch nicht sauber abgegrenzt.",
+      "Der Fall braucht eine menschliche QA-Entscheidung, bevor er geschlossen werden kann."
+    ],
     evidence: [
       "Abweichungsbericht mit Klima-Monitoring-Verlauf",
       "Annex-1-Referenz zur Sterilfilter-Bewertung",
       "Chargenbezug und Reinraum-Bereich"
     ],
+    missingEvidence: [
+      "Nachweis, dass Klima-Signal und HEPA-Vorlauf fachlich getrennt bewertet wurden.",
+      "Passende Textstelle zur Aussage über den HEPA-Vorlauf.",
+      "SME-Einschätzung, ob das Gap freigaberelevant ist."
+    ],
     openQuestions: [
       "Ist die zitierte Textstelle fachlich passend?",
       "Fehlt ein Nachweis zur Trennung von Klima- und Sterilfilter-Risiko?",
       "Muss QA sofort entscheiden oder zuerst SME nachfordern?"
+    ],
+    decisionActions: [
+      "Bestätigen",
+      "Weitere Unterlagen anfordern",
+      "An QA eskalieren"
     ]
   },
   {
@@ -102,16 +147,33 @@ export const demoReviewCases: DemoReviewCase[] = [
     href: "/review-ui/demo/capa-2025-082",
     summary:
       "Die CAPA ist formal angelegt, aber der wichtigste Wirksamkeitsnachweis ist noch offen.",
+    whyItMatters:
+      "Warum dieser Fall wichtig ist: Ohne Wirksamkeitsbewertung bleibt unklar, ob die Korrekturmaßnahme wirklich abgeschlossen ist.",
     nextStep: "Entscheiden: Reicht der vorhandene Maßnahmenstand aus oder muss die Wirksamkeit vor Freigabe belegt werden?",
+    findings: [
+      "Maßnahmen sind dokumentiert, die Wirksamkeit ist aber noch nicht bewertet.",
+      "Die Frist von 30 Tagen ist im Prüfkontext sichtbar und muss bewertet werden.",
+      "Der Fall kann ohne klare Wirksamkeitsbewertung nicht sauber freigegeben werden."
+    ],
     evidence: [
       "CAPA-Aktionsliste",
       "Reinigungsprotokoll Charge R-1183",
       "SOP-CLN-04 §4.2"
     ],
+    missingEvidence: [
+      "Nachweis der Wirksamkeitsprüfung nach 30 Tagen.",
+      "Begründung, falls die Freigabe vor Abschluss der Bewertung möglich sein soll.",
+      "Fachliche Bestätigung durch SME oder QA."
+    ],
     openQuestions: [
       "Ist die 30-Tage-Frist verbindlich oder nur geplant?",
       "Gibt es einen dokumentierten Zwischenstatus?",
       "Wer muss die Wirksamkeit fachlich bestätigen?"
+    ],
+    decisionActions: [
+      "Bestätigen",
+      "Weitere Unterlagen anfordern",
+      "An QA eskalieren"
     ]
   },
   {
@@ -130,16 +192,33 @@ export const demoReviewCases: DemoReviewCase[] = [
     href: "/review-ui/demo/cc-2025-211",
     summary:
       "Der Fall ist vorbereitet: Quellen, SME-Abzeichnung und Regelwerksbezug sind sichtbar.",
+    whyItMatters:
+      "Warum dieser Fall wichtig ist: Die Prüfmappe zeigt, dass die wichtigsten Nachweise sichtbar sind und QA zur Entscheidung übergehen kann.",
     nextStep: "Final prüfen und Entscheidung dokumentieren.",
+    findings: [
+      "SME-Abzeichnung ist vorhanden und datiert.",
+      "Regelwerksbezug zur Methodenänderung ist sichtbar.",
+      "Keine offenen Widersprüche in den angezeigten Quellen."
+    ],
     evidence: [
       "SME-Abzeichnung vom 18.05.",
       "Methodenänderung Gradient-Profil",
       "Validierungsbezug ICH Q2 R2"
     ],
+    missingEvidence: [
+      "Keine kritische Lücke in der Demo sichtbar.",
+      "QA-Begründung muss vor Freigabe dokumentiert werden.",
+      "Betroffene Chargen müssen final bestätigt bleiben."
+    ],
     openQuestions: [
       "Ist die Begründung für QA ausreichend kurz dokumentiert?",
       "Sind alle betroffenen Chargen ausgeschlossen oder bewertet?",
       "Soll die Entscheidung als Freigabe oder als Rückfrage gespeichert werden?"
+    ],
+    decisionActions: [
+      "Bestätigen",
+      "Weitere Unterlagen anfordern",
+      "An QA eskalieren"
     ]
   }
 ];
@@ -151,9 +230,9 @@ export function findDemoReviewCase(id: string): DemoReviewCase | undefined {
 export function userFacingReviewLoadError(error: string): { title: string; message: string } {
   if (error.includes("QRM_BACKEND") || error.includes("Backend nicht verbunden")) {
     return {
-      title: "Fallliste gerade nicht verbunden",
+      title: "Prüffälle gerade nicht verfügbar",
       message:
-        "Die echte Fallliste braucht eine Backend-Verbindung. Du kannst trotzdem einen neuen Prüffall auf der Startseite vorbereiten oder die Demo-Fälle öffnen."
+        "Echte Prüffälle brauchen eine Backend-Verbindung. Du kannst trotzdem einen neuen Prüffall auf der Startseite vorbereiten oder die Demo-Prüfmappe öffnen."
     };
   }
 
@@ -164,16 +243,16 @@ export function userFacingReviewLoadError(error: string): { title: string; messa
 }
 
 export const consultantReviewCopy = {
-  productName: "Pharma QRM Delta Engine",
+  productName: "Pharma QRM",
   workspaceTitle: "QA-Prüfung vorbereiten",
   workspaceDescription:
     "Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.",
   nav: {
-    cockpit: "Fallübersicht",
-    packages: "Fallübersicht"
+    cockpit: "Prüffälle",
+    packages: "Prüffälle"
   },
   list: {
-    title: "Fallübersicht",
+    title: "Prüffälle",
     empty:
       "Noch kein echter Prüffall vorhanden. Lade auf der Startseite Unterlagen hoch, dann erscheint hier der Fall.",
     loadErrorPrefix: "Fallliste konnte nicht geladen werden",
@@ -257,14 +336,14 @@ const riskStatementLabels: Record<string, string> = {
 };
 
 export const aiArchitectureConcept = {
-  title: "So prüft das System",
+  title: "Wie die Prüfmappe entsteht",
   subtitle:
-    "Ein gesteuerter Multi-Agent-Review: Uploads werden in zitierte Aussagen zerlegt, passende Regelkarten aus der Risikobibliothek geladen und von spezialisierten Reviewern geprüft. Modell, Prompt, Regelpakete und Gründe werden pro Lauf gespeichert. Freigaben bleiben menschlich.",
+    "Aus hochgeladenen Unterlagen werden prüfbare Aussagen, passende Regelwerksbezüge, Quellen und offene Lücken. Jeder Schritt bleibt nachvollziehbar. Freigaben bleiben menschlich.",
   flow: [
     {
       id: "source",
       title: "Aussagen extrahieren",
-      description: "Aus den Unterlagen entsteht ein Claim Ledger mit Dokument, Seite, Textstelle und Zitat."
+      description: "Wichtige Aussagen werden mit Dokument, Seite, Textstelle und Zitat gesammelt."
     },
     {
       id: "scope-router",
@@ -274,7 +353,7 @@ export const aiArchitectureConcept = {
     {
       id: "reviewer-agents",
       title: "Fachreview",
-      description: "Sieben Reviewer prüfen mit eigenen Briefings, Retrieval-Profilen und Requirement Cards."
+      description: "Fachliche Prüfschritte prüfen CAPA, Abweichung, Datenintegrität, Validierung, Chargenbezug und Widersprüche."
     },
     {
       id: "evidence-verifier",
@@ -306,7 +385,7 @@ export const aiArchitectureConcept = {
     {
       role: "7 Reviewer Agents",
       purpose: "Prüfen Data Integrity, Deviation, CAPA, Batch Impact, Validation/Sterility, Regulatory Consistency und Widersprüche.",
-      guardrail: "Jeder Reviewer nutzt eigenes Briefing und eigene Requirement Cards."
+      guardrail: "Jeder Prüfschritt nutzt passende Regeln und Quellen."
     },
     {
       role: "Evidence Verifier",

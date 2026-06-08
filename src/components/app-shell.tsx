@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardCheck,
+  FileCheck2,
   FileText,
   Gauge,
   Globe,
@@ -26,7 +27,7 @@ import { motion } from "@/src/components/ui/motion";
 import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { RequirementLibraryManager } from "@/src/components/review-ui/requirement-library-manager";
 import { HumanFeedbackRegistryPanel } from "@/src/components/review-ui/human-feedback-registry-panel";
-import { aiArchitectureConcept, demoReviewCases } from "@/src/lib/review-ui";
+import { aiArchitectureConcept, demoReviewCases, productHomeCopy } from "@/src/lib/review-ui";
 import { CaseCard } from "@/src/components/triage/case-card";
 import type { LucideIcon } from "lucide-react";
 
@@ -60,6 +61,7 @@ const pageTitleKeys = Object.fromEntries(
 ) as Record<string, TranslationKey>;
 
 function pageTitle(slug: string, t: (key: TranslationKey) => string) {
+  if (slug === "dashboard") return "QA-Prüfung vorbereiten";
   return t(pageTitleKeys[slug] ?? "nav.dashboard");
 }
 
@@ -248,7 +250,7 @@ function BrandMark() {
         <div className="text-[12px] font-medium tracking-[0.04em] text-[var(--text-primary)]">
           Pharma QRM
         </div>
-        <div className="text-[11px] text-[var(--text-tertiary)]">Review Engine</div>
+        <div className="text-[11px] text-[var(--text-tertiary)]">Prüfmappe vorbereiten</div>
       </div>
     </div>
   );
@@ -271,36 +273,100 @@ function renderSection(section: string) {
 
 function DashboardSection() {
   return (
-    <div className="space-y-7">
+    <div className="space-y-10">
+      <section className="border-b border-[var(--border-default)] pb-8">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 py-1 text-[11px] font-medium text-[var(--text-secondary)]">
+              <FileCheck2 className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden />
+              QA-Mappe mit Quellen, Lücken und Entscheidung
+            </div>
+            <h2 className="mt-5 max-w-3xl text-[34px] font-medium leading-[1.05] text-[var(--text-primary)] md:text-[48px]">
+              {productHomeCopy.title}
+            </h2>
+            <p className="mt-5 max-w-2xl text-[17px] leading-8 text-[var(--text-secondary)]">
+              {productHomeCopy.subtitle}
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <a
+                href="#new-case"
+                className="inline-flex h-11 items-center rounded-md bg-[var(--brand)] px-4 text-[14px] font-medium text-white hover:bg-[var(--brand-strong)]"
+              >
+                {productHomeCopy.primaryAction}
+              </a>
+              <span className="text-[13px] font-medium text-[var(--text-secondary)]">
+                {productHomeCopy.valueLine}
+              </span>
+            </div>
+            <ol className="mt-7 grid gap-2 sm:grid-cols-4">
+              {productHomeCopy.workflow.map((step, index) => (
+                <li key={step} className="flex items-center gap-2 text-[12px] leading-5 text-[var(--text-secondary)]">
+                  <span className="mono grid h-6 w-6 shrink-0 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[11px] text-[var(--text-tertiary)]">
+                    {index + 1}
+                  </span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)]">
+            <div className="border-b border-[var(--border-default)] px-4 py-3">
+              <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                Ergebnis der Vorbereitung
+              </div>
+              <div className="mt-1 text-[14px] font-medium text-[var(--text-primary)]">
+                Eine prüfbare QA-Mappe
+              </div>
+            </div>
+            <div className="divide-y divide-[var(--border-muted)] px-4">
+              {productHomeCopy.outcomeChecks.map((check) => (
+                <div key={check} className="flex items-start gap-2 py-3 text-[13px] leading-6 text-[var(--text-secondary)]">
+                  <CheckCircle2 className="mt-1 h-3.5 w-3.5 shrink-0 text-[var(--brand)]" aria-hidden />
+                  <span>{check}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="new-case">
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-[18px] font-medium text-[var(--text-primary)]">
+              {productHomeCopy.primaryAction}
+            </h2>
+            <p className="mt-1 text-[13px] text-[var(--text-secondary)]">
+              Change, CAPA, Abweichung oder Audit hochladen. Die Originaldateien bleiben die Quelle.
+            </p>
+          </div>
+          <span className="text-[12px] text-[var(--text-tertiary)]">
+            KI bereitet vor. QA entscheidet.
+          </span>
+        </div>
+        <IntakeUploader />
+      </section>
+
       <section>
-        <div className="flex items-baseline justify-between">
-          <p className="text-[15px] text-[var(--text-primary)]">
-            Guten Morgen, David. Drei Fälle brauchen heute deine Aufmerksamkeit.
-          </p>
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-[18px] font-medium text-[var(--text-primary)]">
+              {productHomeCopy.exampleTitle}
+            </h2>
+            <p className="mt-1 max-w-2xl text-[13px] leading-6 text-[var(--text-secondary)]">
+              {productHomeCopy.exampleDescription}
+            </p>
+          </div>
           <div className="hidden gap-4 text-[11px] text-[var(--text-tertiary)] sm:flex">
-            <span>3 offen · 1 critical</span>
+            <span>3 Beispiele</span>
             <span className="mono">{new Date().toLocaleDateString("de-DE")}</span>
           </div>
         </div>
 
-        <div className="mt-4 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4">
+        <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4">
           {demoReviewCases.map((c) => (
             <CaseCard key={c.id} data={c} />
           ))}
-        </div>
-      </section>
-
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-            Neuer Fall
-          </h2>
-          <span className="text-[11px] text-[var(--text-tertiary)]">
-            Lade Unterlagen zu Änderung, Abweichung, CAPA oder Audit hoch.
-          </span>
-        </div>
-        <div className="surface p-5">
-          <IntakeUploader />
         </div>
       </section>
     </div>
@@ -309,16 +375,16 @@ function DashboardSection() {
 
 function ReviewEntrySection() {
   return (
-    <Panel title="Fallübersicht">
+    <Panel title="Prüffälle">
       <EmptyState
-        title="Keine Demo-Fälle"
-        text="Lege auf der Startseite einen Prüffall an. Hier erscheint danach die Liste mit Link zur Prüfmappe."
+        title="Noch kein echter Prüffall"
+        text="Lege auf der Startseite einen Prüffall an. Danach erscheint hier der Link zur Prüfmappe."
         action={
           <Link
             href="/"
             className="inline-flex h-9 items-center rounded-md bg-[var(--brand)] px-3 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)]"
           >
-            <Plus className="mr-1.5 h-3.5 w-3.5" /> Neuer Fall
+            <Plus className="mr-1.5 h-3.5 w-3.5" /> Prüffall vorbereiten
           </Link>
         }
       />

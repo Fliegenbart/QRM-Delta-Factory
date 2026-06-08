@@ -24,13 +24,13 @@ export const translations = {
 
   // Navigation Items
   "nav.dashboard": { de: "Start", en: "Start" },
-  "nav.caseWorkspace": { de: "Fallübersicht", en: "Case Overview" },
-  "nav.aiArchitecture": { de: "So prüft das System", en: "AI Architecture" },
-  "nav.backendReview": { de: "Fallübersicht", en: "Case Overview" },
+  "nav.caseWorkspace": { de: "Prüffälle", en: "Review cases" },
+  "nav.aiArchitecture": { de: "Wie die Prüfmappe entsteht", en: "How the review pack is built" },
+  "nav.backendReview": { de: "Prüffälle", en: "Review cases" },
   "nav.projects": { de: "Projekte", en: "Projects" },
   "nav.documents": { de: "Dokumente", en: "Documents" },
   "nav.sourceSnippets": { de: "Quellausschnitte", en: "Source Snippets" },
-  "nav.riskLibrary": { de: "Risikobibliothek", en: "Risk Library" },
+  "nav.riskLibrary": { de: "Regelwerk", en: "Rule set" },
   "nav.triggerInput": { de: "Change/CAPA Eingabe", en: "Change/CAPA Input" },
   "nav.deltaAnalysis": { de: "Delta-Prozess", en: "Delta Process" },
   "nav.qrmMatrix": { de: "QRM-Matrix", en: "QRM Matrix" },
@@ -57,7 +57,7 @@ export const translations = {
   // Brand
   "brand.name": { de: "Pharma QRM", en: "Pharma QRM" },
   "brand.subtitle": { de: "Delta Factory", en: "Delta Factory" },
-  "brand.tagline": { de: "Risiko-Deltas. Quellenbasiert. Review-ready.", en: "Risk deltas. Evidence-first. Review-ready." },
+  "brand.tagline": { de: "Unterlagen rein. Prüfmappe raus. QA entscheidet.", en: "Documents in. Review pack out. QA decides." },
 
   // Dashboard
   "dashboard.openHighGaps": { de: "High/Critical offen", en: "High/Critical open" },
@@ -181,7 +181,7 @@ export const translations = {
   "snippets.hash": { de: "Hash", en: "Hash" },
 
   // Risk Library
-  "riskLib.title": { de: "Genehmigte Risikobibliothek", en: "Approved risk library" },
+  "riskLib.title": { de: "Genehmigtes Regelwerk", en: "Approved rule set" },
   "riskLib.libraryId": { de: "Bibliotheks-ID", en: "Library ID" },
   "riskLib.gmpArea": { de: "GMP-Bereich", en: "GMP area" },
   "riskLib.processStep": { de: "Prozessschritt", en: "Process step" },

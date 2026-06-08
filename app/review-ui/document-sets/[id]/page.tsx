@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight, FileText } from "lucide-react";
 import { getDocumentSet } from "@/src/lib/review-api";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import {
@@ -34,29 +35,39 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
             title={consultantReviewCopy.detail.title}
             action={
               <Link
-                className="rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white"
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-[var(--brand)] px-3 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
                 href={`/review-ui/document-sets/${id}/review-pack`}
               >
                 {consultantReviewCopy.detail.openReviewPack}
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             }
           >
-            <dl className="grid gap-4 md:grid-cols-2">
-              <Detail label={consultantReviewCopy.detail.labels.packageId} value={documentSet.document_set_id} mono />
-              <Detail label={consultantReviewCopy.detail.labels.tenant} value={documentSet.tenant_id} />
-              <Detail label={consultantReviewCopy.detail.labels.requirementSet} value={documentSet.requirement_set_id} mono />
-              <Detail label={consultantReviewCopy.detail.labels.uploadedBy} value={documentSet.uploaded_by} />
+            <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-4 py-3">
+              <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                Kurzstatus
+              </div>
+              <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                Der Prüffall ist angelegt. Öffne die Prüfmappe, um Prüfpunkte, Quellen,
+                fehlende Nachweise und die QA-Entscheidung zu bearbeiten.
+              </p>
+            </div>
+
+            <dl className="mt-5 grid gap-4 md:grid-cols-2">
               <Detail label={consultantReviewCopy.detail.labels.documentType} value={displayReviewValue(documentSet.declared_document_type)} />
               <Detail label={consultantReviewCopy.detail.labels.processArea} value={displayReviewValue(documentSet.declared_process_area)} />
+              <Detail label={consultantReviewCopy.detail.labels.uploadedBy} value={documentSet.uploaded_by} />
               <Detail label={consultantReviewCopy.detail.labels.uploaded} value={new Date(documentSet.upload_timestamp).toLocaleString()} />
               <div>
-                <dt className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{consultantReviewCopy.detail.labels.status}</dt>
+                <dt className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">{consultantReviewCopy.detail.labels.status}</dt>
                 <dd className="mt-2">
                   <StatusBadge tone={documentSet.status.includes("review") ? "amber" : "green"}>
                     {displayReviewValue(documentSet.status)}
                   </StatusBadge>
                 </dd>
               </div>
+              <Detail label={consultantReviewCopy.detail.labels.requirementSet} value={documentSet.requirement_set_id} mono />
+              <Detail label={consultantReviewCopy.detail.labels.packageId} value={documentSet.document_set_id} mono />
             </dl>
           </ReviewPanel>
 
@@ -66,8 +77,9 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
             ) : (
               <ul className="space-y-2">
                 {documentSet.document_ids.map((documentId) => (
-                  <li key={documentId} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs">
-                    {documentId}
+                  <li key={documentId} className="flex items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2 text-xs text-[var(--text-secondary)]">
+                    <FileText className="h-4 w-4 shrink-0 text-[var(--brand)]" aria-hidden />
+                    <span className="min-w-0 truncate font-mono">{documentId}</span>
                   </li>
                 ))}
               </ul>
@@ -88,8 +100,8 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
 function Detail({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <dt className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{label}</dt>
-      <dd className={`mt-1 text-sm text-slate-900 ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
+      <dt className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">{label}</dt>
+      <dd className={`mt-1 text-sm text-[var(--text-primary)] ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
     </div>
   );
 }

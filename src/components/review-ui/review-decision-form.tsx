@@ -48,18 +48,18 @@ export function ReviewDecisionForm({ findingId }: { findingId: string }) {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-[220px_1fr]">
-        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">
           {consultantReviewCopy.decision.reviewerId}
           <input
-            className="mt-1 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-950 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+            className="mt-1 h-10 w-full rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-sm text-[var(--text-primary)] outline-none focus:ring-4 focus:ring-[var(--brand-ring)]"
             value={reviewerId}
             onChange={(event) => setReviewerId(event.target.value)}
           />
         </label>
-        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+        <label className="text-sm font-medium text-[var(--text-secondary)]">
           {consultantReviewCopy.decision.rationale}
           <textarea
-            className="mt-1 min-h-24 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-950 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+            className="mt-1 min-h-28 w-full rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 py-2 text-sm leading-6 text-[var(--text-primary)] outline-none focus:ring-4 focus:ring-[var(--brand-ring)]"
             value={rationale}
             onChange={(event) => setRationale(event.target.value)}
             placeholder={consultantReviewCopy.decision.placeholder}
@@ -74,10 +74,10 @@ export function ReviewDecisionForm({ findingId }: { findingId: string }) {
             type="button"
             onClick={() => submitDecision(option.value)}
             disabled={status === "saving"}
-            className={`rounded-xl border px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-md border px-4 py-2 text-sm font-semibold transition ${
               decision === option.value
-                ? "border-teal-600 bg-teal-600 text-white"
-                : "border-slate-200 bg-white text-slate-800 hover:border-teal-300 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-teal-400"
+                ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                : "border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-primary)] hover:border-[var(--brand)] hover:bg-[var(--brand-soft)]"
             }`}
           >
             {option.label}
@@ -87,10 +87,10 @@ export function ReviewDecisionForm({ findingId }: { findingId: string }) {
 
       {message ? (
         <div
-          className={`rounded-xl border px-4 py-3 text-sm ${
+          className={`rounded-md border px-4 py-3 text-sm ${
             status === "error"
               ? "border-red-200 bg-red-50 text-red-800"
-              : "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--text-primary)]"
           }`}
         >
           {message}

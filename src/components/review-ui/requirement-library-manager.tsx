@@ -45,7 +45,7 @@ export function RequirementLibraryManager() {
       setState("ready");
     } catch (caught) {
       setState("error");
-      setError(caught instanceof Error ? caught.message : "Risikobibliothek konnte nicht geladen werden.");
+      setError(caught instanceof Error ? caught.message : "Regelwerk konnte nicht geladen werden.");
     }
   }
 
@@ -80,13 +80,13 @@ export function RequirementLibraryManager() {
         <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
           <div>
             <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-              Risikobibliothek
+              Regelwerk
             </div>
             <h2 className="mt-2 text-[20px] font-medium leading-snug text-[var(--text-primary)]">
               Aktives Regelwerk und Quelldokumente
             </h2>
             <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--text-secondary)]">
-              Diese Bibliothek wird zur Bewertung neuer Prüffälle herangezogen. Importiere ein RequirementSet, um es zu aktivieren.
+              Dieses Regelwerk wird zur Bewertung neuer Prüffälle herangezogen. Importiere eine Regelwerk-Datei, um sie zu aktivieren.
             </p>
           </div>
           <aside className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4">
@@ -128,7 +128,7 @@ export function RequirementLibraryManager() {
       <section className="grid gap-4 xl:grid-cols-[340px_1fr]">
         <div className="surface p-5">
           <div className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-            Bibliothek importieren
+            Regelwerk importieren
           </div>
           <label className="mt-3 flex min-h-[130px] cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-secondary)] px-4 py-5 text-center transition-colors hover:bg-[var(--brand-soft)] hover:border-[var(--brand)]">
             <UploadCloud className="h-7 w-7 text-[var(--brand)]" aria-hidden />
@@ -136,7 +136,7 @@ export function RequirementLibraryManager() {
               JSON oder YAML auswählen
             </span>
             <span className="mt-0.5 text-[11px] text-[var(--text-tertiary)]">
-              Ein RequirementSet pro Datei
+              Eine Regelwerk-Datei pro Import
             </span>
             <input
               className="sr-only"

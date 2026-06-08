@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { getReviewPack } from "@/src/lib/review-api";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import {
@@ -44,25 +45,40 @@ export default async function ReviewPackPage({ params }: PageProps) {
             title={consultantReviewCopy.pack.title}
             action={<StatusBadge tone={pack.decision.auto_clear_allowed ? "green" : "amber"}>{displayReviewValue(pack.decision.decision)}</StatusBadge>}
           >
-            <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">
-              {displayReviewPackSummary({
-                decision: pack.decision.decision,
-                findingCount: pack.top_risks.length,
-                maxSeverity: pack.decision.max_severity
-              })}
-            </p>
-            <div className="mt-4">
+            <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
+              <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-4 py-3">
+                <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                  Kurzantwort
+                </div>
+                <p className="mt-1 text-sm leading-6 text-[var(--text-primary)]">
+                  {displayReviewPackSummary({
+                    decision: pack.decision.decision,
+                    findingCount: pack.top_risks.length,
+                    maxSeverity: pack.decision.max_severity
+                  })}
+                </p>
+              </div>
+              <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-4 py-3">
+                <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                  QA-Ziel
+                </div>
+                <p className="mt-1 text-sm leading-6 text-[var(--text-primary)]">
+                  Prüfpunkte bearbeiten, Lücken klären, Entscheidung dokumentieren.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5">
               <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="font-semibold text-slate-900 dark:text-white">
+                <span className="font-semibold text-[var(--text-primary)]">
                   {progress.label}
                 </span>
-                <span className="text-slate-500 dark:text-slate-400">
+                <span className="text-[var(--text-tertiary)]">
                   Menschliche Bearbeitung
                 </span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-900">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--surface-secondary)]">
                 <div
-                  className="h-full rounded-full bg-teal-600 transition-all"
+                  className="h-full rounded-full bg-[var(--brand)] transition-all"
                   style={{ width: `${progress.percent}%` }}
                 />
               </div>
@@ -75,7 +91,7 @@ export default async function ReviewPackPage({ params }: PageProps) {
             ) : (
               <div className="space-y-3">
                 {pack.top_risks.map((risk) => (
-                  <article key={risk.finding_id} className="rounded-2xl border border-slate-200 p-4 dark:border-white/10 dark:bg-slate-900/35">
+                  <article key={risk.finding_id} className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
                         <div className="flex flex-wrap gap-2">
@@ -90,16 +106,17 @@ export default async function ReviewPackPage({ params }: PageProps) {
                             </StatusBadge>
                           ) : null}
                         </div>
-                        <h3 className="mt-3 text-lg font-semibold tracking-[-0.02em] text-slate-950 dark:text-white">{displayRiskStatement(risk.risk_statement)}</h3>
-                        <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                        <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--text-primary)]">{displayRiskStatement(risk.risk_statement)}</h3>
+                        <div className="mt-3 text-xs text-[var(--text-tertiary)]">
                           {consultantReviewCopy.pack.requirement}: {risk.requirement_references.join(", ") || consultantReviewCopy.pack.notLinked}
                         </div>
                       </div>
                       <Link
-                        className="rounded-xl bg-slate-950 px-4 py-2 text-center text-sm font-semibold text-white"
+                        className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-center text-sm font-semibold text-[var(--brand)] hover:border-[var(--brand)] hover:bg-[var(--brand-soft)]"
                         href={`/review-ui/document-sets/${id}/findings/${risk.finding_id}`}
                       >
                         {consultantReviewCopy.pack.openFinding}
+                        <ArrowRight className="h-4 w-4" aria-hidden />
                       </Link>
                     </div>
                   </article>
@@ -130,18 +147,24 @@ export default async function ReviewPackPage({ params }: PageProps) {
 
 function ReasonList({ reasons }: { reasons: string[] }) {
   if (reasons.length === 0) {
-    return <p className="text-sm text-slate-500">{consultantReviewCopy.pack.noEntries}</p>;
+    return (
+      <p className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+        <CheckCircle2 className="h-4 w-4 text-[var(--brand)]" aria-hidden />
+        {consultantReviewCopy.pack.noEntries}
+      </p>
+    );
   }
 
   const uniqueReasons = displayReviewReasons(reasons.join(";"));
   return (
     <div>
       {uniqueReasons.length === 0 ? (
-        <p className="mt-1 text-sm text-slate-500">{consultantReviewCopy.pack.noEntries}</p>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">{consultantReviewCopy.pack.noEntries}</p>
       ) : (
-        <ul className="mt-2 space-y-1">
+        <ul className="mt-2 space-y-2">
           {uniqueReasons.map((reason) => (
-            <li key={reason} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:bg-slate-900/70 dark:text-slate-200">
+            <li key={reason} className="flex items-start gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2 text-sm text-[var(--text-secondary)]">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
               {reason}
             </li>
           ))}

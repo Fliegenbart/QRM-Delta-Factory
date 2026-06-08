@@ -48,7 +48,7 @@ export function DeleteDocumentSetButton({ documentSetId }: DeleteDocumentSetButt
         type="button"
         onClick={deleteDocumentSet}
         disabled={isDeleting}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-red-200 bg-white text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-400/30 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-950/30"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-[var(--surface-primary)] text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-400/30 dark:text-red-300 dark:hover:bg-red-950/30"
         aria-label={`Prüffall ${documentSetId} löschen`}
         title="Prüffall löschen"
       >

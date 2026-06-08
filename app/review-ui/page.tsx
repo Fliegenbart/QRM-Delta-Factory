@@ -40,16 +40,16 @@ export default async function ReviewUiDocumentSetsPage() {
             action={
               <>
                 <Link
-                  className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                  className="rounded-md bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
                   href="/"
                 >
                   Neuen Prüffall vorbereiten
                 </Link>
                 <Link
-                  className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+                  className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]"
                   href={demoReviewCases[0].href}
                 >
-                  Demo-Fall ansehen
+                  Demo-Prüfmappe ansehen
                 </Link>
               </>
             }
@@ -60,7 +60,7 @@ export default async function ReviewUiDocumentSetsPage() {
             message={consultantReviewCopy.list.empty}
             action={
               <Link
-                className="rounded-md bg-slate-950 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                className="rounded-md bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
                 href="/"
               >
                 Prüffall anlegen
@@ -68,9 +68,9 @@ export default async function ReviewUiDocumentSetsPage() {
             }
           />
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <div className="overflow-hidden rounded-md border border-[var(--border-default)]">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
+              <thead className="bg-[var(--surface-secondary)] text-[11px] uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
                 <tr>
                   <th className="px-4 py-3">{consultantReviewCopy.list.columns.package}</th>
                   <th className="px-4 py-3">{consultantReviewCopy.list.columns.trigger}</th>
@@ -80,10 +80,10 @@ export default async function ReviewUiDocumentSetsPage() {
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-[var(--border-default)]">
                 {documentSets.map((documentSet) => (
-                  <tr key={documentSet.document_set_id} className="bg-white">
-                    <td className="px-4 py-4 font-mono text-xs">{documentSet.document_set_id}</td>
+                  <tr key={documentSet.document_set_id} className="bg-[var(--surface-primary)]">
+                    <td className="px-4 py-4 font-mono text-xs text-[var(--text-secondary)]">{documentSet.document_set_id}</td>
                     <td className="px-4 py-4">{displayReviewValue(documentSet.declared_document_type)}</td>
                     <td className="px-4 py-4">{displayReviewValue(documentSet.declared_process_area)}</td>
                     <td className="px-4 py-4">
@@ -95,7 +95,7 @@ export default async function ReviewUiDocumentSetsPage() {
                     <td className="px-4 py-4">
                       <div className="flex items-start justify-end gap-2">
                         <Link
-                          className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white"
+                          className="rounded-md bg-[var(--brand)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--brand-strong)]"
                           href={`/review-ui/document-sets/${documentSet.document_set_id}`}
                         >
                           {consultantReviewCopy.list.open}
@@ -111,7 +111,7 @@ export default async function ReviewUiDocumentSetsPage() {
         )}
       </ReviewPanel>
       {!error ? (
-        <ReviewPanel title="Setup: KI-Kalibrierung">
+        <ReviewPanel title="Setup: Qualität der Prüfhinweise">
           <ReviewCalibrationPanel />
         </ReviewPanel>
       ) : null}

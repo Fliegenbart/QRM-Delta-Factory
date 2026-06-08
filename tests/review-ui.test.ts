@@ -24,6 +24,7 @@ import {
   reviewDecisionRequiresHumanRationale,
   supabasePublicEnvKeys,
   hasSupabasePublicConfig,
+  productHomeCopy,
   riskOrchestrationEntry,
   userFacingReviewLoadError,
   type ReviewPack
@@ -45,12 +46,28 @@ describe("review UI helpers", () => {
   it("uses consultant-friendly copy for the backend review UI", () => {
     expect(consultantReviewCopy.workspaceTitle).toBe("QA-Prüfung vorbereiten");
     expect(consultantReviewCopy.workspaceDescription).toBe("Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.");
-    expect(consultantReviewCopy.list.title).toBe("Fallübersicht");
+    expect(consultantReviewCopy.list.title).toBe("Prüffälle");
     expect(consultantReviewCopy.list.empty).toContain("Startseite");
     expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt");
     expect(consultantReviewCopy.decision.savedMessage).toContain("Bearbeitungsstand");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
     expect(consultantReviewCopy.decision.rationaleRequired).toContain("begründen");
+  });
+
+  it("states the product USP in plain QA language", () => {
+    expect(productHomeCopy.title).toBe("QA-Prüfung aus GMP-Unterlagen vorbereiten");
+    expect(productHomeCopy.subtitle).toContain("Change-, CAPA- oder Abweichungsunterlagen");
+    expect(productHomeCopy.subtitle).toContain("Prüfpunkte");
+    expect(productHomeCopy.valueLine).toBe("Unterlagen rein → Prüfmappe raus → QA entscheidet.");
+    expect(productHomeCopy.primaryAction).toBe("Prüffall vorbereiten");
+    expect(productHomeCopy.workflow).toEqual([
+      "Unterlagen hochladen",
+      "Prüfpunkte und Quellen sehen",
+      "Lücken klären",
+      "QA-Entscheidung dokumentieren"
+    ]);
+    expect(productHomeCopy.outcomeChecks).toContain("Was muss QA entscheiden?");
+    expect(productHomeCopy.exampleTitle).toBe("Beispiele für typische QA-Prüfungen");
   });
 
   it("keeps demo triage cards connected to concrete demo detail routes", () => {
@@ -66,6 +83,14 @@ describe("review UI helpers", () => {
       "Prüfhinweis"
     ]);
     expect(demoReviewCases[0].nextStep).toContain("Quelle prüfen");
+    expect(demoReviewCases[0].whyItMatters).toContain("Warum dieser Fall wichtig ist");
+    expect(demoReviewCases[0].findings).toHaveLength(3);
+    expect(demoReviewCases[0].missingEvidence[0]).toContain("Nachweis");
+    expect(demoReviewCases[0].decisionActions).toEqual([
+      "Bestätigen",
+      "Weitere Unterlagen anfordern",
+      "An QA eskalieren"
+    ]);
   });
 
   it("turns backend configuration failures into user-facing review list copy", () => {
@@ -73,7 +98,7 @@ describe("review UI helpers", () => {
       "Backend nicht verbunden. Prüfe QRM_BACKEND_URL und QRM_BACKEND_API_KEY."
     );
 
-    expect(message.title).toBe("Fallliste gerade nicht verbunden");
+    expect(message.title).toBe("Prüffälle gerade nicht verfügbar");
     expect(message.message).toContain("Backend");
     expect(message.message).not.toContain("QRM_BACKEND_URL");
     expect(message.message).not.toContain("QRM_BACKEND_API_KEY");
@@ -269,9 +294,13 @@ describe("review UI helpers", () => {
   });
 
   it("documents the AI architecture as a controlled review chain, not model voting", () => {
-    expect(aiArchitectureConcept.title).toBe("So prüft das System");
-    expect(aiArchitectureConcept.subtitle).toContain("Multi-Agent-Review");
-    expect(aiArchitectureConcept.subtitle).toContain("Regelkarten");
+    expect(aiArchitectureConcept.title).toBe("Wie die Prüfmappe entsteht");
+    expect(aiArchitectureConcept.subtitle).toContain("Jeder Schritt bleibt nachvollziehbar");
+    expect(aiArchitectureConcept.subtitle).toContain("Freigaben bleiben menschlich");
+    expect(aiArchitectureConcept.subtitle).not.toContain("Multi-Agent");
+    expect(aiArchitectureConcept.subtitle).not.toContain("Regelkarten");
+    expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Claim Ledger");
+    expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Requirement Cards");
     expect(aiArchitectureConcept.flow.map((step) => step.id)).toEqual([
       "source",
       "scope-router",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 import { getReviewPack } from "@/src/lib/review-api";
 import {
   buildFindingReviewChecklist,
@@ -72,7 +73,8 @@ export default async function FindingDetailPage({ params }: PageProps) {
     return (
       <ReviewShell>
         <div className="mb-4">
-          <Link className="text-sm font-semibold text-teal-700" href={`/review-ui/document-sets/${id}/review-pack`}>
+          <Link className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--brand)] hover:text-[var(--brand-strong)]" href={`/review-ui/document-sets/${id}/review-pack`}>
+            <ArrowLeft className="h-4 w-4" aria-hidden />
             {consultantReviewCopy.finding.backToPack}
           </Link>
         </div>
@@ -93,7 +95,7 @@ export default async function FindingDetailPage({ params }: PageProps) {
                 ) : null}
               </div>
 
-              <h2 className="mt-4 text-2xl font-semibold tracking-[-0.04em]">
+              <h2 className="mt-4 text-2xl font-semibold leading-tight text-[var(--text-primary)]">
                 {displayRiskStatement(risk.risk_statement)}
               </h2>
               <dl className="mt-5 grid gap-4 md:grid-cols-2">
@@ -103,8 +105,11 @@ export default async function FindingDetailPage({ params }: PageProps) {
                 <Detail label={consultantReviewCopy.finding.labels.verifierResult} value={displayReviewValue(risk.verifier_status)} />
               </dl>
 
-              <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-                <strong>{consultantReviewCopy.finding.humanReason}:</strong>
+              <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+                <div className="flex items-center gap-2 font-semibold">
+                  <AlertCircle className="h-4 w-4" aria-hidden />
+                  {consultantReviewCopy.finding.humanReason}
+                </div>
                 <ul className="mt-2 list-disc space-y-1 pl-5">
                   {reviewChecklist.map((item) => (
                     <li key={item}>{item}</li>
@@ -119,15 +124,15 @@ export default async function FindingDetailPage({ params }: PageProps) {
               ) : (
                 <div className="space-y-3">
                   {uniqueEvidenceRows.map((row, index) => (
-                    <blockquote key={`${row.document_id}-${row.chunk_id}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-900/50">
-                      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                    <blockquote key={`${row.document_id}-${row.chunk_id}-${index}`} className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4">
+                      <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
                         Belegstelle {index + 1}
                       </div>
-                      <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+                      <div className="mt-1 text-sm font-semibold text-[var(--text-primary)]">
                         {evidenceSourceLabel(row)}
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-slate-800 dark:text-slate-200">"{cleanEvidenceQuote(row.quote)}"</p>
-                      <footer className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                      <p className="mt-3 border-l-2 border-[var(--brand)] pl-3 text-sm leading-6 text-[var(--text-secondary)]">"{cleanEvidenceQuote(row.quote)}"</p>
+                      <footer className="mt-3 text-xs text-[var(--text-tertiary)]">
                         Interne Quellen-ID im Audit-Trail gespeichert.
                       </footer>
                     </blockquote>
@@ -157,8 +162,8 @@ export default async function FindingDetailPage({ params }: PageProps) {
 function Detail({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <dt className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{label}</dt>
-      <dd className={`mt-1 text-sm text-slate-900 dark:text-slate-100 ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
+      <dt className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">{label}</dt>
+      <dd className={`mt-1 text-sm text-[var(--text-primary)] ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
     </div>
   );
 }
