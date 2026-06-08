@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
+  AlertCircle,
+  ArrowRight,
   Brain,
   CheckCircle2,
   ChevronDown,
@@ -274,60 +276,121 @@ function renderSection(section: string) {
 function DashboardSection() {
   return (
     <div className="space-y-10">
-      <section className="border-b border-[var(--border-default)] pb-8">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 py-1 text-[11px] font-medium text-[var(--text-secondary)]">
-              <FileCheck2 className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden />
-              QA-Mappe mit Quellen, Lücken und Entscheidung
+      <section className="relative overflow-hidden border-b border-[var(--border-default)] pb-10">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-stretch">
+          <div className="flex min-h-[520px] flex-col justify-between border-l-4 border-[var(--brand)] pl-5 md:pl-7">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 py-1 text-[11px] font-medium text-[var(--text-secondary)]">
+                <FileCheck2 className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden />
+                QA-Mappe mit Quellen, Lücken und Entscheidung
+              </div>
+              <h2 className="mt-6 max-w-4xl text-[42px] font-medium leading-[0.98] text-[var(--text-primary)] md:text-[68px]">
+                {productHomeCopy.title}
+              </h2>
+              <p className="mt-6 max-w-2xl text-[18px] leading-8 text-[var(--text-secondary)]">
+                {productHomeCopy.subtitle}
+              </p>
             </div>
-            <h2 className="mt-5 max-w-3xl text-[34px] font-medium leading-[1.05] text-[var(--text-primary)] md:text-[48px]">
-              {productHomeCopy.title}
-            </h2>
-            <p className="mt-5 max-w-2xl text-[17px] leading-8 text-[var(--text-secondary)]">
-              {productHomeCopy.subtitle}
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-3">
+
+            <div className="mt-8 grid gap-5 xl:grid-cols-[1fr_auto] xl:items-end">
+              <div>
+                <div className="text-[24px] font-medium leading-tight text-[var(--text-primary)] md:text-[32px]">
+                  {productHomeCopy.decisionLine}
+                </div>
+                <p className="mt-2 text-[13px] font-medium text-[var(--text-secondary)]">
+                  {productHomeCopy.valueLine}
+                </p>
+              </div>
               <a
                 href="#new-case"
-                className="inline-flex h-11 items-center rounded-md bg-[var(--brand)] px-4 text-[14px] font-medium text-white hover:bg-[var(--brand-strong)]"
+                className="inline-flex h-12 w-fit items-center gap-2 rounded-md bg-[var(--brand)] px-5 text-[14px] font-medium text-white hover:bg-[var(--brand-strong)]"
               >
                 {productHomeCopy.primaryAction}
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </a>
-              <span className="text-[13px] font-medium text-[var(--text-secondary)]">
-                {productHomeCopy.valueLine}
-              </span>
             </div>
-            <ol className="mt-7 grid gap-2 sm:grid-cols-4">
-              {productHomeCopy.workflow.map((step, index) => (
-                <li key={step} className="flex items-center gap-2 text-[12px] leading-5 text-[var(--text-secondary)]">
-                  <span className="mono grid h-6 w-6 shrink-0 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[11px] text-[var(--text-tertiary)]">
-                    {index + 1}
-                  </span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
           </div>
-          <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)]">
-            <div className="border-b border-[var(--border-default)] px-4 py-3">
+
+          <aside className="flex min-h-[520px] flex-col justify-between rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)]">
+            <div className="border-b border-[var(--border-default)] px-5 py-4">
               <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-                Ergebnis der Vorbereitung
+                Prüfmappe-Vorschau
               </div>
-              <div className="mt-1 text-[14px] font-medium text-[var(--text-primary)]">
-                Eine prüfbare QA-Mappe
-              </div>
-            </div>
-            <div className="divide-y divide-[var(--border-muted)] px-4">
-              {productHomeCopy.outcomeChecks.map((check) => (
-                <div key={check} className="flex items-start gap-2 py-3 text-[13px] leading-6 text-[var(--text-secondary)]">
-                  <CheckCircle2 className="mt-1 h-3.5 w-3.5 shrink-0 text-[var(--brand)]" aria-hidden />
-                  <span>{check}</span>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="text-[15px] font-medium text-[var(--text-primary)]">
+                  Entscheidung offen
                 </div>
-              ))}
+                <span className="rounded-full bg-[var(--severity-major-soft)] px-2.5 py-1 text-[11px] font-medium text-[var(--severity-major)]">
+                  QA prüfen
+                </span>
+              </div>
             </div>
-          </div>
+
+            <div className="px-5 py-5">
+              <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--severity-major)]" aria-hidden />
+                  <div>
+                    <div className="text-[13px] font-medium text-[var(--text-primary)]">
+                      Quelle passt nicht zur Aussage
+                    </div>
+                    <p className="mt-1 text-[12px] leading-5 text-[var(--text-secondary)]">
+                      Annex-Referenz und HEPA-Vorlauf müssen vor Freigabe abgeglichen werden.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 divide-y divide-[var(--border-muted)]">
+                {productHomeCopy.dossierPreview.map((item) => (
+                  <div key={item.label} className="grid grid-cols-[96px_1fr] gap-3 py-3 text-[13px]">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+                      {item.label}
+                    </div>
+                    <div className="leading-6 text-[var(--text-primary)]">{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-[var(--border-default)] px-5 py-4">
+              <div className="grid grid-cols-3 gap-2">
+                {["Bestätigen", "Nachfordern", "Eskalieren"].map((action, index) => (
+                  <div
+                    key={action}
+                    className={`rounded-md border px-2 py-2 text-center text-[11px] font-medium ${
+                      index === 0
+                        ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+                        : "border-[var(--border-default)] bg-[var(--surface-secondary)] text-[var(--text-secondary)]"
+                    }`}
+                  >
+                    {action}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
         </div>
+
+        <ol className="mt-8 grid gap-2 sm:grid-cols-4">
+          {productHomeCopy.workflow.map((step, index) => (
+            <li key={step} className="flex items-center gap-2 border-t border-[var(--border-default)] pt-3 text-[12px] leading-5 text-[var(--text-secondary)]">
+              <span className="mono grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[var(--surface-primary)] text-[11px] text-[var(--text-tertiary)]">
+                {index + 1}
+              </span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-5">
+        {productHomeCopy.outcomeChecks.map((check) => (
+          <div key={check} className="border-l border-[var(--border-default)] pl-3 text-[13px] leading-6 text-[var(--text-secondary)]">
+            <CheckCircle2 className="mb-2 h-4 w-4 text-[var(--brand)]" aria-hidden />
+            {check}
+          </div>
+        ))}
       </section>
 
       <section id="new-case">

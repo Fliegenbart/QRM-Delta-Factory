@@ -41,14 +41,14 @@ export default async function DemoReviewCasePage({
         title="Beispiel-Prüfmappe"
         action={<StatusBadge tone={demoCase.severity === "ready" ? "green" : demoCase.severity === "major" ? "amber" : "red"}>{demoCase.severityLabel}</StatusBadge>}
       >
-        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-          <div>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="border-l-4 border-[var(--brand)] pl-5">
             <div className="flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-300">
               <span className="font-mono">{demoCase.id}</span>
               <span>{demoCase.area}</span>
               <span>{demoCase.regulation}</span>
             </div>
-            <h2 className="mt-3 max-w-3xl text-2xl font-semibold leading-tight text-slate-950 dark:text-white">
+            <h2 className="mt-4 max-w-4xl text-[34px] font-semibold leading-[1.05] text-[var(--text-primary)] md:text-[46px]">
               {demoCase.title}
             </h2>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -78,22 +78,58 @@ export default async function DemoReviewCasePage({
             </div>
           </div>
 
-          <aside className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4 text-sm">
-            <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-              Was ist der Fall?
+          <aside className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)]">
+            <div className="border-b border-[var(--border-default)] px-4 py-3">
+              <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                Decision Desk
+              </div>
+              <div className="mt-1 text-[14px] font-medium text-[var(--text-primary)]">
+                QA muss entscheiden
+              </div>
             </div>
-            <p className="mt-2 leading-6 text-[var(--text-secondary)]">
-              {demoCase.summary}
-            </p>
-            <div className="mt-4 text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-              Prüfhinweis
+            <div className="divide-y divide-[var(--border-muted)] px-4">
+              {demoCase.decisionActions.map((action, index) => (
+                <button
+                  key={action}
+                  type="button"
+                  className={`flex w-full items-center justify-between gap-3 py-3 text-left text-[13px] font-medium ${
+                    index === 0 ? "text-[var(--brand)]" : "text-[var(--text-secondary)]"
+                  }`}
+                >
+                  <span>{action}</span>
+                  <span className={`h-2 w-2 rounded-full ${index === 0 ? "bg-[var(--brand)]" : "bg-[var(--border-strong)]"}`} />
+                </button>
+              ))}
             </div>
-            <p className="mt-2 leading-6 text-[var(--text-secondary)]">
-              {demoCase.criticNote}
-            </p>
+            <div className="border-t border-[var(--border-default)] px-4 py-3 text-[12px] leading-5 text-[var(--text-secondary)]">
+              Entscheidung erst speichern, wenn Quelle, Lücke und Begründung zusammenpassen.
+            </div>
           </aside>
         </div>
       </ReviewPanel>
+
+      <div className="grid gap-5 lg:grid-cols-[0.72fr_0.28fr]">
+        <ReviewPanel title="Was ist der Fall?">
+          <p className="text-sm leading-7 text-[var(--text-secondary)]">
+            {demoCase.summary}
+          </p>
+          <div className="mt-4 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-4 py-3 text-sm leading-6 text-[var(--text-secondary)]">
+            <span className="font-semibold text-[var(--text-primary)]">Prüfhinweis:</span>{" "}
+            {demoCase.criticNote}
+          </div>
+        </ReviewPanel>
+
+        <ReviewPanel title="Entscheidungsreife">
+          <div className="space-y-3">
+            {["Quelle sichtbar", "Lücke benannt", "QA-Schritt klar"].map((item) => (
+              <div key={item} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                <CheckCircle2 className="h-4 w-4 text-[var(--brand)]" aria-hidden />
+                {item}
+              </div>
+            ))}
+          </div>
+        </ReviewPanel>
+      </div>
 
       <div className="grid gap-5 xl:grid-cols-3">
         <ReviewPanel title="Prüfpunkte">
@@ -139,27 +175,6 @@ export default async function DemoReviewCasePage({
             </li>
           ))}
         </ul>
-      </ReviewPanel>
-
-      <ReviewPanel title="Was muss QA entscheiden?">
-        <div className="grid gap-3 md:grid-cols-3">
-          {demoCase.decisionActions.map((action, index) => (
-            <button
-              key={action}
-              type="button"
-              className={`h-10 rounded-md border px-3 text-sm font-semibold ${
-                index === 0
-                  ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-                  : "border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]"
-              }`}
-            >
-              {action}
-            </button>
-          ))}
-        </div>
-        <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">
-          Diese Demo zeigt den Zielzustand der Prüfmappe. In echten Fällen wird die Entscheidung mit kurzer Begründung gespeichert.
-        </p>
       </ReviewPanel>
 
       <ReviewPanel

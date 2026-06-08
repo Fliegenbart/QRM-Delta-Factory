@@ -59,12 +59,19 @@ describe("review UI helpers", () => {
     expect(productHomeCopy.subtitle).toContain("Change-, CAPA- oder Abweichungsunterlagen");
     expect(productHomeCopy.subtitle).toContain("Prüfpunkte");
     expect(productHomeCopy.valueLine).toBe("Unterlagen rein → Prüfmappe raus → QA entscheidet.");
+    expect(productHomeCopy.decisionLine).toBe("Nicht noch ein Dashboard. Eine entscheidungsreife Prüfmappe.");
     expect(productHomeCopy.primaryAction).toBe("Prüffall vorbereiten");
     expect(productHomeCopy.workflow).toEqual([
       "Unterlagen hochladen",
       "Prüfpunkte und Quellen sehen",
       "Lücken klären",
       "QA-Entscheidung dokumentieren"
+    ]);
+    expect(productHomeCopy.dossierPreview.map((item) => item.label)).toEqual([
+      "Fall",
+      "Befund",
+      "Lücke",
+      "Entscheidung"
     ]);
     expect(productHomeCopy.outcomeChecks).toContain("Was muss QA entscheiden?");
     expect(productHomeCopy.exampleTitle).toBe("Beispiele für typische QA-Prüfungen");

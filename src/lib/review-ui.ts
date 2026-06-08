@@ -43,12 +43,19 @@ export const productHomeCopy = {
   subtitle:
     "Lade Change-, CAPA- oder Abweichungsunterlagen hoch. Das Tool zeigt Prüfpunkte, Quellen, fehlende Nachweise und den nächsten QA-Schritt.",
   valueLine: "Unterlagen rein → Prüfmappe raus → QA entscheidet.",
+  decisionLine: "Nicht noch ein Dashboard. Eine entscheidungsreife Prüfmappe.",
   primaryAction: "Prüffall vorbereiten",
   workflow: [
     "Unterlagen hochladen",
     "Prüfpunkte und Quellen sehen",
     "Lücken klären",
     "QA-Entscheidung dokumentieren"
+  ],
+  dossierPreview: [
+    { label: "Fall", value: "Abweichung · CAPA · Change" },
+    { label: "Befund", value: "Prüfpunkt mit Quelle" },
+    { label: "Lücke", value: "fehlender Nachweis sichtbar" },
+    { label: "Entscheidung", value: "bestätigen · nachfordern · eskalieren" }
   ],
   outcomeChecks: [
     "Was ist der Fall?",
