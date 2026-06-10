@@ -153,6 +153,9 @@ class BaseModelProvider(ABC):
                 return structured_output
             except ValidationError as exc:
                 self._record_failure()
+                if _attempt < self.runtime_options.max_retries:
+                    last_error = ProviderStructuredOutputError(str(exc))
+                    continue
                 raise ProviderStructuredOutputError(str(exc)) from exc
             except Exception as exc:
                 last_error = exc

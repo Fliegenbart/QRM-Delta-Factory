@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
+import time
 from typing import Any
 
 import httpx
@@ -13,6 +15,10 @@ from app.agents.providers.base import (
     ProviderCallError,
     ProviderConfigurationError,
 )
+
+_RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 529}
+_MAX_THROTTLE_RETRIES = 5
+_BACKOFF_SECONDS = (5.0, 15.0, 30.0, 60.0, 90.0)
 
 
 class ExternalProviderBase(BaseModelProvider):
@@ -31,25 +37,41 @@ class ExternalProviderBase(BaseModelProvider):
         headers: dict[str, str],
         json_body: dict[str, Any],
     ) -> dict[str, Any]:
-        try:
-            with httpx.Client(timeout=self.runtime_options.timeout_seconds) as client:
-                response = client.post(url, headers=headers, json=json_body)
-                response.raise_for_status()
-                payload = response.json()
-        except httpx.HTTPStatusError as exc:
-            status_code = exc.response.status_code
-            raise ProviderCallError(
-                f"{self.provider_name} provider call failed with HTTP {status_code}"
-            ) from exc
-        except httpx.HTTPError as exc:
-            raise ProviderCallError(f"{self.provider_name} provider call failed") from exc
-        except ValueError as exc:
-            raise ProviderCallError(
-                f"{self.provider_name} provider returned non-JSON response"
-            ) from exc
-        if not isinstance(payload, dict):
-            raise ProviderCallError(f"{self.provider_name} provider returned invalid JSON payload")
-        return payload
+        last_status: int | None = None
+        for attempt in range(_MAX_THROTTLE_RETRIES + 1):
+            try:
+                with httpx.Client(timeout=self.runtime_options.timeout_seconds) as client:
+                    response = client.post(url, headers=headers, json=json_body)
+                    response.raise_for_status()
+                    payload = response.json()
+            except httpx.HTTPStatusError as exc:
+                status_code = exc.response.status_code
+                if status_code in _RETRYABLE_STATUS_CODES and attempt < _MAX_THROTTLE_RETRIES:
+                    last_status = status_code
+                    retry_after = exc.response.headers.get("retry-after")
+                    delay = _BACKOFF_SECONDS[min(attempt, len(_BACKOFF_SECONDS) - 1)]
+                    if retry_after:
+                        with contextlib.suppress(ValueError):
+                            delay = max(delay, float(retry_after))
+                    time.sleep(delay)
+                    continue
+                raise ProviderCallError(
+                    f"{self.provider_name} provider call failed with HTTP {status_code}"
+                ) from exc
+            except httpx.HTTPError as exc:
+                raise ProviderCallError(f"{self.provider_name} provider call failed") from exc
+            except ValueError as exc:
+                raise ProviderCallError(
+                    f"{self.provider_name} provider returned non-JSON response"
+                ) from exc
+            if not isinstance(payload, dict):
+                raise ProviderCallError(
+                    f"{self.provider_name} provider returned invalid JSON payload"
+                )
+            return payload
+        raise ProviderCallError(
+            f"{self.provider_name} provider call failed with HTTP {last_status} after retries"
+        )
 
     def _json_user_content(
         self,

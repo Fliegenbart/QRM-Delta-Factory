@@ -40,7 +40,7 @@ class AnthropicProvider(ExternalProviderBase):
     ) -> dict[str, Any]:
         payload = {
             "model": self.configured_model_id,
-            "max_tokens": 4096,
+            "max_tokens": 16384,
             "temperature": 0,
             "system": (
                 "You are a conservative GMP review model. Use only the provided inputs. "
