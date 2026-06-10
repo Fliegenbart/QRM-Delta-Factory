@@ -1,0 +1,123 @@
+{
+  "run": {
+    "mode": "live",
+    "started_at": "2026-06-10T07:06:41+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-4o",
+    "case_count": 1
+  },
+  "aggregate": {
+    "cases": 1,
+    "sensitivity": {
+      "found": 2,
+      "total": 2,
+      "rate": 1.0
+    },
+    "specificity_decoys": {
+      "passed": 1,
+      "total": 1,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 5,
+      "total_findings": 6,
+      "rate": 0.833
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_01",
+      "document_set_id": "ds_ddbf49b710f247589a50cc4dd759d05d",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md",
+        "document_04_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "model_statuses": {
+        "BatchImpactReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "failed",
+        "DeviationReviewer": "failed",
+        "GMPDataIntegrityReviewer": "failed",
+        "ValidationAndSterilityReviewer": "failed"
+      },
+      "failed_model_roles": [
+        "DeviationReviewer",
+        "GMPDataIntegrityReviewer",
+        "RegulatoryConsistencyReviewer",
+        "ValidationAndSterilityReviewer"
+      ],
+      "claim_count": 56,
+      "finding_count": 6,
+      "citation_verified_finding_count": 5,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_01_01",
+          "severity": "medium",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Ungültiges, in der Zukunft liegendes Signaturdatum der QS-Prüfung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001",
+            "risk_statement": "The QA review signature date is inconsistent with the recording date, indicating a potential data integrity issue.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_01_02",
+          "severity": "high",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Fehlklassifizierung einer kritischen Prozessparameter-Abweichung.",
+          "match": {
+            "score": 0.437,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_capa_003",
+            "risk_statement": "The CAPA plan (CAPA-2026-441) does not document a QA review or QA approval of the CAPA plan itself. The QA release document (QA-RELEASE-XYL-004A) approves the batch for packaging but does not explicitly reference or approve CAPA-2026-441. Per req_gs_qa_approval_documented, QA approvals must be documented before closure. The absence of a QA sign-off on the CAPA plan is a compliance gap.",
+            "severity": "medium"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_01_01",
+          "evidence_text": "Homogen, zähflüssig",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_capa_001",
+          "severity": "high",
+          "risk_statement": "CAPA-2026-441 defines an effectiveness check (temperature stability monitoring for the next three batches), but no evidence of execution, results, or closure of this effectiveness check is present in any document. Per req_gs_capa_effectiveness, CAPA actions may only be closed with a defined and documented effectiveness check. The current record contains only the plan, not the execution evidence."
+        },
+        {
+          "finding_id": "finding_capa_002",
+          "severity": "high",
+          "risk_statement": "The CAPA plan (CAPA-2026-441) specifies refresher training for operator Max Mustermann with a deadline of 30.04.2026, but no training completion record, training effectiveness evidence, or confirmation of training execution is present in the document set. The knowledge pack 'training_effectiveness' is listed as missing. Without documented training completion, the corrective action cannot be considered executed."
+        },
+        {
+          "finding_id": "finding_capa_004",
+          "severity": "high",
+          "risk_statement": "The deviation report DEV-2026-891 carries a QA review signature dated 14.12.2026, which is nine months after the recording date of 12.03.2026 and after the CAPA deadline of 30.04.2026. This temporal inconsistency raises a data integrity concern under req_gs_data_integrity_signatures. If the QA review was genuinely performed on 14.12.2026, the CAPA plan and batch release (25.03.2026) were executed without a completed QA review of the deviation, which is a significant compliance gap. If the date is erroneous, it constitutes an ALCOA+ violation."
+        },
+        {
+          "finding_id": "finding_22d74d337e3b810c5132",
+          "severity": "high",
+          "risk_statement": "Adversarial review found required evidence missing or not clearly present in the claim ledger."
+        }
+      ]
+    }
+  ]
+}

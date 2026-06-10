@@ -1,0 +1,183 @@
+{
+  "run": {
+    "mode": "live",
+    "started_at": "2026-06-10T07:09:30+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-4o",
+    "case_count": 3
+  },
+  "aggregate": {
+    "cases": 3,
+    "sensitivity": {
+      "found": 0,
+      "total": 7,
+      "rate": 0.0
+    },
+    "specificity_decoys": {
+      "passed": 4,
+      "total": 4,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 0,
+      "total_findings": 0,
+      "rate": null
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_02",
+      "document_set_id": "ds_c64109041bae4dd483da6c5dd6e7a245",
+      "documents_uploaded": [
+        "document_01_cleaning_record.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_quality_approval_note.md"
+      ],
+      "pipeline_status": "failed",
+      "failed_step": "claim_ledger_extraction",
+      "error_summary": "LLM claim extraction produced no claims; chunk errors: chunk_fa3f1dc22f3643d596a2eed9c977e4b0_p1: anthropic provider call failed with HTTP 429; chunk_7191af52018e4dc5b84cddce92ed21a0_p1: anthropic provider call failed with HTTP 429; chunk_dbc60c82eac8475689d0069eb501b410_p1: Circuit breaker is open for anthropic",
+      "model_statuses": {},
+      "failed_model_roles": [],
+      "claim_count": 0,
+      "finding_count": 0,
+      "citation_verified_finding_count": 0,
+      "risk_decision": null,
+      "auto_clear_allowed": null,
+      "gold_error_count": 2,
+      "matched_errors": [],
+      "missed_errors": [
+        {
+          "error_id": "ERR_02_01",
+          "severity": "high",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Undokumentierte und nicht gegengezeichnete manuelle Datenkorrektur im Ausbeuteprotokoll.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_02_02",
+          "severity": "medium",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Yield außerhalb der Toleranzgrenze ohne Einleitung einer OOS/Abweichungsuntersuchung.",
+          "match": null
+        }
+      ],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_02_01",
+          "evidence_text": "Spül-Ex (Lot: SP-2025-09)",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": []
+    },
+    {
+      "case_id": "CASE_03",
+      "document_set_id": "ds_8254da20ec164794bcad7574aa4a6c9a",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_environmental_monitoring_report.md",
+        "document_03_capa_plan.md"
+      ],
+      "pipeline_status": "failed",
+      "failed_step": "claim_ledger_extraction",
+      "error_summary": "LLM claim extraction produced no claims; chunk errors: chunk_901dddbeb39847d09b57f5e70687958f_p1: anthropic provider call failed with HTTP 429; chunk_a9a9e64ec6194287a56496e530b1f695_p1: anthropic provider call failed with HTTP 429; chunk_f9c33303e7da4b67a6b8dd5f6c01382e_p1: Circuit breaker is open for anthropic",
+      "model_statuses": {},
+      "failed_model_roles": [],
+      "claim_count": 0,
+      "finding_count": 0,
+      "citation_verified_finding_count": 0,
+      "risk_decision": null,
+      "auto_clear_allowed": null,
+      "gold_error_count": 2,
+      "matched_errors": [],
+      "missed_errors": [
+        {
+          "error_id": "ERR_03_01",
+          "severity": "high",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Anachronistische Zeitstempel zwischen Raum-Logbuch und Probenahme-Protokoll.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_03_02",
+          "severity": "medium",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Referenzierung einer veralteten, potenziell ungültigen SOP-Version im CAPA-Plan.",
+          "match": null
+        }
+      ],
+      "decoy_count": 2,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_03_01",
+          "evidence_text": "transienter Peak von 4500 Partikeln/m³",
+          "hit": null
+        },
+        {
+          "decoy_id": "DEC_03_02",
+          "evidence_text": "KBE-Werte innerhalb des Akzeptanzkriteriums (< 5 KBE / 4 Std.)",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": []
+    },
+    {
+      "case_id": "CASE_04",
+      "document_set_id": "ds_d83ea3e51cd2487faa5daf414fc78656",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md",
+        "document_04_quality_approval_note.md"
+      ],
+      "pipeline_status": "failed",
+      "failed_step": "claim_ledger_extraction",
+      "error_summary": "LLM claim extraction produced no claims; chunk errors: chunk_8ace3e61ab224fbd87e3e57653658ac5_p1: anthropic provider call failed with HTTP 429; chunk_7e51904f803d4187bbbb87b876533130_p1: anthropic provider call failed with HTTP 429; chunk_70ab41d516054fca896aa09b0cd412b5_p1: Circuit breaker is open for anthropic; chunk_94f226d08475460c849581038847f8ea_p1: Circuit breaker is open for anthropic",
+      "model_statuses": {},
+      "failed_model_roles": [],
+      "claim_count": 0,
+      "finding_count": 0,
+      "citation_verified_finding_count": 0,
+      "risk_decision": null,
+      "auto_clear_allowed": null,
+      "gold_error_count": 3,
+      "matched_errors": [],
+      "missed_errors": [
+        {
+          "error_id": "ERR_04_01",
+          "severity": "high",
+          "error_type": "Dokumentenwidersprüche",
+          "expected_reviewer_finding": "Diskrepanz des maximalen Temperaturwerts zwischen Abweichungsbericht und Herstellprotokoll.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_04_02",
+          "severity": "high",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlende Verknüpfung zwischen technischer Root Cause und personeller CAPA-Maßnahme.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_04_03",
+          "severity": "critical",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Kritische Chargenfreigabe beruhend auf fehlerhafter und unvollständiger Abweichungsbewertung.",
+          "match": null
+        }
+      ],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_04_01",
+          "evidence_text": "Temperatur korrigiert, Trocknung fortgesetzt.",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": []
+    }
+  ]
+}

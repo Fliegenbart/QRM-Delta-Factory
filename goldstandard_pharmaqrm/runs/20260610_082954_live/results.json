@@ -1,0 +1,255 @@
+{
+  "run": {
+    "mode": "live",
+    "started_at": "2026-06-10T08:29:54+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-4o",
+    "case_count": 1
+  },
+  "aggregate": {
+    "cases": 1,
+    "sensitivity": {
+      "found": 2,
+      "total": 2,
+      "rate": 1.0
+    },
+    "specificity_decoys": {
+      "passed": 1,
+      "total": 1,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 16,
+      "total_findings": 33,
+      "rate": 0.485
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_01",
+      "document_set_id": "ds_b89dac2c8071438e94195a9c1c516787",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md",
+        "document_04_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "model_statuses": {
+        "ContradictionHunter": "failed",
+        "BatchImpactReviewer": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded"
+      },
+      "failed_model_roles": [
+        "ContradictionHunter"
+      ],
+      "claim_count": 53,
+      "finding_count": 33,
+      "citation_verified_finding_count": 16,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_01_01",
+          "severity": "medium",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Ungültiges, in der Zukunft liegendes Signaturdatum der QS-Prüfung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_002",
+            "risk_statement": "The QA review signature date is inconsistent with the recording date, indicating a potential data integrity issue.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_01_02",
+          "severity": "high",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Fehlklassifizierung einer kritischen Prozessparameter-Abweichung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001",
+            "risk_statement": "The deviation report DEV-2026-891 lacks a root cause statement and CAPA actions, which contradicts the requirement for documented risk assessment and corrective actions.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_01_01",
+          "evidence_text": "Homogen, zähflüssig",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_capa_001",
+          "severity": "high",
+          "risk_statement": "CAPA-2026-441 defines an effectiveness check (temperature stability monitoring of three subsequent batches) but provides no evidence that this check has been executed, documented, or its results recorded. Per req_gs_capa_effectiveness, CAPA actions may only be closed with a defined and documented effectiveness check. No execution record, results, or closure rationale referencing the effectiveness check is present in the available documents."
+        },
+        {
+          "finding_id": "finding_capa_002",
+          "severity": "high",
+          "risk_statement": "The CAPA action in CAPA-2026-441 assigns refresher training to operator Max Mustermann on reactor system operation and temperature monitoring, with a deadline of 30.04.2026. However, no training completion record, training effectiveness evidence, or confirmation that the training was executed is present in the document set. The knowledge pack 'training_effectiveness' is listed as missing. Without documented training completion, the CAPA action cannot be considered fulfilled."
+        },
+        {
+          "finding_id": "finding_capa_003",
+          "severity": "high",
+          "risk_statement": "The root cause stated in the batch record for the temperature drop (cooling system unexpectedly regulated down) is not substantiated by a formal root cause analysis in the deviation report DEV-2026-891 or the CAPA plan CAPA-2026-441. The CAPA action assigns operator refresher training, implying operator error as root cause, but the batch record attributes the event to an unplanned cooling system behaviour. This contradiction between root cause attribution (operator vs. equipment) is unresolved and may result in an ineffective CAPA. Per req_gs_deviation_classification, root cause statements such as 'operator error' must be substantiated."
+        },
+        {
+          "finding_id": "finding_capa_004",
+          "severity": "high",
+          "risk_statement": "The QA review signature on deviation report DEV-2026-891 is dated 14.12.2026, which is nine months after the deviation recording date of 12.03.2026 and approximately nine months after the batch release date of 25.03.2026. This temporal inconsistency raises a data integrity concern: either the QA review was performed after batch release (which would mean the batch was released without completed QA review of the deviation), or the date is erroneous. Both scenarios constitute a data integrity finding under req_gs_data_integrity_signatures. This also affects the validity of the CAPA linkage to the deviation."
+        },
+        {
+          "finding_id": "finding_001_data_integrity_qa_signature_date",
+          "severity": "critical",
+          "risk_statement": "The QA reviewer signature date (14.12.2026) on deviation DEV-2026-891 is approximately nine months after the recording date (12.03.2026). This temporal gap is implausible for a Minor deviation on a batch released on 25.03.2026, and constitutes a potential ALCOA+ data integrity finding: the QA review date either post-dates the batch release decision or is erroneous. Either scenario represents a serious data integrity concern under req_gs_data_integrity_signatures."
+        },
+        {
+          "finding_id": "finding_002_missing_root_cause_evidence",
+          "severity": "high",
+          "risk_statement": "Deviation report DEV-2026-891 does not contain a documented root cause analysis. The deviation classification as 'Minor' is based solely on visual homogeneity of the ointment, without any documented physical-chemical data or root cause investigation. The batch record notes that 'the cooling system unexpectedly regulated down' but no root cause for this equipment behaviour is identified or documented in the deviation report. Per req_gs_deviation_classification, a classification without substantiated physicochemical data and without a documented root cause is not permissible."
+        },
+        {
+          "finding_id": "finding_003_impact_assessment_physicochemical_basis",
+          "severity": "high",
+          "risk_statement": "The impact assessment for deviation DEV-2026-891 concludes that product quality, stability, and release kinetics are unaffected, relying exclusively on visual homogeneity as the sole evidence. No physicochemical analytical data (e.g., assay, particle size, rheological specification compliance, dissolution) is referenced to support the exclusion of impact on stability or release kinetics. The QA release document (QA-RELEASE-XYL-004A) also relies solely on visual homogeneity. This is insufficient under req_gs_deviation_impact and req_gs_deviation_classification, which require documented impact assessment including physicochemical data."
+        },
+        {
+          "finding_id": "finding_004_viscosity_increase_during_temperature_excursion",
+          "severity": "high",
+          "risk_statement": "The batch record data shows a progressive viscosity increase during the temperature excursion: from 2400 mPas at 10:00 (42.1°C) to 2910 mPas at 11:00 (34.2°C), with the visual description changing to 'homogen, zähflüssig' (homogeneous, viscous) at 11:00. After temperature recovery at 11:15 (41.5°C), viscosity returned to 2450 mPas. This viscosity increase of approximately 21% during the excursion is a measurable physicochemical change that is not addressed in the deviation report or impact assessment. The deviation report states the ointment remained visually homogeneous without phase separation, but does not address the viscosity change. This constitutes an unaddressed process parameter excursion with potential product quality implications."
+        },
+        {
+          "finding_id": "finding_005_batch_record_no_deviation_capa_reference",
+          "severity": "medium",
+          "risk_statement": "The batch record for batch XYL-2026-004A documents the cooling system failure and manual intervention but does not reference deviation ID DEV-2026-891 or CAPA ID CAPA-2026-441. This cross-document linkage gap means the batch record is not traceable to the deviation management system, which is a documentation integrity concern under req_gs_cross_document_consistency."
+        },
+        {
+          "finding_id": "finding_006_capa_effectiveness_check_not_yet_completed",
+          "severity": "medium",
+          "risk_statement": "CAPA-2026-441 defines an effectiveness check covering the three subsequent batches for temperature stability during the hold step. The refresher training deadline is 30.04.2026. The batch was released on 25.03.2026. There is no evidence in the provided documents that the effectiveness check has been completed or that its results have been documented. Per req_gs_capa_effectiveness, CAPA actions may only be closed with a defined and documented effectiveness check. The current status of the effectiveness check is unknown from the available evidence."
+        },
+        {
+          "finding_id": "finding_007_batch_impact_single_batch_only",
+          "severity": "medium",
+          "risk_statement": "The deviation report and impact assessment address only batch XYL-2026-004A. There is no documented assessment of whether other batches produced in reactor R-02 around the same time period may have been affected by the same cooling system issue. Per req_gs_deviation_impact, the impact assessment must include all potentially affected batches. The cooling system failure ('unvorhergesehen herunter geregelt') may indicate a systemic equipment issue that could affect other batches."
+        },
+        {
+          "finding_id": "finding_di_001",
+          "severity": "critical",
+          "risk_statement": "The QA review signature date for deviation DEV-2026-891 is 14.12.2026, which is nine months after the deviation recording date of 12.03.2026. This temporal implausibility constitutes a data integrity finding under ALCOA+ requirements (contemporaneous, plausible, consistent with audit trail). A QA signature dated nine months after the event either indicates backdating, a system clock error, or a process failure, all of which are critical data integrity concerns. No audit trail evidence is present to explain or justify this gap."
+        },
+        {
+          "finding_id": "finding_di_002",
+          "severity": "high",
+          "risk_statement": "The batch record for batch XYL-2026-004A (doc_93666b5a30c5439cb90391e3439f8b62) documents an unplanned cooling system failure and manual operator intervention that restored temperature to the target range, but no deviation ID or CAPA reference is documented within the batch record itself. The deviation DEV-2026-891 exists in a separate document, but the batch record does not cross-reference it. This breaks the audit trail linkage between the process event, the deviation record, and the CAPA, making the record set non-traceable as required by data integrity and documentation practice requirements."
+        },
+        {
+          "finding_id": "finding_di_003",
+          "severity": "high",
+          "risk_statement": "The QA release document (QA-RELEASE-XYL-004A, doc_797148296a4e45d9bd12fce043939f39) is dated 25.03.2026 and releases batch XYL-2026-004A for packaging. However, the QA review signature on the deviation report DEV-2026-891 is dated 14.12.2026 — nine months after the batch release. This means the batch was released before the QA review of the associated deviation was completed and signed. This is a data integrity and QA approval sequence inconsistency: a batch cannot be validly released if the QA review of a linked deviation has not yet been completed and signed."
+        },
+        {
+          "finding_id": "finding_di_004",
+          "severity": "medium",
+          "risk_statement": "The batch record (doc_93666b5a30c5439cb90391e3439f8b62) does not document the jacket temperature specification limits (40–45°C) within the record itself. The specification is only stated in the deviation report (doc_135aa0b0893047fc89f56ae4e192408c). Without the specification limit being present in the batch record, it is not possible to verify from the batch record alone that the out-of-specification condition was correctly identified and attributed at the time of recording. This represents a documentation gap affecting attributability and contemporaneous recording."
+        },
+        {
+          "finding_id": "finding_002_deviation_classification_no_physicochemical_data",
+          "severity": "high",
+          "risk_statement": "Deviation DEV-2026-891 is classified as Minor based solely on visual homogeneity of the ointment base. No physicochemical laboratory data (e.g. viscosity specification limits, rheological testing, API content uniformity) are referenced to support the risk classification. req_gs_deviation_classification explicitly prohibits classification without substantive physicochemical data. Visual assessment alone is insufficient evidence for excluding product quality impact on a temperature-sensitive semi-solid manufacturing step."
+        },
+        {
+          "finding_id": "finding_003_missing_root_cause",
+          "severity": "high",
+          "risk_statement": "Deviation report DEV-2026-891 does not contain a documented root cause statement. The batch record notes that the cooling system unexpectedly reduced output, but no root cause analysis is referenced in the deviation report. req_gs_deviation_classification requires that root cause statements such as 'operator error' must be substantiated; the absence of any root cause is a more fundamental gap. The CAPA plan (CAPA-2026-441) assigns operator refresher training, implying an operator-related root cause, but this is not documented or justified in the deviation report itself."
+        },
+        {
+          "finding_id": "finding_004_batch_impact_no_other_batches_assessed",
+          "severity": "high",
+          "risk_statement": "The deviation report and QA release note address only batch XYL-2026-004A. req_gs_deviation_impact requires documentation of all potentially affected batches. req_gs_batch_impact_completeness requires that batch impact assessments list all affected batches. No assessment of whether other batches processed in reactor R-02 before or after the cooling system malfunction were affected is present in any of the available documents."
+        },
+        {
+          "finding_id": "finding_005_capa_missing_in_deviation_report",
+          "severity": "medium",
+          "risk_statement": "The deviation report DEV-2026-891 does not reference CAPA-2026-441 or any CAPA actions. The CAPA plan references the deviation, but the deviation report itself lacks a cross-reference to the CAPA. This creates a traceability gap between the deviation and its corrective actions, which is relevant to req_gs_cross_document_consistency and req_gs_capa_effectiveness."
+        },
+        {
+          "finding_id": "finding_006_batch_record_no_deviation_id_referenced",
+          "severity": "medium",
+          "risk_statement": "The batch record for XYL-2026-004A documents the cooling system failure and manual intervention but does not reference deviation DEV-2026-891 or CAPA-2026-441. This is a cross-document consistency gap under req_gs_cross_document_consistency. The batch record should contain a reference to the deviation record to ensure full traceability."
+        },
+        {
+          "finding_id": "finding_007_viscosity_elevation_not_assessed_against_spec",
+          "severity": "high",
+          "risk_statement": "During the out-of-specification temperature period (10:30–11:15), viscosity values increased from approximately 2400 mPas (in-specification temperature) to 2850–2910 mPas. The batch record records these elevated values but no acceptance criterion for viscosity is stated in any document, and no assessment of whether these elevated viscosity values constitute a specification exceedance is documented. req_gs_spec_limits requires that parameter exceedances be assessed as deviations even if the product appears visually acceptable. The deviation report does not address viscosity."
+        },
+        {
+          "finding_id": "finding_008_qa_release_basis_visual_only",
+          "severity": "high",
+          "risk_statement": "The QA release decision for batch XYL-2026-004A (document QA-RELEASE-XYL-004A, dated 25.03.2026) is based on visual homogeneity as the sole evidence for excluding negative impact on stability and release kinetics. req_gs_qa_approval_documented requires that QA approvals be fully documented; a release decision based exclusively on visual assessment without reference to analytical test results, specification limits, or validated assessment methods represents a potentially insufficient evidentiary basis for the disposition decision."
+        },
+        {
+          "finding_id": "finding_001_no_validation_evidence",
+          "severity": "high",
+          "risk_statement": "No process validation evidence, validation addendum, or hold-time validation data is referenced or documented for batch XYL-2026-004A or reactor R-02 in any of the reviewed documents. The temperature excursion during the hold step (34.2°C for 45 minutes, outside the specified 40–45°C range) represents a deviation from validated process parameters. No bridging assessment or validation impact review is documented to confirm that the validated process state remains applicable after this out-of-specification hold condition."
+        },
+        {
+          "finding_id": "finding_002_impact_assessment_visual_only",
+          "severity": "high",
+          "risk_statement": "The no-impact conclusion for batch XYL-2026-004A is based solely on visual homogeneity assessment. No physicochemical analytical data (e.g., viscosity specification compliance, active substance content uniformity, particle size, or release kinetics testing) is documented to support the exclusion of product quality impact. Visual homogeneity alone is insufficient to confirm that the 45-minute temperature excursion to 34.2°C did not affect critical quality attributes of the ointment base or the incorporated active substance."
+        },
+        {
+          "finding_id": "finding_003_data_integrity_qa_signature_date",
+          "severity": "high",
+          "risk_statement": "The QA reviewer Dr. Anna Klar signed the deviation report DEV-2026-891 on 14.12.2026, which is approximately nine months after the deviation was recorded on 12.03.2026 and approximately nine months after the batch was released for packaging on 25.03.2026. This temporal inconsistency raises a data integrity concern: the QA review signature post-dates the batch release decision, meaning the deviation was apparently closed and the batch released before the QA review was formally completed and signed. This violates ALCOA+ requirements for contemporaneous and plausible records."
+        },
+        {
+          "finding_id": "finding_004_root_cause_not_documented",
+          "severity": "high",
+          "risk_statement": "The deviation report DEV-2026-891 does not document a formal root cause analysis. The batch record notes that the cooling system unexpectedly reduced output ('Die Kühlung regelte unvorhergesehen herunter'), but no root cause investigation is documented in the deviation report. The CAPA plan (CAPA-2026-441) assigns refresher training to operator Max Mustermann, implying operator error as root cause, but no evidence is provided to substantiate this attribution. A root cause of 'operator error' without documented evidence is explicitly prohibited by SOP-DEV-001 §6.2."
+        },
+        {
+          "finding_id": "finding_005_batch_impact_scope_incomplete",
+          "severity": "medium",
+          "risk_statement": "The batch impact assessment covers only batch XYL-2026-004A. No assessment is documented regarding whether other batches produced in reactor R-02 before or after the deviation may have been affected by the same cooling system issue. The cooling system failure ('Die Kühlung regelte unvorhergesehen herunter') may indicate a recurring or systemic equipment issue that could affect additional batches. No batch list or scope assessment for potentially affected batches is provided."
+        },
+        {
+          "finding_id": "finding_006_viscosity_increase_not_assessed",
+          "severity": "medium",
+          "risk_statement": "The batch record shows a progressive viscosity increase during the temperature excursion period: from 2400 mPas at 10:00 (normal temperature) to 2850 mPas at 10:30, 2900 mPas at 10:45, and 2910 mPas at 11:00 (all at 34.2°C), returning to 2450 mPas at 11:15 after temperature recovery. This viscosity increase of approximately 21% during the excursion is not addressed in the deviation report or impact assessment. No viscosity specification limits are documented in the reviewed records, and no assessment is made of whether the elevated viscosity values are within specification or indicate a quality impact."
+        },
+        {
+          "finding_id": "finding_007_capa_effectiveness_check_not_completed",
+          "severity": "medium",
+          "risk_statement": "The CAPA plan CAPA-2026-441 defines an effectiveness check covering the next three batches for temperature stability during the hold step. However, no evidence is provided that this effectiveness check has been completed or that its results have been documented. The CAPA deadline for refresher training is 30.04.2026, but no completion record or effectiveness check results are referenced in any document. The batch release (25.03.2026) predates the CAPA training deadline, raising the question of whether the CAPA was completed before or after release."
+        },
+        {
+          "finding_id": "finding_008_batch_record_deviation_not_cross_referenced",
+          "severity": "medium",
+          "risk_statement": "The batch record for batch XYL-2026-004A documents the cooling system failure and manual intervention but does not reference deviation report DEV-2026-891 or CAPA-2026-441. Conversely, the deviation report does not explicitly reference the batch record. This lack of cross-referencing between documents creates a traceability gap and is inconsistent with requirements for cross-document consistency."
+        },
+        {
+          "finding_id": "finding_7da767aa8e919b140f37",
+          "severity": "high",
+          "risk_statement": "Adversarial review found required evidence missing or not clearly present in the claim ledger."
+        }
+      ]
+    }
+  ]
+}

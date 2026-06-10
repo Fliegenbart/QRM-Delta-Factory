@@ -1,0 +1,1400 @@
+{
+  "run": {
+    "mode": "live",
+    "started_at": "2026-06-10T09:00:06+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-4o",
+    "case_count": 10
+  },
+  "aggregate": {
+    "cases": 10,
+    "sensitivity": {
+      "found": 13,
+      "total": 25,
+      "rate": 0.52
+    },
+    "specificity_decoys": {
+      "passed": 11,
+      "total": 11,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 128,
+      "total_findings": 156,
+      "rate": 0.821
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_01",
+      "document_set_id": "ds_e9d72b1697384002afbab0a69eeafecf",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md",
+        "document_04_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "model_statuses": {
+        "ContradictionHunter": "failed",
+        "BatchImpactReviewer": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded"
+      },
+      "failed_model_roles": [
+        "ContradictionHunter"
+      ],
+      "claim_count": 54,
+      "finding_count": 31,
+      "citation_verified_finding_count": 27,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_01_01",
+          "severity": "medium",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Ungültiges, in der Zukunft liegendes Signaturdatum der QS-Prüfung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_capa_003",
+            "risk_statement": "The QA review signature on deviation DEV-2026-891 is dated 14.12.2026, which is approximately 9 months after the deviation recording date of 12.03.2026 and approximately 9 months after the batch release decision of 25.03.2026. The batch XYL-2026-004A was released for packaging on 25.03.2026 (QA-RELEASE-XYL-004A) before the QA review of the deviation was completed (14.12.2026). This constitutes a data integrity finding under req_gs_data_integrity_signatures and a QA approval sequencing failure under req_gs_qa_approval_documented. A batch released before QA deviation review is complete represents a potential product quality and regulatory risk.",
+            "severity": "critical"
+          }
+        },
+        {
+          "error_id": "ERR_01_02",
+          "severity": "high",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Fehlklassifizierung einer kritischen Prozessparameter-Abweichung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_capa_005",
+            "risk_statement": "The deviation classification as 'Minor' with exclusion of product quality impact is based solely on visual homogeneity assessment. No physicochemical analytical data (e.g., assay, particle size, rheology specification compliance) is cited to support the impact exclusion. Per req_gs_deviation_classification, classification without reliable physicochemical data is not permissible. The viscosity increase observed during the temperature drop (2400 to 2910 mPas) is noted but no specification limits for viscosity are provided, making it impossible to confirm the 'Minor' classification is adequately supported.",
+            "severity": "medium"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_01_01",
+          "evidence_text": "Homogen, zähflüssig",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "The QA review date is inconsistent with the recording date, indicating a potential data integrity issue."
+        },
+        {
+          "finding_id": "finding_capa_001",
+          "severity": "high",
+          "risk_statement": "CAPA-2026-441 defines an effectiveness check (temperature stability monitoring of the next three batches) but no evidence of execution, results, or closure of this effectiveness check is present in any document. Per req_gs_capa_effectiveness, CAPA actions may only be closed with a defined and documented effectiveness check. The current record contains only a plan statement, not an execution record."
+        },
+        {
+          "finding_id": "finding_capa_002",
+          "severity": "high",
+          "risk_statement": "The CAPA action for operator Max Mustermann (refresher training on reactor system operation and temperature monitoring) has a deadline of 30.04.2026, but no training completion record, training effectiveness evidence, or confirmation of execution is present in any document. The knowledge pack 'training_effectiveness' is explicitly listed as missing. Without documented training completion, the CAPA action cannot be considered fulfilled."
+        },
+        {
+          "finding_id": "finding_capa_004",
+          "severity": "medium",
+          "risk_statement": "The QA release document QA-RELEASE-XYL-004A does not contain a named signatory with role identification. The document releases batch XYL-2026-004A for packaging but the identity of the authorising QA person is not documented in the available claims. Per req_gs_qa_approval_documented, QA approvals must be documented before closure."
+        },
+        {
+          "finding_id": "finding_001_data_integrity_qa_signature_date",
+          "severity": "critical",
+          "risk_statement": "The QA review signature date for deviation DEV-2026-891 is recorded as 14.12.2026, which is approximately 9 months after the deviation recording date of 12.03.2026. This temporal gap is highly implausible for a Minor deviation on a batch released for packaging on 25.03.2026. The QA signature date either lies in the future relative to the batch release date or represents a backdated/erroneous entry. Both scenarios constitute a data integrity finding under ALCOA+ requirements (contemporaneous, accurate). A QA review dated after the batch release decision cannot have informed that release decision."
+        },
+        {
+          "finding_id": "finding_002_root_cause_insufficient_evidence",
+          "severity": "high",
+          "risk_statement": "The root cause of the temperature deviation in reactor R-02 is described only as an unplanned reduction of the cooling system ('Die Kühlung regelte unvorhergesehen herunter') without any technical investigation, equipment maintenance records, calibration data, or engineering analysis to substantiate this claim. The knowledge pack 'root_cause_analysis' is explicitly listed as missing. Without a verified root cause, the Minor classification and the conclusion that product quality is unaffected cannot be considered adequately supported."
+        },
+        {
+          "finding_id": "finding_003_impact_assessment_physicochemical_data_gap",
+          "severity": "high",
+          "risk_statement": "The impact assessment for deviation DEV-2026-891 concludes that product quality is unaffected and that stability and active substance release kinetics are not negatively impacted. However, this conclusion is based solely on visual homogeneity assessment. No physicochemical analytical data (e.g., assay, particle size, rheological specification compliance, dissolution/release testing) is cited to support the exclusion of impact on stability or release kinetics. Visual homogeneity alone is insufficient to exclude impact on these quality attributes per the applicable requirements."
+        },
+        {
+          "finding_id": "finding_004_viscosity_increase_during_deviation_not_assessed",
+          "severity": "high",
+          "risk_statement": "The batch record data shows a significant increase in viscosity during the temperature deviation period: viscosity rose from approximately 2400–2410 mPa·s at normal temperature to 2850–2910 mPa·s during the deviation (10:30–11:00), returning to 2450 mPa·s after temperature recovery. This viscosity increase of approximately 20% during the out-of-specification temperature period is not addressed in the deviation report or the QA release document. No viscosity specification limits are cited in any document, and no assessment of whether the elevated viscosity values represent an out-of-specification condition is provided."
+        },
+        {
+          "finding_id": "finding_005_qa_release_document_missing_signatory",
+          "severity": "high",
+          "risk_statement": "The QA release document QA-RELEASE-XYL-004A releases batch XYL-2026-004A for packaging, but the signatory name and role are missing from the document. An anonymous or unsigned QA release does not meet the requirements for documented QA approval and is a data integrity and GMP compliance gap."
+        },
+        {
+          "finding_id": "finding_006_batch_record_no_deviation_id_cross_reference",
+          "severity": "medium",
+          "risk_statement": "The batch record for batch XYL-2026-004A documents the temperature deviation and manual intervention but does not reference deviation ID DEV-2026-891. The absence of a cross-reference between the batch record and the formal deviation record creates a traceability gap and is inconsistent with cross-document consistency requirements."
+        },
+        {
+          "finding_id": "finding_007_capa_effectiveness_check_not_completed",
+          "severity": "medium",
+          "risk_statement": "CAPA-2026-441 defines an effectiveness check covering the next three batches for temperature stability during the hold step. However, no evidence of completion of this effectiveness check is present in the document set. The CAPA deadline for refresher training is 30.04.2026, but no completion record or effectiveness check result is documented. Per requirements, CAPA actions may only be closed with a documented effectiveness check."
+        },
+        {
+          "finding_id": "finding_008_batch_impact_other_batches_not_assessed",
+          "severity": "medium",
+          "risk_statement": "The deviation report and QA release document address only batch XYL-2026-004A. No assessment is documented as to whether other batches produced on reactor R-02 may have been affected by the same cooling system malfunction, either before or after the recorded event. The batch impact assessment does not include a list of potentially affected batches beyond XYL-2026-004A."
+        },
+        {
+          "finding_id": "finding_di_001",
+          "severity": "critical",
+          "risk_statement": "Die QA-Prüfsignatur von Dr. Anna Klar trägt das Datum 14.12.2026, während die Abweichung DEV-2026-891 am 12.03.2026 erfasst wurde. Die Prüfsignatur liegt damit ca. 9 Monate nach der Erfassung und – kritisch – nach dem Freigabedatum der Charge (25.03.2026, Dokument QA-RELEASE-XYL-004A). Dies bedeutet, dass die Charge für die Verpackung freigegeben wurde, bevor die QA-Prüfung der zugehörigen Abweichung formal abgeschlossen war. Dies stellt einen schwerwiegenden ALCOA+-Verstoß (Contemporaneous, Consistent) und einen Datenintegritätsbefund dar."
+        },
+        {
+          "finding_id": "finding_di_002",
+          "severity": "high",
+          "risk_statement": "Das QA-Freigabedokument QA-RELEASE-XYL-004A enthält keine Angabe des Namens und der Rolle des Unterzeichners. Eine anonyme oder nicht attributierbare QA-Freigabe erfüllt nicht die ALCOA+-Anforderung der Attributierbarkeit und ist kein gültiger Freigabenachweis gemäß SOP-QA-004."
+        },
+        {
+          "finding_id": "finding_di_003",
+          "severity": "high",
+          "risk_statement": "Im Batch Record (doc_e8f1d8b6e5104a5c8508ea7dfe09b44d) wird die Temperaturabweichung (34,2°C von 10:30 bis 11:00 Uhr) und der manuelle Eingriff dokumentiert, jedoch ohne Referenz auf die Abweichungs-ID DEV-2026-891. Die fehlende Verknüpfung zwischen Batch Record und Abweichungsbericht unterbricht die Nachvollziehbarkeit (Traceability) und den Audit Trail. Eine vollständige Rückverfolgung vom Batch Record zur Abweichungsdokumentation ist nicht gewährleistet."
+        },
+        {
+          "finding_id": "finding_di_004",
+          "severity": "medium",
+          "risk_statement": "Im Batch Record (doc_e8f1d8b6e5104a5c8508ea7dfe09b44d) sind keine Spezifikationsgrenzen für die Manteltemperatur und die Viskosität angegeben. Ohne dokumentierte Akzeptanzkriterien im Batch Record ist eine vollständige Bewertung der Messwerte gegen die Spezifikation nicht möglich, und die Nachvollziehbarkeit der Konformitätsentscheidung ist eingeschränkt."
+        },
+        {
+          "finding_id": "finding_002_qa_release_missing_signatory",
+          "severity": "high",
+          "risk_statement": "The QA release document QA-RELEASE-XYL-004A (doc_5e79c2d423e8400e8db1bd123ccd2208) releases batch XYL-2026-004A for packaging but does not contain an identified signatory name and role. A release decision without a documented, identified QA signatory does not meet the requirement for documented QA approval prior to closure. This creates an unresolvable accountability gap for the release decision."
+        },
+        {
+          "finding_id": "finding_003_deviation_classification_insufficient_physicochemical_data",
+          "severity": "high",
+          "risk_statement": "Deviation DEV-2026-891 is classified as Minor with product quality impact excluded, based solely on visual homogeneity of the ointment batch. The requirement explicitly states that a risk classification without substantive physicochemical data is not permissible. Visual homogeneity alone does not constitute physicochemical evidence sufficient to exclude impact on stability or active substance release kinetics, particularly given that viscosity increased measurably during the temperature drop (2400 to 2910 mPas). The QA release document also relies exclusively on visual homogeneity to exclude impact on stability and release kinetics, which is a weak evidentiary basis for this conclusion."
+        },
+        {
+          "finding_id": "finding_004_batch_record_no_deviation_reference",
+          "severity": "high",
+          "risk_statement": "The batch record for batch XYL-2026-004A (doc_e8f1d8b6e5104a5c8508ea7dfe09b44d) documents the temperature deviation and manual intervention but does not reference deviation report DEV-2026-891. The absence of a cross-reference between the batch record and the formal deviation record creates a traceability gap and prevents verification that the deviation was formally captured at the time of the event. This is a cross-document consistency issue."
+        },
+        {
+          "finding_id": "finding_005_capa_effectiveness_check_not_documented_as_complete",
+          "severity": "medium",
+          "risk_statement": "CAPA-2026-441 defines an effectiveness check covering the next three batches for temperature stability during the hold step. However, no evidence is present in the available documents that this effectiveness check has been completed or that its results have been documented. The CAPA record does not indicate a completion date or status for the effectiveness check. If the CAPA is being treated as closed without a documented effectiveness check result, this would violate req_gs_capa_effectiveness."
+        },
+        {
+          "finding_id": "finding_006_viscosity_specification_limits_absent",
+          "severity": "medium",
+          "risk_statement": "The batch record for XYL-2026-004A records viscosity measurements ranging from 2400 to 2910 mPas during the process, with a notable increase during the temperature deviation period. No viscosity specification limits are defined in any of the available documents. Without defined acceptance criteria, it is not possible to determine whether the measured viscosity values represent in-specification or out-of-specification results, and the impact assessment cannot be considered complete."
+        },
+        {
+          "finding_id": "finding_007_batch_impact_other_batches_not_assessed",
+          "severity": "medium",
+          "risk_statement": "The deviation report DEV-2026-891 and the QA release document address only batch XYL-2026-004A. No assessment is documented regarding whether other batches processed on reactor R-02 may have been affected by the same cooling system malfunction. The requirement for batch impact assessment requires listing all potentially affected batches. The cooling system malfunction (unplanned reduction) may have affected other batches if the root cause was a systemic equipment issue rather than a one-time event."
+        },
+        {
+          "finding_id": "finding_val_001",
+          "severity": "high",
+          "risk_statement": "No process validation evidence is referenced in any of the reviewed documents. The temperature deviation in reactor R-02 during the hold step of batch XYL-2026-004A represents an out-of-specification process condition. No validation addendum, bridging study, or process validation assessment is cited to confirm that the validated process state remains intact after this excursion. The no-impact conclusion is based solely on visual homogeneity, which is insufficient to confirm that the validated process envelope was not breached."
+        },
+        {
+          "finding_id": "finding_val_002",
+          "severity": "high",
+          "risk_statement": "The deviation classification as 'Minor' with exclusion of product quality impact is not supported by physicochemical laboratory data. The batch record shows a viscosity increase from approximately 2400 mPas at 10:00 to 2910 mPas at 11:00 during the temperature excursion period, representing a measurable change in a critical quality attribute. No laboratory analysis (e.g., assay, particle size, rheology specification comparison, or release kinetics testing) is cited to substantiate the no-impact conclusion. Visual homogeneity is the sole basis for the Minor classification."
+        },
+        {
+          "finding_id": "finding_val_003",
+          "severity": "high",
+          "risk_statement": "The QA review signature date of Dr. Anna Klar (14.12.2026) is approximately 9 months after the deviation recording date (12.03.2026) and approximately 9 months after the batch release for packaging (25.03.2026). The batch was released for packaging on 25.03.2026 before the QA review of the deviation was completed on 14.12.2026. This represents a data integrity finding: the batch disposition preceded the formal QA review closure, and the QA signature date is temporally implausible relative to the batch release timeline."
+        },
+        {
+          "finding_id": "finding_val_004",
+          "severity": "medium",
+          "risk_statement": "The QA release document QA-RELEASE-XYL-004A does not contain the signatory name and role. An anonymous or incomplete QA release does not satisfy documentation requirements for a traceable and attributable approval record. This is a data integrity and documentation gap."
+        },
+        {
+          "finding_id": "finding_val_005",
+          "severity": "medium",
+          "risk_statement": "The CAPA plan CAPA-2026-441 defines an effectiveness check covering the next three batches for temperature stability during the hold step. However, no completion status, results, or evidence of the effectiveness check having been performed is documented in the reviewed documents. The CAPA effectiveness check is defined but not evidenced as completed, and the CAPA cannot be considered closed without this evidence."
+        },
+        {
+          "finding_id": "finding_val_006",
+          "severity": "medium",
+          "risk_statement": "The impact assessment for deviation DEV-2026-891 does not include an evaluation of potentially affected concurrent or adjacent batches. Only batch XYL-2026-004A is identified. No batch list or assessment of other batches potentially affected by the same cooling system malfunction is documented, as required by the batch impact completeness requirement."
+        },
+        {
+          "finding_id": "finding_3ef3fdefb227efc460a4",
+          "severity": "high",
+          "risk_statement": "Adversarial review found required evidence missing or not clearly present in the claim ledger."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_02",
+      "document_set_id": "ds_3e4beedb2dd64abdb34b7bf0ee3c35cd",
+      "documents_uploaded": [
+        "document_01_cleaning_record.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "model_statuses": {
+        "BatchImpactReviewer": "succeeded",
+        "ContradictionHunter": "failed",
+        "CAPAReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded"
+      },
+      "failed_model_roles": [
+        "ContradictionHunter"
+      ],
+      "claim_count": 33,
+      "finding_count": 25,
+      "citation_verified_finding_count": 19,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_02_01",
+          "severity": "high",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Undokumentierte und nicht gegengezeichnete manuelle Datenkorrektur im Ausbeuteprotokoll.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_capa_001",
+            "risk_statement": "A yield value in batch record CPH-2026-991 was struck through (96.47%) and altered to 98.1% with only operator initials 'TS' and a brief note citing an incomplete weighing document. No CAPA record, no deviation report, no QA approval, no date of correction, and no effectiveness check are documented. The corrected value (98.1%) was then accepted by QA release without apparent scrutiny of the alteration. This constitutes a data integrity violation and an undocumented deviation with no CAPA linkage, no root-cause analysis, and no impact assessment on batch CPH-2026-991 or any other potentially affected batch.",
+            "severity": "critical"
+          }
+        },
+        {
+          "error_id": "ERR_02_02",
+          "severity": "medium",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Yield außerhalb der Toleranzgrenze ohne Einleitung einer OOS/Abweichungsuntersuchung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_f7d85dba671902d30b23",
+            "risk_statement": "Adversarial review found required evidence missing or not clearly present in the claim ledger.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_02_01",
+          "evidence_text": "Spül-Ex (Lot: SP-2025-09)",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "There is a contradiction between the batch identifier claims for Cephalex-Injekt 1g. One document lists the batch number as CPH-2026-990, while another lists it as CPH-2026-991."
+        },
+        {
+          "finding_id": "finding_capa_002",
+          "severity": "high",
+          "risk_statement": "The QA release certificate for batch CPH-2026-991 (dated 2026-04-10) states that all manufacturing documents were reviewed and the yield meets specification, yet it does not reference or address the struck-through yield correction (96.47% → 98.1%) present in the batch record. This indicates either that the QA reviewer did not detect the undocumented correction or chose not to document it, both of which represent a failure of the QA approval process and a potential data integrity gap in the release decision."
+        },
+        {
+          "finding_id": "finding_capa_003",
+          "severity": "high",
+          "risk_statement": "No CAPA record, CAPA ID, responsible party, due date, or effectiveness check is present anywhere in the document set. The only corrective action documented is a single-line operator note in the batch record. This means there is no CAPA management process evidenced for the identified data integrity event and yield correction, in violation of the requirement that CAPA actions must have a defined responsible party, due date, and documented effectiveness check before closure."
+        },
+        {
+          "finding_id": "finding_001_yield_correction_no_qa_approval",
+          "severity": "critical",
+          "risk_statement": "The original yield value of 96.47% in the batch record for CPH-2026-991 was struck through and corrected to 98.1% with only operator initials 'TS' and a brief note citing an incomplete weighing document. No QA approval, no date of correction, and no documented deviation or change control record is present for this alteration. The corrected value of 98.1% falls within the specified range (98.0%–101.0%), whereas the original value of 96.47% would have been out-of-specification, triggering mandatory deviation handling. This constitutes a critical data integrity finding and a potential suppression of an OOS result."
+        },
+        {
+          "finding_id": "finding_002_no_deviation_report_for_oos_yield",
+          "severity": "critical",
+          "risk_statement": "The original recorded yield of 96.47% for batch CPH-2026-991 is below the specified lower limit of 98.0%. No deviation report, risk classification (Minor/Major/Critical), root cause analysis, or impact assessment on product quality and patient safety is present in any of the reviewed documents. The absence of a deviation record for an OOS yield in a sterile injectable product (Class A area) represents a critical gap in deviation management and product quality assurance."
+        },
+        {
+          "finding_id": "finding_003_qa_release_without_deviation_resolution",
+          "severity": "high",
+          "risk_statement": "The QA release certificate for batch CPH-2026-991 (dated 2026-04-10, signed by Dr. Bernd Richter) states that yield meets specification and that all manufacturing documents were reviewed. However, the batch record contains an undocumented, QA-unapproved yield correction from an OOS value (96.47%) to an in-specification value (98.1%). The QA release does not acknowledge the correction, the original OOS value, or any deviation. This raises the concern that the QA reviewer either did not detect the alteration or did not document its evaluation, constituting a gap in QA approval completeness."
+        },
+        {
+          "finding_id": "finding_004_no_capa_for_yield_deviation",
+          "severity": "high",
+          "risk_statement": "No CAPA record or effectiveness check is present in the document set for the yield deviation (original value 96.47%, OOS). The operator's note dismisses further action without a formal CAPA. Per req_gs_capa_effectiveness, CAPA measures may only be closed with a documented effectiveness check. The absence of any CAPA linkage for a potential OOS event in a sterile injectable product is a significant compliance gap."
+        },
+        {
+          "finding_id": "finding_005_incomplete_weighing_document_not_resolved",
+          "severity": "high",
+          "risk_statement": "The stated reason for the yield correction is that the weighing accompanying document (Wiegebegleitschein) was incomplete. The incomplete document is not present in the document set, nor is there evidence that it was completed, corrected, or that its incompleteness was assessed for impact on the accuracy of the yield calculation. An incomplete weighing document in a sterile injectable batch record is itself a deviation requiring documentation and assessment."
+        },
+        {
+          "finding_id": "finding_006_batch_impact_assessment_missing",
+          "severity": "high",
+          "risk_statement": "No batch impact assessment is present in the document set for the yield deviation affecting CPH-2026-991. The previous batch CPH-2026-990 (Cephalex-Injekt 1g) processed on the same filling line L-05 is referenced in the cleaning record but is not assessed for potential impact. Per req_gs_deviation_impact and req_gs_batch_impact_completeness, all potentially affected batches must be listed and the disposition decision must be linked to batch records."
+        },
+        {
+          "finding_id": "finding_DI_001",
+          "severity": "critical",
+          "risk_statement": "The batch record for CPH-2026-991 contains a struck-through original yield value (96.47%) that was altered to 98.1% with only operator initials 'TS' and a brief note citing an incomplete weighing document. No date of correction, no QA countersignature, no audit trail reference, and no independent verification of the corrected value are documented. The corrected value (98.1%) crosses the lower specification boundary (98.0%), making this alteration directly relevant to batch disposition. This constitutes a critical ALCOA+ data integrity violation: the correction is not attributable with a timestamp, not contemporaneous, and not independently verified."
+        },
+        {
+          "finding_id": "finding_DI_002",
+          "severity": "critical",
+          "risk_statement": "The QA release certificate for batch CPH-2026-991 (dated 2026-04-10) explicitly states that the batch yield meets the specified requirement and that line cleaning was properly documented. However, the batch record contains an undated, unverified yield correction (96.47% → 98.1%) with no QA countersignature. The QA release therefore either (a) was based on the falsified/uncorrected record without awareness of the integrity issue, or (b) was aware of the correction but did not document its review of the data integrity concern. In either case, the QA release is not supported by a complete and verified record, constituting a critical gap in the QA approval process."
+        },
+        {
+          "finding_id": "finding_DI_003",
+          "severity": "high",
+          "risk_statement": "The original calculated yield of 96.47% (before correction) falls below the lower specification limit of 98.0%. This out-of-specification yield was not treated as a deviation requiring formal risk classification, root cause investigation, or impact assessment per the applicable requirements. Instead, it was corrected in the batch record with a brief note referencing an incomplete weighing document, and the operator's own assessment states no further action is required. No deviation report, no risk classification, and no impact assessment on potentially affected batches are documented."
+        },
+        {
+          "finding_id": "finding_DI_004",
+          "severity": "high",
+          "risk_statement": "The batch record correction (yield 96.47% → 98.1%) is attributed only to initials 'TS'. The cleaning record is signed by operator 'T.S.' on 2026-04-04 at 06:15. The same initials appear in both documents, suggesting the same individual performed the cleaning, signed the cleaning record, and also made the yield correction in the batch record without independent oversight. No second-person verification, no QA countersignature, and no audit trail entry are present for the correction. This raises a concern about segregation of duties and independent review as required by ALCOA+ attributability principles."
+        },
+        {
+          "finding_id": "finding_001_yield_correction_data_integrity",
+          "severity": "critical",
+          "risk_statement": "The original yield value of 96.47% in the batch record for CPH-2026-991 was struck through and altered to 98.1% with only operator initials 'TS' and a brief reason ('Wiegebegleitschein unvollstaendig'). No date of correction, no QA approval of the correction, and no documented audit trail entry are present. This constitutes a potential data integrity violation under ALCOA+ principles (attributable, legible, contemporaneous, original, accurate). The corrected value of 98.1% is the value that was subsequently used by QA to confirm yield compliance and release the batch, meaning the release decision rests on an undocumented, unverified correction."
+        },
+        {
+          "finding_id": "finding_002_yield_out_of_spec_no_deviation",
+          "severity": "high",
+          "risk_statement": "The original calculated yield of 96.47% for batch CPH-2026-991 falls below the specified lower limit of 98.0%. Based on the provided mass data (active substance input 150.00 kg, filled goods gross 143.20 kg, QC sampling 1.50 kg, loss/reject 0.80 kg), the arithmetic yield is approximately 96.33%, which is also below the 98.0% lower specification limit. No deviation record, risk classification, or formal impact assessment is documented for this out-of-specification yield. The operator's note that 'yield is within tolerable range, no further action required' is not supported by a formal deviation evaluation and contradicts the specification limits stated in the batch record."
+        },
+        {
+          "finding_id": "finding_003_qa_release_based_on_uncorrected_record",
+          "severity": "high",
+          "risk_statement": "The QA release certificate for batch CPH-2026-991 (dated 2026-04-10, signed by Dr. Bernd Richter) states that all manufacturing documents were reviewed, yield meets specification, and the batch is released for market. However, the batch record contains an undocumented, undated, QA-unapproved yield correction (96.47% to 98.1%) and no formal deviation for the original out-of-specification yield. The QA release certificate does not reference or acknowledge the yield correction or any deviation. This creates a material inconsistency between the release certificate and the batch record, and raises the question of whether QA reviewed the batch record in its corrected state or was aware of the original out-of-specification value."
+        },
+        {
+          "finding_id": "finding_004_no_deviation_impact_assessment",
+          "severity": "high",
+          "risk_statement": "No documented impact assessment covering the influence on product quality, patient safety, and potentially affected batches is present in the document set for the yield deviation in batch CPH-2026-991. The operator's note dismissing further action does not constitute a formal impact assessment. The previous batch CPH-2026-990 (Cephalex-Injekt 1g) was processed on the same filling line L-05 and is referenced in the cleaning record; no assessment of whether that batch or other batches may be affected by the same root cause is documented."
+        },
+        {
+          "finding_id": "finding_005_capa_not_documented",
+          "severity": "medium",
+          "risk_statement": "No CAPA record or effectiveness check is documented in the provided document set in connection with the yield deviation or the data integrity concern related to the yield correction. Given that a formal deviation has not been opened, CAPA initiation has also not occurred. If a deviation is subsequently opened, the absence of a pre-existing CAPA record means the CAPA process has not been initiated in a timely manner."
+        },
+        {
+          "finding_id": "finding_001_cleaning_validation_scope",
+          "severity": "high",
+          "risk_statement": "The cleaning record for filling line L-05 documents execution of cleaning program 'Steril-A-Zirkulation' and visual residue check, but no cleaning validation report, validated cleaning method coverage, or residue acceptance limit evidence is referenced or present in the document set. It cannot be confirmed that the cleaning procedure applied is covered by a current, in-scope cleaning validation for this line, this product (Cephalex-Injekt 1g, a cephalosporin antibiotic), and the subsequent product. The absence of a validated cleaning matrix or bridging evidence constitutes a cleaning validation scope gap."
+        },
+        {
+          "finding_id": "finding_002_sterility_assurance_class_a",
+          "severity": "high",
+          "risk_statement": "Room R-104 is classified as a sterile area Class A. The document set contains no environmental monitoring (EM) data, no sterility assurance review, no media fill or process simulation reference, and no aseptic process validation evidence for filling line L-05 in this room. The QA release certificate states manufacturing documents were reviewed and the batch is released, but no sterility assurance evidence is present or referenced. Release of a sterile injectable batch without documented sterility assurance coverage constitutes a high-risk gap."
+        },
+        {
+          "finding_id": "finding_003_yield_correction_data_integrity",
+          "severity": "high",
+          "risk_statement": "The batch record for CPH-2026-991 contains a struck-through original yield value of 96.47% that was altered to 98.1%, with the stated justification that the weighing accompanying document (Wiegebegleitschein) was incomplete. The correction bears only initials 'TS' with no date, no QA countersignature, and no documented QA approval. The original value of 96.47% falls outside the specified yield range of 98.0%–101.0%, which would constitute an out-of-specification (OOS) or deviation event requiring formal assessment. The correction to 98.1% without documented QA oversight and without a formal deviation or OOS investigation is a data integrity violation and a potential concealment of a specification exceedance."
+        },
+        {
+          "finding_id": "finding_004_batch_impact_missing",
+          "severity": "high",
+          "risk_statement": "The document set contains no documented batch impact assessment addressing the yield correction, the incomplete weighing document, or any potential effect on product quality and patient safety. The operator's note states no further action is required, but this is an unsubstantiated self-assessment without QA review, without a list of potentially affected batches, and without linkage to a formal impact assessment record. The previous batch CPH-2026-990 was processed on the same line and is not assessed for impact."
+        },
+        {
+          "finding_id": "finding_005_cross_document_yield_inconsistency",
+          "severity": "medium",
+          "risk_statement": "The QA release certificate for CPH-2026-991 states that the yield meets the specified requirement, but this statement is based on the corrected yield value of 98.1% in the batch record. The mathematical yield calculated from the documented masses (filled goods 143.20 kg, QC sampling 1.50 kg, loss 0.80 kg, total accounted 145.50 kg vs. input 150.00 kg) yields approximately 96.47%—consistent with the struck-through original value. The corrected value of 98.1% is not independently verifiable from the documented masses in the batch record. This cross-document inconsistency between the batch record masses and the released yield value has not been resolved."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_03",
+      "document_set_id": "ds_f4da168ce80b46fc894cd29905f36a23",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_environmental_monitoring_report.md",
+        "document_03_capa_plan.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "model_statuses": {
+        "ContradictionHunter": "failed",
+        "BatchImpactReviewer": "failed",
+        "CAPAReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "DeviationReviewer": "succeeded"
+      },
+      "failed_model_roles": [
+        "BatchImpactReviewer",
+        "ContradictionHunter"
+      ],
+      "claim_count": 24,
+      "finding_count": 29,
+      "citation_verified_finding_count": 29,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_03_01",
+          "severity": "high",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Anachronistische Zeitstempel zwischen Raum-Logbuch und Probenahme-Protokoll.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001",
+            "risk_statement": "There is a temporal inconsistency between the recorded time of the particle peak and the employee entry time, which could indicate a data integrity issue.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_03_02",
+          "severity": "medium",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Referenzierung einer veralteten, potenziell ungültigen SOP-Version im CAPA-Plan.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_capa_002",
+            "risk_statement": "The SOP referenced in CAPA-2026-014 (SOP-QS-REIN-001, Version 2.0, valid from 2018-01-12) is over 8 years old relative to the deviation date of 2026-04-18. No evidence is present that this SOP version is current, has been reviewed for applicability to the current process state, or that a change control was initiated to update it. Per req_gs_qa_approval_documented, SOP and change references must be version-consistent, and per req_gs_validation_coverage, cleaning evidence must cover the current process state.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 2,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_03_01",
+          "evidence_text": "transienter Peak von 4500 Partikeln/m³",
+          "hit": null
+        },
+        {
+          "decoy_id": "DEC_03_02",
+          "evidence_text": "KBE-Werte innerhalb des Akzeptanzkriteriums (< 5 KBE / 4 Std.)",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_capa_001",
+          "severity": "high",
+          "risk_statement": "CAPA-2026-014 does not contain any documented Effectiveness Check (Wirksamkeitsprüfung). The CAPA record references a cleaning procedure adjustment and a deadline of 2026-05-30, but no evidence of a defined or executed effectiveness check criterion is present in any claim or document chunk. Per req_gs_capa_effectiveness, CAPA actions may only be closed with a defined and documented effectiveness check."
+        },
+        {
+          "finding_id": "finding_capa_003",
+          "severity": "high",
+          "risk_statement": "No documented root cause analysis is present in the CAPA record (CAPA-2026-014). The CAPA action (adjusting the cleaning procedure for walls of room R-202) is stated, but no evidence is provided that a formal root cause investigation was conducted and documented to justify this specific corrective action. Per req_gs_deviation_classification, root cause statements must be substantiated. A CAPA action without a documented root cause may not address the actual cause of the particle exceedance."
+        },
+        {
+          "finding_id": "finding_capa_004",
+          "severity": "high",
+          "risk_statement": "No QA approval or QA review status is documented for CAPA-2026-014. The CAPA record identifies a responsible party (Teamleiter Reinigung) and a deadline, but no QA sign-off, QA review, or QA approval record is referenced in any claim or chunk. Per req_gs_qa_approval_documented, QA approvals must be documented before closure."
+        },
+        {
+          "finding_id": "finding_capa_005",
+          "severity": "medium",
+          "risk_statement": "A temporal inconsistency exists between the particle peak timestamp (14:15) and the employee entry time (14:35) recorded in the electronic logbook. The peak occurred 20 minutes before the employee entered the room, which undermines the stated or implied root cause of the particle exceedance being related to personnel activity. This inconsistency has not been addressed or explained in the CAPA record and may indicate a data integrity issue or an incorrect root cause assumption underlying the CAPA action."
+        },
+        {
+          "finding_id": "finding_001_no_risk_classification",
+          "severity": "high",
+          "risk_statement": "Die Abweichung DEV-QS-2026-014 enthält keine dokumentierte Risikoeinstufung (Minor/Major/Kritisch) gemäß req_gs_deviation_classification. Eine Bewertung der Partikelüberschreitung (4500 vs. 2900 Partikel/m³ in Klasse B) ohne belastbare Risikoeinstufung ist nicht zulässig."
+        },
+        {
+          "finding_id": "finding_002_no_impact_assessment",
+          "severity": "high",
+          "risk_statement": "Für die Abweichung DEV-QS-2026-014 ist kein dokumentiertes Impact Assessment auf Produktqualität und Patientensicherheit nachweisbar. Die Charge LPO-2026-11A ist identifiziert, jedoch fehlt eine vollständige Bewertung des Einflusses der Partikelüberschreitung auf die Charge sowie eine Dispositionsentscheidung."
+        },
+        {
+          "finding_id": "finding_003_temporal_inconsistency",
+          "severity": "high",
+          "risk_statement": "Zeitliche Inkonsistenz im Audit Trail: Der Partikel-Peak wurde um 14:15 Uhr gemessen, der Mitarbeitereintritt in Raum R-202 laut elektronischem Logbuch erfolgte jedoch erst um 14:35 Uhr. Dies stellt einen potenziellen Datenintegritätsbefund dar (ALCOA+: plausibel, konsistent mit Audit Trail), da der Peak 20 Minuten vor dem dokumentierten Mitarbeitereintritt aufgezeichnet wurde."
+        },
+        {
+          "finding_id": "finding_004_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "CAPA-2026-014 does not document a defined effectiveness check (Wirksamkeitsprüfung). The CAPA record references a cleaning procedure adjustment and a deadline of 30.05.2026, but no claim in the ledger references a planned or documented effectiveness check as required by req_gs_capa_effectiveness."
+        },
+        {
+          "finding_id": "finding_005_sop_version_currency",
+          "severity": "medium",
+          "risk_statement": "CAPA-2026-014 referenziert SOP-QS-REIN-001, Version 2.0, gültig ab 12.01.2018. Es ist nicht nachweisbar, ob diese Version noch aktuell und gültig ist. Eine veraltete SOP-Version als Grundlage für eine CAPA-Maßnahme im Jahr 2026 stellt ein potenzielles Compliance-Risiko dar gemäß req_gs_qa_approval_documented und req_gs_validation_coverage."
+        },
+        {
+          "finding_id": "finding_006_no_qa_approval_documented",
+          "severity": "high",
+          "risk_statement": "Für die Abweichung DEV-QS-2026-014 und die zugehörige CAPA-2026-014 ist keine dokumentierte QA-Freigabe oder QA-Genehmigung in den vorliegenden Claims nachweisbar. Gemäß req_gs_qa_approval_documented müssen QA-Freigaben vor Abschluss dokumentiert vorliegen."
+        },
+        {
+          "finding_id": "finding_007_root_cause_not_evidenced",
+          "severity": "high",
+          "risk_statement": "Die CAPA-2026-014 adressiert eine Anpassung des Reinigungsverfahrens für Raum R-202, jedoch ist kein dokumentierter Root Cause für die Partikelüberschreitung in den vorliegenden Claims nachweisbar. Die Ableitung der CAPA-Maßnahme ohne belegten Root Cause ist gemäß req_gs_deviation_classification nicht zulässig. Zusätzlich besteht die zeitliche Inkonsistenz (Peak vor Mitarbeitereintritt), die den postulierten Root Cause in Frage stellt."
+        },
+        {
+          "finding_id": "finding_DI_001_temporal_inconsistency",
+          "severity": "critical",
+          "risk_statement": "The particle peak timestamp (14:15) precedes the recorded employee entry into room R-202 (14:35) by 20 minutes. If the deviation root cause is attributed to the employee entry causing particle disturbance, this temporal inconsistency renders the causal chain implausible and constitutes a data integrity finding under ALCOA+ (attributability, contemporaneousness). Either the electronic logbook entry time or the particle counter timestamp is incorrect, or the root cause attribution is unfounded. This undermines the reliability of the audit trail and the validity of the deviation investigation."
+        },
+        {
+          "finding_id": "finding_DI_002_audit_trail_review_missing",
+          "severity": "high",
+          "risk_statement": "No evidence of a formal audit trail review is present in the available claims for the electronic records involved in this deviation (particle counter system, electronic logbook). The deviation report references electronic logbook data and particle counter timestamps, but no claim documents that an audit trail review was performed, reviewed, or approved by QA. Under req_gs_data_integrity_signatures, electronic records must be reviewed for ALCOA+ compliance. The absence of documented audit trail review is a data integrity gap."
+        },
+        {
+          "finding_id": "finding_DI_003_sop_version_currency",
+          "severity": "medium",
+          "risk_statement": "The CAPA record CAPA-2026-014 references SOP-QS-REIN-001 Version 2.0, valid from 12.01.2018. No evidence is present in the available claims that this SOP version is still the current, approved version as of April 2026 (over 8 years after its effective date). Under req_gs_qa_approval_documented, SOP and change references must be version-consistent. An outdated SOP reference in a CAPA action raises a data integrity and document control concern, as the CAPA may be based on superseded procedural requirements."
+        },
+        {
+          "finding_id": "finding_DI_004_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "The CAPA record CAPA-2026-014 defines a corrective action (adjustment of cleaning procedure for room R-202 walls) and a deadline (30.05.2026), but no claim documents the definition of an effectiveness check (Wirksamkeitsprüfung) for this CAPA. Under req_gs_capa_effectiveness, CAPA actions may only be closed with a defined and documented effectiveness check. The absence of any effectiveness check definition or evidence is a compliance gap that could allow the CAPA to be closed without verification that the root cause has been addressed."
+        },
+        {
+          "finding_id": "finding_001_deviation_classification_missing",
+          "severity": "high",
+          "risk_statement": "No risk classification (Minor/Major/Critical) is documented for deviation DEV-QS-2026-014. The particle count exceedance (4500 vs. 2900 particles/m³ in Class B room R-202 during filling of batch LPO-2026-11A) is described but no reasoned risk tier is assigned. Per req_gs_deviation_classification, a deviation from a critical process parameter must be evaluated with a substantiated risk classification supported by physicochemical data."
+        },
+        {
+          "finding_id": "finding_002_impact_assessment_missing",
+          "severity": "high",
+          "risk_statement": "No documented impact assessment on product quality and patient safety is present in the claim ledger for deviation DEV-QS-2026-014. Batch LPO-2026-11A is identified as affected, but no claim documents a formal impact assessment covering all potentially affected batches or a disposition decision linked to batch records, as required by req_gs_deviation_impact and req_gs_batch_impact_completeness."
+        },
+        {
+          "finding_id": "finding_003_temporal_inconsistency_data_integrity",
+          "severity": "high",
+          "risk_statement": "A temporal inconsistency exists between the particle peak timestamp (14:15) and the employee entry time recorded in the electronic logbook (14:35). The particle exceedance is attributed to human activity, yet the peak precedes the recorded entry by 20 minutes. This is a potential data integrity finding under req_gs_data_integrity_signatures (ALCOA+: plausible, consistent with audit trail) and also undermines the root cause narrative."
+        },
+        {
+          "finding_id": "finding_005_qa_approval_not_documented",
+          "severity": "high",
+          "risk_statement": "No QA approval or QA sign-off is documented in the claim ledger for either the deviation DEV-QS-2026-014 or CAPA-2026-014. The deviation was reported to QA at 15:00, but no claim confirms a documented QA review decision, approval, or closure authorization. Per req_gs_qa_approval_documented, QA approvals must be documented before closure."
+        },
+        {
+          "finding_id": "finding_006_sop_version_currency",
+          "severity": "medium",
+          "risk_statement": "CAPA-2026-014 references SOP-QS-REIN-001 Version 2.0, valid from 12.01.2018. No claim in the ledger confirms that this version is still the current approved version as of April 2026 (over 8 years later). Per req_gs_qa_approval_documented, SOP and change references must be version-consistent, and per req_gs_validation_coverage, evidence must cover the current process state."
+        },
+        {
+          "finding_id": "finding_007_capa_root_cause_alignment",
+          "severity": "high",
+          "risk_statement": "CAPA-2026-014 addresses wall cleaning of room R-202 as the corrective action. However, given the temporal inconsistency (peak at 14:15 precedes employee entry at 14:35), the root cause linking the exceedance to human activity or wall contamination is not substantiated. A CAPA addressing wall cleaning may not be aligned with the actual root cause, rendering it potentially ineffective and non-compliant with req_gs_deviation_classification and req_gs_capa_effectiveness."
+        },
+        {
+          "finding_id": "finding_001_validation_cleaning_scope",
+          "severity": "high",
+          "risk_statement": "The CAPA-2026-014 action adjusts the cleaning procedure for walls of room R-202 (SOP-QS-REIN-001, Version 2.0, valid from 2018-01-12) to prevent future particle exceedances. No evidence is provided that the existing cleaning validation covers the modified procedure or that a cleaning validation addendum/re-qualification has been initiated. The referenced SOP version dates from 2018 and its continued applicability to the changed cleaning scope has not been demonstrated."
+        },
+        {
+          "finding_id": "finding_002_sterility_assurance_em_exceedance",
+          "severity": "high",
+          "risk_statement": "A transient particle peak of 4500 particles/m³ (≥5.0 µm) was measured in Class B room R-202 during filling of batch LPO-2026-11A, exceeding the limit of 2900 particles/m³. No sterility assurance impact assessment is documented in the available claims. While microbiological sedimentation plate results are within acceptance criteria, no formal sterility assurance review or aseptic process impact evaluation for the affected batch has been evidenced."
+        },
+        {
+          "finding_id": "finding_003_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "CAPA-2026-014 defines an action to adjust the cleaning procedure for room R-202 walls with a deadline of 2026-05-30. No evidence of a defined or documented effectiveness check (Wirksamkeitsprüfung) is present in the available claims. Per applicable requirements, CAPA actions may only be closed with a defined and documented effectiveness check."
+        },
+        {
+          "finding_id": "finding_004_temporal_inconsistency_audit_trail",
+          "severity": "high",
+          "risk_statement": "A temporal inconsistency exists in the deviation record DEV-QS-2026-014: the particle peak timestamp is recorded at 14:15, while the employee entry into room R-202 per the electronic logbook is recorded at 14:35 — 20 minutes after the peak. If the peak was attributed to personnel entry, this sequence is physically implausible and constitutes a data integrity concern under ALCOA+ requirements. The root cause attribution may be unsupported."
+        },
+        {
+          "finding_id": "finding_005_batch_impact_disposition_missing",
+          "severity": "high",
+          "risk_statement": "No batch impact assessment or disposition decision for batch LPO-2026-11A is documented in the available claims. The deviation occurred during filling of this batch in a Class B cleanroom with a particle exceedance of ~55% above the limit. A documented batch impact assessment linking the deviation to a release or quarantine decision is required but absent."
+        },
+        {
+          "finding_id": "finding_f5c2b674d8253e39ad10",
+          "severity": "high",
+          "risk_statement": "Adversarial review found required evidence missing or not clearly present in the claim ledger."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_04",
+      "document_set_id": "ds_71666a7dabe5414b9a421cb5a1edd08f",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md",
+        "document_04_quality_approval_note.md"
+      ],
+      "pipeline_status": "completed",
+      "failed_step": null,
+      "error_summary": null,
+      "model_statuses": {
+        "ContradictionHunter": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded"
+      },
+      "failed_model_roles": [],
+      "claim_count": 39,
+      "finding_count": 33,
+      "citation_verified_finding_count": 25,
+      "risk_decision": "human_review_required",
+      "auto_clear_allowed": false,
+      "gold_error_count": 3,
+      "matched_errors": [
+        {
+          "error_id": "ERR_04_01",
+          "severity": "high",
+          "error_type": "Dokumentenwidersprüche",
+          "expected_reviewer_finding": "Diskrepanz des maximalen Temperaturwerts zwischen Abweichungsbericht und Herstellprotokoll.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_capa_004_batch_record_temperature_discrepancy",
+            "risk_statement": "The batch record for PAR-2026-H102 (WS-03) shows a product temperature of 48.2°C at 13:30, which significantly exceeds both the specification limit of 42.0°C and the maximum value of 44.5°C documented in the deviation report DEV-P-2026-092. The deviation report states the temperature rose to a maximum of 44.5°C for 3 minutes, but the batch record shows 48.2°C. This is a material cross-document inconsistency. The impact assessment and CAPA are based on the 44.5°C figure; if the actual peak was 48.2°C, the impact assessment and CAPA scope may be insufficient.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_04_02",
+          "severity": "high",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlende Verknüpfung zwischen technischer Root Cause und personeller CAPA-Maßnahme.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_capa_002_root_cause_operator_error_unsupported",
+            "risk_statement": "The CAPA root cause is attributed solely to 'insufficient operator attention during temperature monitoring' (mangelnde Aufmerksamkeit des Bedienpersonals). However, the deviation report (DEV-P-2026-092) identifies a suspected stuck valve in the heating register of the supply air system as the root cause. These two root cause attributions are contradictory. Per req_gs_deviation_classification, root cause attributions such as 'operator error' must be substantiated. The CAPA action (retraining) is based on the operator-error root cause, but if the actual root cause is a mechanical/equipment failure (stuck valve), the CAPA is misdirected and will not prevent recurrence.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_04_03",
+          "severity": "critical",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Kritische Chargenfreigabe beruhend auf fehlerhafter und unvollständiger Abweichungsbewertung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_capa_003_qa_approval_missing_signatory",
+            "risk_statement": "The batch review document for PAR-2026-H102 states the batch is quality-compliant and released for the next processing step, but no approver name, role, or date is documented for this QA approval. Per req_gs_qa_approval_documented, QA approvals must be documented before closure; planned but undocumented approvals are not sufficient. The absence of a named QA approver and approval date means the release decision cannot be traced or verified.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_04_01",
+          "evidence_text": "Temperatur korrigiert, Trocknung fortgesetzt.",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "There is a contradiction between the documented maximum temperature of 44.5°C and the specified maximum limit of 42.0°C, which was exceeded during the drying phase of batch PAR-2026-H102."
+        },
+        {
+          "finding_id": "finding_capa_001_no_effectiveness_check",
+          "severity": "high",
+          "risk_statement": "CAPA-DEV-092 defines a retraining action for operator J.K. with a deadline of 2026-06-15 and a responsible party (Schichtleiter Produktion), but no Effectiveness Check (Wirksamkeitsprüfung) is defined, documented, or referenced anywhere in the available documents. Per req_gs_capa_effectiveness, CAPA actions may only be closed with a defined and documented effectiveness check. Without this, the CAPA cannot be validly closed and the recurrence risk of the temperature exceedance remains unmitigated."
+        },
+        {
+          "finding_id": "finding_capa_005_deviation_risk_classification_absent",
+          "severity": "high",
+          "risk_statement": "No formal risk classification (Minor/Major/Critical) of deviation DEV-P-2026-092 is documented in any of the reviewed documents. Per req_gs_deviation_classification, deviations from critical process parameters must be assessed with a justified risk classification; a classification without substantiated physicochemical data is not permissible. The batch review references an expectation of no significant substance degradation, but no laboratory data or physicochemical evidence is cited to support this conclusion or to underpin a formal risk classification."
+        },
+        {
+          "finding_id": "finding_capa_006_batch_impact_list_absent",
+          "severity": "high",
+          "risk_statement": "No batch impact list is documented. The deviation DEV-P-2026-092 and CAPA-DEV-092 reference only batch PAR-2026-H102. Per req_gs_batch_impact_completeness, batch impact assessments must list all potentially affected batches and link the disposition decision to batch records. There is no evidence that other batches processed on equipment WS-03 were assessed for potential impact from the same equipment defect (suspected stuck valve)."
+        },
+        {
+          "finding_id": "finding_001_deviation_classification_no_risk_rating",
+          "severity": "high",
+          "risk_statement": "Deviation DEV-P-2026-092 documents a product temperature exceedance (44.5°C vs. limit 42.0°C) but no formal risk classification (Minor/Major/Critical) with supporting physicochemical data is documented. The batch review document states 'no significant substance degradation expected' without referencing any laboratory data or stability study to substantiate this claim, violating the requirement that risk classification must be based on reliable physicochemical data."
+        },
+        {
+          "finding_id": "finding_002_batch_record_temperature_discrepancy",
+          "severity": "high",
+          "risk_statement": "The batch record (WS-03 process log) documents a product temperature of 48.2°C at 13:30 for batch PAR-2026-H102, whereas the deviation report DEV-P-2026-092 and the batch review document both state the maximum product temperature was 44.5°C. This is a material cross-document inconsistency of 3.7°C that has not been explained or reconciled, constituting a data integrity and documentation consistency finding."
+        },
+        {
+          "finding_id": "finding_003_root_cause_operator_error_unsubstantiated",
+          "severity": "high",
+          "risk_statement": "The CAPA document attributes the root cause to 'insufficient operator attention during temperature monitoring', but the deviation report identifies a different suspected root cause: a stuck valve in the heating register of the supply air system. These two root cause statements are contradictory and neither is supported by documented investigation evidence (e.g., maintenance records, valve inspection report, or operator interview records). The CAPA is based on an unsubstantiated and potentially incorrect root cause."
+        },
+        {
+          "finding_id": "finding_004_qa_approval_missing_approver_identity",
+          "severity": "high",
+          "risk_statement": "The batch review document for PAR-2026-H102 states the batch is quality-compliant and released for the next processing step, but no approver name, role, or date is documented for this QA release decision. This means the QA approval cannot be attributed to a qualified individual and does not meet the requirement for documented QA approval prior to batch release."
+        },
+        {
+          "finding_id": "finding_005_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "CAPA-DEV-092 defines a retraining action for operator J.K. with a deadline of 2026-06-15, but no effectiveness check (Wirksamkeitsprüfung) is defined or documented. Per SOP-CAPA-003 section 7.5, CAPA actions may only be closed with a defined and documented effectiveness check. The CAPA record as presented does not include any effectiveness check criteria, method, or responsible party."
+        },
+        {
+          "finding_id": "finding_006_impact_assessment_no_batch_list",
+          "severity": "high",
+          "risk_statement": "The impact assessment for deviation DEV-P-2026-092 addresses only batch PAR-2026-H102. No documentation is present confirming that a review was conducted to determine whether other batches processed on equipment WS-03 may have been affected by the same stuck valve or recurring temperature control issue. The requirement mandates that all potentially affected batches be listed."
+        },
+        {
+          "finding_id": "finding_007_batch_record_no_deviation_escalation_at_time_of_event",
+          "severity": "medium",
+          "risk_statement": "The batch record entry at 13:30 records a product temperature of 48.2°C (6.2°C above the 42.0°C limit) with the operator note 'Temperatur korrigiert, Trocknung fortgesetzt' (temperature corrected, drying continued). No reference to a deviation report or formal escalation is documented at the time of the event in the batch record. This suggests the deviation may not have been escalated in real time as required."
+        },
+        {
+          "finding_id": "finding_DI_001_batch_record_temp_discrepancy",
+          "severity": "critical",
+          "risk_statement": "The batch record (doc_ae94a7dfaa194ab3b3fd387d783dc967) documents a product temperature of 48.2°C at 13:30, which significantly exceeds the specification limit of 42.0°C and also exceeds the 44.5°C peak value stated in the deviation report DEV-P-2026-092. The deviation report claims the maximum temperature was only 44.5°C, but the contemporaneous batch record shows 48.2°C. This constitutes a material data integrity discrepancy between source documents: the deviation report appears to understate the actual temperature excursion by at least 3.7°C. This is a potential ALCOA+ violation (accuracy, completeness) and may indicate selective or inaccurate data entry in the deviation report."
+        },
+        {
+          "finding_id": "finding_DI_002_qa_approval_no_approver_identity",
+          "severity": "high",
+          "risk_statement": "The QA batch review document (doc_c1bd2a9fa5094c0691b7030e11908678) releases batch PAR-2026-H102 for the next processing step and declares it quality-compliant, but no approver name, role, or date is documented. This means the QA approval cannot be attributed to a specific qualified person, violating ALCOA+ attributability requirements and the requirement that QA approvals must be documented before closure. The absence of an identified approver also means the audit trail for this critical disposition decision is incomplete."
+        },
+        {
+          "finding_id": "finding_DI_003_batch_record_no_deviation_escalation_documented",
+          "severity": "high",
+          "risk_statement": "The batch record entry for 13:30 (doc_ae94a7dfaa194ab3b3fd387d783dc967) records a product temperature of 48.2°C and an inlet air temperature of 61.0°C, both significantly exceeding specification limits, with only the note 'Temperatur korrigiert, Trocknung fortgesetzt.' There is no reference to a deviation report, no formal escalation notation, and no indication that the operator or supervisor initiated a deviation at the time of the event. This means the contemporaneous batch record does not contain a traceable link to the deviation management system, which is a gap in audit trail completeness and contemporaneous documentation."
+        },
+        {
+          "finding_id": "finding_DI_004_capa_no_effectiveness_check",
+          "severity": "high",
+          "risk_statement": "CAPA-DEV-092 (doc_8face8bc96e748ada7b2e8990ce3a911) defines a retraining action for operator J.K. with a deadline of 15.06.2026, but no effectiveness check (Wirksamkeitsprüfung) is defined or referenced. The requirement mandates that CAPA actions may only be closed with a defined and documented effectiveness check. The absence of any effectiveness check definition means the CAPA cannot be validly closed and the audit trail for CAPA completion is incomplete."
+        },
+        {
+          "finding_id": "finding_DI_005_impact_assessment_based_on_incorrect_temperature",
+          "severity": "critical",
+          "risk_statement": "The QA batch review (doc_c1bd2a9fa5094c0691b7030e11908678) bases its impact assessment and release decision on a maximum product temperature of 44.5°C, stating this is 'only minimally above the limit of 42.0°C' and that no significant substance degradation is expected. However, the batch record documents a product temperature of 48.2°C at 13:30, which is 6.2°C above the specification limit. If the true maximum temperature was 48.2°C, the impact assessment conclusion ('no significant substance degradation') may be scientifically invalid and the release decision may be based on incorrect data. This is a critical data integrity and product quality risk."
+        },
+        {
+          "finding_id": "finding_DI_006_root_cause_operator_error_not_substantiated",
+          "severity": "high",
+          "risk_statement": "CAPA-DEV-092 (doc_8face8bc96e748ada7b2e8990ce3a911) attributes the root cause to 'insufficient operator attention during temperature monitoring', while the deviation report DEV-P-2026-092 (doc_33337e1924ee4836ba837c4b4869eeb5) identifies a suspected stuck valve in the heating register of the supply air system as the root cause. These are two different root causes documented across two documents for the same event. The CAPA is based on the operator attention root cause, but no evidence is provided to substantiate this conclusion or to explain why the mechanical root cause (stuck valve) was discarded. This inconsistency undermines the validity of the CAPA and the audit trail for root cause determination."
+        },
+        {
+          "finding_id": "finding_001_qa_approval_missing_signature",
+          "severity": "high",
+          "risk_statement": "The QA release decision for batch PAR-2026-H102 is stated as quality-compliant and released for the next processing step, but no approver name, role, or date is documented. Per req_gs_qa_approval_documented, QA approvals must be documented before closure; undocumented approvals are not sufficient."
+        },
+        {
+          "finding_id": "finding_002_cross_document_temperature_inconsistency",
+          "severity": "high",
+          "risk_statement": "The deviation report DEV-P-2026-092 states the product temperature peaked at 44.5°C for 3 minutes. However, the batch record (WS-03 log) shows a product temperature of 48.2°C at 13:30 with an inlet air temperature of 61.0°C. These values are materially inconsistent: 48.2°C exceeds 44.5°C by 3.7°C and represents a significantly greater exceedance of the 42.0°C limit. Per req_gs_cross_document_consistency, contradictions between batch record and deviation report must be resolved."
+        },
+        {
+          "finding_id": "finding_003_deviation_risk_classification_missing",
+          "severity": "high",
+          "risk_statement": "No formal risk classification (Minor/Major/Critical) is documented for deviation DEV-P-2026-092 in any of the reviewed documents. Per req_gs_deviation_classification, deviations from critical process parameters must be assessed with a justified risk classification supported by physicochemical data. The absence of a classification level means the deviation handling cannot be verified as complete."
+        },
+        {
+          "finding_id": "finding_004_root_cause_operator_error_unsupported",
+          "severity": "high",
+          "risk_statement": "The CAPA document attributes the root cause to insufficient operator attention during temperature monitoring. However, the deviation report identifies a suspected stuck valve in the heating register of the supply air system as the root cause. These two root cause attributions are contradictory. Per req_gs_deviation_classification, root cause attributions such as 'operator error' must be substantiated. The CAPA root cause is inconsistent with the technical root cause in the deviation report and lacks supporting evidence."
+        },
+        {
+          "finding_id": "finding_006_batch_impact_completeness",
+          "severity": "high",
+          "risk_statement": "The batch impact assessment references only batch PAR-2026-H102. Per req_gs_batch_impact_completeness, all potentially affected batches must be listed and the disposition decision must be linked to batch records. No batch list or assessment of other potentially affected batches (e.g., batches processed on equipment WS-03 before or after the deviation) is documented."
+        },
+        {
+          "finding_id": "finding_007_batch_record_temperature_exceeds_spec_undocumented",
+          "severity": "high",
+          "risk_statement": "The batch record for WS-03 shows a product temperature of 48.2°C at 13:30, which exceeds the 42.0°C specification limit by 6.2°C. The operator note states only 'temperature corrected, drying continued' with no reference to a deviation report or formal documentation at the time of the exceedance. Per req_gs_spec_limits, exceedances must be assessed as deviations even if the product appears visually unaffected. The batch record entry does not reference DEV-P-2026-092 or any formal escalation."
+        },
+        {
+          "finding_id": "finding_001_validation_coverage_missing",
+          "severity": "high",
+          "risk_statement": "No validation evidence (Validierungsbericht or Sterilisationsprotokoll) is present in the document set for the drying process on equipment WS-03. The temperature excursion during batch PAR-2026-H102 occurred on validated equipment, but no validation report or protocol is referenced or attached to confirm that the current process state (including the excursion scenario) is covered by existing validation. The batch review document releases the batch without referencing any validation coverage."
+        },
+        {
+          "finding_id": "finding_002_temperature_data_inconsistency",
+          "severity": "high",
+          "risk_statement": "A critical data inconsistency exists between the deviation report and the batch record. The deviation report DEV-P-2026-092 documents a maximum product temperature of 44.5°C for 3 minutes. However, the batch record for the same batch (PAR-2026-H102) on equipment WS-03 records a product temperature of 48.2°C at 13:30 with an inlet air temperature of 61.0°C. The batch review document references only the 44.5°C value from the deviation report and uses it to justify no significant substance degradation, without acknowledging or reconciling the 48.2°C value from the batch record. This constitutes a cross-document inconsistency that undermines the validity of the impact assessment and the batch release decision."
+        },
+        {
+          "finding_id": "finding_003_impact_assessment_insufficient",
+          "severity": "high",
+          "risk_statement": "The impact assessment in the batch review document concludes no significant substance degradation is expected from the temperature excursion, but this conclusion is not supported by any referenced physicochemical data, stability data, or laboratory results. The assessment is based solely on the assertion that the temperature was 'only minimally above the limit of 42.0°C', using the incorrect value of 44.5°C rather than the batch-record-documented 48.2°C. No laboratory data, degradation studies, or specification test results are cited to substantiate the no-impact claim."
+        },
+        {
+          "finding_id": "finding_004_qa_approval_undocumented",
+          "severity": "high",
+          "risk_statement": "The batch review document for batch PAR-2026-H102 states the batch is quality-compliant and released for the next processing step, but no QA approver name, role, or date is documented. Per SOP-QA-004 section 5.1, QA approvals must be documented before closure; a release statement without an identified approver and date does not constitute a valid documented QA approval."
+        },
+        {
+          "finding_id": "finding_006_root_cause_inconsistency",
+          "severity": "medium",
+          "risk_statement": "The deviation report DEV-P-2026-092 identifies a stuck valve in the heating register of the supply air system as the suspected root cause of the temperature excursion. However, CAPA-DEV-092 attributes the error to insufficient operator attention during temperature monitoring and assigns only operator retraining as the corrective action. This is an inconsistency between the suspected technical root cause (equipment malfunction) and the CAPA root cause (human error). No evidence is provided to confirm which root cause was verified, and no technical corrective action addressing the valve is documented."
+        },
+        {
+          "finding_id": "finding_007_batch_impact_completeness",
+          "severity": "high",
+          "risk_statement": "The batch impact assessment does not include a list of all potentially affected batches. The deviation involved equipment WS-03 with a suspected stuck valve in the supply air system. No assessment is documented as to whether other batches processed on WS-03 before or after the deviation may have been affected by the same equipment malfunction. Per QRM Batch Impact Checkliste section 3.2, all affected batches must be listed and linked to disposition decisions."
+        },
+        {
+          "finding_id": "finding_fbea6ddfbb0ff47a55de",
+          "severity": "high",
+          "risk_statement": "Adversarial review found required evidence missing or not clearly present in the claim ledger."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_05",
+      "document_set_id": "ds_3845d030ce56470a8d81ca39c14510a8",
+      "documents_uploaded": [
+        "document_01_batch_record_excerpt.md",
+        "document_02_validation_note.md",
+        "document_03_environmental_monitoring_report.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "model_statuses": {
+        "ContradictionHunter": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "CAPAReviewer": "failed",
+        "GMPDataIntegrityReviewer": "succeeded"
+      },
+      "failed_model_roles": [
+        "CAPAReviewer"
+      ],
+      "claim_count": 21,
+      "finding_count": 18,
+      "citation_verified_finding_count": 8,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 3,
+      "matched_errors": [
+        {
+          "error_id": "ERR_05_01",
+          "severity": "medium",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Verweis auf ein nicht vorhandenes bzw. fehlendes Dokumentenelement (Anhang 4).",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_006_validation_loading_pattern_not_confirmed",
+            "risk_statement": "The validation note VAL-NOTE-AT-442 confirms that autoclave AT-442 was released for program 'Standard-Zubehör-121' following re-validation in January 2026, and that exact loading patterns and maximum total weights for glassware are documented in Annex 4. However, the sterilization cycle record ZYK-STER-992 does not reference or confirm compliance with the validated loading pattern (Annex 4). Without this confirmation, it cannot be verified that the cycle was performed within the validated state.",
+            "severity": "medium"
+          }
+        },
+        {
+          "error_id": "ERR_05_02",
+          "severity": "high",
+          "error_type": "Dokumentenwidersprüche",
+          "expected_reviewer_finding": "Kritischer Zeitkonflikt zwischen manuellem Prozess-Logbuch und automatisiertem Zutrittskontrollsystem.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_002_operator_presence_timeline",
+            "risk_statement": "The cleanroom security report states that employee PNN-8812 entered the personnel airlock to the preparation room (R-102) at 08:45 and had no prior presence in the autoclave area before 08:45. However, the sterilization cycle ZYK-STER-992 shows loading completed at 08:15 and program start at 08:20. This means the loading and program initiation of the sterilization cycle were performed before PNN-8812 could physically have been present in the area, according to the access control system. This is a temporal impossibility that raises serious concerns about who actually loaded and started the autoclave, and whether the sterilization record accurately reflects the actual execution.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_05_03",
+          "severity": "medium",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Mangelnde Zuordnungsgenauigkeit von Unterschrift/Initialen zur Personalnummer.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001_identity_mismatch_pnn8812",
+            "risk_statement": "The sterilization cycle ZYK-STER-992 on autoclave AT-442 was documented as executed by employee P.M. (personnel number PNN-8812), but the cleanroom security report for the same date (2026-05-11) records that personnel number PNN-8812 has initials 'A.S.' in the electronic system. This is a direct identity contradiction across documents for the same personnel number on the same day, constituting a data integrity finding under ALCOA+ requirements. The executing person's identity cannot be unambiguously established, which undermines the traceability and integrity of the sterilization record.",
+            "severity": "critical"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_05_01",
+          "evidence_text": "Programmstart (121°C / 20 Min)",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Contradictory claims regarding the equipment ID for autoclave unit AT-442 found in different documents."
+        },
+        {
+          "finding_id": "finding_003_missing_deviation_report",
+          "severity": "high",
+          "risk_statement": "No formal deviation report or deviation record is present in the document set despite the identified timeline inconsistency (operator not present at cycle start) and the identity discrepancy for PNN-8812. The available documents are a sterilization cycle record, a validation note, and a Reinraum-Sicherungsbericht. A formal deviation with risk classification (Minor/Major/Critical), root cause, and impact assessment is required by SOP-DEV-001 but is absent."
+        },
+        {
+          "finding_id": "finding_004_missing_batch_impact_assessment",
+          "severity": "high",
+          "risk_statement": "No batch impact assessment is present in the document set. The sterilization cycle ZYK-STER-992 processed sterile goods (Sterilgüter) on 2026-05-11, but no document identifies the affected batches, links them to batch records, or provides a disposition rationale. This is required by SOP-DEV-001 section 6.4 and QRM Batch Impact Checkliste section 3.2."
+        },
+        {
+          "finding_id": "finding_005_missing_capa_and_effectiveness_check",
+          "severity": "high",
+          "risk_statement": "No CAPA record or effectiveness check is present in the document set. Given the identified deviations (operator identity discrepancy, timeline inconsistency, potential unauthorized cycle start), CAPA measures with documented effectiveness checks are required under SOP-CAPA-003 section 7.5. The absence of any CAPA linkage means the deviation cannot be formally closed."
+        },
+        {
+          "finding_id": "finding_002_operator_presence_timeline_implausible",
+          "severity": "critical",
+          "risk_statement": "The batch record states that loading of autoclave AT-442 was completed at 08:15 and the sterilization program started at 08:20. However, the cleanroom security report states that employee PNN-8812 (the attributed operator) did not enter the personnel airlock to the preparation room until 08:45. This means the operator recorded as responsible for the cycle was physically not present in the area at the time of loading and program start according to the access control system. This constitutes a critical data integrity finding: either the batch record entries are falsified/attributed to the wrong person, or the access control record is incorrect. The cycle ZYK-STER-992 may have been executed by an unidentified, unqualified, or unauthorized person."
+        },
+        {
+          "finding_id": "finding_003_no_deviation_raised_for_identity_and_timeline_conflict",
+          "severity": "high",
+          "risk_statement": "Despite the documented contradiction between the batch record operator attribution and the access control system (findings 001 and 002), no deviation record is present in the document set. The applicable requirements mandate that deviations from critical process parameters and data integrity anomalies must be formally documented, risk-classified, and assessed for batch impact. The absence of a deviation record for these discrepancies means the required risk classification, root cause analysis, and batch impact assessment have not been performed."
+        },
+        {
+          "finding_id": "finding_004_no_qa_approval_record_present",
+          "severity": "high",
+          "risk_statement": "No QA approval record is present in the document set for cycle ZYK-STER-992 or for the sterilized goods. The applicable requirement mandates that QA approvals must be documented before closure of any deviation or release decision. Given the data integrity anomalies identified, the absence of a QA approval record means that any implicit or de facto release of goods from this cycle would be non-compliant."
+        },
+        {
+          "finding_id": "finding_005_validation_loading_pattern_compliance_unverifiable",
+          "severity": "medium",
+          "risk_statement": "The validation note VAL-NOTE-AT-442 states that exact loading patterns and maximum permissible total weights for glassware are documented in Annex 4 of that document. The batch record for cycle ZYK-STER-992 does not contain any reference to or confirmation of compliance with the validated loading pattern. Since the operator attribution is already in question (findings 001 and 002), it cannot be verified that the validated loading configuration was actually applied. This creates a gap in validation coverage evidence for this cycle."
+        },
+        {
+          "finding_id": "finding_001_identity_conflict_pnn8812",
+          "severity": "critical",
+          "risk_statement": "Personnel number PNN-8812 is attributed to two different individuals across documents: the sterilization cycle record (doc_cd7d181264d742478649922e24c479fc) identifies the executing employee as 'P.M.' (Personalnummer PNN-8812), while the cleanroom security report (doc_60bd004cc1bd4d2d96c4d5fc42a24935) records the same personnel number PNN-8812 with system initials 'A.S.'. This is a direct cross-document identity contradiction that constitutes a data integrity finding under ALCOA+ requirements and raises serious questions about who actually executed cycle ZYK-STER-992."
+        },
+        {
+          "finding_id": "finding_002_operator_presence_timeline_conflict",
+          "severity": "critical",
+          "risk_statement": "The cleanroom security report states that employee PNN-8812 entered the personnel airlock to the preparation room at 08:45 and had no prior presence in the autoclave area before 08:45. However, the sterilization cycle record documents that loading was completed at 08:15 and the program was started at 08:20 by the same personnel number PNN-8812. This is a direct temporal impossibility: the operator attributed to the cycle cannot have completed loading at 08:15 and started the program at 08:20 if they did not enter the area until 08:45. This constitutes a critical data integrity and GMP documentation finding."
+        },
+        {
+          "finding_id": "finding_003_no_deviation_record_present",
+          "severity": "high",
+          "risk_statement": "The document set contains a sterilization cycle record, a validation note, and a cleanroom security report, but no deviation record, risk classification, impact assessment, or CAPA record is present. Given the identified cross-document contradictions (operator identity conflict, temporal impossibility), the absence of a formal deviation record means that mandatory requirements under SOP-DEV-001 sections 6.2 and 6.4 have not been demonstrably met. There is no documented risk classification (Minor/Major/Critical), no batch impact assessment listing potentially affected batches, and no QA approval record."
+        },
+        {
+          "finding_id": "finding_004_validation_scope_loading_pattern",
+          "severity": "medium",
+          "risk_statement": "The validation note VAL-NOTE-AT-442 states that exact loading patterns and maximum permissible total weights for glassware are documented in Annex 4 of that note. The sterilization cycle record for ZYK-STER-992 does not contain any reference to or confirmation of compliance with the loading patterns and weight limits specified in Annex 4. Without this cross-reference, it cannot be confirmed from the available documents that the actual loading of cycle ZYK-STER-992 was within the validated scope."
+        },
+        {
+          "finding_id": "finding_003_loading_pattern_compliance_not_documented",
+          "severity": "high",
+          "risk_statement": "The validation note VAL-NOTE-AT-442 states that exact loading patterns and maximum permissible total weights for glassware are documented in Annex 4 of the validation note. The sterilization cycle record ZYK-STER-992 does not contain any reference to or confirmation of compliance with the loading patterns and weight limits specified in Annex 4. Without documented verification that the actual load for cycle ZYK-STER-992 conformed to the validated loading pattern, the sterility assurance of the cycle cannot be confirmed."
+        },
+        {
+          "finding_id": "finding_004_deviation_not_opened_for_identity_conflict",
+          "severity": "high",
+          "risk_statement": "The available documents do not contain any evidence that a deviation has been opened for the identity discrepancy (P.M. vs. A.S. for PNN-8812) or for the temporal impossibility of the documented operator presence versus the cycle execution times. Under the applicable deviation management requirements, deviations from critical process parameters and data integrity findings must be formally documented and risk-classified. The absence of a deviation record for these findings represents a gap in the GMP documentation system."
+        },
+        {
+          "finding_id": "finding_2a273f102f85048d4400",
+          "severity": "high",
+          "risk_statement": "Adversarial review found required evidence missing or not clearly present in the claim ledger."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_06",
+      "document_set_id": "ds_eebd82cb36a842fe9407cc247fe5ae1f",
+      "documents_uploaded": [
+        "document_01_supplier_coa.md",
+        "document_02_laboratory_deviation.md",
+        "document_03_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "model_statuses": {
+        "BatchImpactReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "CAPAReviewer": "failed"
+      },
+      "failed_model_roles": [
+        "CAPAReviewer"
+      ],
+      "claim_count": 15,
+      "finding_count": 20,
+      "citation_verified_finding_count": 20,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_06_01",
+          "severity": "high",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Akzeptanzkriterium der internen Spezifikation wird durch das Lieferanten-Zertifikat verletzt.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001_spec_exceedance_water_content",
+            "risk_statement": "Batch CS-AMX-9982 water content (13.2%) exceeds the upper specification limit of 12.8% per Prüf-Spez-API-04, yet the supplier CoA (doc_da2a581158644755bf41b5460602063a) records the batch as released ('Freigegeben durch Qualitätskontrolle ChemieSynthese'). This constitutes a confirmed out-of-specification result against a critical process parameter. Per req_gs_spec_limits, specification exceedances must be evaluated as deviations even if the product appears visually unremarkable. The supplier release status is inconsistent with the OOS finding documented in the deviation report, representing a cross-document contradiction requiring immediate human QA review.",
+            "severity": "critical"
+          }
+        }
+      ],
+      "missed_errors": [
+        {
+          "error_id": "ERR_06_02",
+          "severity": "critical",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Wirkstofffreigabe durch QA trotz ungelöster und aktive Laborabweichung.",
+          "match": null
+        }
+      ],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_06_01",
+          "evidence_text": "Identität (IR): Konform",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "The water content of raw material CS-AMX-9982 exceeds the specified limit, yet the batch is marked as released by QC ChemieSynthese, indicating a contradiction in quality approval."
+        },
+        {
+          "finding_id": "finding_002_supplier_release_vs_oos",
+          "severity": "high",
+          "risk_statement": "Der Lieferant ChemieSynthese GmbH hat Charge CS-AMX-9982 als 'freigegeben' deklariert, obwohl das hauseigene QC-Labor einen Wassergehalt von 13,2% ermittelt hat, der die Spezifikationsgrenze von 12,8% überschreitet. Dieser Widerspruch zwischen Lieferantenfreigabe und internem OOS-Befund ist nicht aufgeklärt und stellt einen dokumentierten Cross-Document-Widerspruch dar, der gemäß SOP-DOC-005 §2.6 aufzuklären ist."
+        },
+        {
+          "finding_id": "finding_003_root_cause_open",
+          "severity": "high",
+          "risk_statement": "Die Root-Cause-Untersuchung für Abweichung LAB-DEV-2026-031 ist zum Zeitpunkt der Dokumentation noch offen und nicht abgeschlossen. Ohne abgeschlossene Root-Cause-Analyse kann keine belastbare Risikoeinstufung und kein vollständiges CAPA erstellt werden. Dies stellt eine wesentliche Compliance-Lücke gemäß SOP-DEV-001 §6.2 dar."
+        },
+        {
+          "finding_id": "finding_004_batch_impact_missing",
+          "severity": "high",
+          "risk_statement": "Es fehlt eine dokumentierte Bewertung des Einflusses der Abweichung auf Produktqualität und Patientensicherheit einschließlich aller potenziell betroffenen Chargen (Batch Impact Assessment). Weder eine Chargenliste noch eine Dispositionsentscheidung für den Rohstoff oder daraus hergestellte Produkte sind in den vorliegenden Dokumenten nachweisbar."
+        },
+        {
+          "finding_id": "finding_005_qa_approval_missing",
+          "severity": "high",
+          "risk_statement": "Eine dokumentierte QA-Freigabe oder QA-Genehmigung für die Abweichung LAB-DEV-2026-031 und den betroffenen Rohstoff CS-AMX-9982 ist in den vorliegenden Dokumenten nicht nachweisbar. Die Lieferantenfreigabe durch ChemieSynthese GmbH ersetzt nicht die interne QA-Freigabe des empfangenden Unternehmens."
+        },
+        {
+          "finding_id": "finding_001_audit_trail_missing",
+          "severity": "critical",
+          "risk_statement": "No audit trail review evidence is present in the document set. The deviation report LAB-DEV-2026-031 documents an OOS water content result (13.2% vs. specification 11.5%–12.8%) for batch CS-AMX-9982, yet no claim or chunk provides evidence that an audit trail review of the laboratory measurement system, the Karl Fischer instrument data, or the electronic records was performed or is documented. Per req_gs_data_integrity_signatures (SOP-DI-002 §4.1), ALCOA+ compliance requires that all electronic records and signatures are attributable, contemporaneous, and consistent with the audit trail. The absence of any audit trail review evidence for an OOS result constitutes a critical data integrity gap."
+        },
+        {
+          "finding_id": "finding_002_supplier_coa_vs_inhouse_discrepancy_no_di_review",
+          "severity": "high",
+          "risk_statement": "The supplier CoA for batch CS-AMX-9982 (doc_da2a581158644755bf41b5460602063a) states the batch was released by ChemieSynthese GmbH QC, implying the supplier's water content result was within their acceptance criteria. However, the in-house QC result is 13.2%, which exceeds the internal specification limit of 12.8% (Prüf-Spez-API-04). This discrepancy between supplier release data and in-house measurement raises a data integrity concern: either the supplier's measurement data is inconsistent with the in-house result, or the specifications differ. No claim documents a data integrity review of this cross-document discrepancy, no reconciliation of the two datasets is evidenced, and no investigation into whether the supplier's CoA data is attributable and accurate has been initiated. Per req_gs_cross_document_consistency and req_gs_data_integrity_signatures, such discrepancies must be investigated and reconciled."
+        },
+        {
+          "finding_id": "finding_003_deviation_open_no_responsible_person_identified",
+          "severity": "high",
+          "risk_statement": "Deviation report LAB-DEV-2026-031 is documented as open and under investigation (Status: In Untersuchung / Open) as of 2026-05-14. No claim in the document set identifies a named responsible person or reviewer assigned to the deviation investigation, the laboratory investigation, or the data integrity review. Per req_gs_data_integrity_signatures, attributability (the 'A' in ALCOA+) requires that all records and actions are attributable to a specific individual. The absence of a named responsible person for an open, data-integrity-relevant deviation is a data integrity finding."
+        },
+        {
+          "finding_id": "finding_004_qa_approval_pending_no_documented_hold",
+          "severity": "high",
+          "risk_statement": "The supplier CoA for batch CS-AMX-9982 states the batch was released by ChemieSynthese GmbH QC (claim_a847504c775e6b36345c). However, the in-house deviation report LAB-DEV-2026-031 is open and under investigation for an OOS water content result. No claim documents that the receiving site's QA has placed the batch on hold, issued a documented rejection, or that a formal QA approval or disposition decision has been made at the receiving site. Per req_gs_qa_approval_documented, QA approvals and disposition decisions must be documented before closure. The combination of a supplier-released batch and an open in-house OOS deviation without a documented receiving-site QA disposition is a data integrity and approval gap."
+        },
+        {
+          "finding_id": "finding_002_deviation_classification_missing",
+          "severity": "high",
+          "risk_statement": "Deviation report LAB-DEV-2026-031 is currently open and under investigation ('In Untersuchung (Open)'). No risk classification (Minor/Major/Critical) is documented in the available claims. Per req_gs_deviation_classification, deviations from critical process parameters must be evaluated with a justified risk classification supported by physicochemical data. The absence of a documented risk classification for an OOS water content deviation in an API raw material represents a high regulatory consistency gap."
+        },
+        {
+          "finding_id": "finding_003_batch_impact_assessment_absent",
+          "severity": "high",
+          "risk_statement": "No batch impact assessment is documented in the available claims for deviation LAB-DEV-2026-031 concerning raw material CS-AMX-9982. Per req_gs_deviation_impact and req_gs_batch_impact_completeness, every deviation requires a documented assessment of the influence on product quality and patient safety, including all potentially affected batches, with disposition decisions linked to batch records. The absence of this assessment while the deviation is open and the material has a supplier release status creates a significant regulatory consistency gap."
+        },
+        {
+          "finding_id": "finding_004_qa_approval_pending_no_documented_decision",
+          "severity": "high",
+          "risk_statement": "The supplier CoA records batch CS-AMX-9982 as released by ChemieSynthese QC, but no in-house QA approval or disposition decision by the receiving site's QA is documented in the available claims. Per req_gs_qa_approval_documented, QA releases and approvals must be documented before closure; planned but undocumented approvals are insufficient. With an open OOS deviation (LAB-DEV-2026-031), the supplier release status cannot substitute for the receiving site's QA disposition. The absence of an in-house QA approval record while the deviation is open represents a pending QA approval gap."
+        },
+        {
+          "finding_id": "finding_005_cross_document_inconsistency_release_vs_oos",
+          "severity": "high",
+          "risk_statement": "The supplier CoA (doc_da2a581158644755bf41b5460602063a) records batch CS-AMX-9982 as released with a water content of 13.2%, while the deviation report (doc_0035aba1bd354185b70ec605971d9c2d) identifies the same 13.2% result as an OOS finding against specification Prüf-Spez-API-04 (limit: 11.5%–12.8%). This direct cross-document contradiction—where the same numerical result is simultaneously presented as a passing result (supplier CoA) and a failing result (deviation report)—must be resolved per req_gs_cross_document_consistency. The contradiction may indicate that the supplier's specification differs from the receiving site's specification, or that the supplier release was performed against a different or outdated specification."
+        },
+        {
+          "finding_id": "finding_006_capa_not_initiated",
+          "severity": "medium",
+          "risk_statement": "No CAPA record or CAPA initiation is referenced in the available claims for deviation LAB-DEV-2026-031. Per req_gs_capa_effectiveness, CAPA measures may only be closed with a defined and documented effectiveness check. While the deviation is still open and under investigation, the absence of any CAPA reference in the claim ledger means it cannot be confirmed that CAPA planning has been initiated. This is a medium-severity gap at this stage, but will escalate to high if the deviation is closed without a documented CAPA."
+        },
+        {
+          "finding_id": "finding_val_001",
+          "severity": "high",
+          "risk_statement": "Der Wassergehalt von Charge CS-AMX-9982 (13,2%) überschreitet die Spezifikationsgrenze gemäß Prüf-Spez-API-04 (11,5%–12,8%). Eine Validierungsabdeckung für den Einsatz dieses Rohstoffs in nachgelagerten Prozessschritten (z.B. Prozessvalidierung, Hold-Time-Bewertung) ist in den vorliegenden Dokumenten nicht nachgewiesen. Es fehlt jegliche Evidenz, dass die bestehende Prozessvalidierung den erhöhten Wassergehalt als Worst-Case abdeckt oder dass ein Bridging/Addendum zur Validierung erstellt wurde."
+        },
+        {
+          "finding_id": "finding_val_002",
+          "severity": "high",
+          "risk_statement": "Die Abweichung LAB-DEV-2026-031 ist zum Zeitpunkt der Dokumentation noch offen ('In Untersuchung'). Eine Risikoeinstufung (Minor/Major/Kritisch) gemäß SOP-DEV-001 ist nicht dokumentiert. Ohne abgeschlossene Risikoeinstufung auf Basis physikalisch-chemischer Daten kann keine valide Aussage zur Validierungsrelevanz oder zum Batch-Impact getroffen werden."
+        },
+        {
+          "finding_id": "finding_val_003",
+          "severity": "high",
+          "risk_statement": "Ein dokumentierter Batch-Impact-Assessment für Charge CS-AMX-9982 und potenziell betroffene Fertigchargen ist in den vorliegenden Dokumenten nicht nachgewiesen. Die Abweichung betrifft einen Rohstoff mit Spezifikationsüberschreitung; es fehlt eine Auflistung aller betroffenen Chargen sowie eine verknüpfte Dispositionsentscheidung mit Batch Records."
+        },
+        {
+          "finding_id": "finding_val_004",
+          "severity": "medium",
+          "risk_statement": "Das Zertifikat des Lieferanten ChemieSynthese GmbH weist für Charge CS-AMX-9982 einen Wassergehalt von 13,2% aus und erklärt die Charge als freigegeben ('Freigegeben durch Qualitätskontrolle ChemieSynthese'). Die interne Prüfung bestätigt ebenfalls 13,2%, jedoch liegt dieser Wert außerhalb der internen Spezifikation (11,5%–12,8%). Es besteht eine Inkonsistenz zwischen der Lieferantenfreigabe und der internen Spezifikation, die auf eine mögliche Spezifikationsdivergenz zwischen Lieferant und Empfänger hindeutet. Eine Bewertung dieser Diskrepanz im Rahmen der Validierung (z.B. Lieferantenqualifizierung, Spezifikationsabgleich) ist nicht dokumentiert."
+        },
+        {
+          "finding_id": "finding_faa9a0577fd4fce4e6f8",
+          "severity": "high",
+          "risk_statement": "Adversarial review found required evidence missing or not clearly present in the claim ledger."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_07",
+      "document_set_id": "ds_eac9df9209a04bd5abbb85bcb21991a4",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md"
+      ],
+      "pipeline_status": "failed",
+      "failed_step": "claim_ledger_extraction",
+      "error_summary": "LLM claim extraction produced no claims; chunk errors: chunk_f23bdf8e27f64cc0afbc8875f43411d2_p1: anthropic provider call failed with HTTP 400; chunk_2573df0e988748179470bfed2e1b0b3b_p1: Circuit breaker is open for anthropic; chunk_bc985be89d564655a09282f25de06109_p1: Circuit breaker is open for anthropic",
+      "model_statuses": {},
+      "failed_model_roles": [],
+      "claim_count": 0,
+      "finding_count": 0,
+      "citation_verified_finding_count": 0,
+      "risk_decision": null,
+      "auto_clear_allowed": null,
+      "gold_error_count": 2,
+      "matched_errors": [],
+      "missed_errors": [
+        {
+          "error_id": "ERR_07_01",
+          "severity": "high",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Yield-Unterschreitung wird fälschlicherweise als konform deklariert.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_07_02",
+          "severity": "medium",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlen des regulatorisch geforderten Effectiveness Checks im CAPA-Dokument.",
+          "match": null
+        }
+      ],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_07_01",
+          "evidence_text": "Sprühdüse für ca. 20 Minuten verstopfte",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": []
+    },
+    {
+      "case_id": "CASE_08",
+      "document_set_id": "ds_a5caeb493ece45c8a930b491141fc208",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md"
+      ],
+      "pipeline_status": "failed",
+      "failed_step": "claim_ledger_extraction",
+      "error_summary": "LLM claim extraction produced no claims; chunk errors: chunk_97ad9f7e8bf04d20aad21bc54691c808_p1: anthropic provider call failed with HTTP 400; chunk_82f820cdf7564e39bc6a75b8e209519d_p1: Circuit breaker is open for anthropic; chunk_ad21fa1bf8b84e15a28d13b4b81a1cef_p1: Circuit breaker is open for anthropic",
+      "model_statuses": {},
+      "failed_model_roles": [],
+      "claim_count": 0,
+      "finding_count": 0,
+      "citation_verified_finding_count": 0,
+      "risk_decision": null,
+      "auto_clear_allowed": null,
+      "gold_error_count": 3,
+      "matched_errors": [],
+      "missed_errors": [
+        {
+          "error_id": "ERR_08_01",
+          "severity": "critical",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Unerkannter bzw. bewusst ignorierter Wiederholungsfehler (Trend-Fehler) bei Stempelbeschädigungen.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_08_02",
+          "severity": "high",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Mangelhafte Ausdehnung des Batch-Impact-Assessments auf potenziell mitbetroffene Vorgängerchargen.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_08_03",
+          "severity": "medium",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Unrealistisches, nicht plausibles CAPA-Zieldatum ohne adäquate Projektrealisierungszeit.",
+          "match": null
+        }
+      ],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_08_01",
+          "evidence_text": "Werkzeugsegment wurde getauscht",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": []
+    },
+    {
+      "case_id": "CASE_09",
+      "document_set_id": "ds_c091dadfd39449238caf234afada809f",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_change_control.md"
+      ],
+      "pipeline_status": "failed",
+      "failed_step": "claim_ledger_extraction",
+      "error_summary": "LLM claim extraction produced no claims; chunk errors: chunk_00b28db647ae4ef897d9b023250cb01d_p1: anthropic provider call failed with HTTP 400; chunk_903812dfa2c94dbf850fb0a768767e9d_p1: Circuit breaker is open for anthropic; chunk_533f1b45a7c44dc79eaaf55374f8cc9c_p1: Circuit breaker is open for anthropic",
+      "model_statuses": {},
+      "failed_model_roles": [],
+      "claim_count": 0,
+      "finding_count": 0,
+      "citation_verified_finding_count": 0,
+      "risk_decision": null,
+      "auto_clear_allowed": null,
+      "gold_error_count": 3,
+      "matched_errors": [],
+      "missed_errors": [
+        {
+          "error_id": "ERR_09_01",
+          "severity": "critical",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Intentionale Falschdokumentation im Batch Record im Widerspruch zum SCADA-Audit-Trail.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_09_02",
+          "severity": "high",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Fehlerhafte Root-Cause-Ermittlung durch Ignorieren der System-Logfiles.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_09_03",
+          "severity": "medium",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Unvollständig genehmigtes Change-Control-Dokument ohne finale QK-Freigabe.",
+          "match": null
+        }
+      ],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_09_01",
+          "evidence_text": "Spitzenwerte von pH 7,85",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": []
+    },
+    {
+      "case_id": "CASE_10",
+      "document_set_id": "ds_50b25f4e518e4b62a8b0e5e84a0e5513",
+      "documents_uploaded": [
+        "document_01_stability_assessment.md",
+        "document_02_capa_plan.md",
+        "document_03_qa_approval_note.md"
+      ],
+      "pipeline_status": "failed",
+      "failed_step": "claim_ledger_extraction",
+      "error_summary": "LLM claim extraction produced no claims; chunk errors: chunk_f8dae1c4e938465fa0b881b62ce2716d_p1: anthropic provider call failed with HTTP 400; chunk_f49dc0ba17d74678bccc1c884a9441c2_p1: Circuit breaker is open for anthropic; chunk_f0c616b9bece49e69f276deb5ea7be35_p1: Circuit breaker is open for anthropic",
+      "model_statuses": {},
+      "failed_model_roles": [],
+      "claim_count": 0,
+      "finding_count": 0,
+      "citation_verified_finding_count": 0,
+      "risk_decision": null,
+      "auto_clear_allowed": null,
+      "gold_error_count": 3,
+      "matched_errors": [],
+      "missed_errors": [
+        {
+          "error_id": "ERR_10_01",
+          "severity": "critical",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Unzulässiges Aufschieben von Folgemaßnahmen bei einem manifesten OOS-Stabilitätsfehler.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_10_02",
+          "severity": "high",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlende Definition des Maßnahmenverantwortlichen im CAPA-Formular.",
+          "match": null
+        },
+        {
+          "error_id": "ERR_10_03",
+          "severity": "critical",
+          "error_type": "Dokumentenwidersprüche",
+          "expected_reviewer_finding": "Grob fehlerhafte, verharmlosende QS-Bewertung eines kritischen Marktwaren-Stabilitätsausfalls.",
+          "match": null
+        }
+      ],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_10_01",
+          "evidence_text": "Gehalt (HPLC): 95,2%",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": []
+    }
+  ]
+}
