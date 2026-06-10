@@ -1,0 +1,35 @@
+{
+  "case_id": "CASE_02",
+  "errors": [
+    {
+      "document_name": "document_02_batch_record_excerpt.md",
+      "error_id": "ERR_02_01",
+      "error_type": "Datenintegrität",
+      "severity": "high",
+      "exact_evidence_text": "~~96.47%~~ -> Korrektur auf 98.1% da Wiegebegleitschein unvollständig war. TS",
+      "why_it_is_a_problem": "Eine manuelle Korrektur eines berechneten Wertes ohne Datum der Änderung und ohne Gegenzeichnung/Visum einer zweiten Person verstößt gegen GMP-Datenintegritätsregeln.",
+      "expected_reviewer_finding": "Undokumentierte und nicht gegengezeichnete manuelle Datenkorrektur im Ausbeuteprotokoll.",
+      "expected_action": "Abfüllprotokoll zur Korrektur zurückweisen und Abweichungsverfahren einleiten.",
+      "requires_cross_document_comparison": false
+    },
+    {
+      "document_name": "document_02_batch_record_excerpt.md",
+      "error_id": "ERR_02_02",
+      "error_type": "Batch-/Produktimpact",
+      "severity": "medium",
+      "exact_evidence_text": "Ausbeute berechnet sich außerhalb der zulässigen Spezifikationsgrenzen",
+      "why_it_is_a_problem": "Der mathematisch ermittelte Wert von 96,47% liegt unter dem Soll-Limit von 98,0%. Das einfache Überschreiben heilt nicht den physischen Substanzverlust.",
+      "expected_reviewer_finding": "Yield außerhalb der Toleranzgrenze ohne Einleitung einer OOS/Abweichungsuntersuchung.",
+      "expected_action": "Stopp der Freigabe, physikalische Massenbilanzierung anhand der Primärdaten neu prüfen.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_02_01",
+      "document_name": "document_01_cleaning_record.md",
+      "evidence_text": "Spül-Ex (Lot: SP-2025-09)",
+      "why_it_is_harmless": "Die Nennung des Reinigungsmittels inklusive gültiger Chargennummer entspricht den internen Dokumentationsstandards."
+    }
+  ]
+}

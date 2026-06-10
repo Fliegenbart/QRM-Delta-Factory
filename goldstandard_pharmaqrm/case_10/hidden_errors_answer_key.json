@@ -1,0 +1,46 @@
+{
+  "case_id": "CASE_10",
+  "errors": [
+    {
+      "document_name": "document_01_stability_assessment.md",
+      "error_id": "ERR_10_01",
+      "error_type": "Abweichungsmanagement",
+      "severity": "critical",
+      "exact_evidence_text": "wird die reguläre Stabilitätsprüfung planmäßig zum 18-Monats-Prüfpunkt fortgesetzt",
+      "why_it_is_a_problem": "Ein OOS-Befund bei einer laufenden Stabilitätsprüfung von Marktware darf nicht einfach bis zum nächsten regulären Prüfpunkt ausgesessen werden.",
+      "expected_reviewer_finding": "Unzulässiges Aufschieben von Folgemaßnahmen bei einem manifesten OOS-Stabilitätsfehler.",
+      "expected_action": "Sofortige Alarmierung des Stufenbeauftragten und Einberufung eines Quality Review Boards.",
+      "requires_cross_document_comparison": false
+    },
+    {
+      "document_name": "document_02_capa_plan.md",
+      "error_id": "ERR_10_02",
+      "error_type": "CAPA",
+      "severity": "high",
+      "exact_evidence_text": "Verantwortlich: [Kein Eintrag / Offen]",
+      "why_it_is_a_problem": "Ein CAPA-Plan ohne namentlich oder funktionell festgeschriebenen Verantwortlichen ist nicht GMP-konform.",
+      "expected_reviewer_finding": "Fehlende Definition des Maßnahmenverantwortlichen im CAPA-Formular.",
+      "expected_action": "Ergänzung des Verantwortlichen vor Genehmigung.",
+      "requires_cross_document_comparison": false
+    },
+    {
+      "document_name": "document_03_qa_approval_note.md",
+      "error_id": "ERR_10_03",
+      "error_type": "Dokumentenwidersprüche",
+      "severity": "critical",
+      "exact_evidence_text": "Sämtliche Analytikvorgaben werden als vorläufig erfüllt betrachtet.",
+      "why_it_is_a_problem": "Die Vorgaben sind aufgrund der Spezifikationsverletzung der unbekannten Verunreinigung nachweislich nicht erfüllt.",
+      "expected_reviewer_finding": "Grob fehlerhafte, verharmlosende QS-Bewertung eines kritischen Marktwaren-Stabilitätsausfalls.",
+      "expected_action": "Sofortiger Verkaufs- und Vertriebsstopp der betroffenen Charge, Einleitung des gesetzlichen Rückrufprozesses.",
+      "requires_cross_document_comparison": true
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_10_01",
+      "document_name": "document_01_stability_assessment.md",
+      "evidence_text": "Gehalt (HPLC): 95,2%",
+      "why_it_is_harmless": "Dieser Wert ist zwar niedrig, liegt jedoch formal noch innerhalb der deklarierten Spezifikationsgrenze."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "case_id": "CASE_04",
+  "errors": [
+    {
+      "document_name": "document_01_deviation_report.md",
+      "error_id": "ERR_04_01",
+      "error_type": "Dokumentenwidersprüche",
+      "severity": "high",
+      "exact_evidence_text": "stieg die Temperatur kurzzeitig für 3 Minuten auf maximal 44.5°C an",
+      "why_it_is_a_problem": "Widerspruch zum Batch Record, welcher um 13:30 Uhr eine reale Produkttemperatur von 48,2°C ausweist.",
+      "expected_reviewer_finding": "Diskrepanz des maximalen Temperaturwerts zwischen Abweichungsbericht und Herstellprotokoll.",
+      "expected_action": "Abweichungsbericht stoppen und Datenabgleich mit den originalen SCADA-Rohdaten erzwingen.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_03_capa_plan.md",
+      "error_id": "ERR_04_02",
+      "error_type": "CAPA",
+      "severity": "high",
+      "exact_evidence_text": "Fehler auf mangelnde Aufmerksamkeit des Bedienpersonals beim Überwachen des Temperaturverlaufs zurückzuführen",
+      "why_it_is_a_problem": "Die CAPA-Maßnahme passt nicht zur technischen Ursache hängendes Ventil im Heizregister.",
+      "expected_reviewer_finding": "Fehlende Verknüpfung zwischen technischer Root Cause und personeller CAPA-Maßnahme.",
+      "expected_action": "Korrektur der CAPA: Kalibrierung/Wartung des Ventils anfordern anstelle von einfachem Operator-Training.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_04_quality_approval_note.md",
+      "error_id": "ERR_04_03",
+      "error_type": "Batch-/Produktimpact",
+      "severity": "critical",
+      "exact_evidence_text": "Die Charge ist qualitätskonform und wird für den nächsten Schritt freigegeben.",
+      "why_it_is_a_problem": "QS gibt die Charge auf Basis falscher Daten frei, ohne den tatsächlichen thermischen Impact geprüft zu haben.",
+      "expected_reviewer_finding": "Kritische Chargenfreigabe beruhend auf fehlerhafter und unvollständiger Abweichungsbewertung.",
+      "expected_action": "Sofortiger Widerruf der Freigabe, Sperrung der Charge im ERP-System.",
+      "requires_cross_document_comparison": true
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_04_01",
+      "document_name": "document_02_batch_record_excerpt.md",
+      "evidence_text": "Temperatur korrigiert, Trocknung fortgesetzt.",
+      "why_it_is_harmless": "Die Dokumentation des Eingriffs durch den Operator beschreibt das reale Geschehen vor Ort und ist prozessual als Kommentar statthaft."
+    }
+  ]
+}

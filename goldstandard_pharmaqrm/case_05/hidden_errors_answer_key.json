@@ -1,0 +1,46 @@
+{
+  "case_id": "CASE_05",
+  "errors": [
+    {
+      "document_name": "document_02_validation_note.md",
+      "error_id": "ERR_05_01",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "medium",
+      "exact_evidence_text": "im hinterlegten Anhang 4 dieser Validierungsnote detailliert aufgeführt",
+      "why_it_is_a_problem": "Systemische Prüfung ergibt, dass das Dokument strukturell mit Anhang 3 endet. Ein Anhang 4 existiert im Gesamtdokumentsatz nicht.",
+      "expected_reviewer_finding": "Verweis auf ein nicht vorhandenes bzw. fehlendes Dokumentenelement (Anhang 4).",
+      "expected_action": "Anforderung des vollständigen Validierungsberichts inklusive aller Anhänge zur Verifizierung des Beladungsmusters.",
+      "requires_cross_document_comparison": false
+    },
+    {
+      "document_name": "document_03_environmental_monitoring_report.md",
+      "error_id": "ERR_05_02",
+      "error_type": "Dokumentenwidersprüche",
+      "severity": "high",
+      "exact_evidence_text": "betrat die Personenschleuse zum Vorbereitungsraum um 08:45 Uhr",
+      "why_it_is_a_problem": "Zeitlicher Widerspruch zum Autoklavierungs-Logbuch.",
+      "expected_reviewer_finding": "Kritischer Zeitkonflikt zwischen manuellem Prozess-Logbuch und automatisiertem Zutrittskontrollsystem.",
+      "expected_action": "Einleitung einer Untersuchung wegen des Verdachts auf Gefälligkeitsdokumentation / Vorab-Signierung.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_03_environmental_monitoring_report.md",
+      "error_id": "ERR_05_03",
+      "error_type": "Datenintegrität",
+      "severity": "medium",
+      "exact_evidence_text": "Mitarbeiter PNN-8812 (Initialen im System hinterlegt als: A.S.)",
+      "why_it_is_a_problem": "Im Autoklavenlogbuch zeichnet die Personalnummer PNN-8812 mit den Initialen P.M.; laut Zutrittskontrolle gehört die ID zu A.S.",
+      "expected_reviewer_finding": "Mangelnde Zuordnungsgenauigkeit von Unterschrift/Initialen zur Personalnummer.",
+      "expected_action": "Klärung der Identität des Mitarbeiters, Korrektur und Re-Training zur Dokumentenintegrität.",
+      "requires_cross_document_comparison": true
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_05_01",
+      "document_name": "document_01_batch_record_excerpt.md",
+      "evidence_text": "Programmstart (121°C / 20 Min)",
+      "why_it_is_harmless": "Standardparameter für einen thermischen Sterilisationszyklus, vollkommen unverdächtig."
+    }
+  ]
+}

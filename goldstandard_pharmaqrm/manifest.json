@@ -1,0 +1,58 @@
+{
+  "suite_name": "PharmaQRM Gold Standard Suite",
+  "version": "2026.1",
+  "release_date": "2026-05-20",
+  "total_cases": 10,
+  "cases": [
+    {
+      "id": "CASE_01",
+      "difficulty": "easy",
+      "path": "./case_01/"
+    },
+    {
+      "id": "CASE_02",
+      "difficulty": "easy",
+      "path": "./case_02/"
+    },
+    {
+      "id": "CASE_03",
+      "difficulty": "easy",
+      "path": "./case_03/"
+    },
+    {
+      "id": "CASE_04",
+      "difficulty": "medium",
+      "path": "./case_04/"
+    },
+    {
+      "id": "CASE_05",
+      "difficulty": "medium",
+      "path": "./case_05/"
+    },
+    {
+      "id": "CASE_06",
+      "difficulty": "medium",
+      "path": "./case_06/"
+    },
+    {
+      "id": "CASE_07",
+      "difficulty": "medium",
+      "path": "./case_07/"
+    },
+    {
+      "id": "CASE_08",
+      "difficulty": "hard",
+      "path": "./case_08/"
+    },
+    {
+      "id": "CASE_09",
+      "difficulty": "hard",
+      "path": "./case_09/"
+    },
+    {
+      "id": "CASE_10",
+      "difficulty": "hard",
+      "path": "./case_10/"
+    }
+  ]
+}

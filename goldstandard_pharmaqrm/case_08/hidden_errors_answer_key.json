@@ -1,0 +1,46 @@
+{
+  "case_id": "CASE_08",
+  "errors": [
+    {
+      "document_name": "document_01_deviation_report.md",
+      "error_id": "ERR_08_01",
+      "error_type": "Abweichungsmanagement",
+      "severity": "critical",
+      "exact_evidence_text": "isoliertes Einzelereignis ohne systematischen Charakter",
+      "why_it_is_a_problem": "Durch den Abgleich mit der Anlagenhistorie wird ersichtlich, dass es sich um den dritten Werkzeugschaden innerhalb von zwei Monaten handelt.",
+      "expected_reviewer_finding": "Unerkannter bzw. bewusst ignorierter Wiederholungsfehler (Trend-Fehler) bei Stempelbeschädigungen.",
+      "expected_action": "Sofortiger Stopp des Prozesses, Aussetzung der Risikobewertung, Einleitung einer tiefen metallurgischen Ursachenanalyse der Presse.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_01_deviation_report.md",
+      "error_id": "ERR_08_02",
+      "error_type": "Batch-/Produktimpact",
+      "severity": "high",
+      "exact_evidence_text": "Einfluss auf andere Chargen... ist absolut ausgeschlossen",
+      "why_it_is_a_problem": "Da die Ursache für das wiederholte Sterben der Stempel unklar ist, könnten die Schwesterchargen Verunreinigungen aufweisen.",
+      "expected_reviewer_finding": "Mangelhafte Ausdehnung des Batch-Impact-Assessments auf potenziell mitbetroffene Vorgängerchargen.",
+      "expected_action": "Ausdehnung der Untersuchung auf die Chargen P01 und P02, Information der Pharmakovigilanz.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_03_capa_plan.md",
+      "error_id": "ERR_08_03",
+      "error_type": "CAPA",
+      "severity": "medium",
+      "exact_evidence_text": "Terminierte Deadline: 11.05.2026",
+      "why_it_is_a_problem": "Eine vollständige Beschaffung, Installation und GMP-Validierung eines Inline-Metalldetektors innerhalb von 24 Stunden ist unrealistisch.",
+      "expected_reviewer_finding": "Unrealistisches, nicht plausibles CAPA-Zieldatum ohne adäquate Projektrealisierungszeit.",
+      "expected_action": "Anpassung der Deadline auf ein realistisches Projektzeitfenster bei gleichzeitiger Definition von Interimsmaßnahmen.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_08_01",
+      "document_name": "document_01_deviation_report.md",
+      "evidence_text": "Werkzeugsegment wurde getauscht",
+      "why_it_is_harmless": "Die unmittelbare mechanische Korrekturmaßnahme vor Ort ist Standard und korrekt."
+    }
+  ]
+}

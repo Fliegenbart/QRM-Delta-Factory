@@ -1,0 +1,35 @@
+{
+  "case_id": "CASE_07",
+  "errors": [
+    {
+      "document_name": "document_02_batch_record_excerpt.md",
+      "error_id": "ERR_07_01",
+      "error_type": "Batch-/Produktimpact",
+      "severity": "high",
+      "exact_evidence_text": "Reale Netto-Ausbeute = 92,4% ... Status: Pass",
+      "why_it_is_a_problem": "Die berechnete Netto-Ausbeute von 92,4% liegt signifikant unterhalb des spezifizierten und validierten Toleranzbereichs.",
+      "expected_reviewer_finding": "Yield-Unterschreitung wird fälschlicherweise als konform deklariert.",
+      "expected_action": "Sofortige Quarantäne der Charge, Einleitung einer umfassenden OOS-Massenbilanz-Untersuchung.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_03_capa_plan.md",
+      "error_id": "ERR_07_02",
+      "error_type": "CAPA",
+      "severity": "medium",
+      "exact_evidence_text": "Es fehlen jegliche Kriterien zur Wirksamkeitsprüfung",
+      "why_it_is_a_problem": "Der CAPA-Plan enthält keine Definition für einen Effectiveness Check.",
+      "expected_reviewer_finding": "Fehlen des regulatorisch geforderten Effectiveness Checks im CAPA-Dokument.",
+      "expected_action": "Überarbeitung des CAPA-Plans, Ergänzung einer Wirksamkeitsprüfungs-Klausel.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_07_01",
+      "document_name": "document_01_deviation_report.md",
+      "evidence_text": "Sprühdüse für ca. 20 Minuten verstopfte",
+      "why_it_is_harmless": "Eine normale Prozessstörung, die als Abweichung erfasst wurde."
+    }
+  ]
+}

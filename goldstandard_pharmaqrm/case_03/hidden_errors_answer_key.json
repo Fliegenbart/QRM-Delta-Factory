@@ -1,0 +1,41 @@
+{
+  "case_id": "CASE_03",
+  "errors": [
+    {
+      "document_name": "document_01_deviation_report.md",
+      "error_id": "ERR_03_01",
+      "error_type": "Datenintegrität",
+      "severity": "high",
+      "exact_evidence_text": "Eintritt des Mitarbeiters in Raum R-202 laut elektronischem Logbuch: 14:35 Uhr - Probenahme / Peak-Zeitstempel: 14:15 Uhr",
+      "why_it_is_a_problem": "Die Uhrzeit der Probenahme liegt vor der dokumentierten Uhrzeit des physischen Betretens des Raums durch den ausführenden Mitarbeiter.",
+      "expected_reviewer_finding": "Anachronistische Zeitstempel zwischen Raum-Logbuch und Probenahme-Protokoll.",
+      "expected_action": "Sperrung des Datensatzes, Verifizierung der Systemuhrzeiten und Befragung des Operators.",
+      "requires_cross_document_comparison": false
+    },
+    {
+      "document_name": "document_03_capa_plan.md",
+      "error_id": "ERR_03_02",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "medium",
+      "exact_evidence_text": "SOP-QS-REIN-001, Version 2.0 (gültig vom 12.01.2018)",
+      "why_it_is_a_problem": "Ein Verweis auf ein Dokument aus dem Jahr 2018 deutet stark auf eine veraltete SOP-Referenz hin.",
+      "expected_reviewer_finding": "Referenzierung einer veralteten, potenziell ungültigen SOP-Version im CAPA-Plan.",
+      "expected_action": "Prüfung des aktuellen SOP-Gültigkeitsstatus im DMS; Überarbeitung des Textes auf die aktuelle Version.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_03_01",
+      "document_name": "document_01_deviation_report.md",
+      "evidence_text": "transienter Peak von 4500 Partikeln/m³",
+      "why_it_is_harmless": "Kurzzeitige Partikelpeaks können durch Bewegungen im Raum entstehen und stellen eine valide physikalische Messung dar, sofern sie als Abweichung bearbeitet werden."
+    },
+    {
+      "decoy_id": "DEC_03_02",
+      "document_name": "document_02_environmental_monitoring_report.md",
+      "evidence_text": "KBE-Werte innerhalb des Akzeptanzkriteriums (< 5 KBE / 4 Std.)",
+      "why_it_is_harmless": "Dies dokumentiert den regulären, fehlerfreien Zustand der mikrobiologischen Proben."
+    }
+  ]
+}

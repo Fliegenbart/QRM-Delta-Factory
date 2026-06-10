@@ -1,0 +1,35 @@
+{
+  "case_id": "CASE_06",
+  "errors": [
+    {
+      "document_name": "document_01_supplier_coa.md",
+      "error_id": "ERR_06_01",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "high",
+      "exact_evidence_text": "Wassergehalt (Karl Fischer): 13,2%",
+      "why_it_is_a_problem": "Das CoA des Herstellers weist 13,2% aus, was im Widerspruch zur hauseigenen Spezifikation steht.",
+      "expected_reviewer_finding": "Akzeptanzkriterium der internen Spezifikation wird durch das Lieferanten-Zertifikat verletzt.",
+      "expected_action": "Sofortige Sperrung des Rohstoffs, Klärung mit dem Vorlieferanten ob eine Fehlcharge vorliegt.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_03_quality_approval_note.md",
+      "error_id": "ERR_06_02",
+      "error_type": "Batch-/Produktimpact",
+      "severity": "critical",
+      "exact_evidence_text": "wird hiermit final autorisiert. Das Analysenzertifikat des Lieferanten belegt die Konformität",
+      "why_it_is_a_problem": "Die Qualitätssicherung erteilt eine uneingeschränkte Freigabe, während die zugehörige Laborabweichung im Status Open verweilt.",
+      "expected_reviewer_finding": "Wirkstofffreigabe durch QA trotz ungelöster und aktive Laborabweichung.",
+      "expected_action": "Sperrung der produzierten Suppositorien-Charge, Einleitung einer internen Untersuchung gegen die QS-Leitung.",
+      "requires_cross_document_comparison": true
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_06_01",
+      "document_name": "document_01_supplier_coa.md",
+      "evidence_text": "Identität (IR): Konform",
+      "why_it_is_harmless": "Eine korrekte und unauffällige Dokumentation der Identitätsprüfung per Infrarotspektroskopie."
+    }
+  ]
+}

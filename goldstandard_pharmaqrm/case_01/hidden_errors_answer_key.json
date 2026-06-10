@@ -1,0 +1,35 @@
+{
+  "case_id": "CASE_01",
+  "errors": [
+    {
+      "document_name": "document_01_deviation_report.md",
+      "error_id": "ERR_01_01",
+      "error_type": "Datenintegrität",
+      "severity": "medium",
+      "exact_evidence_text": "Dr. Anna Klar (Qualitätssicherung) – Digitale Signatur am 14.12.2026",
+      "why_it_is_a_problem": "Das Signaturdatum liegt in der Zukunft (Dezember 2026), während das Dokument im März 2026 bearbeitet wurde.",
+      "expected_reviewer_finding": "Ungültiges, in der Zukunft liegendes Signaturdatum der QS-Prüfung.",
+      "expected_action": "Korrektur des Datumsstempels im System veranlassen, Audit-Trail prüfen.",
+      "requires_cross_document_comparison": false
+    },
+    {
+      "document_name": "document_01_deviation_report.md",
+      "error_id": "ERR_01_02",
+      "error_type": "Abweichungsmanagement",
+      "severity": "high",
+      "exact_evidence_text": "Die Abweichung wird als Minor eingestuft",
+      "why_it_is_a_problem": "Eine Unterschreitung der kritischen Prozesstemperatur über 45 Minuten, die zu einer nachweisbaren Viskositätsänderung führt, darf nicht ohne physikalisch-chemische Daten unbegründet als Minor abgetan werden.",
+      "expected_reviewer_finding": "Fehlklassifizierung einer kritischen Prozessparameter-Abweichung.",
+      "expected_action": "Hochstufung der Abweichung auf Major und Nachforderung einer rheologischen Laboruntersuchung.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_01_01",
+      "document_name": "document_02_batch_record_excerpt.md",
+      "evidence_text": "Homogen, zähflüssig",
+      "why_it_is_harmless": "Die Beschreibung beschreibt den realen Zustand der Salbe bei niedrigerer Temperatur, was eine korrekte Beobachtung des Operators darstellt und kein Fehler ist."
+    }
+  ]
+}

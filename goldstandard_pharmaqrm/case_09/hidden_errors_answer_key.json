@@ -1,0 +1,46 @@
+{
+  "case_id": "CASE_09",
+  "errors": [
+    {
+      "document_name": "document_02_batch_record_excerpt.md",
+      "error_id": "ERR_09_01",
+      "error_type": "Datenintegrität",
+      "severity": "critical",
+      "exact_evidence_text": "Anmerkung im handschriftlichen Batch Record: Keine besonderen Vorkommnisse in der Schicht. Werte stabil.",
+      "why_it_is_a_problem": "Der Operator hat den pH-Regelkreis absichtlich manuell manipuliert und dies im offiziellen Herstelldokument verschwiegen.",
+      "expected_reviewer_finding": "Intentionale Falschdokumentation im Batch Record im Widerspruch zum SCADA-Audit-Trail.",
+      "expected_action": "Sofortige Sperrung der Charge, Einleitung eines formellen Disziplinarverfahrens wegen GMP-Betrugsverdacht.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_01_deviation_report.md",
+      "error_id": "ERR_09_02",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "high",
+      "exact_evidence_text": "Der Grund für die Drift konnte technisch nicht final aufgeklärt werden",
+      "why_it_is_a_problem": "Die Root Cause ist fälschlicherweise als unaufgeklärt ausgewiesen, weil der Bericht den bewussten Eingriff ignoriert.",
+      "expected_reviewer_finding": "Fehlerhafte Root-Cause-Ermittlung durch Ignorieren der System-Logfiles.",
+      "expected_action": "Überarbeitung des Abweichungsberichts unter Einbezug des tatsächlichen menschlichen Fehlverhaltens/Eingriffs.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_03_change_control.md",
+      "error_id": "ERR_09_03",
+      "error_type": "Datenintegrität",
+      "severity": "medium",
+      "exact_evidence_text": "Leitung Qualitätskontrolle (Leitung QK): [Feld leer / Nicht gezeichnet]",
+      "why_it_is_a_problem": "Ein Change Control ist ohne finale Genehmigungsschleife und Unterschrift aller betroffenen Abteilungsleiter ungültig.",
+      "expected_reviewer_finding": "Unvollständig genehmigtes Change-Control-Dokument ohne finale QK-Freigabe.",
+      "expected_action": "Sperrung des CC-Verfahrens bis zum Vorliegen aller Unterschriften; Auditierung des Workflows.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_09_01",
+      "document_name": "document_01_deviation_report.md",
+      "evidence_text": "Spitzenwerte von pH 7,85",
+      "why_it_is_harmless": "Beschreibt den messtechnisch real aufgetretenen Zustand, der Gegenstand des Berichts ist."
+    }
+  ]
+}
