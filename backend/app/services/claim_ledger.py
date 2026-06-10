@@ -5,9 +5,16 @@ from collections.abc import Sequence
 from hashlib import sha256
 from typing import Protocol
 
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
+from app.agents.providers import (
+    AnthropicProvider,
+    BaseModelProvider,
+    MistralProvider,
+    ProviderRuntimeOptions,
+)
 from app.audit.events import InMemoryAuditLog
+from app.core.config import get_settings
 from app.db.in_memory import InMemoryDocumentRepository
 from app.schemas.domain import Claim, ClaimType, DocumentChunk, Requirement
 
@@ -189,9 +196,64 @@ class MockClaimExtractor:
         return claims
 
 
+class ExtractedClaimDraft(BaseModel):
+    claim_type: str = Field(min_length=1)
+    normalized_subject: str = Field(min_length=1)
+    normalized_predicate: str = Field(min_length=1)
+    normalized_object: str = Field(min_length=1)
+    exact_quote: str = Field(min_length=1)
+    confidence: float = Field(default=0.8, ge=0, le=1)
+
+
+class ClaimExtractionOutput(BaseModel):
+    claims: list[ExtractedClaimDraft] = Field(default_factory=list)
+    coverage_summary: str = Field(default="no summary provided")
+
+
+_CLAIM_EXTRACTION_PROMPT = """\
+You are a conservative GMP claim extraction model for pharmaceutical quality documents.
+Extract every atomic, checkable claim from the supplied document chunk. The documents may
+be written in German or English; keep quotes in the original language.
+
+Extract claims for, at minimum:
+- identifiers (deviation/CAPA/change IDs, batch/lot numbers, equipment IDs, SOP references)
+- all dates in any format (ISO, German 14.12.2026, written out), including signature dates
+- signatures, approvals, reviewer names and roles
+- classifications and severity ratings (e.g. Minor/Major/Critical Einstufung)
+- process parameters, specification limits, measured values and their stated acceptance ranges
+- impact assessments and no-impact statements (including 'kein Einfluss', 'nicht betroffen')
+- root cause statements, CAPA actions, effectiveness checks
+- test results, release decisions, batch dispositions
+- statements that information is missing, unclear, pending or not documented
+
+Rules:
+- exact_quote MUST be a verbatim, character-exact substring of the chunk text. Never paraphrase.
+- Keep quotes short: the single sentence or line that carries the claim.
+- One claim per atomic statement; prefer many small claims over few broad ones.
+- claim_type MUST be one of: batch_identifier, deviation_description, root_cause,
+  impact_assessment, capa_action, qa_approval, effectiveness_check, date_or_deadline,
+  responsible_party, acceptance_criterion, test_result, missing_or_unclear.
+- normalized_subject/predicate/object: short English snake_case normalization of the claim.
+- Do not invent claims that are not present in the chunk text.
+"""
+
+
 class LLMClaimExtractor:
-    extractor_version = "llm-claim-extractor-stub-v0.1"
-    prompt_version = "llm-claim-ledger-stub-v0.1"
+    extractor_version = "llm-claim-extractor-v1.0"
+    prompt_version = "llm-claim-ledger-v1.0"
+
+    def __init__(self, *, provider: BaseModelProvider) -> None:
+        self.provider = provider
+        self.token_usage = {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+        self.call_count = 0
+
+    def _record_token_usage(self) -> None:
+        metadata = self.provider.last_run_metadata
+        if metadata is not None and metadata.token_usage is not None:
+            self.token_usage["input_tokens"] += metadata.token_usage.input_tokens
+            self.token_usage["output_tokens"] += metadata.token_usage.output_tokens
+            self.token_usage["total_tokens"] += metadata.token_usage.total_tokens
+        self.call_count += 1
 
     def extract_claims(
         self,
@@ -199,7 +261,102 @@ class LLMClaimExtractor:
         chunks: Sequence[DocumentChunk],
         requirements_context: Sequence[Requirement],
     ) -> list[Claim]:
-        raise NotImplementedError("LLMClaimExtractor is a stub and must not call external APIs.")
+        claims: list[Claim] = []
+        errors: list[str] = []
+        for chunk in chunks:
+            try:
+                output = self.provider.run_structured(
+                    prompt=_CLAIM_EXTRACTION_PROMPT,
+                    input_schema={
+                        "document_set_id": document_set_id,
+                        "document_id": chunk.document_id,
+                        "chunk_id": chunk.chunk_id,
+                        "page": chunk.page_start,
+                        "chunk_text": chunk.text,
+                    },
+                    output_schema=ClaimExtractionOutput,
+                )
+            except Exception as exc:  # noqa: BLE001 - keep per-chunk failures isolated
+                errors.append(f"{chunk.chunk_id}: {exc}")
+                self._record_token_usage()
+                continue
+            self._record_token_usage()
+            parsed = ClaimExtractionOutput.model_validate(output)
+            for draft in parsed.claims:
+                quote = _locate_verbatim_quote(draft.exact_quote, chunk.text)
+                if quote is None:
+                    continue
+                claims.append(
+                    _claim(
+                        chunk=chunk,
+                        claim_type=_safe_claim_type(draft.claim_type),
+                        normalized_subject=draft.normalized_subject,
+                        normalized_predicate=draft.normalized_predicate,
+                        normalized_object=draft.normalized_object,
+                        quote=quote,
+                        confidence=min(max(draft.confidence, 0.0), 1.0),
+                        extractor_version=self.extractor_version,
+                        prompt_version=self.prompt_version,
+                    )
+                )
+        if not claims and errors:
+            raise ClaimLedgerValidationError(
+                "LLM claim extraction produced no claims; chunk errors: " + "; ".join(errors)
+            )
+        return claims
+
+
+def _locate_verbatim_quote(quote: str, chunk_text: str) -> str | None:
+    candidate = quote.strip()
+    if not candidate:
+        return None
+    if candidate in chunk_text:
+        return candidate
+    tokens = candidate.split()
+    if not tokens:
+        return None
+    pattern = r"\s+".join(re.escape(token) for token in tokens)
+    match = re.search(pattern, chunk_text)
+    if match is None:
+        match = re.search(pattern, chunk_text, flags=re.IGNORECASE)
+    if match is None:
+        return None
+    return chunk_text[match.start() : match.end()]
+
+
+def _safe_claim_type(value: str) -> ClaimType:
+    normalized = value.strip().lower()
+    try:
+        return ClaimType(normalized)
+    except ValueError:
+        return ClaimType.DEVIATION_DESCRIPTION
+
+
+def default_claim_extractor() -> ClaimExtractor:
+    settings = get_settings()
+    if not settings.external_model_calls_enabled:
+        return MockClaimExtractor()
+    runtime_options = ProviderRuntimeOptions(
+        timeout_seconds=settings.model_provider_timeout_seconds,
+        max_retries=settings.model_provider_max_retries,
+        circuit_breaker_failure_threshold=settings.model_provider_circuit_breaker_threshold,
+    )
+    allowed = settings.allowed_model_provider_set()
+    if settings.reviewer_provider_override == "mistral" and "mistral" in allowed:
+        return LLMClaimExtractor(
+            provider=MistralProvider(
+                configured_model_id=settings.mistral_model_id,
+                runtime_options=runtime_options,
+            )
+        )
+    if "anthropic" in allowed:
+        return LLMClaimExtractor(
+            provider=AnthropicProvider(
+                configured_model_id=settings.anthropic_model_id,
+                runtime_options=runtime_options,
+            )
+        )
+    return MockClaimExtractor()
 
 
 class ClaimLedgerService:
@@ -243,6 +400,17 @@ class ClaimLedgerService:
             "claim_count": len(linked_claims),
             "chunk_count": len(chunks),
         }
+        token_usage = getattr(self.extractor, "token_usage", None)
+        if token_usage:
+            # Key names avoid the substring "token": the audit redaction layer
+            # blanks any key containing it (it protects credentials, not counts).
+            payload["llm_usage"] = {
+                "input": token_usage.get("input_tokens", 0),
+                "output": token_usage.get("output_tokens", 0),
+                "total": token_usage.get("total_tokens", 0),
+            }
+            provider = getattr(self.extractor, "provider", None)
+            payload["extractor_provider"] = getattr(provider, "provider_name", "unknown")
         self.audit_log.append(
             event_type="claims_extracted",
             actor_id=document_set.uploaded_by,

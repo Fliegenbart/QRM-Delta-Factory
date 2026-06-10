@@ -12,7 +12,7 @@ from app.schemas.domain import DocumentSet, DocumentSetStatus, ModelRunStatus, P
 from app.schemas.pipeline import PipelineModelManifestItem, PipelineRun, PipelineRunStatus
 from app.schemas.risk import RiskDecision, RiskDecisionClass
 from app.services.adversarial_review import AdversarialReviewService
-from app.services.claim_ledger import ClaimLedgerService, MockClaimExtractor
+from app.services.claim_ledger import ClaimLedgerService, default_claim_extractor
 from app.services.review_orchestrator import PrimaryReviewOrchestrator
 from app.services.review_pack import ReviewPackService
 from app.services.risk_fusion import RiskFusionService
@@ -55,7 +55,7 @@ class PipelineService:
         self.claim_ledger_service = claim_ledger_service or ClaimLedgerService(
             repository=repository,
             audit_log=audit_log,
-            extractor=MockClaimExtractor(),
+            extractor=default_claim_extractor(),
         )
         self.primary_review_orchestrator = primary_review_orchestrator or PrimaryReviewOrchestrator(
             repository=repository,
