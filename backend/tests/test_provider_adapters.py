@@ -11,6 +11,7 @@ from app.agents.providers import (
     AnthropicProvider,
     ExternalModelCallsDisabledError,
     GeminiProvider,
+    MistralProvider,
     MockProvider,
     ModelProviderNotAllowedError,
     OpenAIProvider,
@@ -148,6 +149,7 @@ def test_provider_normalizes_model_supplied_quote_hashes_for_reviewer_output() -
         OpenAIProvider(configured_model_id="gpt-test"),
         AnthropicProvider(configured_model_id="claude-test"),
         GeminiProvider(configured_model_id="gemini-test"),
+        MistralProvider(configured_model_id="mistral-test"),
     ],
 )
 def test_external_providers_fail_closed_when_disabled(provider: Any) -> None:
@@ -395,3 +397,37 @@ def _requirement_set() -> RequirementSet:
             }
         ],
     )
+
+
+def test_mistral_provider_runs_structured_call_with_mocked_http(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral")
+    monkeypatch.setenv("QRM_MISTRAL_API_KEY", "test-mistral-key")
+    get_settings.cache_clear()
+    provider = MistralProvider(configured_model_id="mistral-test")
+
+    def fake_post_json(
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, Any],
+    ) -> dict[str, Any]:
+        assert url.endswith("/v1/chat/completions")
+        assert "mistral.ai" in url
+        assert headers["Authorization"] == "Bearer test-mistral-key"
+        assert json_body["model"] == "mistral-test"
+        return {
+            "choices": [{"message": {"content": '{"value": "ok-mistral"}'}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+        }
+
+    monkeypatch.setattr(provider, "_post_json", fake_post_json)
+
+    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert output == {"value": "ok-mistral"}
+    assert provider.last_run_metadata is not None
+    assert provider.last_run_metadata.token_usage is not None
+    assert provider.last_run_metadata.token_usage.total_tokens == 15

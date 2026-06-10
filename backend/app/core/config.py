@@ -54,6 +54,18 @@ class Settings(BaseSettings):
     openai_model_id: str = Field(default="")
     anthropic_model_id: str = Field(default="")
     gemini_model_id: str = Field(default="")
+    mistral_model_id: str = Field(default="")
+    reviewer_provider_override: str = Field(
+        default="",
+        description="Force a single provider for all reviewer agents and claim extraction"
+        " (e.g. 'mistral' for an EU-only stack). Empty keeps the per-role default mix.",
+    )
+    critic_providers: str = Field(
+        default="",
+        description="Comma-separated providers that run an additional broad-scope red-team"
+        " critic agent each (e.g. 'anthropic,openai'). Critics keep their own provider even"
+        " when reviewer_provider_override is set.",
+    )
     model_provider_timeout_seconds: float = Field(default=30.0, gt=0)
     model_provider_max_retries: int = Field(default=0, ge=0)
     model_provider_circuit_breaker_threshold: int = Field(default=3, gt=0)
