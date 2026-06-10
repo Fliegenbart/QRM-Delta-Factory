@@ -13,6 +13,7 @@ from app.agents.prompt_templates import PromptTemplate, PromptTemplateLoader
 from app.agents.providers import (
     AnthropicProvider,
     BaseModelProvider,
+    MistralProvider,
     MockProvider,
     OpenAIProvider,
     ProviderRuntimeOptions,
@@ -516,7 +517,7 @@ class _AgentRunResult:
 
 def default_reviewer_agents() -> list[ReviewerAgent]:
     loader = PromptTemplateLoader()
-    return [
+    agents = [
         _agent_from_template(
             loader=loader,
             agent_id="agent_gmp_data_integrity",
@@ -571,6 +572,50 @@ def default_reviewer_agents() -> list[ReviewerAgent]:
             applicable_risk_categories=["contradiction"],
         ),
     ]
+    agents.extend(_critic_agents(loader))
+    return agents
+
+
+CRITIC_RISK_CATEGORIES = [
+    "deviation_management",
+    "capa",
+    "data_integrity",
+    "batch_impact_assessment",
+    "validation",
+    "qa_approval",
+    "regulatory_consistency",
+    "contradiction",
+]
+
+CRITIC_ROLES_BY_PROVIDER = {
+    "anthropic": "RedTeamCriticAnthropic",
+    "openai": "RedTeamCriticOpenAI",
+    "mistral": "RedTeamCriticMistral",
+}
+
+
+def _critic_agents(loader: PromptTemplateLoader) -> list[ReviewerAgent]:
+    settings = get_settings()
+    providers = [
+        entry.strip().lower()
+        for entry in settings.critic_providers.split(",")
+        if entry.strip()
+    ]
+    agents = []
+    for provider_name in providers:
+        role = CRITIC_ROLES_BY_PROVIDER.get(provider_name)
+        if role is None:
+            continue
+        agents.append(
+            _agent_from_template(
+                loader=loader,
+                agent_id=f"agent_red_team_critic_{provider_name}",
+                role=role,
+                template_name="red_team_critic_v1.md",
+                applicable_risk_categories=list(CRITIC_RISK_CATEGORIES),
+            )
+        )
+    return agents
 
 
 def _agent_from_template(
@@ -598,6 +643,26 @@ def _provider_for_role(role: str) -> BaseModelProvider:
         return MockModelProvider()
 
     runtime_options = _runtime_options_from_settings(settings)
+    if role == "RedTeamCriticAnthropic":
+        return AnthropicProvider(
+            configured_model_id=settings.anthropic_model_id,
+            runtime_options=runtime_options,
+        )
+    if role == "RedTeamCriticOpenAI":
+        return OpenAIProvider(
+            configured_model_id=settings.openai_model_id,
+            runtime_options=runtime_options,
+        )
+    if role == "RedTeamCriticMistral":
+        return MistralProvider(
+            configured_model_id=settings.mistral_model_id,
+            runtime_options=runtime_options,
+        )
+    if settings.reviewer_provider_override == "mistral":
+        return MistralProvider(
+            configured_model_id=settings.mistral_model_id,
+            runtime_options=runtime_options,
+        )
     if role == "BatchImpactReviewer":
         return OpenAIProvider(
             configured_model_id=settings.openai_model_id,
@@ -844,6 +909,18 @@ AGENT_RETRIEVAL_PROFILES: dict[str, KnowledgeRetrievalProfile] = {
             "not applicable",
             "appendix",
         ),
+        broad_scope=True,
+    ),
+    "RedTeamCriticAnthropic": KnowledgeRetrievalProfile(
+        required_packs=("universal_gmp_qrm_base",),
+        broad_scope=True,
+    ),
+    "RedTeamCriticOpenAI": KnowledgeRetrievalProfile(
+        required_packs=("universal_gmp_qrm_base",),
+        broad_scope=True,
+    ),
+    "RedTeamCriticMistral": KnowledgeRetrievalProfile(
+        required_packs=("universal_gmp_qrm_base",),
         broad_scope=True,
     ),
 }
