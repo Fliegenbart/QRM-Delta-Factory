@@ -1,0 +1,280 @@
+{
+  "run": {
+    "mode": "live",
+    "stack": "hybrid",
+    "started_at": "2026-06-10T20:34:14+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-5.4",
+    "mistral_model": "mistral-large-latest",
+    "case_count": 1
+  },
+  "aggregate": {
+    "tokens_by_provider": {
+      "mistral": {
+        "input_tokens": 56057,
+        "output_tokens": 23517,
+        "total_tokens": 79574,
+        "calls": 7
+      },
+      "openai": {
+        "input_tokens": 8697,
+        "output_tokens": 3329,
+        "total_tokens": 12026,
+        "calls": 1
+      },
+      "anthropic": {
+        "input_tokens": 10369,
+        "output_tokens": 7768,
+        "total_tokens": 18137,
+        "calls": 1
+      },
+      "extraction:mistral": {
+        "input_tokens": 3217,
+        "output_tokens": 1995,
+        "total_tokens": 5212,
+        "calls": 1
+      }
+    },
+    "cases": 1,
+    "sensitivity": {
+      "found": 2,
+      "total": 2,
+      "rate": 1.0
+    },
+    "specificity_decoys": {
+      "passed": 1,
+      "total": 1,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 24,
+      "total_findings": 27,
+      "rate": 0.889
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_07",
+      "document_set_id": "ds_6b2590f5e41740c4a9cee2b6da3f2dc1",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "mistral": {
+          "input_tokens": 56057,
+          "output_tokens": 23517,
+          "total_tokens": 79574,
+          "calls": 7
+        },
+        "openai": {
+          "input_tokens": 8697,
+          "output_tokens": 3329,
+          "total_tokens": 12026,
+          "calls": 1
+        },
+        "anthropic": {
+          "input_tokens": 10369,
+          "output_tokens": 7768,
+          "total_tokens": 18137,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3217,
+          "output_tokens": 1995,
+          "total_tokens": 5212,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "CAPAReviewer": "succeeded",
+        "RedTeamCriticOpenAI": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "DeviationReviewer": "failed"
+      },
+      "failed_model_roles": [
+        "DeviationReviewer"
+      ],
+      "claim_count": 17,
+      "finding_count": 27,
+      "citation_verified_finding_count": 24,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_07_01",
+          "severity": "high",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Yield-Unterschreitung wird fälschlicherweise als konform deklariert.",
+          "match": {
+            "score": 0.459,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_1",
+            "risk_statement": "The deviation DEV-MET-09 involved a clogged spray nozzle during the coating process, which was restored after mechanical cleaning. However, there is no documented evidence that the existing validation covers the impact of this deviation on the uniformity of the coating process or the final product quality. The yield for batch MET-2026-C09 (92.4%) fell below the specified tolerance range (95.0% to 102.0%), indicating a potential validation gap.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_07_02",
+          "severity": "medium",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlen des regulatorisch geforderten Effectiveness Checks im CAPA-Dokument.",
+          "match": {
+            "score": 0.449,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_missing_effectiveness_check_capa",
+            "risk_statement": "Im CAPA-Dokument CAPA-MET-2026-09 ist kein Effectiveness-Check-Nachweis dokumentiert. Gemäß req_gs_capa_effectiveness dürfen CAPA-Maßnahmen nur mit definierter und dokumentierter Wirksamkeitsprüfung abgeschlossen werden. Es existiert kein Claim, der einen Effectiveness Check für diese CAPA belegt.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_07_01",
+          "evidence_text": "Sprühdüse für ca. 20 Minuten verstopfte",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_2",
+          "severity": "high",
+          "risk_statement": "The deviation DEV-MET-09 occurred during the coating process, which may involve sterile product contact components. There is no documented assessment of the sterility assurance impact of the clogged spray nozzle or the mechanical cleaning intervention on the sterile product or process."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "medium",
+          "risk_statement": "The mechanical cleaning of the clogged spray nozzle may introduce residues or contaminants. There is no documented evidence that the existing cleaning validation covers the mechanical cleaning method used or its impact on product quality and safety."
+        },
+        {
+          "finding_id": "finding_4",
+          "severity": "high",
+          "risk_statement": "The deviation date (2026-05-02) and the review date (2026-05-02) for the batch record are recorded on the same day, which may indicate a lack of timely documentation. This raises concerns about data integrity and compliance with ALCOA+ principles."
+        },
+        {
+          "finding_id": "finding_capa_effectiveness_missing",
+          "severity": "medium",
+          "risk_statement": "A CAPA record with identifier, responsible party, and deadline is present, but no claim documents a defined or completed effectiveness check, creating a CAPA completeness gap if the CAPA is progressed toward closure."
+        },
+        {
+          "finding_id": "finding_capa_closure_rationale_absent",
+          "severity": "medium",
+          "risk_statement": "CAPA-MET-2026-09 does not include a documented rationale for closure, including confirmation of effectiveness. This creates a medium risk of incomplete CAPA resolution and potential recurrence of the deviation (DEV-MET-09)."
+        },
+        {
+          "finding_id": "finding_deviation_linkage_unclear",
+          "severity": "medium",
+          "risk_statement": "The linkage between CAPA-MET-2026-09 and the originating deviation (DEV-MET-09) is not explicitly documented. This creates a medium risk of incomplete traceability and potential gaps in addressing the root cause of the deviation."
+        },
+        {
+          "finding_id": "finding_contradiction_001",
+          "severity": "high",
+          "risk_statement": "Deviation date (2026-05-02) is recorded as a future date, violating ALCOA+ principles for data integrity (plausible and contemporaneous timestamps). This creates a high risk of non-compliance with GMP requirements for electronic records and signatures."
+        },
+        {
+          "finding_id": "finding_contradiction_002",
+          "severity": "high",
+          "risk_statement": "Batch yield (92.4%) falls below the specified acceptance range (95.0% to 102.0%), but no deviation or impact assessment is documented for this out-of-specification result. This creates a high risk of non-compliance with GMP requirements for batch impact assessment and disposition."
+        },
+        {
+          "finding_id": "finding_yield_below_spec_classified_minor",
+          "severity": "critical",
+          "risk_statement": "Die Netto-Ausbeute der Charge MET-2026-C09 beträgt 92,4 % und liegt damit unterhalb des spezifizierten Toleranzbereichs von 95,0 % bis 102,0 %. Dennoch wurde der Yield-Status manuell als 'Pass' eingetragen. Dies stellt eine Unterschreitung eines validierten Prozessparameters dar, die gemäß req_gs_spec_limits als Abweichung bewertet werden muss. Die gleichzeitige Einstufung der Coating-Abweichung DEV-MET-09 als 'Minor' erscheint angesichts des messbaren Ausbeuteverlustes von 2,6 Prozentpunkten unterhalb der Spezifikationsgrenze nicht belastbar begründet. Eine Fehlklassifizierung mit potenzieller Auswirkung auf Produktqualität und Patientensicherheit ist nicht auszuschließen."
+        },
+        {
+          "finding_id": "finding_missing_qa_approval_batch_disposition",
+          "severity": "high",
+          "risk_statement": "Im gesamten Claim-Ledger existiert kein Claim, der eine QA-Freigabe oder Dispositionsentscheidung für Charge MET-2026-C09 dokumentiert. Der einzige Prüfvermerk stammt von Operator F.B. (kein QA-Reviewer). Gemäß req_gs_qa_approval_documented müssen QA-Freigaben vor Abschluss dokumentiert vorliegen. Eine Operator-Prüfung ersetzt keine QA-Genehmigung."
+        },
+        {
+          "finding_id": "finding_deviation_entwarnung_ohne_labordaten",
+          "severity": "high",
+          "risk_statement": "Die Begründung für die Minor-Einstufung von DEV-MET-09 stützt sich ausschließlich auf die visuelle Beobachtung, dass das Sprühbild nach mechanischer Reinigung wieder gleichmäßig war. Es fehlen physikalisch-chemische Labordaten (z.B. Coating-Gleichmäßigkeit, Schichtdicke, Auflösungstest), die belegen, dass die 20-minütige Düsenverstopfung keinen Einfluss auf die Produktqualität hatte. Gemäß req_gs_deviation_classification ist eine Einstufung ohne belastbare physikalisch-chemische Daten nicht zulässig."
+        },
+        {
+          "finding_id": "finding_cross_document_yield_inconsistency",
+          "severity": "high",
+          "risk_statement": "Es besteht ein direkter Widerspruch zwischen dem Batch Record (Ausbeute 92,4 %, unterhalb der Spezifikation 95,0–102,0 %) und dem manuell eingetragenen Status 'Pass'. Dieser Widerspruch zwischen Messwert und Statusentscheidung ist ein Datenintegritätsbefund gemäß req_gs_data_integrity_signatures und req_gs_cross_document_consistency, da die Statusentscheidung nicht durch die dokumentierten Daten gestützt wird."
+        },
+        {
+          "finding_id": "finding_minor_classification_unsubstantiated",
+          "severity": "high",
+          "risk_statement": "The deviation was classified as Minor based on restoration of spray pattern uniformity, but the provided claims do not include the required physical-chemical or lab data to justify this risk classification for a coating-process nozzle clogging event lasting about 20 minutes."
+        },
+        {
+          "finding_id": "finding_yield_spec_contradiction_pass_status",
+          "severity": "high",
+          "risk_statement": "There is a cross-document contradiction because the validated yield acceptance range is 95.0% to 102.0%, while the recorded net yield is 92.4% and the batch record status is manually marked Pass. This indicates a potential uninvestigated specification failure and inconsistent disposition."
+        },
+        {
+          "finding_id": "finding_batch_impact_incomplete",
+          "severity": "high",
+          "risk_statement": "The provided records identify a specific batch and a process deviation, but the claims do not document a complete batch-impact assessment listing all potentially affected batches or a linked disposition decision, leaving product-quality impact incompletely assessed."
+        },
+        {
+          "finding_id": "finding_missing_qa_approval",
+          "severity": "high",
+          "risk_statement": "The provided claims show only an operator review entry, but no documented QA approval or QA release decision is present, which is insufficient for closure or approval under the stated requirement."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Deviation DEV-MET-09 is classified as 'Minor' without documented physical-chemical data or root-cause analysis to support the classification, violating req_gs_deviation_classification."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "No documented impact assessment for batch MET-2026-C09 is provided, violating req_gs_deviation_impact and req_gs_batch_impact_completeness."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "critical",
+          "risk_statement": "Deviation date (2026-05-02) and review date (2026-05-02) are recorded as the same future date, violating req_gs_data_integrity_signatures and raising data integrity concerns."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "high",
+          "risk_statement": "QA approval for the deviation and batch record is not explicitly documented, violating req_gs_qa_approval_documented."
+        },
+        {
+          "finding_id": "finding_005",
+          "severity": "high",
+          "risk_statement": "CAPA CAPA-MET-2026-09 lacks a documented effectiveness check, violating req_gs_capa_effectiveness."
+        },
+        {
+          "finding_id": "finding_006",
+          "severity": "medium",
+          "risk_statement": "Yield calculation for batch MET-2026-C09 (92.4%) is below the specified acceptance range (95.0% to 102.0%), but no deviation is documented for this out-of-specification result, violating req_gs_spec_limits."
+        },
+        {
+          "finding_id": "finding_5",
+          "severity": "high",
+          "risk_statement": "The yield for batch MET-2026-C09 (92.4%) fell below the specified tolerance range (95.0% to 102.0%), indicating a potential impact on product quality. However, there is no documented batch impact assessment linking the deviation DEV-MET-09 to the yield deviation or providing a disposition decision for the batch."
+        },
+        {
+          "finding_id": "finding_6",
+          "severity": "medium",
+          "risk_statement": "The CAPA CAPA-MET-2026-09 has been initiated to address the deviation DEV-MET-09, with a deadline set for 2026-06-15. However, there is no documented evidence of an effectiveness check to ensure the CAPA measures are effective in preventing recurrence of the deviation."
+        },
+        {
+          "finding_id": "finding_2adce915a438669b5022",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-CAPA-003 CAPA Management Abschnitt 7.5 fordert 'Effectiveness Check Nachweis'. Die Unterlagen enthalten keine(n) Definition oder Durchfuehrung einer Wirksamkeitspruefung (Effectiveness Check) im CAPA-Plan - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    }
+  ]
+}

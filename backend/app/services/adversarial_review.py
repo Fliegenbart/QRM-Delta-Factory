@@ -21,6 +21,7 @@ from app.schemas.domain import (
     SupportType,
 )
 from app.schemas.review import AdversarialReviewResponse, CoverageSummary
+from app.services.completeness_check import find_missing_required_evidence
 
 
 class AdversarialReviewDocumentSetNotFoundError(Exception):
@@ -300,43 +301,26 @@ def _run_missing_evidence_hunter(
     findings: list[RiskFinding] = []
     questions: list[str] = []
     escalation_reasons: list[str] = []
-    supporting_claim = _first_claim(context.claims) or _first_primary_finding_claim_like(
-        context.primary_findings
-    )
-    if supporting_claim is None:
-        return AdversarialAgentResult([], [], [], [])
 
-    claim_text = _claims_text(context.claims)
-    for requirement in context.requirements:
-        if requirement.criticality not in {Criticality.CRITICAL, Criticality.HIGH}:
-            continue
-        missing_evidence = [
-            evidence
-            for evidence in requirement.required_evidence
-            if _required_evidence_missing(evidence, claim_text)
-        ]
-        if not missing_evidence:
-            continue
+    missing = find_missing_required_evidence(context.requirements, context.claims)
+    for item in missing:
         findings.append(
             _finding_from_claim(
                 context=context,
                 role=role,
                 risk_category="missing_required_evidence",
-                severity=_severity_from_criticality(requirement.criticality),
-                statement=(
-                    "Adversarial review found required evidence missing or not clearly "
-                    "present in the claim ledger."
-                ),
-                claim=supporting_claim,
-                requirement=requirement,
-                missing_information=missing_evidence,
+                severity=_severity_from_criticality(item.requirement.criticality),
+                statement=item.statement,
+                claim=item.anchor_claim,
+                requirement=item.requirement,
+                missing_information=list(item.missing_information),
             )
         )
         questions.append(
-            "Provide or cite the missing required evidence: " + ", ".join(missing_evidence)
+            "Provide or cite the missing required evidence: " + item.required_evidence
         )
         escalation_reasons.append(
-            "Required evidence is missing for a High/Critical requirement."
+            "Required evidence is missing for an applicable requirement."
         )
 
     return AdversarialAgentResult(
