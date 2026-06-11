@@ -72,19 +72,19 @@ type RingversuchRun = {
 /* ----- Hilfsfunktionen ----- */
 
 const stackLabels: Record<string, string> = {
-  frontier: "Frontier (Claude + GPT)",
-  eu: "EU-Stack (Mistral)",
-  hybrid: "Hybrid (Mistral + Kritiker)",
+  frontier: "Frontier-Stack (Claude + GPT)",
+  eu: "EU-Stack (nur Mistral)",
+  hybrid: "Hybrid-Stack (Mistral + KI-Kritiker)",
 };
 
 function stackLabel(run: RunMeta): string {
-  if (run.mode === "mock") return "Mock (Baseline)";
-  return stackLabels[run.stack ?? ""] ?? run.stack ?? "Live";
+  if (run.mode === "mock") return "Baseline ohne KI (Regex)";
+  return stackLabels[run.stack ?? ""] ?? run.stack ?? "Früher KI-Lauf";
 }
 
 function percent(rate: number | null | undefined): string {
   if (rate == null) return "–";
-  return `${Math.round(rate * 1000) / 10}%`;
+  return `${(Math.round(rate * 1000) / 10).toLocaleString("de-DE")} %`;
 }
 
 function severityClasses(severity: string): string {
@@ -106,10 +106,32 @@ function formatTimestamp(id: string): string {
 }
 
 function formatTokens(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)} M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)} k`;
-  return String(n);
+  if (n >= 1_000_000) return `${(n / 1_000_000).toLocaleString("de-DE", { maximumFractionDigits: 2 })} Mio.`;
+  if (n >= 1_000) return `${Math.round(n / 1_000).toLocaleString("de-DE")} Tsd.`;
+  return n.toLocaleString("de-DE");
 }
+
+const severityLabels: Record<string, string> = {
+  critical: "Kritisch",
+  high: "Hoch",
+  medium: "Mittel",
+  low: "Niedrig",
+};
+
+const statusLabels: Record<string, string> = {
+  completed: "Abgeschlossen",
+  needs_human_review: "Zur QA-Prüfung",
+  failed: "Fehlgeschlagen",
+  harness_error: "Abbruch",
+};
+
+const providerLabels: Record<string, string> = {
+  mistral: "Mistral – Fach-Reviewer",
+  anthropic: "Claude – KI-Kritiker",
+  openai: "GPT – KI-Kritiker",
+  "extraction:mistral": "Mistral – Aussagen-Extraktion",
+  "extraction:anthropic": "Claude – Aussagen-Extraktion",
+};
 
 /* ----- Hauptkomponente ----- */
 
@@ -148,18 +170,18 @@ export function RingversuchDashboard() {
     return (
       <PanelMessage
         title="Ringversuchsdaten nicht verfügbar"
-        body={`Die Lauf-Reports konnten nicht geladen werden (${error}). Liegt das Verzeichnis goldstandard_pharmaqrm/runs/ vor?`}
+        body={`Die Ergebnisberichte konnten nicht geladen werden (${error}). Bitte Seite neu laden — falls das Problem bleibt, fehlt das Verzeichnis goldstandard_pharmaqrm/runs/.`}
       />
     );
   }
   if (runs == null) {
-    return <PanelMessage title="Lade Ringversuchsdaten…" body="Reports werden eingelesen." />;
+    return <PanelMessage title="Lade Ringversuchsdaten…" body="Die Ergebnisberichte der Testdurchläufe werden eingelesen." />;
   }
   if (runs.length === 0) {
     return (
       <PanelMessage
-        title="Noch keine Läufe vorhanden"
-        body="Führen Sie den Ringversuch aus: backend/.venv/bin/python -m app.evals.run_goldstandard --mode live --stack hybrid"
+        title="Noch keine Testdurchläufe vorhanden"
+        body="Sobald ein Ringversuch durchgeführt wurde, erscheinen die Ergebnisse hier automatisch. (Start über den Eval-Harness im Backend, siehe README.)"
       />
     );
   }
@@ -171,10 +193,11 @@ export function RingversuchDashboard() {
           Ringversuch — Qualifizierungsnachweis
         </h2>
         <p className="mt-1 max-w-3xl text-[13px] leading-6 text-[var(--text-secondary)]">
-          Das System wird wie ein Messgerät qualifiziert: synthetische Fälle mit bekannten,
-          versteckten Fehlern (Gold Standard) und harmlosen Kontrollstellen (Decoys) werden
-          durch die vollständige Pipeline geführt. Gemessen werden Sensitivität, Spezifität
-          und Belegtreue — reproduzierbar, lauf für Lauf.
+          Wie bei einem Laborringversuch wird das System mit Prüfaufgaben getestet, deren
+          Lösungen vorab feststehen: zehn erfundene, aber realistische GMP-Fälle, in denen
+          Fehler bewusst versteckt wurden — plus Kontrollstellen, die verdächtig aussehen,
+          aber in Ordnung sind. So lässt sich schwarz auf weiß messen, was das System
+          findet, was es übersieht und ob es falschen Alarm schlägt.
         </p>
       </div>
 
@@ -183,7 +206,7 @@ export function RingversuchDashboard() {
       <section>
         <SectionHeading
           title="Lauf-Historie"
-          description="Jede Zeile ist ein vollständiger Qualifizierungslauf. Zeile wählen, um die Fall-Matrix zu sehen."
+          description="Jede Zeile ist ein kompletter Testdurchlauf über alle zehn Fälle — von der ersten Baseline ohne KI bis zum aktuellen Stand. Zeile anklicken für die Details."
         />
         <RunHistoryTable runs={runs} selectedId={selectedId} onSelect={setSelectedId} />
       </section>
@@ -193,9 +216,10 @@ export function RingversuchDashboard() {
           <section>
             <SectionHeading
               title={`Fall-Matrix — ${stackLabel(selected.run)}`}
-              description="Pro Fall: gefundene und übersehene Gold-Standard-Fehler sowie Decoy-Verhalten."
+              description="Pro Prüffall: Welche versteckten Fehler wurden gefunden (✓) oder übersehen (✗)? Und hat das System die harmlosen Kontrollstellen in Ruhe gelassen?"
             />
             <CaseMatrix cases={selected.cases} />
+            <ChipLegend />
           </section>
 
           {selected.aggregate.tokens_by_provider &&
@@ -203,7 +227,7 @@ export function RingversuchDashboard() {
             <section>
               <SectionHeading
                 title="Token-Verbrauch"
-                description="Gemessener Verbrauch pro Provider für diesen Lauf — Grundlage der Kostenrechnung pro Fall."
+                description="Gemessener Verbrauch pro KI-Dienst für diesen Lauf. Zur Einordnung: Ein kompletter Durchlauf über zehn Fälle kostet wenige Euro."
               />
               <TokenTable tokens={selected.aggregate.tokens_by_provider} />
             </section>
@@ -225,21 +249,30 @@ function KpiRow({ run }: { run: RingversuchRun }) {
       <KpiCard
         icon={Crosshair}
         label="Sensitivität"
+        question="Findet das System die versteckten Fehler?"
         value={percent(sens?.rate)}
         detail={sens ? `${sens.found} von ${sens.total} versteckten Fehlern gefunden` : "–"}
       />
       <KpiCard
         icon={ShieldCheck}
-        label="Spezifität (Decoys)"
+        label="Spezifität"
+        question="Bleibt es bei Harmlosem ruhig?"
         value={percent(spec?.rate)}
-        detail={spec ? `${spec.passed} von ${spec.total} Decoys korrekt nicht beanstandet` : "–"}
+        detail={
+          spec
+            ? `${spec.passed} von ${spec.total} Kontrollstellen korrekt nicht beanstandet`
+            : "–"
+        }
       />
       <KpiCard
         icon={FileSearch}
         label="Belegtreue"
+        question="Ist jeder Befund mit Zitat belegt?"
         value={percent(cite?.rate)}
         detail={
-          cite ? `${cite.verified} von ${cite.total_findings} Findings mit verifiziertem Zitat` : "–"
+          cite
+            ? `${cite.verified} von ${cite.total_findings} Befunden mit wortwörtlich geprüftem Zitat`
+            : "–"
         }
       />
     </div>
@@ -249,11 +282,13 @@ function KpiRow({ run }: { run: RingversuchRun }) {
 function KpiCard({
   icon: Icon,
   label,
+  question,
   value,
   detail,
 }: {
   icon: typeof Crosshair;
   label: string;
+  question: string;
   value: string;
   detail: string;
 }) {
@@ -263,10 +298,11 @@ function KpiCard({
         <Icon className="h-3.5 w-3.5" aria-hidden />
         {label}
       </div>
+      <div className="mt-1 text-[12px] text-[var(--text-secondary)]">{question}</div>
       <div className="mt-2 text-[28px] font-semibold leading-none text-[var(--text-primary)]">
         {value}
       </div>
-      <div className="mt-2 text-[12px] leading-5 text-[var(--text-secondary)]">{detail}</div>
+      <div className="mt-2 text-[12px] leading-5 text-[var(--text-tertiary)]">{detail}</div>
     </div>
   );
 }
@@ -288,7 +324,7 @@ function RunHistoryTable({
         <thead>
           <tr className="border-b border-[var(--border-default)] text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
             <th className="px-4 py-2.5 font-medium">Zeitpunkt</th>
-            <th className="px-4 py-2.5 font-medium">Konfiguration</th>
+            <th className="px-4 py-2.5 font-medium">System-Aufbau</th>
             <th className="px-4 py-2.5 font-medium">Sensitivität</th>
             <th className="px-4 py-2.5 font-medium">Spezifität</th>
             <th className="px-4 py-2.5 font-medium">Belegtreue</th>
@@ -355,11 +391,11 @@ function CaseMatrix({ cases }: { cases: CaseResult[] }) {
         <thead>
           <tr className="border-b border-[var(--border-default)] text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
             <th className="px-4 py-2.5 font-medium">Fall</th>
-            <th className="px-4 py-2.5 font-medium">Pipeline</th>
-            <th className="px-4 py-2.5 font-medium">Claims</th>
-            <th className="px-4 py-2.5 font-medium">Findings</th>
-            <th className="px-4 py-2.5 font-medium">Gold-Standard-Fehler</th>
-            <th className="px-4 py-2.5 font-medium">Decoys</th>
+            <th className="px-4 py-2.5 font-medium">Ergebnis</th>
+            <th className="px-4 py-2.5 font-medium">Aussagen</th>
+            <th className="px-4 py-2.5 font-medium">Befunde</th>
+            <th className="px-4 py-2.5 font-medium">Versteckte Fehler</th>
+            <th className="px-4 py-2.5 font-medium">Kontrollstellen</th>
           </tr>
         </thead>
         <tbody>
@@ -379,7 +415,7 @@ function CaseMatrix({ cases }: { cases: CaseResult[] }) {
                 {caseResult.finding_count}
                 <span className="text-[var(--text-tertiary)]">
                   {" "}
-                  ({caseResult.citation_verified_finding_count} belegt)
+                  · {caseResult.citation_verified_finding_count} mit Zitat belegt
                 </span>
               </td>
               <td className="px-4 py-2.5">
@@ -417,7 +453,7 @@ function ErrorChip({ error, found }: { error: MatchedError; found: boolean }) {
   const title = error.expected_reviewer_finding ?? error.error_id;
   return (
     <span
-      title={`${title}${found && error.match ? ` — gefunden (${error.match.method}, Score ${error.match.score})` : found ? "" : " — übersehen"}`}
+      title={`${title}${found ? " — gefunden" : " — übersehen"}`}
       className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] ${
         found
           ? severityClasses(error.severity)
@@ -429,8 +465,8 @@ function ErrorChip({ error, found }: { error: MatchedError; found: boolean }) {
       ) : (
         <XCircle className="h-3 w-3 shrink-0" aria-hidden />
       )}
-      <span className="mono">{error.error_id.replace("ERR_", "")}</span>
-      <span className="uppercase">{error.severity.slice(0, 4)}</span>
+      <span className="mono">{error.error_id.replace("ERR_", "Nr. ")}</span>
+      <span>{severityLabels[error.severity] ?? error.severity}</span>
     </span>
   );
 }
@@ -446,7 +482,7 @@ function StatusBadge({ status }: { status: string }) {
       }`}
     >
       <Activity className="h-3 w-3" aria-hidden />
-      {status}
+      {statusLabels[status] ?? status}
     </span>
   );
 }
@@ -462,8 +498,8 @@ function TokenTable({ tokens }: { tokens: Record<string, TokenUsage> }) {
       <table className="w-full min-w-[560px] text-left text-[13px]">
         <thead>
           <tr className="border-b border-[var(--border-default)] text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-            <th className="px-4 py-2.5 font-medium">Provider</th>
-            <th className="px-4 py-2.5 font-medium">Calls</th>
+            <th className="px-4 py-2.5 font-medium">KI-Dienst</th>
+            <th className="px-4 py-2.5 font-medium">Aufrufe</th>
             <th className="px-4 py-2.5 font-medium">Input</th>
             <th className="px-4 py-2.5 font-medium">Output</th>
             <th className="px-4 py-2.5 font-medium">Gesamt</th>
@@ -476,7 +512,7 @@ function TokenTable({ tokens }: { tokens: Record<string, TokenUsage> }) {
               className="border-b border-[var(--border-default)] last:border-b-0"
             >
               <td className="px-4 py-2.5 font-medium text-[var(--text-primary)]">
-                <span className="mono">{provider}</span>
+                {providerLabels[provider] ?? provider}
               </td>
               <td className="px-4 py-2.5 text-[var(--text-secondary)]">{usage.calls}</td>
               <td className="px-4 py-2.5 text-[var(--text-secondary)]">
@@ -492,6 +528,23 @@ function TokenTable({ tokens }: { tokens: Record<string, TokenUsage> }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function ChipLegend() {
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-tertiary)]">
+      <span className="inline-flex items-center gap-1">
+        <CheckCircle2 className="h-3 w-3 text-success-600" aria-hidden />
+        versteckter Fehler gefunden
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <XCircle className="h-3 w-3 text-danger-600" aria-hidden />
+        versteckter Fehler übersehen
+      </span>
+      <span>Farbe = Schweregrad des Fehlers (rot kritisch, gelb hoch, grau mittel/niedrig)</span>
+      <span>„Aussagen" = aus den Dokumenten extrahierte, zitierfähige Einzelaussagen</span>
     </div>
   );
 }
