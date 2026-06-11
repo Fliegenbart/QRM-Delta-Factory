@@ -32,6 +32,7 @@ export const translations = {
   "nav.sourceSnippets": { de: "Quellausschnitte", en: "Source Snippets" },
   "nav.riskLibrary": { de: "Regelwerk", en: "Rule set" },
   "nav.ringversuch": { de: "Ringversuch", en: "Proficiency test" },
+  "nav.ueberblick": { de: "Überblick", en: "Overview" },
   "nav.triggerInput": { de: "Change/CAPA Eingabe", en: "Change/CAPA Input" },
   "nav.deltaAnalysis": { de: "Delta-Prozess", en: "Delta Process" },
   "nav.qrmMatrix": { de: "QRM-Matrix", en: "QRM Matrix" },

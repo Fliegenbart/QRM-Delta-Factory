@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardCheck,
+  Compass,
   Crosshair,
   FileCheck2,
   FileText,
@@ -31,6 +32,7 @@ import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { RequirementLibraryManager } from "@/src/components/review-ui/requirement-library-manager";
 import { HumanFeedbackRegistryPanel } from "@/src/components/review-ui/human-feedback-registry-panel";
 import { RingversuchDashboard } from "@/src/components/review-ui/ringversuch-dashboard";
+import { OverviewLanding } from "@/src/components/review-ui/overview-landing";
 import { aiArchitectureConcept, demoReviewCases, productHomeCopy } from "@/src/lib/review-ui";
 import { CaseCard } from "@/src/components/triage/case-card";
 import type { LucideIcon } from "lucide-react";
@@ -42,6 +44,7 @@ const navCategories: NavCategory[] = [
   {
     nameKey: "nav.category.workspace",
     items: [
+      ["ueberblick", "nav.ueberblick", Compass],
       ["dashboard", "nav.dashboard", Gauge],
       ["review-ui", "nav.backendReview", ShieldCheck],
       ["ringversuch", "nav.ringversuch", Crosshair],
@@ -273,6 +276,8 @@ function renderSection(section: string) {
       return <RequirementLibraryManager />;
     case "ringversuch":
       return <RingversuchDashboard />;
+    case "ueberblick":
+      return <OverviewLanding />;
     default:
       return <DashboardSection />;
   }
