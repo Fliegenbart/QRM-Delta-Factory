@@ -101,21 +101,50 @@ export function OverviewLanding() {
       {/* Hero */}
       <Reveal delay={0}>
         <div className="pt-4">
-          <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
-            Pharma QRM Delta Engine
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div>
+              <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
+                Pharma QRM Delta Engine
+              </div>
+              <h2 className="mt-3 text-[32px] font-semibold leading-[1.15] tracking-[-0.01em] text-[var(--text-primary)] sm:text-[40px]">
+                KI bereitet vor.
+                <br />
+                <span className="text-[var(--brand-strong)]">Die QA entscheidet.</span>
+              </h2>
+              <p className="mt-5 text-[15px] leading-7 text-[var(--text-secondary)]">
+                Das System liest Change-, Abweichungs- und CAPA-Unterlagen, findet
+                Widersprüche, Fehlklassifizierungen und fehlende Pflichtnachweise — und
+                legt der Qualitätssicherung eine vollständig belegte Prüfmappe vor. Es
+                spart die Such- und Sortierarbeit, nicht das Urteil: Jede Entscheidung
+                bleibt beim Menschen.
+              </p>
+            </div>
+            <FindingArtifact />
           </div>
-          <h2 className="mt-3 max-w-2xl text-[32px] font-semibold leading-[1.15] tracking-[-0.01em] text-[var(--text-primary)] sm:text-[40px]">
-            KI bereitet vor.
-            <br />
-            <span className="text-[var(--brand-strong)]">Die QA entscheidet.</span>
-          </h2>
-          <p className="mt-5 max-w-2xl text-[15px] leading-7 text-[var(--text-secondary)]">
-            Das System liest Change-, Abweichungs- und CAPA-Unterlagen, findet
-            Widersprüche, Fehlklassifizierungen und fehlende Pflichtnachweise — und legt
-            der Qualitätssicherung eine vollständig belegte Prüfmappe vor. Es spart die
-            Such- und Sortierarbeit, nicht das Urteil: Jede Entscheidung bleibt beim
-            Menschen.
-          </p>
+          <Link
+            href="/ringversuch"
+            className="group mt-8 inline-flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-[var(--border-default)] pt-4 text-[13px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          >
+            <span className="font-medium text-[var(--text-primary)]">
+              Im Ringversuch belegt:
+            </span>
+            <span>
+              {stats.sensitivityFound} von {stats.sensitivityTotal} versteckten Fehlern
+              gefunden
+            </span>
+            <span aria-hidden>·</span>
+            <span>{stats.decoysTotal - stats.decoysPassed} Fehlalarme</span>
+            <span aria-hidden>·</span>
+            <span>
+              {stats.citationRate != null
+                ? `${(Math.round(stats.citationRate * 1000) / 10).toLocaleString("de-DE")} % belegte Befunde`
+                : ""}
+            </span>
+            <span className="inline-flex items-center gap-1 font-medium text-[var(--brand-strong)] group-hover:underline">
+              Zum Nachweis
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            </span>
+          </Link>
         </div>
       </Reveal>
 
@@ -135,7 +164,7 @@ export function OverviewLanding() {
             <StepCard
               number="02"
               title="Prüfen & aufdecken"
-              body="Sieben unabhängige KI-Prüfer analysieren die Unterlagen gegen Ihr Regelwerk. Zwei KI-Kritiker auf Modellen anderer Hersteller suchen gezielt nach Übersehenem — was der eine Anbieter übersieht, findet erfahrungsgemäß der andere. Eine regelbasierte Gegenprüfung stellt zusätzlich jeden Befund infrage."
+              body="Sieben unabhängige KI-Prüfer analysieren die Unterlagen gegen Ihr Regelwerk. Zwei KI-Kritiker auf Modellen anderer Hersteller suchen nach Übersehenem; eine regelbasierte Gegenprüfung stellt jeden Befund infrage."
             />
             <StepCard
               number="03"
@@ -297,6 +326,42 @@ export function OverviewLanding() {
 }
 
 /* ----- Bausteine ----- */
+
+function FindingArtifact() {
+  return (
+    <div aria-hidden className="hidden select-none lg:block">
+      <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4 shadow-[0_1px_2px_rgba(23,32,38,0.06)]">
+        <div className="flex items-center justify-between gap-2">
+          <span className="rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10.5px] font-medium uppercase tracking-[0.08em] text-amber-700 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+            Befund · Hoch
+          </span>
+          <span className="text-[10.5px] uppercase tracking-[0.1em] text-[var(--text-tertiary)]">
+            Prüfmappe
+          </span>
+        </div>
+        <p className="mt-3 text-[13px] font-medium leading-5 text-[var(--text-primary)]">
+          Abweichung als „Minor" eingestuft — ohne Labordaten zur Temperaturunterschreitung.
+        </p>
+        <div className="mt-3 border-l-2 border-[var(--brand-strong)] bg-[var(--surface-secondary)] px-3 py-2">
+          <p className="mono text-[11.5px] leading-5 text-[var(--text-secondary)]">
+            „Die Abweichung wird als Minor eingestuft, da die Salbe visuell homogen
+            blieb …"
+          </p>
+        </div>
+        <div className="mt-2.5 flex items-center justify-between gap-2 text-[11px]">
+          <span className="inline-flex items-center gap-1 text-success-600 dark:text-success-400">
+            <CheckCircle2 className="h-3 w-3" aria-hidden />
+            Zitat wortwörtlich geprüft
+          </span>
+          <span className="text-[var(--text-tertiary)]">Deviation Report · S. 1</span>
+        </div>
+        <div className="mt-3 border-t border-[var(--border-default)] pt-2.5 text-[11px] text-[var(--text-tertiary)]">
+          Nächster Schritt: QA-Entscheidung — Hochstufung prüfen, Labordaten nachfordern
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function LandingHeading({ title, description }: { title: string; description: string }) {
   return (
