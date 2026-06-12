@@ -21,10 +21,28 @@ type LiveStats = {
   decoysPassed: number;
   decoysTotal: number;
   citationRate: number | null;
+  standDate: string;
 };
 
-function useRingversuchStats(): LiveStats | null {
-  const [stats, setStats] = useState<LiveStats | null>(null);
+// Werte des letzten abgeschlossenen Laufs als statischer Fallback —
+// Live-Daten aus /api/ringversuch überschreiben sie nach erfolgreichem Fetch.
+const FALLBACK_STATS: LiveStats = {
+  sensitivityFound: 24,
+  sensitivityTotal: 25,
+  decoysPassed: 11,
+  decoysTotal: 11,
+  citationRate: 0.932,
+  standDate: "11.06.2026",
+};
+
+function standDateFromRunId(id: string | undefined): string {
+  const m = id?.match(/^(\d{4})(\d{2})(\d{2})_/);
+  if (!m) return FALLBACK_STATS.standDate;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
+function useRingversuchStats(): LiveStats {
+  const [stats, setStats] = useState<LiveStats>(FALLBACK_STATS);
   useEffect(() => {
     let cancelled = false;
     fetch("/api/ringversuch")
@@ -42,6 +60,7 @@ function useRingversuchStats(): LiveStats | null {
           decoysPassed: agg.specificity_decoys?.passed ?? 0,
           decoysTotal: agg.specificity_decoys?.total ?? 0,
           citationRate: agg.citation_precision?.rate ?? null,
+          standDate: standDateFromRunId(latest?.id),
         });
       })
       .catch(() => undefined);
@@ -91,10 +110,11 @@ export function OverviewLanding() {
             <span className="text-[var(--brand-strong)]">Die QA entscheidet.</span>
           </h2>
           <p className="mt-5 max-w-2xl text-[15px] leading-7 text-[var(--text-secondary)]">
-            Das System liest Change-, Abweichungs- und CAPA-Unterlagen, findet Risiken,
-            Widersprüche und fehlende Pflichtnachweise — und legt der Qualitätssicherung
-            eine fertige, vollständig belegte Prüfmappe vor. Es spart die Such- und
-            Sortierarbeit, nicht das Urteil: Jede Entscheidung bleibt beim Menschen.
+            Das System liest Change-, Abweichungs- und CAPA-Unterlagen, findet
+            Widersprüche, Fehlklassifizierungen und fehlende Pflichtnachweise — und legt
+            der Qualitätssicherung eine vollständig belegte Prüfmappe vor. Es spart die
+            Such- und Sortierarbeit, nicht das Urteil: Jede Entscheidung bleibt beim
+            Menschen.
           </p>
         </div>
       </Reveal>
@@ -115,7 +135,7 @@ export function OverviewLanding() {
             <StepCard
               number="02"
               title="Prüfen & aufdecken"
-              body="Mehrere unabhängige KI-Prüfer und zwei KI-Kritiker prüfen gegen Ihr Regelwerk: Widersprüche zwischen Dokumenten, Fehlklassifizierungen, fehlende Pflichtnachweise."
+              body="Sieben unabhängige KI-Prüfer analysieren die Unterlagen gegen Ihr Regelwerk. Zwei KI-Kritiker auf Modellen anderer Hersteller suchen gezielt nach Übersehenem — was der eine Anbieter übersieht, findet erfahrungsgemäß der andere. Eine regelbasierte Gegenprüfung stellt zusätzlich jeden Befund infrage."
             />
             <StepCard
               number="03"
@@ -137,7 +157,7 @@ export function OverviewLanding() {
             <PrincipleRow
               icon={Quote}
               title="Kein Befund ohne Zitat"
-              body="Jeder Befund muss eine wörtliche Textstelle aus den Originalunterlagen benennen. Das Zitat wird maschinell gegen das Dokument geprüft — und wer will, prüft in Sekunden selbst nach. Erfundenes fliegt raus, bevor es jemand zu sehen bekommt."
+              body="Jeder Befund muss eine wörtliche Textstelle aus den Originalunterlagen benennen. Das Zitat wird maschinell Zeichen für Zeichen gegen das Quelldokument geprüft: Halluzinierte oder verfälschte Belege werden verworfen, bevor sie in die Prüfmappe gelangen. Ob die Schlussfolgerung aus einem echten Beleg trägt, bewertet die QA — dafür steht jedes Zitat einen Klick entfernt im Originalkontext."
             />
             <PrincipleRow
               icon={UserCheck}
@@ -147,7 +167,7 @@ export function OverviewLanding() {
             <PrincipleRow
               icon={FlaskConical}
               title="Gemessen, nicht behauptet"
-              body="Wie ein Labor im Ringversuch wird das System regelmäßig mit präparierten Fällen getestet, deren versteckte Fehler vorab feststehen. So ist belegbar, was es findet, was es übersieht — und dass es bei Harmlosem ruhig bleibt."
+              body="In Anlehnung an Ringversuche aus der Laborpraxis wird das System regelmäßig mit präparierten Fällen getestet, deren versteckte Fehler vorab dokumentiert und versiegelt sind. So ist belegbar, was es findet, was es übersieht — und dass es bei fehlerfreien Unterlagen ruhig bleibt."
             />
           </div>
 
@@ -155,20 +175,16 @@ export function OverviewLanding() {
           <div className="mt-4 rounded-md border border-[var(--border-default)] bg-[var(--brand-soft)] p-5">
             <div className="grid gap-6 sm:grid-cols-3">
               <LiveStat
-                value={stats ? `${stats.sensitivityFound} von ${stats.sensitivityTotal}` : "–"}
+                value={`${stats.sensitivityFound} von ${stats.sensitivityTotal}`}
                 label="versteckten Fehlern gefunden"
               />
               <LiveStat
-                value={stats ? `${stats.decoysTotal - stats.decoysPassed}` : "–"}
-                label={
-                  stats
-                    ? `Fehlalarme bei ${stats.decoysTotal} harmlosen Kontrollstellen`
-                    : "Fehlalarme"
-                }
+                value={`${stats.decoysTotal - stats.decoysPassed}`}
+                label={`Fehlalarme bei ${stats.decoysTotal} harmlosen Kontrollstellen`}
               />
               <LiveStat
                 value={
-                  stats?.citationRate != null
+                  stats.citationRate != null
                     ? `${(Math.round(stats.citationRate * 1000) / 10).toLocaleString("de-DE")} %`
                     : "–"
                 }
@@ -183,8 +199,9 @@ export function OverviewLanding() {
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
             <div className="mt-1 text-[11px] text-[var(--text-tertiary)]">
-              Werte aus dem jüngsten Ringversuchslauf — live aus den Messdaten, nicht aus einer
-              Präsentation.
+              Werte aus dem jüngsten abgeschlossenen Ringversuchslauf (Stand: {stats.standDate}).
+              Die Zahlen stammen direkt aus den Messdaten — der vollständige Lauf inklusive
+              aller Fälle ist im Qualifizierungsnachweis einsehbar.
             </div>
           </div>
         </section>
@@ -202,21 +219,22 @@ export function OverviewLanding() {
               index={1}
               state="done"
               title="Ringversuch mit präparierten Fällen"
-              body="Zehn realistische GMP-Fälle mit bewusst versteckten Fehlern. Stand heute: 24 von 25 Fehlern gefunden, null Fehlalarme."
+              body={`Zehn realistische GMP-Fälle mit bewusst versteckten Fehlern. Stand ${stats.standDate}: ${stats.sensitivityFound} von ${stats.sensitivityTotal} Fehlern gefunden, ${stats.decoysTotal - stats.decoysPassed === 0 ? "null" : stats.decoysTotal - stats.decoysPassed} Fehlalarme.`}
               status="Erreicht"
             />
             <LadderStep
               index={2}
               state="ready"
               title="Blindtest mit Ihren eigenen Fällen"
-              body="Ihre Experten erstellen Testfälle und behalten die Lösungen. Wir sehen die Fälle zum ersten Mal beim Test — eine Anleitung zum Erstellen liegt bereit."
+              invitation="Das ist der Schritt, den wir Ihnen heute vorschlagen."
+              body="Ihre Experten erstellen Testfälle nach unserer Anleitung und behalten die Musterlösungen. Wir sehen die Fälle zum ersten Mal beim Testlauf. Sie bewerten das Ergebnis gegen Ihre eigene Lösung — zu Ihren Kriterien, in Ihrem Tempo. Aufwand auf Ihrer Seite: erfahrungsgemäß ein bis zwei Expertentage."
               status="Bereit zum Start"
             />
             <LadderStep
               index={3}
               state="planned"
               title="Bewährungsprobe an echten, abgeschlossenen Fällen"
-              body="Einige Jahre alte Vorgänge, deren Feinheiten Ihre Berater aus eigener Arbeit kennen. Das System tritt gegen das Gedächtnis der Experten an."
+              body="Einige Jahre alte, vollständig dokumentierte Vorgänge mit bekanntem Ausgang. Das System bewertet sie blind; verglichen wird gegen die seinerzeit dokumentierten Abschlussbewertungen und das, was Ihre Berater aus der Fallarbeit ergänzen können."
               status="Geplant"
             />
             <LadderStep
@@ -228,6 +246,34 @@ export function OverviewLanding() {
               last
             />
           </ol>
+        </section>
+      </Reveal>
+
+      {/* KI-Transparenz */}
+      <Reveal delay={0.35}>
+        <section>
+          <LandingHeading
+            title="Welche KI hier arbeitet — und wo Ihre Daten bleiben"
+            description="Transparenz über Modelle, Datenwege und den Umgang mit der Natur von KI-Systemen."
+          />
+          <div className="space-y-3">
+            <TransparencyBlock
+              title="Modelle — protokolliert bis auf den einzelnen Befund"
+              body="Die Hauptprüfung — Aussagen-Extraktion und alle sieben Fach-Reviewer — übernimmt Mistral Large des europäischen Anbieters Mistral AI (Paris). Als KI-Kritiker kontrollieren Claude (Anthropic) und GPT (OpenAI) die Ergebnisse; alternativ läuft das System vollständig auf europäischen Modellen — beide Konfigurationen sind im Ringversuch gemessen. Zu jedem Befund wird festgehalten, welches Modell ihn in welcher Version mit welchem Prüfauftrag erstellt hat, abgesichert über eine lückenlos verkettete Audit-Spur."
+            />
+            <TransparencyBlock
+              title="Die Zitatprüfung ist bewusst keine KI"
+              body="Ob ein Zitat wirklich im Original steht, prüft deterministischer Programmcode — Zeichen für Zeichen gegen das Quelldokument, kryptografisch protokolliert. Gleicher Input, garantiert gleiches Ergebnis: An dieser Stelle gibt es nichts zu halluzinieren."
+            />
+            <TransparencyBlock
+              title="Datenverarbeitung"
+              body="Die Modell-Anbieter verwenden übermittelte Inhalte gemäß ihren API-Bedingungen nicht zum Training. Für alle Tests werden ausschließlich synthetische oder anonymisierte Unterlagen verwendet — die Blindtest-Anleitung deckt das ab. Für einen Pilotbetrieb mit echten Unterlagen wird die Datenroute vorab gemeinsam festgelegt; die vollständig europäische Konfiguration ist bereits heute gemessen und einsatzbereit."
+            />
+            <TransparencyBlock
+              title="Verlässlichkeit trotz Streuung"
+              body="KI-Ausgaben sind nicht vollständig deterministisch. Das System begegnet dem dreifach: Alle Modelle laufen mit minimaler Zufallsstreuung; neun unabhängige Prüfer mit unterschiedlichen Blickwinkeln ersetzen die einzelne Meinung; und die Zusammenführung ist bewusst konservativ — ein einmal gefundener Befund wird nie per Mehrheitsentscheid weggestimmt. Die verbleibende Streuung wird nicht versteckt: Wiederholte Ringversuchsläufe machen sie sichtbar und sind im Qualifizierungsnachweis einsehbar."
+            />
+          </div>
         </section>
       </Reveal>
 
@@ -299,6 +345,17 @@ function PrincipleRow({
   );
 }
 
+function TransparencyBlock({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4">
+      <div className="text-[13.5px] font-medium text-[var(--text-primary)]">{title}</div>
+      <p className="mt-1 max-w-3xl text-[12.5px] leading-6 text-[var(--text-secondary)]">
+        {body}
+      </p>
+    </div>
+  );
+}
+
 function LiveStat({ value, label }: { value: string; label: string }) {
   return (
     <div>
@@ -314,6 +371,7 @@ function LadderStep({
   index,
   state,
   title,
+  invitation,
   body,
   status,
   last,
@@ -321,6 +379,7 @@ function LadderStep({
   index: number;
   state: "done" | "ready" | "planned";
   title: string;
+  invitation?: string;
   body: string;
   status: string;
   last?: boolean;
@@ -357,6 +416,11 @@ function LadderStep({
             {status}
           </span>
         </div>
+        {invitation ? (
+          <div className="mt-0.5 text-[13px] font-medium italic text-[var(--brand-strong)]">
+            {invitation}
+          </div>
+        ) : null}
         <p className="mt-1 max-w-2xl text-[12.5px] leading-6 text-[var(--text-secondary)]">
           {body}
         </p>
