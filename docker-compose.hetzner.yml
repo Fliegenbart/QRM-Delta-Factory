@@ -1,0 +1,75 @@
+# Produktiv-Deployment auf dem Hetzner-Server (5.9.106.75).
+# Backend + Postgres + Redis als isoliertes Compose-Projekt unter /opt/qrm-delta.
+# Erwartet eine .env-Datei daneben (siehe ops/HETZNER.md) — niemals committen.
+#
+#   docker compose -f docker-compose.hetzner.yml up -d --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: qrm_orchestration
+      POSTGRES_USER: qrm_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD fehlt in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qrm_app -d qrm_orchestration"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - qrm_postgres_data:/var/lib/postgresql/data
+    # Bewusst KEINE host ports: nur im Compose-Netz erreichbar.
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      QRM_APP_NAME: "Pharma AI Risk Orchestration Backend"
+      QRM_ENVIRONMENT: "production"
+      QRM_DATABASE_URL: "postgresql+psycopg://qrm_app:${POSTGRES_PASSWORD}@postgres:5432/qrm_orchestration"
+      QRM_REDIS_URL: "redis://redis:6379/0"
+      QRM_PERSISTENCE_ENABLED: "true"
+      QRM_LOCAL_STORAGE_ROOT: "/data/documents"
+      QRM_AUDIT_LOG_ENABLED: "true"
+      QRM_ALLOW_MODEL_LIVE_INTERNET: "false"
+      # Mandanten-Auth: "tenant_id=api-key" (kommagetrennt), siehe .env
+      QRM_API_KEYS: ${QRM_API_KEYS:?QRM_API_KEYS fehlt in .env}
+      # Hybrid-Stack: Mistral als Hauptpruefer, Claude/GPT als Kritiker
+      QRM_EXTERNAL_MODEL_CALLS_ENABLED: "true"
+      QRM_ALLOWED_MODEL_PROVIDERS: "mistral,anthropic,openai,mock"
+      QRM_REVIEWER_PROVIDER_OVERRIDE: "mistral"
+      QRM_CRITIC_PROVIDERS: "anthropic,openai"
+      QRM_MISTRAL_MODEL_ID: "mistral-large-latest"
+      QRM_ANTHROPIC_MODEL_ID: "claude-sonnet-4-6"
+      QRM_OPENAI_MODEL_ID: "gpt-5.4"
+      QRM_MODEL_PROVIDER_TIMEOUT_SECONDS: "240"
+      QRM_MODEL_PROVIDER_MAX_RETRIES: "2"
+      QRM_MISTRAL_API_KEY: ${MISTRAL_API_KEY:?MISTRAL_API_KEY fehlt in .env}
+      QRM_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY fehlt in .env}
+      QRM_OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY fehlt in .env}
+    ports:
+      # Nur fuer den zentralen Reverse-Proxy (voxdrop-nginx-1) erreichbar,
+      # nicht oeffentlich. 8000/8080 sind auf dem Host bereits belegt.
+      - "172.17.0.1:8100:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - qrm_app_documents:/data/documents
+
+volumes:
+  qrm_postgres_data:
+  qrm_app_documents:
