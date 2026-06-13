@@ -1,0 +1,2152 @@
+{
+  "run": {
+    "mode": "live",
+    "stack": "hybrid",
+    "started_at": "2026-06-13T12:07:54+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-5.4",
+    "mistral_model": "mistral-large-latest",
+    "case_count": 10
+  },
+  "aggregate": {
+    "tokens_by_provider": {
+      "openai": {
+        "input_tokens": 105113,
+        "output_tokens": 32372,
+        "total_tokens": 137485,
+        "calls": 10
+      },
+      "mistral": {
+        "input_tokens": 733725,
+        "output_tokens": 218550,
+        "total_tokens": 952275,
+        "calls": 70
+      },
+      "anthropic": {
+        "input_tokens": 124675,
+        "output_tokens": 82444,
+        "total_tokens": 207119,
+        "calls": 10
+      },
+      "extraction:mistral": {
+        "input_tokens": 34849,
+        "output_tokens": 27765,
+        "total_tokens": 62614,
+        "calls": 10
+      }
+    },
+    "cases": 10,
+    "sensitivity": {
+      "found": 25,
+      "total": 25,
+      "rate": 1.0
+    },
+    "specificity_decoys": {
+      "passed": 11,
+      "total": 11,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 213,
+      "total_findings": 234,
+      "rate": 0.91
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_01",
+      "document_set_id": "ds_0c1d786e1f584fe1a9d03b34418ed3a5",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md",
+        "document_04_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 15068,
+          "output_tokens": 3642,
+          "total_tokens": 18710,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 84847,
+          "output_tokens": 18137,
+          "total_tokens": 102984,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 17663,
+          "output_tokens": 8081,
+          "total_tokens": 25744,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 4607,
+          "output_tokens": 5092,
+          "total_tokens": 9699,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "BatchImpactReviewer": "failed",
+        "DeviationReviewer": "failed"
+      },
+      "failed_model_roles": [
+        "BatchImpactReviewer",
+        "DeviationReviewer"
+      ],
+      "claim_count": 49,
+      "finding_count": 22,
+      "citation_verified_finding_count": 19,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_01_01",
+          "severity": "medium",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Ungültiges, in der Zukunft liegendes Signaturdatum der QS-Prüfung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_003",
+            "risk_statement": "Die QA-Freigabe der Abweichung DEV-2026-891 durch Dr. Anna Klar ist mit dem Datum 14.12.2026 dokumentiert, obwohl die Abweichung bereits am 12.03.2026 erfasst wurde. Dies stellt einen Datenintegritätsbefund dar, da das Freigabedatum in der Zukunft liegt und nicht mit dem Audit Trail konsistent ist.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_01_02",
+          "severity": "high",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Fehlklassifizierung einer kritischen Prozessparameter-Abweichung.",
+          "match": {
+            "score": 0.442,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_005",
+            "risk_statement": "Die Batch-Impact-Bewertung der Abweichung DEV-2026-891 listet nur die Charge XYL-2026-004A auf, ohne eine klare Verknüpfung der Freigabeentscheidung mit den Batch Records. Dies entspricht nicht den Anforderungen an die Vollständigkeit der Batch-Impact-Bewertung gemäß QRM Batch Impact Checkliste Abschnitt 3.2.",
+            "severity": "medium"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_01_01",
+          "evidence_text": "Homogen, zähflüssig",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-2026-441 verlangt einen Effectiveness Check zur Überprüfung der Temperaturstabilität während des Halteschritts für drei nachfolgende Chargen. Es liegt jedoch keine dokumentierte Evidenz für die Durchführung oder das Ergebnis dieses Effectiveness Checks vor. Ohne diesen Nachweis ist die Wirksamkeit der CAPA-Maßnahme nicht belegt, was ein Compliance-Risiko gemäß SOP-CAPA-003 (Abschnitt 7.5) darstellt."
+        },
+        {
+          "finding_id": "finding_capa_qa_approval_missing",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-2026-441 enthält keine dokumentierte QA-Freigabe oder Genehmigung. Gemäß SOP-QA-004 (Abschnitt 5.1) müssen QA-Freigaben und Genehmigungen vor Abschluss der CAPA dokumentiert vorliegen. Das Fehlen dieser Freigabe stellt ein Compliance-Risiko dar und kann die regulatorische Akzeptanz der CAPA gefährden."
+        },
+        {
+          "finding_id": "finding_capa_deviation_link_consistency",
+          "severity": "medium",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-2026-441 verweist auf die Abweichung DEV-2026-891. Es wurde jedoch keine konsistente Verknüpfung der betroffenen Charge (XYL-2026-004A) zwischen Abweichungsbericht, CAPA und QA-Freigabe dokumentiert. Dies kann zu Unklarheiten über den Scope der CAPA und die betroffenen Chargen führen, was gegen die Anforderungen aus SOP-DOC-005 (Abschnitt 2.6) verstößt."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Abweichung DEV-2026-891 betrifft einen kritischen Prozessparameter (Temperatur), wurde jedoch ohne belastbare physikalisch-chemische Daten zur Risikobewertung (z. B. Stabilitäts- oder Freisetzungsstudien) als 'kein Einfluss auf die Produktqualität' eingestuft. Dies widerspricht den Anforderungen an eine fundierte Risikoeinstufung gemäß SOP-DEV-001 Abschnitt 6.2."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Die Abweichung DEV-2026-891 betrifft einen aseptischen Herstellungsprozess (Phase B – Einrühren Wirkstoff), jedoch fehlt eine dokumentierte Bewertung der Sterilitätsauswirkungen der Temperaturabweichung. Die visuelle Homogenität allein ist kein ausreichender Nachweis für die Sterilitätsassurance."
+        },
+        {
+          "finding_id": "finding_1",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe durch Dr. Anna Klar (Qualitätssicherung) erfolgte am 14.12.2026, jedoch liegt das Erfassungsdatum der Abweichung und die digitale Signatur des Erfassers Max Mustermann bereits am 12.03.2026. Dies stellt eine zeitliche Unplausibilität dar, die auf ein Datenintegritätsrisiko hinweist, da die Signaturdaten nicht ALCOA+-konform (zeitnah, plausibel) sind."
+        },
+        {
+          "finding_id": "finding_2",
+          "severity": "medium",
+          "risk_statement": "Die Abweichung DEV-2026-891 wurde mit der Aussage 'Ein Einfluss auf die Produktqualität wird ausgeschlossen' bewertet, ohne dass eine detaillierte physikalisch-chemische Risikobewertung oder Laboranalysen als Nachweis vorliegen. Dies widerspricht der Anforderung, dass Abweichungen von kritischen Prozessparametern mit belastbaren Daten bewertet werden müssen."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "high",
+          "risk_statement": "Es liegt kein Nachweis vor, dass der Audit Trail für die Abweichung DEV-2026-891 oder die zugehörigen Batch Records (XYL-2026-004A) überprüft wurde. Die SOP-DI-002 verlangt jedoch, dass elektronische Unterschriften und Datumsangaben konsistent mit dem Audit Trail sein müssen. Ohne Audit-Trail-Review ist die Datenintegrität nicht sichergestellt."
+        },
+        {
+          "finding_id": "finding_4",
+          "severity": "medium",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-2026-441 sieht eine Refresher-Schulung des Operators Max Mustermann vor, ohne dass ein Nachweis über die Durchführung oder Wirksamkeitsprüfung (Effectiveness Check) der Schulung vorliegt. Dies widerspricht der Anforderung, dass CAPA-Maßnahmen nur mit dokumentierter Wirksamkeitsprüfung abgeschlossen werden dürfen."
+        },
+        {
+          "finding_id": "finding_001_data_integrity_future_signature",
+          "severity": "critical",
+          "risk_statement": "Die QA-Prüfsignatur von Dr. Anna Klar trägt das Datum 14.12.2026, während die Abweichung am 12.03.2026 erfasst wurde und die Chargenfreigabe bereits am 25.03.2026 dokumentiert ist. Das Prüfdatum liegt damit ca. 9 Monate nach der Chargenfreigabe und ist zeitlich unplausibel. Dies stellt einen schwerwiegenden Datenintegritätsbefund gemäß ALCOA+ dar: Die Prüfung kann nicht nach der Freigabe stattgefunden haben, oder die Freigabe erfolgte ohne abgeschlossene QA-Prüfung des Abweichungsberichts."
+        },
+        {
+          "finding_id": "finding_002_impact_assessment_unsupported_no_impact",
+          "severity": "high",
+          "risk_statement": "Die Entwarnung 'Ein Einfluss auf die Produktqualität wird ausgeschlossen' im Abweichungsbericht sowie die Aussage im QA-Freigabedokument, ein negativer Einfluss auf Stabilität oder Freisetzungskinetik sei durch visuelle Homogenität ausgeschlossen, sind nicht durch physikalisch-chemische Labordaten belegt. Die Batch-Record-Daten zeigen während der Temperaturunterschreitung (10:30–11:00 Uhr) einen signifikanten Viskositätsanstieg von 2410 mPa·s auf 2910 mPa·s (+20,7 %) sowie die Notation 'Homogen, zähflüssig' um 11:00 Uhr. Diese Messdaten widersprechen der Entwarnung und deuten auf eine messbare physikalisch-chemische Veränderung hin, die nicht allein durch visuelle Beurteilung ausgeschlossen werden kann."
+        },
+        {
+          "finding_id": "finding_003_deviation_classification_missing",
+          "severity": "high",
+          "risk_statement": "Im gesamten Claim-Ledger findet sich kein Claim, der eine formale Risikoeinstufung der Abweichung DEV-2026-891 als Minor, Major oder Kritisch dokumentiert. Die Temperaturunterschreitung von 40–45 °C auf 34,2 °C über 45 Minuten an einem kritischen Prozessparameter während der Wirkstoffeinarbeitung (Phase B) erfordert gemäß SOP-DEV-001 §6.2 eine begründete Risikoeinstufung. Das Fehlen dieser Einstufung stellt eine wesentliche Dokumentationslücke dar."
+        },
+        {
+          "finding_id": "finding_004_batch_impact_no_predecessor_batches",
+          "severity": "medium",
+          "risk_statement": "Die Batch-Impact-Bewertung beschränkt sich ausschließlich auf Charge XYL-2026-004A. Es findet sich kein Claim, der eine Prüfung potenziell betroffener Vorgänger- oder Parallelchargen dokumentiert, die möglicherweise denselben Reaktor R-02 oder dasselbe Kühlsystem genutzt haben. Gemäß req_gs_batch_impact_completeness müssen alle potenziell betroffenen Chargen aufgelistet werden."
+        },
+        {
+          "finding_id": "finding_005_capa_effectiveness_check_not_completed",
+          "severity": "medium",
+          "risk_statement": "Der Effectiveness Check für CAPA-2026-441 ist lediglich als geplante Maßnahme dokumentiert ('Eine Überprüfung der folgenden drei Chargen auf Temperaturstabilität während des Halteschritts wird durchgeführt'), jedoch findet sich kein Claim, der den Abschluss oder das Ergebnis dieser Wirksamkeitsprüfung belegt. Gemäß req_gs_capa_effectiveness dürfen CAPA-Maßnahmen nur mit dokumentierter Wirksamkeitsprüfung abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_data_integrity_future_signature",
+          "severity": "high",
+          "risk_statement": "Die QA-Pruefung der Abweichung ist zeitlich unplausibel dokumentiert: Die Erfassung erfolgte am 12.03.2026, die QA-Signatur erst am 14.12.2026, waehrend die Freigabenotiz bereits auf den 25.03.2026 datiert ist. Dies stellt einen wesentlichen Datenintegritaets- und Freigaberisiko-Hinweis dar, weil die dokumentierte QA-Pruefung nicht konsistent zur nachfolgenden Freigabezeitachse ist."
+        },
+        {
+          "finding_id": "finding_unsubstantiated_no_impact_cpp",
+          "severity": "high",
+          "risk_statement": "Fuer eine dokumentierte Unterschreitung des spezifizierten Temperaturbereichs eines Prozessparameters wird ein Einfluss auf die Produktqualitaet ausgeschlossen, ohne dass in den vorliegenden Claims belastbare physikalisch-chemische Daten oder Labordaten belegt sind. Die Entwarnung erscheint daher nicht ausreichend belegt."
+        },
+        {
+          "finding_id": "finding_batch_impact_incomplete_scope",
+          "severity": "medium",
+          "risk_statement": "Die Batch-Impact-Bewertung ist in den vorliegenden Claims nur fuer Charge XYL-2026-004A direkt dokumentiert, obwohl die CAPA-Wirksamkeitspruefung eine Ueberpruefung der folgenden drei Chargen vorsieht. Damit ist die Dokumentation potenziell betroffener Chargen bzw. der vollstaendigen Chargenliste im Vorgang nicht vollstaendig belegt."
+        },
+        {
+          "finding_id": "finding_capa_missing_effectiveness_documentation",
+          "severity": "medium",
+          "risk_statement": "Fuer die CAPA ist zwar eine geplante Wirksamkeitspruefung beschrieben, jedoch liegt in den vorliegenden Claims kein Nachweis einer definierten und dokumentierten Durchfuehrung bzw. eines Ergebnisses der Wirksamkeitspruefung vor. Damit ist die CAPA-Dokumentation unvollstaendig."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-2026-441 sieht eine Nachschulung des Operators und eine Überprüfung der Temperaturstabilität für die folgenden drei Chargen vor. Es fehlt jedoch eine dokumentierte Wirksamkeitsprüfung (Effectiveness Check) gemäß SOP-CAPA-003 Abschnitt 7.5, die den Abschluss der CAPA-Maßnahme rechtfertigen würde."
+        },
+        {
+          "finding_id": "finding_006",
+          "severity": "high",
+          "risk_statement": "Die Temperaturabweichung auf 34,2°C für 45 Minuten liegt außerhalb der spezifizierten Solltemperatur von 40–45°C. Obwohl die visuelle Homogenität der Charge bestätigt wurde, fehlt eine dokumentierte Bewertung der Abweichung als solche, was gegen die Anforderungen der Herstellanweisung HA-Generic Abschnitt 3.1 verstößt."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_02",
+      "document_set_id": "ds_2e7bae77c5564b4ab86cd8c0fb328a5a",
+      "documents_uploaded": [
+        "document_01_cleaning_record.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 9611,
+          "output_tokens": 2517,
+          "total_tokens": 12128,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 62823,
+          "output_tokens": 17888,
+          "total_tokens": 80711,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 11418,
+          "output_tokens": 8363,
+          "total_tokens": 19781,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3318,
+          "output_tokens": 2414,
+          "total_tokens": 5732,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "BatchImpactReviewer": "failed",
+        "DeviationReviewer": "succeeded"
+      },
+      "failed_model_roles": [
+        "BatchImpactReviewer"
+      ],
+      "claim_count": 22,
+      "finding_count": 19,
+      "citation_verified_finding_count": 19,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_02_01",
+          "severity": "high",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Undokumentierte und nicht gegengezeichnete manuelle Datenkorrektur im Ausbeuteprotokoll.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_004",
+            "risk_statement": "Die Korrektur der Ausbeute von 96.47% auf 98.1% aufgrund eines unvollständigen Wiegebegleitscheins (Claim: '~~96.47%~~ -> Korrektur auf 98.1% da Wiegebegleitschein unvollständig war') ist dokumentiert, aber es fehlt eine detaillierte Risikobewertung der Abweichung. Eine Einstufung der Abweichung (Minor/Major/Kritisch) und eine Begründung mit physikalisch-chemischen Daten sind nicht vorhanden.",
+            "severity": "medium"
+          }
+        },
+        {
+          "error_id": "ERR_02_02",
+          "severity": "medium",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Yield außerhalb der Toleranzgrenze ohne Einleitung einer OOS/Abweichungsuntersuchung.",
+          "match": {
+            "score": 0.496,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_003_qa_release_without_deviation_resolution",
+            "risk_statement": "Die QA-Freigabe der Charge CPH-2026-991 durch Dr. Bernd Richter (10.04.2026) bestätigt, dass 'die Ausbeute der spezifizierten Vorgabe entspricht' und der 'Reinigungsvorgang ordnungsgemäß dokumentiert' wurde. Diese Freigabe erfolgte, obwohl im Batch Record eine nachträgliche, nicht QA-genehmigte Datenkorrektur (96,47% → 98,1%) vorliegt und kein Abweichungsbericht für den ursprünglichen OOS-Wert existiert. Die QA-Freigabe basiert damit auf einem nicht vollständig geklärten Sachverhalt und ist ohne Auflösung der Datenintegritätsfrage nicht valide.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_02_01",
+          "evidence_text": "Spül-Ex (Lot: SP-2025-09)",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_capa_001",
+          "severity": "high",
+          "risk_statement": "Es gibt keine ausreichende Evidenz für eine dokumentierte CAPA-Maßnahme mit Effectiveness-Check, Verantwortlichenzuordnung und Fristen zur Behebung der Abweichung im Reinigungsprozess (Reinigungsprogramm 'Steril-A-Zirkulation'). Dies stellt ein hohes Compliance-Risiko dar, da die Wirksamkeit der Maßnahme nicht nachgewiesen ist."
+        },
+        {
+          "finding_id": "finding_capa_002",
+          "severity": "medium",
+          "risk_statement": "Die Abweichung im Reinigungsprozess (Reinigungsprogramm 'Steril-A-Zirkulation') wurde nicht explizit mit einer Risikobewertung (Minor/Major/Kritisch) klassifiziert. Dies widerspricht den Anforderungen an eine belastbare Risikoeinstufung gemäß SOP-DEV-001."
+        },
+        {
+          "finding_id": "finding_capa_003",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierte Bewertung des Einflusses der Abweichung im Reinigungsprozess auf die Produktqualität und Patientensicherheit, insbesondere für die nachfolgende Charge (CPH-2026-991). Dies stellt ein hohes Compliance-Risiko dar, da potenziell betroffene Chargen nicht identifiziert und bewertet wurden."
+        },
+        {
+          "finding_id": "finding_contradiction_001",
+          "severity": "high",
+          "risk_statement": "Es besteht ein Widerspruch zwischen den Batch-Identifikatoren der vorherigen Charge (CPH-2026-990) und der aktuellen Charge (CPH-2026-991). Die Abweichungsdokumentation erwähnt die vorherige Charge (CPH-2026-990) im Zusammenhang mit dem Reinigungsprozess, jedoch fehlt eine explizite Bewertung des Batch-Impacts für diese Charge. Dies deutet auf eine unvollständige oder fehlende Batch-Impact-Bewertung hin, was gegen die Requirements 'req_gs_deviation_impact' und 'req_gs_batch_impact_completeness' verstößt."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Reinigungsvalidierung gemäß SOP-PROD-CLN-022 (Reinigungsprogramm 'Steril-A-Zirkulation') deckt nicht explizit die neue Charge CPH-2026-991 ab. Es fehlt ein dokumentierter Nachweis, dass das Reinigungsverfahren für das geänderte Produktkontaktmaterial (z. B. neue Materialzusammensetzung oder Beschichtung) weiterhin wirksam ist. Dies stellt ein Risiko für Kreuzkontamination oder unzureichende Reinigung dar."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Es liegt keine dokumentierte Bewertung der Sterilitätsauswirkung für die neue Charge CPH-2026-991 vor. Die visuelle Rückstandsfreiheit (Claim: 'Die visuelle Rückstandsfreiheit wurde geprüft und ist gewährleistet') ersetzt keine validierte Sterilitätsbewertung, insbesondere bei sterilen Produktkontaktkomponenten oder aseptischen Prozessen."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "medium",
+          "risk_statement": "Die Konsistenz der Chargenangaben zwischen den Dokumenten ist unklar. Die Charge CPH-2026-990 wird im Reinigungsprotokoll erwähnt, während die neue Charge CPH-2026-991 im Batch Record dokumentiert ist. Es fehlt eine klare Zuordnung oder Bridging-Dokumentation, die die Übertragbarkeit der Daten und Ergebnisse bestätigt."
+        },
+        {
+          "finding_id": "finding_1",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierten Nachweise für die Durchführung eines Audit-Trail-Reviews oder die Prüfung elektronischer Signaturen gemäß ALCOA+-Prinzipien. Dies stellt ein hohes Risiko für die Datenintegrität dar, da zeitnahe, plausible und konsistente Signatur- und Datumsangaben nicht verifiziert werden können."
+        },
+        {
+          "finding_id": "finding_2",
+          "severity": "medium",
+          "risk_statement": "Es fehlen Nachweise für die Konsistenzprüfung von Angaben zu Chargen, Daten, Mengen und Ergebnissen über alle Dokumente hinweg. Widersprüche zwischen Dokumenten (z. B. Batch Records, Freigabenotizen) können nicht ausgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierten Nachweise für die Durchführung einer Wirksamkeitsprüfung (Effectiveness Check) der durchgeführten Korrekturmaßnahmen im Zusammenhang mit der Chargenausbeute. Dies stellt ein hohes Risiko für die Compliance dar, da CAPA-Maßnahmen ohne dokumentierte Wirksamkeitsprüfung nicht abgeschlossen werden dürfen."
+        },
+        {
+          "finding_id": "finding_001_data_integrity_yield_correction",
+          "severity": "critical",
+          "risk_statement": "Im Batch Record für Charge CPH-2026-991 wurde ein ursprünglich berechneter Ausbeutewert von 96,47% nachträglich auf 98,1% korrigiert, mit der Begründung eines unvollständigen Wiegebegleitscheins. Die Korrektur erfolgte ohne dokumentierten Audit-Trail-Nachweis, ohne Angabe des Korrekturerstellers, ohne Datum der Korrektur und ohne QA-Genehmigung der Änderung. Der ursprüngliche Wert von 96,47% liegt außerhalb der Spezifikation (98,0%–101,0%) und hätte als Abweichung bewertet werden müssen. Die nachträgliche Korrektur ohne belastbare Datenbasis und ohne formalen Abweichungsprozess stellt einen schwerwiegenden Datenintegritätsbefund dar und verletzt ALCOA+-Anforderungen."
+        },
+        {
+          "finding_id": "finding_002_yield_oos_no_deviation",
+          "severity": "high",
+          "risk_statement": "Der ursprünglich berechnete Ausbeutewert von 96,47% für Charge CPH-2026-991 liegt unterhalb der spezifizierten Untergrenze von 98,0%. Unabhängig von der nachträglichen Korrektur hätte dieser Wert – sobald er im Batch Record erschien – unmittelbar einen Abweichungsprozess auslösen müssen. Im Claim-Ledger findet sich kein Hinweis auf einen eröffneten Abweichungsbericht, eine Risikoeinstufung (Minor/Major/Kritisch) oder eine Root-Cause-Analyse. Der Operator hat stattdessen eigenständig eine Entwarnung ('Ausbeute liegt im tolerierbaren Bereich. Keine weiteren Maßnahmen erforderlich.') eingetragen, ohne dass diese durch QA bestätigt oder durch Daten belegt ist."
+        },
+        {
+          "finding_id": "finding_004_batch_impact_predecessor_batch",
+          "severity": "high",
+          "risk_statement": "Im Cleaning Record wird die Vorgängercharge CPH-2026-990 (Cephalex-Injekt 1g) explizit genannt. Im Rahmen der Datenkorrektur und des potenziellen Abweichungsereignisses bei Charge CPH-2026-991 fehlt jede dokumentierte Bewertung, ob die Vorgängercharge CPH-2026-990 von denselben Ursachen (unvollständiger Wiegebegleitschein, mögliche Prozessabweichung) betroffen sein könnte. Eine Batch-Impact-Bewertung, die alle potenziell betroffenen Chargen auflistet, ist nicht im Claim-Ledger belegt."
+        },
+        {
+          "finding_id": "finding_005_yield_calculation_arithmetic_inconsistency",
+          "severity": "medium",
+          "risk_statement": "Die im Batch Record dokumentierten Massenwerte (Wirkstoff 150,00 kg; Brutto-Abfüllgut 143,20 kg; QC-Proben 1,50 kg; Verlust/Ausschuss 0,80 kg) ergeben eine rechnerische Netto-Ausbeute von (143,20 + 1,50 + 0,80) / 150,00 × 100 = 97,0%, nicht 98,1% wie im korrigierten Wert angegeben. Dieser arithmetische Widerspruch zwischen den dokumentierten Einzelmassen und dem korrigierten Ausbeutewert ist ein weiterer Datenintegritätshinweis und wurde weder im Batch Record noch im QA-Freigabedokument adressiert."
+        },
+        {
+          "finding_id": "finding_redteam_001",
+          "severity": "high",
+          "risk_statement": "Die dokumentierte Korrektur der Ausbeute von 96.47% auf 98.1% wegen eines unvollstaendigen Wiegebegleitscheins stellt einen relevanten Dokumentations- und potenziellen Abweichungsfall dar. In den vorliegenden Claims ist jedoch keine begruendete Risikoeinstufung der Abweichung und keine belastbare datenbasierte Abweichungsbewertung ersichtlich, obwohl gleichzeitig vermerkt wurde, dass keine weiteren Massnahmen erforderlich seien."
+        },
+        {
+          "finding_id": "finding_redteam_002",
+          "severity": "high",
+          "risk_statement": "Fuer die dokumentierte Ausbeutekorrektur und den unvollstaendigen Wiegebegleitschein ist in den vorliegenden Claims keine dokumentierte Bewertung des Einflusses auf Produktqualitaet und Patientensicherheit sowie keine nachvollziehbare Batch-Impact-Bewertung der betroffenen Charge ersichtlich. Die pauschale Aussage, es seien keine weiteren Massnahmen erforderlich, ist in den Claims nicht durch eine formale Impact-Bewertung belegt."
+        },
+        {
+          "finding_id": "finding_redteam_003",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe der Charge erfolgt in den vorliegenden Claims trotz zuvor dokumentierter Korrektur eines qualitaetsrelevanten Ergebnisses aufgrund unvollstaendiger Quelldokumentation. Ohne in den Claims erkennbare formale Abweichungs- und Impact-Bewertung ist die Nachvollziehbarkeit der Freigabeentscheidung unzureichend belegt."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_03",
+      "document_set_id": "ds_8860c0d192ab4d5eb93eee9fde579505",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_environmental_monitoring_report.md",
+        "document_03_capa_plan.md"
+      ],
+      "pipeline_status": "completed",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "mistral": {
+          "input_tokens": 68227,
+          "output_tokens": 22046,
+          "total_tokens": 90273,
+          "calls": 7
+        },
+        "openai": {
+          "input_tokens": 8961,
+          "output_tokens": 3532,
+          "total_tokens": 12493,
+          "calls": 1
+        },
+        "anthropic": {
+          "input_tokens": 10734,
+          "output_tokens": 8234,
+          "total_tokens": 18968,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3147,
+          "output_tokens": 2195,
+          "total_tokens": 5342,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "ContradictionHunter": "succeeded",
+        "RedTeamCriticOpenAI": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded"
+      },
+      "failed_model_roles": [],
+      "claim_count": 18,
+      "finding_count": 25,
+      "citation_verified_finding_count": 20,
+      "risk_decision": "human_review_required",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_03_01",
+          "severity": "high",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Anachronistische Zeitstempel zwischen Raum-Logbuch und Probenahme-Protokoll.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_1",
+            "risk_statement": "Fehlende Nachweise für die Durchführung einer Audit-Trail-Review der elektronischen Partikelzählerdaten im Rahmen der Abweichung DEV-QS-2026-014. Die Zeitstempel der Partikelmessung (14:15 Uhr) und des Mitarbeitereintritts (14:35 Uhr) sind zeitlich unplausibel, was auf ein potenzielles Datenintegritätsrisiko hindeutet.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_03_02",
+          "severity": "medium",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Referenzierung einer veralteten, potenziell ungültigen SOP-Version im CAPA-Plan.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_002_sop_version_outdated",
+            "risk_statement": "Die CAPA-Maßnahme (CAPA-2026-014) verweist auf SOP-QS-REIN-001 Version 2.0 mit Gültigkeitsdatum 12.01.2018. Diese SOP ist zum Zeitpunkt der CAPA-Erstellung (April/Mai 2026) über 8 Jahre alt. Es besteht das Risiko, dass diese Version nicht mehr den aktuellen Prozesszustand, die aktuelle Ausrüstung oder aktuelle regulatorische Anforderungen abdeckt. Eine veraltete SOP-Version als Grundlage für eine CAPA-Maßnahme in einem Klasse-B-Reinraum ist gemäß req_gs_validation_coverage und req_gs_qa_approval_documented nicht zulässig, sofern keine Bestätigung der aktuellen Gültigkeit vorliegt.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 2,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_03_01",
+          "evidence_text": "transienter Peak von 4500 Partikeln/m³",
+          "hit": null
+        },
+        {
+          "decoy_id": "DEC_03_02",
+          "evidence_text": "KBE-Werte innerhalb des Akzeptanzkriteriums (< 5 KBE / 4 Std.)",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_1a2b3c4d5e6f7g8h9i0j",
+          "severity": "high",
+          "risk_statement": "Die Abweichung DEV-QS-2026-014 (Partikelüberschreitung in Reinraumklasse B, Raum R-202) betrifft die Charge LPO-2026-11A, jedoch fehlt eine dokumentierte Bewertung des Einflusses auf die Produktqualität und Patientensicherheit sowie eine klare Disposition-Rationale für die betroffene Charge."
+        },
+        {
+          "finding_id": "finding_2b3c4d5e6f7g8h9i0j1k",
+          "severity": "medium",
+          "risk_statement": "Die dokumentierte Partikelüberschreitung (4500 Partikel/m³ >= 5.0 µm) in Reinraumklasse B (Raum R-202) während der Abfüllung der Charge LPO-2026-11A überschreitet das spezifizierte Limit von 2900 Partikeln/m³. Es fehlt jedoch eine klare Bewertung, ob diese Überschreitung als kritische Abweichung eingestuft wird und ob die Charge LPO-2026-11A innerhalb der spezifizierten Grenzen liegt."
+        },
+        {
+          "finding_id": "finding_3c4d5e6f7g8h9i0j1k2l",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-2026-014 zur Anpassung des Reinigungsverfahrens für die Wände des Raums R-202 wurde identifiziert, jedoch fehlt ein dokumentierter Effectiveness Check, der die Wirksamkeit der Maßnahme nachweist. Ohne diesen Nachweis darf die CAPA nicht abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_2",
+          "severity": "medium",
+          "risk_statement": "Fehlende explizite Angabe des verantwortlichen Reviewers für die elektronischen Partikelzählerdaten im Abweichungsbericht. Dies gefährdet die Attributierbarkeit und Nachvollziehbarkeit der Datenintegrität."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "high",
+          "risk_statement": "Die Zeitangaben im Zusammenhang mit der Abweichung DEV-QS-2026-014 (Peak-Messzeit 14:15 Uhr, Mitarbeiter-Eintritt 14:35 Uhr) sind zeitlich unplausibel und könnten auf ein Datenintegritätsrisiko hinweisen. Gemäß SOP-DI-002 Abschnitt 4.1 müssen elektronische Datums- und Zeitangaben konsistent und plausibel sein."
+        },
+        {
+          "finding_id": "finding_4",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-2026-014 ist dokumentiert, jedoch fehlt der Nachweis der Wirksamkeitsprüfung (Effectiveness Check) gemäß SOP-CAPA-003 Abschnitt 7.5. Ohne diesen Nachweis darf die CAPA nicht abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Abweichung DEV-QS-2026-014 (Partikelüberschreitung in Reinraumklasse B, Raum R-202) wurde nicht mit einer dokumentierten Risikobewertung (Minor/Major/Kritisch) klassifiziert. Es fehlen belastbare physikalisch-chemische Daten zur Begründung der Einstufung, was gegen SOP-DEV-001 Abschnitt 6.2 verstößt."
+        },
+        {
+          "finding_id": "finding_5",
+          "severity": "medium",
+          "risk_statement": "Die Root-Cause-Analyse für die Abweichung DEV-QS-2026-014 ist nicht ausreichend dokumentiert. Es fehlen belastbare Belege für die Ursachenermittlung, was die Ableitung wirksamer CAPA-Maßnahmen erschwert."
+        },
+        {
+          "finding_id": "finding_001_timestamp_contradiction",
+          "severity": "high",
+          "risk_statement": "Der Peak-Zeitstempel (14:15 Uhr) liegt 20 Minuten VOR dem elektronisch protokollierten Eintritt des Mitarbeiters in Raum R-202 (14:35 Uhr). Dies ist zeitlich unplausibel: Wenn der Partikelzähler-Peak um 14:15 Uhr gemessen wurde, kann er nicht durch den Mitarbeiter verursacht worden sein, der erst um 14:35 Uhr den Raum betrat. Entweder ist die Root-Cause-Hypothese (Mitarbeitereintritt als Ursache) nicht belegt, oder einer der Zeitstempel ist fehlerhaft. Beides stellt einen ALCOA+-Befund dar."
+        },
+        {
+          "finding_id": "finding_003_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "Im gesamten Claim-Ledger findet sich kein einziger Claim, der einen Effectiveness Check (Wirksamkeitsprüfung) für CAPA-2026-014 dokumentiert oder plant. Gemäß req_gs_capa_effectiveness dürfen CAPA-Maßnahmen nur mit definierter und dokumentierter Wirksamkeitsprüfung abgeschlossen werden. Das Fehlen jeglicher Effectiveness-Check-Planung oder -Dokumentation stellt eine wesentliche Compliance-Lücke dar."
+        },
+        {
+          "finding_id": "finding_004_batch_impact_disposition_missing",
+          "severity": "high",
+          "risk_statement": "Im Claim-Ledger ist keine dokumentierte Batch-Impact-Bewertung mit Dispositionsentscheidung für Charge LPO-2026-11A nachweisbar. Die Partikelüberschreitung (4500 Partikel/m³ gegenüber Limit 2900 Partikel/m³, d.h. ~55% Überschreitung) in einem Klasse-B-Reinraum während der Abfüllung ist ein kritischer Prozessparameter-Verstoß. Gemäß req_gs_batch_impact_completeness und req_gs_deviation_impact müssen alle betroffenen Chargen aufgelistet und die Freigabe- bzw. Dispositionsentscheidung mit Batch Records verknüpft sein. Kein entsprechender Claim ist vorhanden."
+        },
+        {
+          "finding_id": "finding_005_deviation_risk_classification_missing",
+          "severity": "high",
+          "risk_statement": "Im Claim-Ledger findet sich kein Claim, der eine begründete Risikoeinstufung (Minor/Major/Kritisch) der Abweichung DEV-QS-2026-014 dokumentiert. Gemäß req_gs_deviation_classification müssen Abweichungen von kritischen Prozessparametern mit einer begründeten Risikoeinstufung bewertet werden; eine Einstufung ohne belastbare physikalisch-chemische Daten ist nicht zulässig. Die Partikelüberschreitung in einem Klasse-B-Reinraum während der Abfüllung eines Arzneimittels ist ein kritischer Prozessparameter."
+        },
+        {
+          "finding_id": "finding_006_qa_approval_not_documented",
+          "severity": "high",
+          "risk_statement": "Im Claim-Ledger ist keine dokumentierte QA-Freigabe oder QA-Genehmigung für die Abweichung DEV-QS-2026-014, die CAPA-2026-014 oder die Dispositionsentscheidung nachweisbar. Die einzige QA-relevante Zeitangabe ist die Meldung an QS um 15:00 Uhr, jedoch kein Nachweis einer formalen QA-Genehmigung. Gemäß req_gs_qa_approval_documented müssen QA-Freigaben und Genehmigungen vor Abschluss dokumentiert vorliegen."
+        },
+        {
+          "finding_id": "finding_batchimpact_001",
+          "severity": "high",
+          "risk_statement": "Es liegt zwar eine dokumentierte Partikelgrenzwertueberschreitung waehrend der Abfuellung der Charge LPO-2026-11A vor, jedoch ist in den vorliegenden Claims keine dokumentierte Batch-Impact-Bewertung mit Auflistung aller potenziell betroffenen Chargen und keine Dispositionsentscheidung erkennbar. Damit besteht ein wesentliches GMP-Risiko hinsichtlich Produktqualitaet und Patientensicherheit."
+        },
+        {
+          "finding_id": "finding_capa_001",
+          "severity": "high",
+          "risk_statement": "Fuer die identifizierte CAPA-Massnahme ist in den vorliegenden Claims keine definierte oder dokumentierte Wirksamkeitspruefung erkennbar. Damit besteht das Risiko, dass die Massnahme umgesetzt wird, ohne nachzuweisen, dass zukuenftige Partikelueberschreitungen tatsaechlich verhindert werden."
+        },
+        {
+          "finding_id": "finding_qa_001",
+          "severity": "high",
+          "risk_statement": "In den vorliegenden Claims ist zwar eine Meldung an QS dokumentiert, jedoch keine dokumentierte QA-Freigabe oder Genehmigung vor Abschluss bzw. Disposition erkennbar. Damit besteht ein wesentliches Compliance-Risiko, falls der Vorgang ohne nachweisbare QA-Entscheidung weiterbearbeitet oder abgeschlossen wurde."
+        },
+        {
+          "finding_id": "finding_validation_001",
+          "severity": "medium",
+          "risk_statement": "Die CAPA verweist auf SOP-QS-REIN-001 Version 2.0 mit Gueltigkeit seit 12.01.2018. In den vorliegenden Claims fehlt jedoch ein Nachweis, dass diese Referenz den aktuellen Prozesszustand im Jahr 2026 abdeckt oder dass die Evidenz auf den aktuellen Raum/Prozess uebertragbar ist. Dadurch besteht ein Risiko veralteter oder nicht ausreichend belegter Verfahrensgrundlage."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Die Impact-Bewertung der Abweichung DEV-QS-2026-014 auf die betroffene Charge LPO-2026-11A ist unvollständig. Es fehlt eine dokumentierte Auflistung aller potenziell betroffenen Chargen sowie die Verknüpfung der Freigabe- bzw. Dispositionsentscheidung mit den Batch Records, was gegen SOP-DEV-001 Abschnitt 6.4 und QRM Batch Impact Checkliste Abschnitt 3.2 verstößt."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "high",
+          "risk_statement": "Die Sterilitätsassurance-Bewertung für die Partikelüberschreitung in Reinraumklasse B (Raum R-202) während der Abfüllung der Charge LPO-2026-11A fehlt. Es gibt keine dokumentierte Bewertung, ob die Partikelüberschreitung die Sterilität der Charge gefährdet, was gegen VMP-001 Validierungsmasterplan Abschnitt 8.3 verstößt."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "high",
+          "risk_statement": "Die Zeitstempel der Partikelmessung (14:15 Uhr) und des Mitarbeitereintritts (14:35 Uhr) sind zeitlich unplausibel. Die Partikelmessung erfolgte vor dem dokumentierten Mitarbeitereintritt, was gegen SOP-DI-002 Abschnitt 4.1 verstößt und auf ein Datenintegritätsrisiko hindeutet."
+        },
+        {
+          "finding_id": "finding_005",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-2026-014 zur Anpassung des Reinigungsverfahrens für Raum R-202 ist noch nicht abgeschlossen. Es fehlt eine dokumentierte Wirksamkeitsprüfung (Effectiveness Check), was gegen SOP-CAPA-003 Abschnitt 7.5 verstößt."
+        },
+        {
+          "finding_id": "finding_35cc2e4d89cfb6243f90",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-QA-004 QA Freigabe Abschnitt 5.1 fordert 'QA Approval Record'. Die Unterlagen enthalten keine(n) QA-Freigabe bzw. dokumentierte Genehmigung durch die Qualitaetssicherung - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        },
+        {
+          "finding_id": "finding_eb1db31f949634bc96b0",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-CAPA-003 CAPA Management Abschnitt 7.5 fordert 'Effectiveness Check Nachweis'. Die Unterlagen enthalten keine(n) Definition oder Durchfuehrung einer Wirksamkeitspruefung (Effectiveness Check) im CAPA-Plan - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_04",
+      "document_set_id": "ds_73b2b5544af5439abea4c5114a810b1c",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md",
+        "document_04_quality_approval_note.md"
+      ],
+      "pipeline_status": "completed",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "mistral": {
+          "input_tokens": 86291,
+          "output_tokens": 22282,
+          "total_tokens": 108573,
+          "calls": 7
+        },
+        "openai": {
+          "input_tokens": 11016,
+          "output_tokens": 3483,
+          "total_tokens": 14499,
+          "calls": 1
+        },
+        "anthropic": {
+          "input_tokens": 13053,
+          "output_tokens": 7579,
+          "total_tokens": 20632,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 4282,
+          "output_tokens": 3127,
+          "total_tokens": 7409,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "CAPAReviewer": "succeeded",
+        "RedTeamCriticOpenAI": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded"
+      },
+      "failed_model_roles": [],
+      "claim_count": 29,
+      "finding_count": 22,
+      "citation_verified_finding_count": 18,
+      "risk_decision": "human_review_required",
+      "auto_clear_allowed": false,
+      "gold_error_count": 3,
+      "matched_errors": [
+        {
+          "error_id": "ERR_04_01",
+          "severity": "high",
+          "error_type": "Dokumentenwidersprüche",
+          "expected_reviewer_finding": "Diskrepanz des maximalen Temperaturwerts zwischen Abweichungsbericht und Herstellprotokoll.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_1",
+            "risk_statement": "Es liegt keine dokumentierte Evidenz für einen Audit-Trail-Review der elektronischen Records (SCADA-Protokoll) im Zusammenhang mit der Abweichung DEV-P-2026-092 vor. Gemäß SOP-DI-002 (4.1) müssen elektronische Unterschriften und Datumsangaben ALCOA+ erfüllen, was eine Prüfung des Audit-Trails erfordert.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_04_02",
+          "severity": "high",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlende Verknüpfung zwischen technischer Root Cause und personeller CAPA-Maßnahme.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_2",
+            "risk_statement": "Die Root-Cause-Analyse der Abweichung DEV-P-2026-092 nennt 'Bedienerfehler' als Ursache, ohne dass dies durch dokumentierte Evidenz (z. B. Schulungsnachweise, Prozessüberwachungsdaten) belegt ist. Gemäß SOP-DEV-001 (6.2) sind Root-Cause-Angaben wie 'Bedienerfehler' nur mit belastbaren Nachweisen zulässig.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_04_03",
+          "severity": "critical",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Kritische Chargenfreigabe beruhend auf fehlerhafter und unvollständiger Abweichungsbewertung.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_contradiction_002",
+            "risk_statement": "Widerspruch in der Spezifikationsüberschreitung: Die Produkttemperatur überschritt mit 44,5°C das spezifizierte Limit von 42,0°C, jedoch wird in der QA-Freigabe die Charge als 'qualitätskonform' und 'kein nennenswerter Substanzabbau' bewertet. Eine solche Bewertung ohne belastbare physikalisch-chemische Daten ist nicht GMP-konform.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_04_01",
+          "evidence_text": "Temperatur korrigiert, Trocknung fortgesetzt.",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_3",
+          "severity": "medium",
+          "risk_statement": "Die Prozessparameter-Dokumentation (Batch Record) enthält Zeitangaben (13:00, 13:15, 13:30, 13:45), jedoch fehlt der Nachweis, dass diese zeitnah und in Übereinstimmung mit dem Audit-Trail erfasst wurden. Gemäß SOP-DI-002 (4.1) müssen Datums- und Zeitangaben plausibel und konsistent mit dem Audit-Trail sein."
+        },
+        {
+          "finding_id": "finding_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme (Re-Training des Operators J.K.) ist dokumentiert, jedoch fehlt ein expliziter Nachweis für den Effectiveness-Check gemäß Requirement req_gs_capa_effectiveness. Ohne diesen Nachweis kann die Wirksamkeit der Maßnahme nicht bestätigt werden, was ein Compliance-Risiko darstellt."
+        },
+        {
+          "finding_id": "finding_contradiction_001",
+          "severity": "high",
+          "risk_statement": "Widerspruch in der Root-Cause-Angabe der Abweichung DEV-P-2026-092: Ein Dokument nennt ein 'hängendes Ventil im Heizregister' als Ursache, während ein anderes Dokument 'mangelnde Aufmerksamkeit des Bedienpersonals' als Root-Cause angibt. Beide Angaben sind nicht miteinander vereinbar und nicht ausreichend belegt."
+        },
+        {
+          "finding_id": "finding_contradiction_003",
+          "severity": "medium",
+          "risk_statement": "Fehlende Konsistenz in der Dokumentation der CAPA-Maßnahme: Die CAPA sieht ein 'bebildertes Re-Training' für den Operator vor, jedoch fehlt ein dokumentierter Effectiveness Check, der die Wirksamkeit der Maßnahme bestätigt. Dies widerspricht den Anforderungen an CAPA-Abschlüsse."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Abweichung DEV-P-2026-092 wurde nicht mit einer dokumentierten und belastbaren Risikoeinstufung (Minor/Major/Kritisch) bewertet. Die Root-Cause-Angabe 'Bedienerfehler' ist nicht durch Belege gestützt."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Die elektronischen Unterschriften und Datumsangaben in den Dokumenten erfüllen nicht vollständig die ALCOA+-Anforderungen. Die Abweichung wurde am 03.05.2026 erstellt, jedoch fehlt eine Überprüfung der zeitlichen Plausibilität der Datums- und Signaturangaben im Audit Trail."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme (Re-Training des Operators J.K.) wurde dokumentiert, jedoch fehlt der Nachweis der Wirksamkeitsprüfung (Effectiveness Check)."
+        },
+        {
+          "finding_id": "finding_001_temp_discrepancy",
+          "severity": "critical",
+          "risk_statement": "Kritischer Widerspruch zwischen Batch Record und Abweichungsbericht bezüglich der gemessenen Maximaltemperatur: Der Abweichungsbericht (DEV-P-2026-092) und die QA-Freigabenotiz dokumentieren eine maximale Produkttemperatur von 44,5°C, während der Batch Record (WS-03-Protokoll) um 13:30 Uhr eine Produkttemperatur von 48,2°C ausweist. Die Differenz beträgt 3,7°C. Die tatsächliche Überschreitung des Spezifikationslimits von 42,0°C beläuft sich laut Batch Record auf 6,2°C – nicht auf 2,5°C wie im Abweichungsbericht angegeben. Dieser Widerspruch ist nicht aufgeklärt und stellt einen schwerwiegenden Datenintegritätsbefund dar, der die Grundlage der Risikobewertung und Freigabeentscheidung infrage stellt."
+        },
+        {
+          "finding_id": "finding_002_root_cause_conflict",
+          "severity": "high",
+          "risk_statement": "Widerspruch in der Root-Cause-Analyse: Der Abweichungsbericht benennt als vermutete Ursache ein hängendes Ventil im Heizregister der Zuluftanlage (technische Ursache), während der CAPA-Bericht die Ursache auf mangelnde Aufmerksamkeit des Bedienpersonals beim Überwachen des Temperaturverlaufs zurückführt (Bedienerfehler). Beide Ursachen schließen sich nicht zwingend aus, sind aber nicht konsistent dokumentiert und nicht durch belastbare Daten belegt. Die CAPA-Maßnahme (Re-Training des Operators J.K.) adressiert ausschließlich die Bedienerfehler-Hypothese, nicht die technische Ursache (Ventil). Wenn das Ventil tatsächlich die Ursache war, ist die CAPA unzureichend."
+        },
+        {
+          "finding_id": "finding_003_impact_assessment_insufficient",
+          "severity": "high",
+          "risk_statement": "Die Entwarnung 'kein nennenswerter Substanzabbau erwartet' und die Freigabe der Charge PAR-2026-H102 sind nicht durch physikalisch-chemische Labordaten belegt. Es existiert kein Claim, der auf Stabilitätsdaten, Assay-Ergebnisse oder andere analytische Nachweise verweist, die die Aussage stützen. Gemäß req_gs_deviation_classification ist eine Einstufung ohne belastbare physikalisch-chemische Daten nicht zulässig. Zudem fehlt eine Auflistung potenziell weiterer betroffener Chargen (z.B. Vorchargen, die auf derselben Anlage WS-03 produziert wurden), wie von req_gs_batch_impact_completeness gefordert."
+        },
+        {
+          "finding_id": "finding_004_capa_effectiveness_missing",
+          "severity": "high",
+          "risk_statement": "Im gesamten Claim-Ledger existiert kein Claim, der einen dokumentierten Effectiveness Check für die CAPA-Maßnahme (Re-Training Operator J.K.) nachweist. Gemäß req_gs_capa_effectiveness dürfen CAPA-Maßnahmen nur mit definierter und dokumentierter Wirksamkeitsprüfung abgeschlossen werden. Das Fehlen eines Effectiveness-Check-Nachweises stellt einen wesentlichen Compliance-Mangel dar."
+        },
+        {
+          "finding_id": "finding_005_deviation_duration_discrepancy",
+          "severity": "high",
+          "risk_statement": "Der Abweichungsbericht gibt die Dauer der Temperaturüberschreitung mit '3 Minuten' an. Der Batch Record dokumentiert jedoch Messwerte im 15-Minuten-Takt: Um 13:15 Uhr liegt die Produkttemperatur bereits bei 41,2°C (nahe Limit), um 13:30 Uhr bei 48,2°C (weit über Limit), um 13:45 Uhr wieder bei 40,1°C. Dies entspricht einem Zeitfenster von mindestens 15–30 Minuten oberhalb oder nahe des Limits, nicht 3 Minuten. Die Angabe '3 Minuten' im Abweichungsbericht ist mit den Batch-Record-Daten nicht vereinbar und stellt einen Widerspruch dar, der die Risikobewertung beeinflusst."
+        },
+        {
+          "finding_id": "finding_006_qa_approval_documentation",
+          "severity": "medium",
+          "risk_statement": "Die QA-Freigabe der Charge PAR-2026-H102 für den nächsten Prozessschritt ist im Claim-Ledger dokumentiert, jedoch fehlt jeder Hinweis auf eine namentlich verantwortliche QA-Person, ein Signaturdatum oder eine Versionsnummer der referenzierten SOP. Gemäß req_gs_qa_approval_documented müssen QA-Freigaben vollständig dokumentiert vorliegen. Eine Freigabe ohne nachvollziehbare Signatur und Datum erfüllt die ALCOA+-Anforderungen nicht."
+        },
+        {
+          "finding_id": "finding_temp_contradiction_001",
+          "severity": "high",
+          "risk_statement": "Zwischen Abweichungsbericht und Batch Record besteht ein wesentlicher Widerspruch zur maximal erreichten Produkttemperatur. Der Abweichungsbericht nennt 44.5\u0000b0C fuer 3 Minuten, waehrend der Batch Record 48.2\u0000b0C um 13:30 dokumentiert. Dieser ungeklaerte Unterschied betrifft einen kritischen Prozessparameter und untergraebt die Verlaesslichkeit der anschliessenden Bewertung und Freigabeentscheidung."
+        },
+        {
+          "finding_id": "finding_unsubstantiated_no_impact_002",
+          "severity": "high",
+          "risk_statement": "Die Entwarnung zur Produktqualitaet und die Freigabe der Charge sind nicht ausreichend durch belastbare Daten belegt. Trotz dokumentierter Ueberschreitung des spezifizierten Limits von 42.0\u0000b0C wird die Charge als qualit\u0000e4tskonform und fuer den naechsten Schritt freigegeben; zugleich fordert die SOP fuer kritische Prozessparameter eine begruendete Risikoeinstufung mit belastbaren physikalisch-chemischen Daten. Solche stuetzenden Labordaten oder eine dokumentierte Risikoeinstufung sind in den Claims nicht vorhanden."
+        },
+        {
+          "finding_id": "finding_root_cause_capa_gap_003",
+          "severity": "high",
+          "risk_statement": "Root Cause und CAPA sind unzureichend belegt und untereinander widerspruechlich. Ein Dokument nennt als vermutete Ursache ein haengendes Ventil im Heizregister, ein anderes fuehrt die Abweichung auf mangelnde Aufmerksamkeit des Bedienpersonals zurueck und leitet daraus Re-Training ab. Ohne belegte Root Cause und ohne dokumentierte Wirksamkeitspruefung besteht das Risiko einer unwirksamen CAPA und eines wiederkehrenden Fehlers."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "medium",
+          "risk_statement": "Die Validierungsabdeckung für die Abweichung (Temperaturüberschreitung auf 44,5°C) ist nicht ausreichend dokumentiert. Es fehlt ein Bridging oder Addendum zur bestehenden Validierung, um die Auswirkungen der Abweichung auf die Produktqualität zu bewerten."
+        },
+        {
+          "finding_id": "finding_005",
+          "severity": "medium",
+          "risk_statement": "Die Batch-Impact-Bewertung listet die betroffene Charge PAR-2026-H102 auf, jedoch fehlt eine detaillierte Verknüpfung der Freigabe- bzw. Dispositionsentscheidung mit den Batch Records."
+        },
+        {
+          "finding_id": "finding_612aed84ef21bfb58264",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-CAPA-003 CAPA Management Abschnitt 7.5 fordert 'Effectiveness Check Nachweis'. Die Unterlagen enthalten keine(n) Definition oder Durchfuehrung einer Wirksamkeitspruefung (Effectiveness Check) im CAPA-Plan - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_05",
+      "document_set_id": "ds_7160762997ea45b7b5a6b83f873f675a",
+      "documents_uploaded": [
+        "document_01_batch_record_excerpt.md",
+        "document_02_validation_note.md",
+        "document_03_environmental_monitoring_report.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 8986,
+          "output_tokens": 3000,
+          "total_tokens": 11986,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 58520,
+          "output_tokens": 16956,
+          "total_tokens": 75476,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 10768,
+          "output_tokens": 6780,
+          "total_tokens": 17548,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3088,
+          "output_tokens": 1983,
+          "total_tokens": 5071,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "DeviationReviewer": "failed"
+      },
+      "failed_model_roles": [
+        "DeviationReviewer"
+      ],
+      "claim_count": 18,
+      "finding_count": 18,
+      "citation_verified_finding_count": 14,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 3,
+      "matched_errors": [
+        {
+          "error_id": "ERR_05_01",
+          "severity": "medium",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Verweis auf ein nicht vorhandenes bzw. fehlendes Dokumentenelement (Anhang 4).",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_3",
+            "risk_statement": "Es gibt keine dokumentierte Validierungsabdeckung für das aktuelle Beladungsmuster oder die verwendeten Materialien im Autoklavenzyklus ZYK-STER-992. Die letzte Re-Validierung des Autoklaven AT-442 erfolgte im Januar 2026, jedoch fehlt ein Nachweis, dass die aktuellen Beladungsmuster und Materialien durch diese Validierung abgedeckt sind.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_05_02",
+          "severity": "high",
+          "error_type": "Dokumentenwidersprüche",
+          "expected_reviewer_finding": "Kritischer Zeitkonflikt zwischen manuellem Prozess-Logbuch und automatisiertem Zutrittskontrollsystem.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_2",
+            "risk_statement": "Die elektronischen Signaturen und Datumsangaben im Zusammenhang mit dem Autoklavenzyklus ZYK-STER-992 sind zeitlich unplausibel. Der Mitarbeiter PNN-8812 betrat die Personenschleuse erst um 08:45 Uhr, jedoch wurden Aktivitäten im Autoklavenbereich bereits ab 08:15 Uhr dokumentiert. Dies stellt einen Datenintegritätsbefund dar.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_05_03",
+          "severity": "medium",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Mangelnde Zuordnungsgenauigkeit von Unterschrift/Initialen zur Personalnummer.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_2",
+            "risk_statement": "Die elektronischen Signaturen und Datumsangaben im Zusammenhang mit dem Autoklavenzyklus ZYK-STER-992 sind zeitlich unplausibel. Der Mitarbeiter PNN-8812 betrat die Personenschleuse erst um 08:45 Uhr, jedoch wurden Aktivitäten im Autoklavenbereich bereits ab 08:15 Uhr dokumentiert. Dies stellt einen Datenintegritätsbefund dar.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_05_01",
+          "evidence_text": "Programmstart (121°C / 20 Min)",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_1",
+          "severity": "high",
+          "risk_statement": "Die zeitliche Abweichung zwischen Beladungsabschluss (08:15 Uhr) und Programmstart (08:20 Uhr) des Autoklavenzyklus ZYK-STER-992 am 11.05.2026 wurde nicht auf ihre Auswirkungen auf die Sterilitätsassurance bewertet. Eine unzureichende Haltezeit vor Sterilisationsbeginn kann die Sterilität der Produkte gefährden."
+        },
+        {
+          "finding_id": "finding_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme für die Abweichung im Autoklav-Zyklus ZYK-STER-992 (Equipment: Stand-Autoklav AT-442) wurde ohne dokumentierten Nachweis der Wirksamkeitsprüfung (Effectiveness Check) abgeschlossen. Dies stellt ein hohes Compliance-Risiko dar, da die Wirksamkeit der Maßnahme nicht belegt ist."
+        },
+        {
+          "finding_id": "finding_data_integrity_violation",
+          "severity": "high",
+          "risk_statement": "Die Datums- und Signaturangaben im Zusammenhang mit dem Autoklav-Zyklus ZYK-STER-992 (11.05.2026) und der Anwesenheit des Mitarbeiters PNN-8812 sind zeitlich unplausibel. Der Mitarbeiter betrat die Personenschleuse erst um 08:45 Uhr, während der Autoklav-Zyklus bereits um 08:15 Uhr beladen und um 08:20 Uhr gestartet wurde. Dies stellt einen Verstoß gegen die Datenintegrität dar."
+        },
+        {
+          "finding_id": "finding_deviation_impact_missing",
+          "severity": "high",
+          "risk_statement": "Die Abweichung im Autoklav-Zyklus ZYK-STER-992 (Equipment: Stand-Autoklav AT-442) wurde ohne dokumentierte Bewertung des Einflusses auf die Produktqualität und Patientensicherheit abgeschlossen. Es fehlt eine vollständige Impact Assessment für alle potenziell betroffenen Chargen."
+        },
+        {
+          "finding_id": "finding_qa_approval_missing",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe für die Abweichung im Autoklav-Zyklus ZYK-STER-992 (Equipment: Stand-Autoklav AT-442) ist nicht dokumentiert. Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend und stellt ein hohes Compliance-Risiko dar."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Abweichung vom Autoklavzyklus (ZYK-STER-992) wurde nicht mit einer dokumentierten Risikoeinstufung (Minor/Major/Kritisch) bewertet, wie in SOP-DEV-001 (Abschnitt 6.2) gefordert. Es fehlen belastbare physikalisch-chemische Daten zur Unterstützung der Risikobewertung."
+        },
+        {
+          "finding_id": "finding_001_identity_contradiction_pnn8812",
+          "severity": "critical",
+          "risk_statement": "Kritischer Widerspruch bei der Identität von Mitarbeiter PNN-8812: Im Autoklav-Protokoll (doc_a8e028ba90a84a528d29efe62ad3fd36) wird PNN-8812 als 'P.M.' geführt, während das Reinraumzugangsprotokoll (doc_98f98fa17992446c8b9914f7b9b2bf00) für dieselbe Personalnummer die Initialen 'A.S.' im elektronischen System hinterlegt ausweist. Dieser Widerspruch stellt einen schwerwiegenden Datenintegritätsbefund dar, da nicht feststellbar ist, welche Person tatsächlich den Autoklav-Zyklus ZYK-STER-992 durchgeführt hat. Eine falsche Zuordnung der ausführenden Person untergräbt die Rückverfolgbarkeit und verletzt ALCOA+-Anforderungen (Attributable)."
+        },
+        {
+          "finding_id": "finding_002_physical_presence_timeline_implausibility",
+          "severity": "high",
+          "risk_statement": "Zeitlich unplausible Anwesenheit: Das Reinraumzugangsprotokoll belegt, dass PNN-8812 erst um 08:45 Uhr die Personenschleuse zum Vorbereitungsraum (Raum R-102) betrat und laut elektronischem System vor 08:45 Uhr keine Anwesenheit im Bereich des Autoklaven gegeben war. Das Autoklav-Protokoll dokumentiert jedoch, dass die Beladung bereits um 08:15 Uhr abgeschlossen und der Programmstart um 08:20 Uhr erfolgte – beides Zeitpunkte, zu denen PNN-8812 laut Zugangssystem noch nicht im Bereich anwesend war. Dies ist ein zeitlicher Widerspruch, der entweder auf eine fehlerhafte Zuordnung der ausführenden Person, eine Manipulation des Audit Trails oder einen nicht dokumentierten Zugang hindeutet."
+        },
+        {
+          "finding_id": "finding_003_missing_deviation_classification_and_impact",
+          "severity": "high",
+          "risk_statement": "Aus den vorliegenden Claims ist keine formale Abweichungseröffnung, Risikoeinstufung (Minor/Major/Kritisch) oder dokumentierte Batch-Impact-Bewertung für den Zyklus ZYK-STER-992 erkennbar. Die festgestellten Widersprüche (Identität der ausführenden Person, zeitliche Unplausibilität der Anwesenheit) stellen potenzielle Abweichungen von kritischen GMP-Anforderungen dar. Ohne formale Abweichungsdokumentation und Risikoeinstufung ist die Produktqualität der mit diesem Zyklus sterilisierten Materialien nicht beurteilbar."
+        },
+        {
+          "finding_id": "finding_004_validation_loading_pattern_not_verified",
+          "severity": "medium",
+          "risk_statement": "Die Validierungsnote für AT-442 (doc_6adfcef09a6a423fb78d1f7732e4a309) verweist auf Anhang 4 mit exakten Beladungsmustern und maximal zulässigen Gesamtgewichten für Glaswaren. Aus den vorliegenden Claims ist nicht ersichtlich, ob das tatsächliche Beladungsmuster des Zyklus ZYK-STER-992 mit den in Anhang 4 spezifizierten Vorgaben übereinstimmt. Eine nicht validierungskonform beladene Charge kann die Sterilisationssicherheit beeinträchtigen, auch wenn die Prozessparameter (121°C / 20 Min) eingehalten wurden."
+        },
+        {
+          "finding_id": "finding_person_identity_contradiction_pnn8812",
+          "severity": "high",
+          "risk_statement": "Es besteht ein wesentlicher dokumentuebergreifender Widerspruch zur Identitaet von Personalnummer PNN-8812. In einem Dokument wird PNN-8812 als ausfuehrender Mitarbeiter P.M. gefuehrt, in einem anderen als Mitarbeiter mit im System hinterlegten Initialen A.S. Dieser Personenwiderspruch beeintraechtigt die Nachvollziehbarkeit der Verantwortlichkeit und erfordert Klaerung gemaess Dokumentationskonsistenz."
+        },
+        {
+          "finding_id": "finding_missing_impact_and_batch_assessment_for_deviation",
+          "severity": "high",
+          "risk_statement": "Fuer den vorliegenden Vorgang mit Abweichungssignal ist in den bereitgestellten Claims keine dokumentierte Bewertung des Einflusses auf Produktqualitaet/Patientensicherheit und keine Liste potenziell betroffener Chargen erkennbar. Damit ist eine vollstaendige Abweichungs- und Batch-Impact-Bewertung nicht belegt."
+        },
+        {
+          "finding_id": "finding_validation_scope_not_fully_evidenced_for_current_process_state",
+          "severity": "medium",
+          "risk_statement": "Die bereitgestellten Validierungsclaims belegen zwar eine Re-Validierungsfreigabe fuer AT-442 und das Programm „Standard-Zubehör-121“, jedoch ist die Uebertragbarkeit auf den aktuellen Prozesszustand nicht vollstaendig nachgewiesen, weil die exakten Beladungsmuster und maximal zulaessigen Gesamtgewichte nur in einem nicht vorliegenden Anhang 4 referenziert werden. Damit ist die Validierungsabdeckung fuer die konkrete Beladung des vorliegenden Zyklus nicht vollstaendig belegbar."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Es liegt keine dokumentierte Bewertung des Einflusses der Abweichung auf die Produktqualität und Patientensicherheit vor, einschließlich einer Liste aller potenziell betroffenen Chargen, wie in SOP-DEV-001 (Abschnitt 6.4) gefordert."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "high",
+          "risk_statement": "Die zeitliche Abfolge der Ereignisse (z. B. Betreten des Vorbereitungsraums um 08:45 Uhr und Beladungsabschluss um 08:15 Uhr) wirft Fragen zur Datenintegrität auf. Gemäß SOP-DI-002 (Abschnitt 4.1) müssen elektronische Unterschriften und Datumsangaben ALCOA+ erfüllen und zeitlich plausibel sein."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "medium",
+          "risk_statement": "Es gibt keine dokumentierte QA-Freigabe oder Genehmigung für die Abweichung, obwohl eine solche gemäß SOP-QA-004 (Abschnitt 5.1) vor Abschluss erforderlich ist. Die Validierungsnachweise für den Autoklav AT-442 (Standard-Zubehör-121) sind vorhanden, aber es fehlt der Bezug zur aktuellen Abweichung."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_06",
+      "document_set_id": "ds_1ccce446577f4f249c7de756ab058e7c",
+      "documents_uploaded": [
+        "document_01_supplier_coa.md",
+        "document_02_laboratory_deviation.md",
+        "document_03_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 9494,
+          "output_tokens": 2370,
+          "total_tokens": 11864,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 62092,
+          "output_tokens": 22805,
+          "total_tokens": 84897,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 11331,
+          "output_tokens": 7426,
+          "total_tokens": 18757,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3164,
+          "output_tokens": 2070,
+          "total_tokens": 5234,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "ValidationAndSterilityReviewer": "failed"
+      },
+      "failed_model_roles": [
+        "ValidationAndSterilityReviewer"
+      ],
+      "claim_count": 21,
+      "finding_count": 19,
+      "citation_verified_finding_count": 19,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_06_01",
+          "severity": "high",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Akzeptanzkriterium der internen Spezifikation wird durch das Lieferanten-Zertifikat verletzt.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001_contradiction_water_content_spec",
+            "risk_statement": "Der Wassergehalt der Rohstoffcharge CS-AMX-9982 (13,2%) überschreitet die interne Spezifikation von 11,5% bis 12,8% für Amoxicillin Trihydrat (Prüf-Spez-API-04). Diese Abweichung ist im Abweichungsbericht LAB-DEV-2026-031 dokumentiert, jedoch fehlt eine dokumentierte Risikobewertung (Minor/Major/Kritisch) sowie eine Impact-Assessment für die betroffene Charge. Die Freigabe der Formulierungscharge AMO-SUP-2026-01 erfolgte ohne Nachweis der Konformität mit den Spezifikationsgrenzen.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_06_02",
+          "severity": "critical",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Wirkstofffreigabe durch QA trotz ungelöster und aktive Laborabweichung.",
+          "match": {
+            "score": 0.718,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_4",
+            "risk_statement": "Es besteht ein Widerspruch zwischen dem im Analysenzertifikat des Lieferanten angegebenen Wassergehalt (13,2%) und der internen Spezifikation (11,5% bis 12,8%). Dieser Widerspruch wurde in der QA-Freigabe der Charge AMO-SUP-2026-01 nicht konsistent adressiert. Angaben zu Chargen, Daten und Ergebnissen müssen über alle Dokumente hinweg konsistent sein.",
+            "severity": "medium"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_06_01",
+          "evidence_text": "Identität (IR): Konform",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_1",
+          "severity": "high",
+          "risk_statement": "Es liegt keine dokumentierte Risikobewertung (Minor/Major/Kritisch) für die Abweichung LAB-DEV-2026-031 vor. Eine Einstufung ohne belastbare physikalisch-chemische Daten oder belegte Root-Cause-Angaben ist nicht zulässig."
+        },
+        {
+          "finding_id": "finding_2",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe der Formulierungscharge AMO-SUP-2026-01 (Dokument QA-REL-AMO-01) erfolgte am 18.05.2026, obwohl die Abweichung LAB-DEV-2026-031 zum Zeitpunkt der Freigabe noch als 'In Untersuchung (Open)' markiert war. Es gibt keine dokumentierte Bewertung des Einflusses der Abweichung auf die Produktqualität oder Patientensicherheit für diese Charge."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierten Nachweise für eine durchgeführte Audit-Trail-Review der elektronischen Records im Zusammenhang mit der Abweichung LAB-DEV-2026-031 oder der QA-Freigabe der Charge AMO-SUP-2026-01. Elektronische Signaturen und Datumsangaben müssen gemäß ALCOA+ zeitnah, plausibel und konsistent mit dem Audit Trail sein."
+        },
+        {
+          "finding_id": "finding_capa_effectiveness_missing",
+          "severity": "high",
+          "risk_statement": "Es liegt eine Abweichung im Wassergehalt von Amoxicillin Trihydrat vor (13,2% gemessen vs. 11,5-12,8% spezifiziert), jedoch fehlt ein dokumentierter Effectiveness-Check für die CAPA-Maßnahmen. Ohne diesen Nachweis kann die Wirksamkeit der CAPA nicht bestätigt werden, was ein hohes Risiko für die Produktqualität und Compliance darstellt."
+        },
+        {
+          "finding_id": "finding_qa_approval_premature",
+          "severity": "high",
+          "risk_statement": "Die Formulierungscharge AMO-SUP-2026-01 wurde trotz laufender Deviation-Untersuchung (LAB-DEV-2026-031) und ungelöster Abweichung im Wassergehalt des Rohstoffs freigegeben. Dies stellt ein hohes Risiko für die Produktqualität und Compliance dar, da die QA-Freigabe vor Abschluss der Deviation-Bewertung erfolgte."
+        },
+        {
+          "finding_id": "finding_002_contradiction_qa_approval",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe der Formulierungscharge AMO-SUP-2026-01 (Dokument QA-REL-AMO-01) erfolgte am 18.05.2026, obwohl die Abweichung LAB-DEV-2026-031 zum Zeitpunkt der Freigabe noch als \"In Untersuchung (Open)\" gekennzeichnet war. Es fehlt eine dokumentierte Bewertung des Einflusses der Abweichung auf die Produktqualität sowie eine CAPA-Maßnahme mit Wirksamkeitsprüfung."
+        },
+        {
+          "finding_id": "finding_001_qa_release_before_deviation_closed",
+          "severity": "critical",
+          "risk_statement": "Die QA-Freigabe der Formulierungscharge AMO-SUP-2026-01 (Datum: 18.05.2026) erfolgte, obwohl die Abweichung LAB-DEV-2026-031 zum Rohstoff CS-AMX-9982 (Eröffnung: 14.05.2026) zum Zeitpunkt der Freigabe noch offen und in Untersuchung war. Eine Freigabe einer Charge, deren Rohstoff Gegenstand einer offenen, ungeklärten Abweichung ist, stellt ein kritisches Qualitäts- und Patientensicherheitsrisiko dar. Die Freigabe basierte auf dem Lieferantenzertifikat, obwohl die interne Nachanalyse einen Wassergehalt von 13,2% ergab, der außerhalb der Spezifikation (11,5–12,8%) liegt."
+        },
+        {
+          "finding_id": "finding_002_oos_result_spec_exceedance_no_classification",
+          "severity": "critical",
+          "risk_statement": "Der intern gemessene Wassergehalt von 13,2% für Rohstoff CS-AMX-9982 überschreitet die Spezifikationsgrenze von 12,8% (Prüf-Spez-API-04) um 0,4 Prozentpunkte. Die Abweichung LAB-DEV-2026-031 enthält keine dokumentierte Risikoeinstufung (Minor/Major/Kritisch) und keine belastbare physikalisch-chemische Begründung für die Einstufung. Ein erhöhter Wassergehalt bei Amoxicillin Trihydrat ist ein kritischer Qualitätsparameter mit direktem Einfluss auf Wirkstoffstabilität und Produktqualität. Die fehlende Klassifizierung stellt einen Verstoß gegen req_gs_deviation_classification dar."
+        },
+        {
+          "finding_id": "finding_003_batch_impact_assessment_missing",
+          "severity": "high",
+          "risk_statement": "Für die Abweichung LAB-DEV-2026-031 (OOS Wassergehalt Rohstoff CS-AMX-9982) ist kein dokumentierter Batch-Impact-Assessment nachweisbar. Es ist unklar, ob neben der Formulierungscharge AMO-SUP-2026-01 weitere Chargen von dem betroffenen Rohstoff betroffen sind. Die Freigabe der Charge AMO-SUP-2026-01 erfolgte ohne nachgewiesene Verknüpfung mit einem vollständigen Impact Assessment, das alle potenziell betroffenen Chargen auflistet."
+        },
+        {
+          "finding_id": "finding_004_supplier_coa_vs_internal_oos_contradiction",
+          "severity": "high",
+          "risk_statement": "Es besteht ein dokumentierter Widerspruch zwischen dem Lieferantenzertifikat (CoA), das Konformität des Wirkstoffs bestätigt, und dem internen QC-Ergebnis (Wassergehalt 13,2%, außerhalb der Spezifikation 11,5–12,8%). Die QA-Freigabe stützt sich ausschließlich auf das Lieferantenzertifikat und ignoriert das interne OOS-Ergebnis. Dieser Widerspruch ist nicht aufgeklärt und stellt einen Datenintegritäts- und Dokumentationsbefund dar."
+        },
+        {
+          "finding_id": "finding_005_capa_missing",
+          "severity": "high",
+          "risk_statement": "Für die Abweichung LAB-DEV-2026-031 sind keine CAPA-Maßnahmen dokumentiert. Die Abweichung ist offen und in Untersuchung, jedoch enthält der Claim-Ledger keinen Hinweis auf initiierte oder geplante CAPA-Maßnahmen. Ohne CAPA besteht das Risiko, dass die Ursache des OOS-Ergebnisses nicht behoben wird und weitere Chargen betroffen sein könnten."
+        },
+        {
+          "finding_id": "finding_redteam_001",
+          "severity": "high",
+          "risk_statement": "Es liegt ein wesentliches Freigaberisiko vor, weil die Formulierungscharge AMO-SUP-2026-01 als „frei verwendbar“ freigegeben wurde, obwohl fuer den eingesetzten Rohstoff CS-AMX-9982 eine offene Abweichungsuntersuchung wegen eines Wassergehalts ausserhalb der internen Spezifikation dokumentiert ist. Damit ist die Freigabe nicht konsistent mit dem noch nicht abgeschlossenen Untersuchungsstatus und der nicht belegten Einflussbewertung."
+        },
+        {
+          "finding_id": "finding_redteam_002",
+          "severity": "high",
+          "risk_statement": "Es fehlt eine dokumentierte Batch-Impact-Bewertung mit Auflistung potenziell betroffener Chargen fuer die Abweichung LAB-DEV-2026-031, obwohl der betroffene Rohstoff CS-AMX-9982 nachweislich in mindestens einer Formulierungscharge eingesetzt wurde. Ohne diese Verknuepfung ist die Vollstaendigkeit der Einflussbewertung auf Produktqualitaet und Disposition nicht belegt."
+        },
+        {
+          "finding_id": "finding_rc_001",
+          "severity": "high",
+          "risk_statement": "Die Abweichung LAB-DEV-2026-031 (Wassergehalt von 13,2% bei Amoxicillin Trihydrat, Spezifikation: 11,5–12,8%) wurde ohne dokumentierte Risikoeinstufung (Minor/Major/Kritisch) und ohne belastbare physikalisch-chemische Datenbewertung abgeschlossen. Eine Root-Cause-Analyse fehlt oder ist nicht belegt."
+        },
+        {
+          "finding_id": "finding_rc_002",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe der Formulierungscharge AMO-SUP-2026-01 erfolgte trotz laufender Abweichungsuntersuchung LAB-DEV-2026-031 (Wassergehalt außerhalb der Spezifikation). Es fehlt eine dokumentierte Impact-Bewertung der Abweichung auf die betroffene Charge sowie eine klare QA-Entscheidung zur Freigabe."
+        },
+        {
+          "finding_id": "finding_rc_003",
+          "severity": "medium",
+          "risk_statement": "Die Konsistenz der Angaben zur Charge CS-AMX-9982 zwischen Abweichungsbericht, Analysenzertifikat und QA-Freigabe ist unklar. Es fehlt eine explizite Prüfung auf Widersprüche in den Dokumenten (z. B. Wassergehalt, Spezifikationskonformität)."
+        },
+        {
+          "finding_id": "finding_c071b96e75efa59bee50",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-DEV-001 Abweichungsmanagement Abschnitt 6.4 fordert 'Impact Assessment'. Die Unterlagen enthalten keine(n) dokumentierte Bewertung der Auswirkung auf Produktqualitaet und Chargen - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_07",
+      "document_set_id": "ds_5e29288fdd12409e91447c424acb36b6",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 9185,
+          "output_tokens": 4028,
+          "total_tokens": 13213,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 70160,
+          "output_tokens": 24841,
+          "total_tokens": 95001,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 10941,
+          "output_tokens": 8722,
+          "total_tokens": 19663,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3222,
+          "output_tokens": 2109,
+          "total_tokens": 5331,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "CAPAReviewer": "failed",
+        "ContradictionHunter": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded"
+      },
+      "failed_model_roles": [
+        "CAPAReviewer"
+      ],
+      "claim_count": 20,
+      "finding_count": 30,
+      "citation_verified_finding_count": 29,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_07_01",
+          "severity": "high",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Yield-Unterschreitung wird fälschlicherweise als konform deklariert.",
+          "match": {
+            "score": 0.459,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_1a2b3c4d5e6f7g8h9i0j",
+            "risk_statement": "Die Impact-Bewertung der Abweichung DEV-MET-09 stuft die Abweichung als 'Minor' ein, jedoch fehlt eine detaillierte, chargenspezifische Begründung für die Dispositionsentscheidung der Charge MET-2026-C09. Die Ausbeute von 92,4% liegt außerhalb des spezifizierten Toleranzbereichs von 95,0% bis 102,0%, was auf ein potenzielles Qualitätsrisiko hindeutet, das nicht ausreichend adressiert wurde.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_07_02",
+          "severity": "medium",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlen des regulatorisch geforderten Effectiveness Checks im CAPA-Dokument.",
+          "match": {
+            "score": 0.639,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_redteam_05",
+            "risk_statement": "Zum CAPA-Plan ist im vorliegenden Claim-Satz zwar Verantwortlichkeit und Deadline dokumentiert, jedoch keine definierte oder dokumentierte Wirksamkeitspruefung erkennbar. Damit ist die fuer den CAPA-Abschluss erforderliche Effectiveness-Check-Evidenz nicht belegt.",
+            "severity": "medium"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_07_01",
+          "evidence_text": "Sprühdüse für ca. 20 Minuten verstopfte",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_2b3c4d5e6f7g8h9i0j1k",
+          "severity": "medium",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-MET-2026-09 zu der Abweichung DEV-MET-09 ist mit einer Deadline zum 15.06.2026 terminiert, jedoch fehlt ein dokumentierter Effectiveness Check, der die Wirksamkeit der Maßnahme nachweist. Dies stellt ein Compliance-Risiko dar, da CAPA-Maßnahmen ohne Wirksamkeitsprüfung nicht abgeschlossen werden dürfen."
+        },
+        {
+          "finding_id": "finding_3c4d5e6f7g8h9i0j1k2l",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe der Charge MET-2026-C09 wurde von 'F.B.' am 02.05.2026 durchgeführt. Es fehlt jedoch ein Nachweis, dass die Signatur zeitnah, plausibel und konsistent mit dem Audit Trail erfolgte. Dies stellt ein Datenintegritätsrisiko dar, da elektronische Unterschriften ALCOA+-Anforderungen erfüllen müssen."
+        },
+        {
+          "finding_id": "finding_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-MET-2026-09 ist mit der Abweichung DEV-MET-09 verknüpft, jedoch fehlt ein dokumentierter Effectiveness-Check zur Überprüfung der Wirksamkeit der durchgeführten Maßnahmen. Dies stellt ein hohes Compliance-Risiko dar, da CAPA-Maßnahmen ohne Wirksamkeitsnachweis nicht abgeschlossen werden dürfen."
+        },
+        {
+          "finding_id": "finding_capa_responsible_party_clarity",
+          "severity": "medium",
+          "risk_statement": "Die verantwortliche Partei für die CAPA-Maßnahme CAPA-MET-2026-09 ist als 'Leitung Instandhaltung' angegeben. Es fehlt jedoch eine klare Benennung einer spezifischen Person oder Rolle, die für die Durchführung und Überwachung der CAPA-Maßnahmen verantwortlich ist."
+        },
+        {
+          "finding_id": "finding_capa_deadline_compliance",
+          "severity": "medium",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-MET-2026-09 hat eine terminierte Deadline zum 15.06.2026. Es gibt jedoch keine Evidenz, ob diese Deadline eingehalten wurde oder ob eine Verlängerung bzw. ein Abschluss der CAPA dokumentiert ist."
+        },
+        {
+          "finding_id": "finding_contradiction_001",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-MET-2026-09 zu Abweichung DEV-MET-09 ist mit Verantwortlichem (Leitung Instandhaltung) und Deadline (15.06.2026) dokumentiert, jedoch fehlt der Nachweis der Wirksamkeitsprüfung (Effectiveness Check) gemäß Requirement req_gs_capa_effectiveness. Ohne dokumentierte Wirksamkeitsprüfung darf die CAPA nicht abgeschlossen werden, was ein Compliance-Risiko darstellt."
+        },
+        {
+          "finding_id": "finding_contradiction_002",
+          "severity": "medium",
+          "risk_statement": "Die Netto-Ausbeute der Charge MET-2026-C09 beträgt 92,4%, was unterhalb des spezifizierten Toleranzbereichs von 95,0% bis 102,0% liegt. Obwohl dies als 'Pass' im Batch Record dokumentiert ist, fehlt eine explizite Bewertung dieser Unterschreitung als Abweichung oder eine Begründung für die Freigabe trotz Nichteinhaltung der Spezifikation."
+        },
+        {
+          "finding_id": "finding_1",
+          "severity": "high",
+          "risk_statement": "Die elektronische Signatur und Datumsangabe des Operators (F.B. am 02.05.2026) im Batch Record MET-2026-C09 erfüllt nicht eindeutig die ALCOA+-Anforderungen. Es fehlen Nachweise zur zeitnahen, plausiblen und konsistenten Durchführung der Signatur sowie eine Überprüfung des Audit Trails. Dies stellt ein Datenintegritätsrisiko dar."
+        },
+        {
+          "finding_id": "finding_2",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierten Nachweise für die Durchführung einer Audit-Trail-Review im Zusammenhang mit der Abweichung DEV-MET-09 oder dem Batch Record MET-2026-C09. Dies stellt ein Compliance-Risiko dar, da die Überprüfung des Audit Trails für kritische Prozessschritte und elektronische Signaturen verpflichtend ist."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "medium",
+          "risk_statement": "Die Konsistenz der Daten zwischen dem Abweichungsbericht (DEV-MET-09), dem Batch Record (MET-2026-C09) und der CAPA (CAPA-MET-2026-09) ist nicht vollständig sichergestellt. Es bestehen Unklarheiten hinsichtlich der betroffenen Chargen und der zeitlichen Abfolge der Ereignisse, was zu potenziellen Widersprüchen führen kann."
+        },
+        {
+          "finding_id": "finding_4",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-MET-2026-09 zu Abweichung DEV-MET-09 ist terminiert, jedoch fehlt ein dokumentierter Effectiveness Check. Gemäß SOP-CAPA-003 (Abschnitt 7.5) dürfen CAPA-Maßnahmen nur mit definierter Wirksamkeitsprüfung abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_5",
+          "severity": "medium",
+          "risk_statement": "Die Dokumentation weist formale Widersprüche auf, die die Datenintegrität beeinträchtigen könnten. Beispielsweise ist das Datum der QA-Prüfung (02.05.2026) identisch mit dem Datum der Abweichungserfassung, was auf eine mögliche Nachdokumentation hindeuten könnte. Gemäß SOP-DI-002 (Abschnitt 4.1) müssen Datums- und Signaturangaben zeitnah, plausibel und konsistent mit dem Audit Trail sein."
+        },
+        {
+          "finding_id": "finding_001_yield_below_spec_pass_status",
+          "severity": "critical",
+          "risk_statement": "Die dokumentierte Netto-Ausbeute von 92,4 % liegt unterhalb des spezifizierten Toleranzbereichs von 95,0 % bis 102,0 %, dennoch wurde der Status manuell als 'Pass' eingetragen. Dies stellt eine nicht gerechtfertigte Entwarnung dar, da keine Daten oder Begründung vorliegen, die eine Unterschreitung der Untergrenze um 2,6 Prozentpunkte als akzeptabel ausweisen. Eine solche Unterschreitung hätte als Abweichung bewertet und als mindestens Major klassifiziert werden müssen."
+        },
+        {
+          "finding_id": "finding_002_minor_classification_unsupported",
+          "severity": "high",
+          "risk_statement": "Die Abweichung DEV-MET-09 (verstopfte Sprühdüse für ca. 20 Minuten) wurde als 'Minor' eingestuft. Die Begründung stützt sich ausschließlich auf die visuelle Wiederherstellung des Sprühbilds nach mechanischer Reinigung. Physikalisch-chemische Labordaten (z.B. Schichtdickengleichmäßigkeit, Auflösungsverhalten, Coating-Gewichtszunahme) fehlen vollständig. Gleichzeitig liegt die Netto-Ausbeute der betroffenen Charge mit 92,4 % unterhalb der Spezifikationsgrenze, was auf einen tatsächlichen Produkteinfluss hindeutet und die Minor-Einstufung ohne Datenbasis nicht haltbar macht."
+        },
+        {
+          "finding_id": "finding_003_batch_impact_assessment_missing",
+          "severity": "high",
+          "risk_statement": "Aus den vorliegenden Claims ist kein dokumentiertes Batch-Impact-Assessment ersichtlich, das alle potenziell betroffenen Chargen auflistet und die Dispositionsentscheidung mit Batch Records verknüpft. Es wird lediglich Charge MET-2026-C09 erwähnt. Eine Bewertung, ob weitere Chargen (z.B. Vorgänger- oder Parallelchargen auf COAT-04) betroffen sind, fehlt vollständig."
+        },
+        {
+          "finding_id": "finding_004_capa_effectiveness_check_missing",
+          "severity": "high",
+          "risk_statement": "Im CAPA-Plan CAPA-MET-2026-09 ist kein Effectiveness-Check-Nachweis dokumentiert. Es existiert lediglich eine terminierte Deadline (15.06.2026) und eine Verantwortlichkeit (Leitung Instandhaltung), jedoch kein Claim, der einen definierten Wirksamkeitsnachweis beschreibt. Gemäß req_gs_capa_effectiveness dürfen CAPA-Maßnahmen nur mit dokumentierter Wirksamkeitsprüfung abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_005_qa_approval_missing",
+          "severity": "high",
+          "risk_statement": "Aus den vorliegenden Claims ist keine QA-Freigabe oder QA-Genehmigung für die Abweichung DEV-MET-09, den CAPA-Plan CAPA-MET-2026-09 oder die Charge MET-2026-C09 dokumentiert. Der einzige Prüfvermerk stammt vom Operator F.B. (02.05.2026), der als 'Operator Review' klassifiziert ist – nicht als QA-Freigabe. Gemäß req_gs_qa_approval_documented müssen QA-Freigaben vor Abschluss dokumentiert vorliegen."
+        },
+        {
+          "finding_id": "finding_006_reject_count_yield_arithmetic_check",
+          "severity": "medium",
+          "risk_statement": "Die dokumentierten Zahlen weisen eine interne Inkonsistenz auf: Theoretische Ausbeute 500.000 Tabletten, Ausschuss 4.000 Tabletten, berechnete Netto-Ausbeute 462.000 Tabletten (92,4 %). Rechnerisch ergibt 500.000 − 4.000 = 496.000 Tabletten, nicht 462.000. Die Differenz von 34.000 Tabletten (6,8 % der theoretischen Ausbeute) ist nicht erklärt. Dies deutet entweder auf weitere nicht dokumentierte Verluste oder auf einen Dokumentationsfehler hin."
+        },
+        {
+          "finding_id": "finding_redteam_01",
+          "severity": "high",
+          "risk_statement": "Es besteht ein wesentlicher Widerspruch zwischen dokumentierter Netto-Ausbeute ausserhalb des spezifizierten Validierungs-Toleranzbereichs und dem gleichzeitig als \"Pass\" dokumentierten Status. Dies spricht fuer eine moeglicherweise fehlerhafte Bewertung bzw. unzureichend aufgeklaerte Abweichung."
+        },
+        {
+          "finding_id": "finding_redteam_02",
+          "severity": "high",
+          "risk_statement": "Die Abweichung wurde als Minor eingestuft, obwohl ein 20-minuetiges Problem im Coating-Prozess dokumentiert ist und im vorliegenden Claim-Satz keine belastbaren physikalisch-chemischen Daten oder Labordaten zur Begruendung dieser Risikoeinstufung vorliegen. Die Entwarnung ueber wiederhergestelltes Spruehbild allein belegt die Minor-Einstufung nicht ausreichend."
+        },
+        {
+          "finding_id": "finding_redteam_03",
+          "severity": "high",
+          "risk_statement": "Fuer die dokumentierte Abweichung und die ausserhalb des Toleranzbereichs liegende Netto-Ausbeute ist im vorliegenden Claim-Satz keine vollstaendige Batch-Impact-Bewertung mit Dispositionsentscheidung und Auflistung aller potenziell betroffenen Chargen erkennbar. Dadurch bleibt die Chargenfreigabe bzw. der Einfluss auf betroffene Chargen unzureichend belegt."
+        },
+        {
+          "finding_id": "finding_redteam_04",
+          "severity": "medium",
+          "risk_statement": "Im vorliegenden Claim-Satz ist nur eine Operator-Pruefung dokumentiert, jedoch keine dokumentierte QA-Freigabe oder QA-Genehmigung vor Abschluss. Damit ist die erforderliche QA-Dokumentation fuer Freigabe/Genehmigung nicht belegt."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Chargenausbeute von 92,4% liegt außerhalb des spezifizierten Toleranzbereichs von 95,0% bis 102,0%. Dies stellt eine Abweichung dar, die nicht ausreichend bewertet wurde, insbesondere im Hinblick auf die Produktqualität und Patientensicherheit."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Es fehlt eine dokumentierte Bewertung der Auswirkungen der Abweichung (verstopfte Sprühdüse während des Coating-Prozesses) auf die Sterilitätsgarantie und aseptische Prozessbedingungen."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "high",
+          "risk_statement": "Es fehlt eine dokumentierte Bewertung, ob die Reinigungsvalidierung für das Equipment (Coater COAT-04) nach der Abweichung (verstopfte Sprühdüse) weiterhin gültig ist. Ein Bridging oder Addendum zur Reinigungsvalidierung ist nicht ersichtlich."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "medium",
+          "risk_statement": "Die elektronische Unterschrift und Datumsangabe des Operators (F.B. am 02.05.2026) muss auf Plausibilität und Konsistenz mit dem Audit Trail überprüft werden. Unplausible Datumsangaben stellen ein Datenintegritätsrisiko dar."
+        },
+        {
+          "finding_id": "finding_005",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme (CAPA-MET-2026-09) sieht eine Deadline bis zum 15.06.2026 vor, jedoch fehlt eine dokumentierte Wirksamkeitsprüfung (Effectiveness Check). CAPA-Maßnahmen dürfen nur mit definierter Wirksamkeitsprüfung abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_d8dcad6a9054bd377bd0",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-CAPA-003 CAPA Management Abschnitt 7.5 fordert 'Effectiveness Check Nachweis'. Die Unterlagen enthalten keine(n) Definition oder Durchfuehrung einer Wirksamkeitspruefung (Effectiveness Check) im CAPA-Plan - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_08",
+      "document_set_id": "ds_5ffce7626e4f4959b236a69720aebcae",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_capa_plan.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 11761,
+          "output_tokens": 3030,
+          "total_tokens": 14791,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 77553,
+          "output_tokens": 18770,
+          "total_tokens": 96323,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 13810,
+          "output_tokens": 7481,
+          "total_tokens": 21291,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3275,
+          "output_tokens": 3277,
+          "total_tokens": 6552,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "DeviationReviewer": "failed"
+      },
+      "failed_model_roles": [
+        "DeviationReviewer"
+      ],
+      "claim_count": 32,
+      "finding_count": 26,
+      "citation_verified_finding_count": 24,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 3,
+      "matched_errors": [
+        {
+          "error_id": "ERR_08_01",
+          "severity": "critical",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Unerkannter bzw. bewusst ignorierter Wiederholungsfehler (Trend-Fehler) bei Stempelbeschädigungen.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_1",
+            "risk_statement": "Die Abweichung DEV-IBU-2026-112 (Haarriss am Oberstempel, Charge IBU-2026-P03) wurde als isoliertes Ereignis ohne systematischen Charakter bewertet. Es fehlen jedoch belastbare physikalisch-chemische Daten zur Risikoeinstufung, insbesondere zur Bewertung möglicher metallischer Mikrofragmente im Endprodukt. Eine Einstufung ohne solche Daten ist gemäß SOP-DEV-001 nicht zulässig.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_08_02",
+          "severity": "high",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Mangelhafte Ausdehnung des Batch-Impact-Assessments auf potenziell mitbetroffene Vorgängerchargen.",
+          "match": {
+            "score": 0.697,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_contradiction_003",
+            "risk_statement": "Die Abweichung DEV-IBU-2026-112 wird als isoliertes Einzelereignis ohne Einfluss auf andere Chargen oder vorangegangene Produktionsschritte bewertet (Claims claim_2084e5a5b522959af96f und claim_0d051396808bd912a548). Allerdings fehlt eine explizite Auflistung aller betroffenen Chargen im Rahmen der Batch-Impact-Bewertung, was der Anforderung widerspricht, dass Batch-Impact-Bewertungen alle betroffenen Chargen auflisten müssen.",
+            "severity": "medium"
+          }
+        },
+        {
+          "error_id": "ERR_08_03",
+          "severity": "medium",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Unrealistisches, nicht plausibles CAPA-Zieldatum ohne adäquate Projektrealisierungszeit.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_capa_112_ibu_effectiveness_check_missing",
+            "risk_statement": "Die CAPA-Maßnahme CAPA-112-IBU wurde ohne dokumentierten Effectiveness-Check abgeschlossen. Gemäß SOP-CAPA-003 (Abschnitt 7.5) ist ein Effectiveness-Check zwingend erforderlich, um die Wirksamkeit der Maßnahmen nachzuweisen. Fehlende Wirksamkeitsnachweise gefährden die Compliance und können zu regulatorischen Beanstandungen führen.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_08_01",
+          "evidence_text": "Werkzeugsegment wurde getauscht",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_2",
+          "severity": "high",
+          "risk_statement": "Die Reinigungsvalidierung wurde nicht explizit auf die aktuelle Abweichung (Haarriss am Oberstempel, metallische Mikrofragmente) bewertet. Es fehlt ein Bridging-Nachweis oder ein Addendum zur Reinigungsvalidierungsmatrix, das die Eignung der bestehenden Reinigungsprozesse für die neue Risikosituation bestätigt."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "medium",
+          "risk_statement": "Die Sterilitätsassurance für die Charge IBU-2026-P03 wurde nicht explizit bewertet, obwohl ein Werkzeugbruch (Oberstempel) vorlag. Es fehlt eine dokumentierte Bewertung, ob die Sterilität des Produkts durch den Vorfall beeinträchtigt wurde oder ob zusätzliche Maßnahmen (z. B. Sterilitätsprüfung) erforderlich sind."
+        },
+        {
+          "finding_id": "finding_capa_112_ibu_risk_assessment_missing",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-112-IBU enthält keine dokumentierte Risikobewertung oder Verknüpfung zu einer formalen Quality-Risk-Management-Bewertung. Gemäß SOP-DEV-001 (Abschnitt 6.2) ist eine belastbare Risikoeinstufung für Abweichungen mit potenziellem Einfluss auf Produktqualität oder Patientensicherheit zwingend erforderlich."
+        },
+        {
+          "finding_id": "finding_capa_112_ibu_qa_approval_missing",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-112-IBU enthält keinen Nachweis einer dokumentierten QA-Freigabe oder Genehmigung. Gemäß SOP-QA-004 (Abschnitt 5.1) müssen QA-Freigaben vor Abschluss der CAPA dokumentiert vorliegen. Fehlende QA-Genehmigungen stellen ein Compliance-Risiko dar."
+        },
+        {
+          "finding_id": "finding_contradiction_001",
+          "severity": "high",
+          "risk_statement": "Es besteht ein Widerspruch in der Impact-Bewertung der Abweichung DEV-IBU-2026-112. Einerseits wird behauptet, dass es sich um ein isoliertes Einzelereignis ohne systematischen Charakter handelt (Claim claim_2084e5a5b522959af96f), andererseits gibt es Hinweise auf ähnliche Vorfälle (DEV-IBU-2026-042 und DEV-IBU-2026-081) mit vergleichbaren Ursachen (Werkzeugschäden an Oberstempeln/Unterstempeln) innerhalb desselben Betrachtungszeitraums (März 2026 - Mai 2026). Dies deutet auf ein potenziell systematisches Problem hin, das nicht ausreichend bewertet wurde."
+        },
+        {
+          "finding_id": "finding_contradiction_002",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-112-IBU (Installation eines Inline-Metalldetektors) wurde mit einer Deadline zum 11.05.2026 terminiert (Claim claim_41d18f2aa4cc9474ddb7). Allerdings fehlt ein dokumentierter Effectiveness Check, der die Wirksamkeit der Maßnahme nachweist. Dies widerspricht der Anforderung, dass CAPA-Maßnahmen nur mit definierter und dokumentierter Wirksamkeitsprüfung abgeschlossen werden dürfen."
+        },
+        {
+          "finding_id": "finding_001_isolated_incident_contradiction",
+          "severity": "critical",
+          "risk_statement": "DEV-IBU-2026-112 klassifiziert den Vorfall als 'isoliertes Einzelereignis ohne systematischen Charakter' und schließt einen Einfluss auf andere Chargen 'absolut' aus. Das Batch-History-Dokument belegt jedoch drei gleichartige Werkzeugschäden an derselben Presse (Korsch TAB-02) innerhalb von weniger als drei Monaten (14.03.2026, 18.04.2026, 10.05.2026), betreffend die Chargen IBU-2026-P01, IBU-2026-P02 und IBU-2026-P03. Diese Häufung widerspricht der Einstufung als Einzelereignis und stellt eine nicht durch Daten belegte Entwarnung dar. Gemäß req_gs_deviation_impact und req_gs_cross_document_consistency müssen alle potenziell betroffenen Chargen bewertet werden; eine pauschale Ausschlussaussage ohne Trendanalyse und ohne Bewertung der Vorgängerchargen ist unzulässig."
+        },
+        {
+          "finding_id": "finding_002_capa_deadline_implausible",
+          "severity": "critical",
+          "risk_statement": "CAPA-112-IBU setzt als Deadline für den 'Abschluss der gesamten Validierung' den 11.05.2026 – einen Tag nach dem Vorfalldatum (10.05.2026). Die CAPA umfasst laut Dokument Beschaffung, Qualifizierung und Softwareintegration eines Inline-Metalldetektors. Es ist physikalisch und prozessual nicht plausibel, dass Beschaffung, Qualifizierung und vollständige Validierung eines neuen Equipments innerhalb eines einzigen Tages nach Vorfallerfassung abgeschlossen werden können. Dieser Termin erfüllt die ALCOA+-Anforderung der Plausibilität nicht (req_gs_data_integrity_signatures) und stellt einen Datenintegritätsbefund dar. Zudem ist kein Effectiveness-Check-Nachweis dokumentiert (req_gs_capa_effectiveness)."
+        },
+        {
+          "finding_id": "finding_003_batch_release_without_qa_approval",
+          "severity": "high",
+          "risk_statement": "Die Freigabe von Charge IBU-2026-P03 ist laut DEV-IBU-2026-112 nach einer 'zusätzlichen visuellen Stichprobenprüfung' geplant. Es existiert kein Claim, der eine dokumentierte QA-Freigabe oder eine abgeschlossene Dispositionsentscheidung mit Verknüpfung zum Batch Record belegt. Gemäß req_gs_qa_approval_documented und req_gs_batch_impact_completeness sind geplante, aber nicht dokumentierte Freigaben nicht ausreichend. Angesichts des Trendmusters (drei Werkzeugschäden in drei Monaten) und des Risikos metallischer Mikrofragmente ist eine alleinige visuelle Stichprobenprüfung als Freigabekriterium zudem fachlich unzureichend."
+        },
+        {
+          "finding_id": "finding_004_missing_risk_classification",
+          "severity": "high",
+          "risk_statement": "In den vorliegenden Claims zu DEV-IBU-2026-112 findet sich keine Angabe zur formalen Risikoeinstufung der Abweichung (Minor/Major/Kritisch) gemäß req_gs_deviation_classification. Ein Werkzeugbruch mit potenziellem Fragmentierungsrisiko im Endprodukt (Tabletten) und dem daraus resultierenden CAPA zur Nachrüstung eines Metalldetektors deutet auf eine Einstufung hin, die über 'Minor' hinausgeht. Ohne dokumentierte, begründete Risikoeinstufung mit physikalisch-chemischen Daten ist die Abweichung nicht regelkonform bewertet."
+        },
+        {
+          "finding_id": "finding_005_prior_deviations_no_impact_assessment",
+          "severity": "high",
+          "risk_statement": "Für die Vorgängerchargen IBU-2026-P01 (DEV-IBU-2026-042) und IBU-2026-P02 (DEV-IBU-2026-081) sind in den vorliegenden Claims keine dokumentierten Batch-Impact-Bewertungen oder Dispositionsentscheidungen nachweisbar. Gemäß req_gs_batch_impact_completeness müssen alle betroffenen Chargen aufgelistet und Freigabe- bzw. Dispositionsentscheidungen mit Batch Records verknüpft sein. Im Kontext des nun erkannten Trendmusters ist rückwirkend zu prüfen, ob die damaligen Bewertungen ausreichend waren."
+        },
+        {
+          "finding_id": "finding_redteam_001",
+          "severity": "high",
+          "risk_statement": "Die dokumentierte Entwarnung zum Einfluss auf andere Chargen und zur Freigabe der betroffenen Charge ist nicht konsistent mit der parallel beschriebenen CAPA-Begruendung eines Risikos metallischer Mikrofragmente im Endprodukt. Dadurch ist die Batch-Impact-Bewertung fuer Produktqualitaet und potenziell betroffene Chargen nicht belastbar belegt."
+        },
+        {
+          "finding_id": "finding_redteam_002",
+          "severity": "high",
+          "risk_statement": "Fuer die geplante Freigabe der Charge IBU-2026-P03 liegt im Claim-Set keine dokumentierte QA-Freigabe vor. Eine nur geplante Freigabe nach zusaetzlicher visueller Stichprobenpruefung erfuellt die Anforderung an dokumentierte QA-Genehmigung vor Abschluss nicht."
+        },
+        {
+          "finding_id": "finding_redteam_003",
+          "severity": "high",
+          "risk_statement": "Die CAPA-112-IBU beschreibt Massnahmen und eine Abschlussdeadline, jedoch ist kein definierter oder dokumentierter Wirksamkeitsnachweis im Claim-Set vorhanden. Ein Abschluss der CAPA ohne Effectiveness Check waere nicht regelkonform."
+        },
+        {
+          "finding_id": "finding_redteam_004",
+          "severity": "medium",
+          "risk_statement": "Die CAPA setzt eine sehr kurze Deadline fuer den 'Abschluss der gesamten Validierung', obwohl gleichzeitig Beschaffung, Qualifizierung und Softwareintegration eines neuen Inline-Metalldetektors erst priorisiert vorangetrieben werden. Diese Zeitachse ist dokumentenintern unplausibel und erfordert Klaerung, bevor auf den Validierungsstatus vertraut werden kann."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Impact-Bewertung der Abweichung DEV-IBU-2026-112 (Chunk_2d93fc8f7d4c4c5a90bb06ae88b6a0cb_p1) behauptet, es handle sich um ein isoliertes Einzelereignis ohne systematischen Charakter und ohne Einfluss auf andere Chargen. Diese Aussage ist jedoch nicht durch eine dokumentierte Risikobewertung (z. B. nach SOP-DEV-001, Abschnitt 6.2) oder physikalisch-chemische Daten belegt. Zudem fehlt eine explizite Einstufung der Abweichung (Minor/Major/Kritisch)."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Die Freigabe der Charge IBU-2026-P03 nach einer zusätzlichen visuellen Stichprobenprüfung (Chunk_2d93fc8f7d4c4c5a90bb06ae88b6a0cb_p1) ist dokumentiert, jedoch fehlt ein expliziter Nachweis der QA-Freigabe gemäß SOP-QA-004 (Abschnitt 5.1). Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme CAPA-112-IBU (Chunk_2fe2b72773b4482090272ca4aa7a83f3_p1) sieht die Implementierung eines Inline-Metalldetektors und die Priorisierung der Beschaffung, Qualifizierung und Softwareintegration vor. Es fehlt jedoch eine dokumentierte Wirksamkeitsprüfung (Effectiveness Check) gemäß SOP-CAPA-003 (Abschnitt 7.5), die für den Abschluss der CAPA erforderlich ist."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "medium",
+          "risk_statement": "Die Root-Cause-Angabe für die Abweichung DEV-IBU-2026-112 (Chunk_2d93fc8f7d4c4c5a90bb06ae88b6a0cb_p1) lautet 'Haarriss am Oberstempel von Station 12'. Diese Angabe ist nicht durch technische Daten, Inspektionsberichte oder andere Nachweise belegt, wie es gemäß SOP-DEV-001 (Abschnitt 6.2) erforderlich ist."
+        },
+        {
+          "finding_id": "finding_005",
+          "severity": "medium",
+          "risk_statement": "Die Historie der Werkzeugschäden (Chunk_0a2d36cfbace4ba887e5932066f1b9e3_p1) zeigt wiederholte Vorfälle (z. B. DEV-IBU-2026-042, DEV-IBU-2026-081, DEV-IBU-2026-112) an derselben Tablettenpresse (Korsch TAB-02). Die Aussage, dass es sich bei DEV-IBU-2026-112 um ein isoliertes Einzelereignis handelt, steht im Widerspruch zu dieser Historie und erfordert eine systematische Bewertung gemäß SOP-DEV-001 (Abschnitt 6.4)."
+        },
+        {
+          "finding_id": "finding_4",
+          "severity": "high",
+          "risk_statement": "Die geplante CAPA-Maßnahme (Inline-Metalldetektor) zur Eliminierung des Risikos metallischer Mikrofragmente ist noch nicht abgeschlossen oder validiert. Gemäß SOP-CAPA-003 darf eine CAPA-Maßnahme nur mit dokumentierter Wirksamkeitsprüfung (Effectiveness Check) abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_60c5ce68e94e7668eb53",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-CAPA-003 CAPA Management Abschnitt 7.5 fordert 'Effectiveness Check Nachweis'. Die Unterlagen enthalten keine(n) Definition oder Durchfuehrung einer Wirksamkeitspruefung (Effectiveness Check) im CAPA-Plan - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        },
+        {
+          "finding_id": "finding_f3a284a7135afb9ddc46",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-QA-004 QA Freigabe Abschnitt 5.1 fordert 'QA Approval Record'. Die Unterlagen enthalten keine(n) QA-Freigabe bzw. dokumentierte Genehmigung durch die Qualitaetssicherung - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_09",
+      "document_set_id": "ds_7093cd6811dc4bff9d75f5111209e705",
+      "documents_uploaded": [
+        "document_01_deviation_report.md",
+        "document_02_batch_record_excerpt.md",
+        "document_03_change_control.md"
+      ],
+      "pipeline_status": "completed",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 11686,
+          "output_tokens": 3573,
+          "total_tokens": 15259,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 91528,
+          "output_tokens": 29750,
+          "total_tokens": 121278,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 13815,
+          "output_tokens": 11349,
+          "total_tokens": 25164,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3388,
+          "output_tokens": 3134,
+          "total_tokens": 6522,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded"
+      },
+      "failed_model_roles": [],
+      "claim_count": 32,
+      "finding_count": 29,
+      "citation_verified_finding_count": 27,
+      "risk_decision": "human_review_required",
+      "auto_clear_allowed": false,
+      "gold_error_count": 3,
+      "matched_errors": [
+        {
+          "error_id": "ERR_09_01",
+          "severity": "critical",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Intentionale Falschdokumentation im Batch Record im Widerspruch zum SCADA-Audit-Trail.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001_batch_record_concealment",
+            "risk_statement": "Der handschriftliche Batch Record für Charge CEF-BIOR-2026-77 enthält die Eintragung 'Keine besonderen Vorkommnisse in der Schicht. Werte stabil.' – obwohl in derselben Schicht (14:00–20:15 Uhr) der automatische pH-Regelkreis manuell deaktiviert, der Sollwert eigenmächtig von pH 7,20 auf pH 7,70 hochgesetzt und damit die spezifizierte Obergrenze von pH 7,40 überschritten wurde. Diese Eintragung widerspricht den SCADA-Daten und dem Abweichungsbericht DEV-CEF-77 fundamental. Es besteht der begründete Verdacht auf eine vorsätzliche oder fahrlässige Verschleierung eines Abweichungsereignisses im Batch Record, was einen schwerwiegenden Datenintegritätsbefund (ALCOA+: accurate, complete) darstellt.",
+            "severity": "critical"
+          }
+        },
+        {
+          "error_id": "ERR_09_02",
+          "severity": "high",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Fehlerhafte Root-Cause-Ermittlung durch Ignorieren der System-Logfiles.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_4",
+            "risk_statement": "Die Abweichung DEV-CEF-77 (pH-Wert-Drift auf 7,85) wurde als 'Root Cause unaufgeklärt' dokumentiert, ohne dass eine belastbare Risikobewertung mit physikalisch-chemischen Daten vorliegt. Dies widerspricht der Anforderung, dass Abweichungen von kritischen Prozessparametern mit einer begründeten Risikoeinstufung bewertet werden müssen.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_09_03",
+          "severity": "medium",
+          "error_type": "Datenintegrität",
+          "expected_reviewer_finding": "Unvollständig genehmigtes Change-Control-Dokument ohne finale QK-Freigabe.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_2",
+            "risk_statement": "Die QA-Freigabe des Change-Control-Dokuments (CC-2026-104) ist unvollständig, da die Unterschrift der Leitung Qualitätskontrolle (Leitung QK) fehlt. Dies stellt ein Datenintegritätsrisiko dar, da die Freigabe nicht gemäß SOP-QA-004 dokumentiert ist und die versionskonsistente Genehmigung nicht nachgewiesen werden kann.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_09_01",
+          "evidence_text": "Spitzenwerte von pH 7,85",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_1",
+          "severity": "high",
+          "risk_statement": "Manueller Eingriff in den pH-Regelkreis (Deaktivierung der automatischen Sollwertführung) wurde von OPERATOR-TL durchgeführt, jedoch fehlt ein dokumentierter Audit-Trail-Eintrag, der den Grund für die Deaktivierung, die genaue Dauer und die Autorisierung des Eingriffs nachvollziehbar macht. Dies widerspricht den ALCOA+-Prinzipien (Attributable, Legible, Contemporaneous, Original, Accurate)."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "medium",
+          "risk_statement": "Die manuelle Anpassung des pH-Sollwerts von 7,20 auf 7,70 zur Unterdrückung von Schaumbildung ist im Batch Record dokumentiert, jedoch fehlt ein Nachweis über die Review des Audit-Trails für diese kritische manuelle Änderung. Dies widerspricht der Anforderung, dass elektronische Records und manuelle Eingriffe nachvollziehbar und überprüfbar sein müssen."
+        },
+        {
+          "finding_id": "finding_capa_effectiveness_missing",
+          "severity": "high",
+          "risk_statement": "Es liegt keine dokumentierte Wirksamkeitsprüfung (Effectiveness-Check) für die CAPA-Maßnahmen vor. Dies stellt ein hohes Compliance-Risiko dar, da CAPA-Maßnahmen ohne nachgewiesene Wirksamkeit nicht abgeschlossen werden dürfen."
+        },
+        {
+          "finding_id": "finding_capa_qa_approval_missing",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe für die CAPA ist unvollständig, da die Unterschrift der Leitung Qualitätskontrolle (Leitung QK) fehlt. Dies stellt ein hohes Compliance-Risiko dar, da QA-Freigaben vor Abschluss dokumentiert vorliegen müssen."
+        },
+        {
+          "finding_id": "finding_deviation_root_cause_unclear",
+          "severity": "high",
+          "risk_statement": "Die Root-Cause der Abweichung (pH-Wert-Drift) konnte technisch nicht final aufgeklärt werden. Dies stellt ein hohes Risiko dar, da ohne klare Ursachenanalyse keine wirksamen CAPA-Maßnahmen abgeleitet werden können."
+        },
+        {
+          "finding_id": "finding_data_integrity_issue",
+          "severity": "medium",
+          "risk_statement": "Das Datum der Abweichung (05.05.2026) liegt in der Zukunft relativ zum Dokumentationsdatum. Dies wirft Fragen zur Datenintegrität auf, da Datumsangaben plausibel und zeitnah sein müssen."
+        },
+        {
+          "finding_id": "finding_contradiction_001",
+          "severity": "high",
+          "risk_statement": "Es besteht ein Widerspruch zwischen der dokumentierten manuellen Anpassung des pH-Sollwerts auf 7,70 (Chunk_219e540a6f4d4c64a943587de111b23b_p1) und der spezifizierten Obergrenze von pH 7,40 (Chunk_d0c175543b234ce8ab9432832a6c906f_p1). Die Überschreitung der Spezifikationsgrenze wurde nicht als Abweichung klassifiziert oder bewertet."
+        },
+        {
+          "finding_id": "finding_contradiction_002",
+          "severity": "high",
+          "risk_statement": "Die Root-Cause der pH-Wert-Drift wurde als 'unaufgeklärt' dokumentiert (Chunk_d0c175543b234ce8ab9432832a6c906f_p1), während gleichzeitig die automatische Säuredosierung als 'korrekt kalibriert' beschrieben wird (Chunk_d0c175543b234ce8ab9432832a6c906f_p1). Dies stellt einen Widerspruch dar, da eine korrekt kalibrierte Säuredosierung die pH-Drift hätte verhindern müssen."
+        },
+        {
+          "finding_id": "finding_contradiction_003",
+          "severity": "high",
+          "risk_statement": "Im Change-Control-Dokument (CC-2026-104) wird der Austausch des pH-Sensors an BIO-10 als präventive Maßnahme geplant, während im Abweichungsbericht (DEV-CEF-77) der pH-Sensor als mögliche Ursache der pH-Drift nicht erwähnt wird. Dies stellt einen Widerspruch dar, da der Sensorwechsel auf ein bekanntes Problem hindeutet, das im Abweichungsbericht nicht adressiert wird."
+        },
+        {
+          "finding_id": "finding_contradiction_004",
+          "severity": "medium",
+          "risk_statement": "Im Change-Control-Dokument (CC-2026-104) fehlt die Unterschrift der Leitung Qualitätskontrolle (Leitung QK), während die QA-Freigabe durch Dr. S. Niemand dokumentiert ist. Dies widerspricht der Anforderung nach vollständiger Dokumentation aller erforderlichen Genehmigungen."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Abweichung des pH-Werts (DEV-CEF-77) von der spezifizierten Obergrenze (pH 7,40) auf pH 7,85 wurde nicht mit einer belastbaren Risikobewertung (Minor/Major/Kritisch) dokumentiert. Es fehlen physikalisch-chemische Daten zur Bewertung der Auswirkungen auf die Produktqualität und Sterilität."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Die Auswirkungen der pH-Wert-Abweichung auf die Sterilität des Produkts und die aseptischen Prozessbedingungen wurden nicht dokumentiert bewertet. Es fehlt eine klare Aussage, ob die manuelle Anpassung des pH-Werts (von 7,20 auf 7,70) und die Deaktivierung des automatischen Regelkreises die Sterilität oder Produktqualität beeinträchtigt haben."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "medium",
+          "risk_statement": "Die Signatur der Leitung Qualitätskontrolle im Change-Control-Dokument (CC-2026-104) fehlt. Dies stellt einen Verstoß gegen die Datenintegritätsanforderungen dar, da die Freigabe nicht dokumentiert ist. Zudem ist unklar, ob die Datumsangaben (z. B. 05.05.2026) plausibel und konsistent mit dem Audit Trail sind."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "high",
+          "risk_statement": "Die geplante Änderung des pH-Sensors (Austausch gegen ein digitales Modell) ist nicht abgeschlossen, und die alten analogen Sensoren bleiben bis September 2026 im Einsatz. Es fehlt ein Bridging oder Addendum zur Validierung der geänderten Prozessbedingungen (manuelle pH-Wert-Anpassung) und deren Auswirkungen auf die Validierungsabdeckung."
+        },
+        {
+          "finding_id": "finding_005",
+          "severity": "medium",
+          "risk_statement": "Die Batch-Impact-Bewertung der pH-Wert-Abweichung (DEV-CEF-77) ist unvollständig. Es wird zwar behauptet, dass die Biomasse-Entwicklung im Akzeptanzkorridor blieb, jedoch fehlt eine dokumentierte Auflistung aller betroffenen Chargen und deren Freigabe- bzw. Dispositionsentscheidung."
+        },
+        {
+          "finding_id": "finding_006",
+          "severity": "medium",
+          "risk_statement": "Die manuelle Anpassung des pH-Sollwerts von 7,20 auf 7,70 durch den Operator (OPERATOR-TL) wurde ohne dokumentierte Risikobewertung oder QA-Genehmigung durchgeführt. Dies stellt ein Compliance-Risiko dar, da kritische Prozessparameter nicht ohne vorherige Bewertung und Freigabe geändert werden dürfen."
+        },
+        {
+          "finding_id": "finding_002_root_cause_unresolved_no_classification",
+          "severity": "high",
+          "risk_statement": "Der Root Cause der pH-Drift in BIO-10 ist laut Abweichungsbericht DEV-CEF-77 explizit 'unaufgeklärt'. Gleichzeitig fehlt in den vorliegenden Claims jede Angabe zu einer begründeten Risikoeinstufung (Minor/Major/Kritisch) der Abweichung. Eine Einstufung ohne aufgeklärten Root Cause und ohne belastbare physikalisch-chemische Daten ist gemäß req_gs_deviation_classification nicht zulässig. Die Abweichung betrifft einen kritischen Prozessparameter (pH), der für 6 Stunden um 0,45 pH-Einheiten über der Spezifikationsgrenze lag – dies erfüllt typische Major-Kriterien, wurde aber nicht als solche klassifiziert."
+        },
+        {
+          "finding_id": "finding_003_manual_setpoint_change_undisclosed_root_cause",
+          "severity": "high",
+          "risk_statement": "Der Abweichungsbericht DEV-CEF-77 beschreibt die pH-Drift als technisch ungeklärtes Ereignis und stellt fest, dass die automatische Säuredosierung korrekt kalibriert war. Das SCADA-Protokoll (doc_219e540a6f4d4c64a943587de111b23b) zeigt jedoch, dass OPERATOR-TL um 14:15 Uhr den automatischen Regelkreis manuell deaktivierte und den Sollwert von pH 7,20 auf pH 7,70 hochsetzte – also weit über die Spezifikationsgrenze von pH 7,40. Damit ist die eigentliche Ursache der pH-Überschreitung ein nicht autorisierter manueller Eingriff, der im Abweichungsbericht nicht als Root Cause benannt wird. Der Abweichungsbericht enthält somit eine falsche Entwarnung ('Root Cause unaufgeklärt'), obwohl der Audit Trail eine klare Ursache dokumentiert."
+        },
+        {
+          "finding_id": "finding_004_change_control_missing_qc_head_signature",
+          "severity": "high",
+          "risk_statement": "Im Change Control CC-2026-104 (Austausch des pH-Sensors an BIO-10) fehlt die Unterschrift der Leitung Qualitätskontrolle (Leitung QK). Das Feld ist leer und nicht gezeichnet. Gemäß req_gs_qa_approval_documented müssen QA-Freigaben und Genehmigungen vor Abschluss dokumentiert vorliegen. Ein Change Control ohne vollständige Genehmigungsmatrix ist nicht abgeschlossen und darf nicht als genehmigt behandelt werden. Dies ist besonders relevant, da der Change Control als Reaktion auf eine Abweichung an BIO-10 steht und die Sensorqualität direkt die Prozessüberwachung betrifft."
+        },
+        {
+          "finding_id": "finding_005_change_control_non_reactive_classification_questionable",
+          "severity": "medium",
+          "risk_statement": "Change Control CC-2026-104 (Sensortausch an BIO-10) wurde als 'nicht-reaktiv / präventiv' eingestuft. Der Change Control wurde am 01.05.2026 beantragt und am 03.05.2026 von QA geprüft – die Abweichung DEV-CEF-77 ereignete sich am 05.05.2026. Formal könnte die Einstufung als präventiv korrekt sein. Jedoch ist zu prüfen, ob der Change Control tatsächlich unabhängig von der Abweichung initiiert wurde oder ob er nachträglich als präventiv klassifiziert wurde, um eine reaktive CAPA-Verknüpfung zu vermeiden. Die zeitliche Nähe (CC-Antrag 4 Tage vor der Abweichung) und der inhaltliche Bezug (pH-Sensor BIO-10) begründen eine Plausibilitätsprüfung."
+        },
+        {
+          "finding_id": "finding_006_impact_assessment_no_disposition_decision",
+          "severity": "high",
+          "risk_statement": "Die Entscheidung, die Aufarbeitung von Charge CEF-BIOR-2026-77 fortzusetzen, wird im Abweichungsbericht DEV-CEF-77 allein mit dem Verbleib der Biomasse-Entwicklung im 'Akzeptanzkorridor' begründet. Es fehlen in den vorliegenden Claims: (1) eine formale Dispositionsentscheidung mit QA-Freigabe, (2) eine vollständige Batch-Impact-Bewertung mit Auflistung aller potenziell betroffenen Chargen, (3) physikalisch-chemische Labordaten als Belege für die Entwarnung. Die Entwarnung 'Biomasse im Akzeptanzkorridor' ist nicht durch Labordaten-Claims gestützt und stellt eine nicht belegte Entwarnung bei einem kritischen Prozessparameter dar."
+        },
+        {
+          "finding_id": "finding_007_capa_effectiveness_check_missing",
+          "severity": "medium",
+          "risk_statement": "In den vorliegenden Claims findet sich kein Hinweis auf einen CAPA-Datensatz mit definiertem Effectiveness Check für die Abweichung DEV-CEF-77. Der Change Control CC-2026-104 sieht den Sensortausch erst für September 2026 vor. Es ist unklar, ob eine CAPA mit Wirksamkeitsprüfung initiiert wurde, die die Interim-Periode (Mai bis September 2026) abdeckt. Gemäß req_gs_capa_effectiveness dürfen CAPA-Maßnahmen nur mit dokumentierter Wirksamkeitsprüfung abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_red_001",
+          "severity": "high",
+          "risk_statement": "Es liegt eine dokumentierte Ueberschreitung der spezifizierten pH-Obergrenze vor, waehrend die Root Cause unaufgeklaert bleibt und die Fortsetzung der Aufarbeitung nur mit einem allgemeinen Hinweis auf Biomasse-Entwicklung begruendet wird. Damit ist die Entwarnung fuer einen kritischen Prozessparameter in den vorliegenden Claims nicht durch belastbare physikalisch-chemische Daten belegt."
+        },
+        {
+          "finding_id": "finding_red_002",
+          "severity": "high",
+          "risk_statement": "Die Batch-Impact-Bewertung ist in den vorliegenden Claims unvollstaendig, weil zwar eine konkrete Charge genannt wird, aber keine dokumentierte Chargenliste aller potenziell betroffenen Chargen und keine verknuepfte Freigabe- bzw. Dispositionsentscheidung ersichtlich sind."
+        },
+        {
+          "finding_id": "finding_red_003",
+          "severity": "high",
+          "risk_statement": "Zwischen Ereignischronologie und Batch Record besteht ein wesentlicher Widerspruch: Die Chronologie dokumentiert Warnmeldung, manuellen Eingriff, Deaktivierung des automatischen Regelkreises und Sollwertanhebung, waehrend der handschriftliche Batch Record 'Keine besonderen Vorkommnisse' und stabile Werte festhaelt. Dieser Widerspruch ist aufklaerungspflichtig und untergraebt die Verlaesslichkeit der Dokumentation."
+        },
+        {
+          "finding_id": "finding_red_004",
+          "severity": "high",
+          "risk_statement": "Im Change Control ist eine erforderliche Genehmigung unvollstaendig dokumentiert, da das Feld fuer die Leitung Qualitaetskontrolle leer bzw. nicht gezeichnet ist. Damit liegt fuer den vorliegenden Vorgang keine vollstaendige dokumentierte Genehmigung vor."
+        }
+      ]
+    },
+    {
+      "case_id": "CASE_10",
+      "document_set_id": "ds_748385ed2b9b46249ccb6233148e3241",
+      "documents_uploaded": [
+        "document_01_stability_assessment.md",
+        "document_02_capa_plan.md",
+        "document_03_qa_approval_note.md"
+      ],
+      "pipeline_status": "completed",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 9345,
+          "output_tokens": 3197,
+          "total_tokens": 12542,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 71684,
+          "output_tokens": 25075,
+          "total_tokens": 96759,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 11142,
+          "output_tokens": 8429,
+          "total_tokens": 19571,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3358,
+          "output_tokens": 2364,
+          "total_tokens": 5722,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded"
+      },
+      "failed_model_roles": [],
+      "claim_count": 20,
+      "finding_count": 24,
+      "citation_verified_finding_count": 24,
+      "risk_decision": "human_review_required",
+      "auto_clear_allowed": false,
+      "gold_error_count": 3,
+      "matched_errors": [
+        {
+          "error_id": "ERR_10_01",
+          "severity": "critical",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Unzulässiges Aufschieben von Folgemaßnahmen bei einem manifesten OOS-Stabilitätsfehler.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_bia_001",
+            "risk_statement": "Die Charge INS-GLA-2025-05 weist eine unbekannte Verunreinigung von 0,32% auf, die eine Laborabweichung ausgelöst hat. Die Impact-Bewertung stuft dies als 'temporären Ausreißer' ein, jedoch fehlt eine klare, dokumentierte Dispositionsentscheidung (Freigabe oder Sperrung) für die betroffene Charge.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_10_02",
+          "severity": "high",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlende Definition des Maßnahmenverantwortlichen im CAPA-Formular.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_bia_004",
+            "risk_statement": "Die Verantwortlichkeit für die CAPA-Maßnahme ist nicht dokumentiert. Der Eintrag '**Verantwortlich:** [Kein Eintrag / Offen]' stellt einen Verstoß gegen die Datenintegrität und die Anforderungen an dokumentierte QA-Freigaben dar.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_10_03",
+          "severity": "critical",
+          "error_type": "Dokumentenwidersprüche",
+          "expected_reviewer_finding": "Grob fehlerhafte, verharmlosende QS-Bewertung eines kritischen Marktwaren-Stabilitätsausfalls.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_bia_002",
+            "risk_statement": "Die Charge INS-GLA-2025-05 wurde bereits im Juni 2025 in den Handel überführt und seit 11 Monaten ohne Beschwerden appliziert. Dennoch fehlt eine explizite Bestätigung, dass die unbekannte Verunreinigung von 0,32% keine Auswirkungen auf die Produktqualität oder Patientensicherheit hat. Die vorläufige Erfüllung der Analytikvorgaben ist kein ausreichender Nachweis für die Freigabe.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_10_01",
+          "evidence_text": "Gehalt (HPLC): 95,2%",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_bia_003",
+          "severity": "medium",
+          "risk_statement": "Die CAPA-Maßnahme zur dreifachen Re-Analyse der Charge INS-GLA-2025-05 ist nicht abgeschlossen. Es fehlt ein Nachweis über die Durchführung der Re-Analyse sowie eine dokumentierte Wirksamkeitsprüfung (Effectiveness Check)."
+        },
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Abweichung bezüglich der unbekannten Verunreinigung (0,32%) in Charge INS-GLA-2025-05 wurde ohne belastbare Risikoeinstufung (Minor/Major/Kritisch) bewertet. Eine Einstufung ohne physikalisch-chemische Daten oder belegte Root-Cause-Angaben ist nicht zulässig."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Die Impact-Assessment-Aussage zur unbekannten Verunreinigung in Charge INS-GLA-2025-05 ist unvollständig. Es fehlt eine dokumentierte Bewertung des Einflusses auf Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme zur unbekannten Verunreinigung in Charge INS-GLA-2025-05 wurde ohne definierte und dokumentierte Wirksamkeitsprüfung (Effectiveness Check) eingeleitet. Dies ist nicht zulässig."
+        },
+        {
+          "finding_id": "finding_001_contradiction_hunter",
+          "severity": "high",
+          "risk_statement": "Es besteht ein Widerspruch in der Bewertung der Verunreinigungsabweichung für die Charge INS-GLA-2025-05. Einerseits wird die Abweichung als temporärer Ausreißer ohne unmittelbare Auswirkungen bewertet (Claim: claim_fa0d884cd47ea5763a01), andererseits wird eine CAPA-Maßnahme (dreifache Re-Analyse) angeordnet (Claim: claim_89739f13a30db09a4d24). Die Bewertung des Batch-Impacts ist unvollständig, da keine klare Dispositionsentscheidung oder Freigabe der Charge dokumentiert ist, obwohl die Charge bereits seit Juni 2025 im Handel ist (Claim: claim_781ffa45390a342e6138)."
+        },
+        {
+          "finding_id": "finding_002_contradiction_hunter",
+          "severity": "critical",
+          "risk_statement": "Die Verantwortlichkeit für die CAPA-Maßnahme ist als 'Kein Eintrag / Offen' dokumentiert (Claim: claim_f4fb5dea6989467f5563, claim_a363e49c445939de111f). Dies stellt einen Verstoß gegen die Datenintegrität dar, da elektronische Unterschriften und Verantwortlichkeiten gemäß ALCOA+ zeitnah, plausibel und konsistent dokumentiert sein müssen. Zudem fehlt eine klare Zuordnung der Verantwortung für die Durchführung und Bewertung der CAPA-Maßnahme, was die Wirksamkeitsprüfung gefährdet."
+        },
+        {
+          "finding_id": "finding_003_contradiction_hunter",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme (dreifache Re-Analyse) wurde mit einem Zieldatum der Umsetzung am 16.05.2026 dokumentiert (Claim: claim_a95cf25d9fe98c783c00). Das Dokument mit dem Datum 19.05.2026 (Claim: claim_c1e5d2e001edca681c83) bewertet die Charge jedoch als vorläufig konform und ohne marktregulierende Maßnahmen, ohne dass die Ergebnisse der CAPA-Maßnahme oder deren Wirksamkeitsprüfung erwähnt werden. Dies stellt einen Widerspruch dar und verstößt gegen die Anforderung, dass CAPA-Maßnahmen nur mit dokumentierter Wirksamkeitsprüfung abgeschlossen werden dürfen."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "medium",
+          "risk_statement": "Die Konsistenz der Chargenangaben und Daten über die Dokumente hinweg ist unklar. Es besteht das Risiko von Widersprüchen zwischen Bericht, Batch Record und Freigabenotiz."
+        },
+        {
+          "finding_id": "finding_005",
+          "severity": "high",
+          "risk_statement": "Es gibt keine ausreichende Evidenz dafür, dass die Validierungs-, Reinigungs- und Sterilitätsnachweise auf die aktuelle Abweichung der Charge INS-GLA-2025-05 übertragbar sind. Die Bewertung der unbekannten Verunreinigung erfordert ein Bridging oder Addendum zur bestehenden Validierung."
+        },
+        {
+          "finding_id": "finding_001_data_integrity_future_date",
+          "severity": "critical",
+          "risk_statement": "Das CAPA-Dokument (doc_5b861f3214d94408b44fd3c819dca8fb) setzt ein Umsetzungszieldatum von 16.05.2026 mit dem Hinweis 'innerhalb von 24 Stunden'. Das QS-Überwachungsdokument (doc_9258d545b8f34c81a97cf65a63fcf013) trägt das Datum 19.05.2026. Beide Datumsangaben liegen nach dem aktuellen Dokumentationszeitraum und sind zeitlich unplausibel im Verhältnis zueinander: Wenn die CAPA-Maßnahme innerhalb von 24 Stunden ab 16.05.2026 umzusetzen war, hätte das QA-Freigabedokument vom 19.05.2026 die Ergebnisse dieser Maßnahme bereits berücksichtigen müssen – es fehlt jedoch jeder Nachweis, dass die dreifache Re-Analyse tatsächlich abgeschlossen und bewertet wurde. Dies stellt einen ALCOA+-Datenintegritätsbefund dar (zeitnah, plausibel, konsistent mit Audit Trail)."
+        },
+        {
+          "finding_id": "finding_002_capa_no_effectiveness_check",
+          "severity": "high",
+          "risk_statement": "Im gesamten Claim-Ledger existiert kein Claim, der einen dokumentierten Effectiveness Check für die CAPA-Maßnahme (dreifache Re-Analyse aus neuer Rückstell-Karpule) belegt. Das QA-Dokument vom 19.05.2026 erklärt die Analytikanforderungen als 'vorläufig erfüllt', ohne dass ein abgeschlossener Effectiveness Check nachgewiesen ist. Gemäß req_gs_capa_effectiveness dürfen CAPA-Maßnahmen nur mit definierter und dokumentierter Wirksamkeitsprüfung abgeschlossen werden."
+        },
+        {
+          "finding_id": "finding_003_capa_no_responsible_party",
+          "severity": "high",
+          "risk_statement": "Im CAPA-Dokument (doc_5b861f3214d94408b44fd3c819dca8fb) ist der Verantwortliche für die CAPA-Maßnahme explizit als nicht eingetragen/offen ausgewiesen. Eine CAPA-Maßnahme ohne benannten Verantwortlichen ist nicht nachverfolgbar und erfüllt nicht die Anforderungen an eine vollständige CAPA-Dokumentation gemäß req_gs_capa_effectiveness und req_gs_qa_approval_documented."
+        },
+        {
+          "finding_id": "finding_004_false_reassurance_no_data",
+          "severity": "high",
+          "risk_statement": "Das QA-Dokument (doc_9258d545b8f34c81a97cf65a63fcf013) stellt fest, dass keine marktregulierenden Maßnahmen erforderlich sind und die Charge seit knapp 11 Monaten beschwerdefrei appliziert wird. Diese Entwarnung basiert jedoch nicht auf den Ergebnissen der noch ausstehenden dreifachen Re-Analyse (CAPA-Maßnahme). Die Bewertung 'keinerlei marktregulierenden Maßnahmen erforderlich' wurde ausgesprochen, obwohl der OOS-Befund zur unbekannten Verunreinigung (0,32%) noch nicht abschließend aufgeklärt ist und die Root Cause nicht belegt ist. Dies stellt eine nicht durch Daten belegte Entwarnung bei einem kritischen Parameter dar (req_gs_deviation_classification, req_gs_deviation_impact)."
+        },
+        {
+          "finding_id": "finding_005_deviation_classification_missing",
+          "severity": "high",
+          "risk_statement": "Im gesamten Claim-Ledger existiert kein Claim, der eine formale Risikoeinstufung der Abweichung (Minor/Major/Kritisch) gemäß req_gs_deviation_classification dokumentiert. Die Laborabweichung wurde initiiert, aber eine begründete Klassifizierung mit physikalisch-chemischen Daten fehlt vollständig. Ein OOS-Befund bei einer unbekannten Verunreinigung in einem Insulinpräparat ohne formale Klassifizierung ist ein wesentlicher GMP-Mangel."
+        },
+        {
+          "finding_id": "finding_006_batch_impact_no_sibling_batches",
+          "severity": "medium",
+          "risk_statement": "Die Batch-Impact-Bewertung im QA-Dokument (doc_9258d545b8f34c81a97cf65a63fcf013) bezieht sich ausschließlich auf Charge INS-GLA-2025-05. Es existiert kein Claim, der eine Bewertung potenziell betroffener Vor- oder Nachchargen (Vorgänger-/Nachfolgechargen) oder eine vollständige Chargenliste dokumentiert. Gemäß req_gs_batch_impact_completeness müssen alle betroffenen Chargen aufgelistet werden."
+        },
+        {
+          "finding_id": "finding_redteam_001",
+          "severity": "high",
+          "risk_statement": "Es besteht ein wesentlicher dokumentenuebergreifender Widerspruch: Ein Dokument beschreibt fuer dieselbe Charge einen OOS-Befund/Verunreinigungsabweichung, waehrend ein anderes Dokument gleichzeitig eine vorlaeufige Erfuellung saemtlicher Analytikvorgaben und fehlenden Bedarf an marktregulierenden Massnahmen festhaelt. Ohne aufgeklaerte Widerspruchsbeseitigung ist die Batch-Impact-Bewertung und regulatorische Schlussfolgerung nicht belastbar."
+        },
+        {
+          "finding_id": "finding_redteam_002",
+          "severity": "medium",
+          "risk_statement": "Die angeordnete CAPA/Re-Analyse ist ohne dokumentierte verantwortliche Person offen. Dadurch ist die fristgerechte und kontrollierte Umsetzung der Massnahme nicht belastbar nachverfolgbar."
+        },
+        {
+          "finding_id": "finding_redteam_003",
+          "severity": "medium",
+          "risk_statement": "Fuer die angeordnete CAPA/Re-Analyse liegt kein Claim zu einer definierten und dokumentierten Wirksamkeitspruefung vor. Ein Abschluss oder eine Entwarnung waere damit nach Requirement nicht ausreichend belegt."
+        },
+        {
+          "finding_id": "finding_redteam_004",
+          "severity": "high",
+          "risk_statement": "Es liegt eine dokumentierte Entwarnung bzw. Batch-/Marktbewertung vor, aber kein Claim zu einer dokumentierten QA-Freigabe oder Genehmigung vor Abschluss. Damit ist die Freigabe-/Genehmigungslage fuer die getroffene Schlussfolgerung nicht belegt."
+        },
+        {
+          "finding_id": "finding_fc2ab4d00baabda43908",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-CAPA-003 CAPA Management Abschnitt 7.5 fordert 'Effectiveness Check Nachweis'. Die Unterlagen enthalten keine(n) Definition oder Durchfuehrung einer Wirksamkeitspruefung (Effectiveness Check) im CAPA-Plan - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        },
+        {
+          "finding_id": "finding_25461088584d1954da93",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-QA-004 QA Freigabe Abschnitt 5.1 fordert 'QA Approval Record'. Die Unterlagen enthalten keine(n) QA-Freigabe bzw. dokumentierte Genehmigung durch die Qualitaetssicherung - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    }
+  ]
+}

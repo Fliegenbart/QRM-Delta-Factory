@@ -1,0 +1,286 @@
+{
+  "run": {
+    "mode": "live",
+    "stack": "hybrid",
+    "started_at": "2026-06-13T11:43:02+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-5.4",
+    "mistral_model": "mistral-large-latest",
+    "case_count": 1
+  },
+  "aggregate": {
+    "tokens_by_provider": {
+      "openai": {
+        "input_tokens": 9118,
+        "output_tokens": 3463,
+        "total_tokens": 12581,
+        "calls": 1
+      },
+      "mistral": {
+        "input_tokens": 69766,
+        "output_tokens": 26705,
+        "total_tokens": 96471,
+        "calls": 7
+      },
+      "anthropic": {
+        "input_tokens": 10899,
+        "output_tokens": 6439,
+        "total_tokens": 17338,
+        "calls": 1
+      },
+      "extraction:mistral": {
+        "input_tokens": 3352,
+        "output_tokens": 2284,
+        "total_tokens": 5636,
+        "calls": 1
+      }
+    },
+    "cases": 1,
+    "sensitivity": {
+      "found": 3,
+      "total": 3,
+      "rate": 1.0
+    },
+    "specificity_decoys": {
+      "passed": 1,
+      "total": 1,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 27,
+      "total_findings": 27,
+      "rate": 1.0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_10",
+      "document_set_id": "ds_12b197727e1740aa90f3bb61b617420a",
+      "documents_uploaded": [
+        "document_01_stability_assessment.md",
+        "document_02_capa_plan.md",
+        "document_03_qa_approval_note.md"
+      ],
+      "pipeline_status": "completed",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 9118,
+          "output_tokens": 3463,
+          "total_tokens": 12581,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 69766,
+          "output_tokens": 26705,
+          "total_tokens": 96471,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 10899,
+          "output_tokens": 6439,
+          "total_tokens": 17338,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3352,
+          "output_tokens": 2284,
+          "total_tokens": 5636,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded"
+      },
+      "failed_model_roles": [],
+      "claim_count": 19,
+      "finding_count": 27,
+      "citation_verified_finding_count": 27,
+      "risk_decision": "human_review_required",
+      "auto_clear_allowed": false,
+      "gold_error_count": 3,
+      "matched_errors": [
+        {
+          "error_id": "ERR_10_01",
+          "severity": "critical",
+          "error_type": "Abweichungsmanagement",
+          "expected_reviewer_finding": "Unzulässiges Aufschieben von Folgemaßnahmen bei einem manifesten OOS-Stabilitätsfehler.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001",
+            "risk_statement": "Die Abweichung der unbekannten Verunreinigung (0,32% bei Spezifikationsgrenze von maximal 0,20%) wurde als 'temporärer Ausreißer' bewertet, ohne dass eine vollständige Risikoeinstufung (Minor/Major/Kritisch) gemäß SOP-DEV-001 Abschnitt 6.2 dokumentiert ist. Eine Einstufung ohne belastbare physikalisch-chemische Daten oder Root-Cause-Analyse ist nicht zulässig.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_10_02",
+          "severity": "high",
+          "error_type": "CAPA",
+          "expected_reviewer_finding": "Fehlende Definition des Maßnahmenverantwortlichen im CAPA-Formular.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_002",
+            "risk_statement": "Die CAPA-Maßnahme 'CAPA-OOS-INS' enthält keine dokumentierte Wirksamkeitsprüfung (Effectiveness Check) gemäß SOP-CAPA-003 Abschnitt 7.5. Das Zieldatum der Umsetzung (16.05.2026) liegt in der Zukunft, und die Verantwortlichkeit ist nicht spezifiziert.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_10_03",
+          "severity": "critical",
+          "error_type": "Dokumentenwidersprüche",
+          "expected_reviewer_finding": "Grob fehlerhafte, verharmlosende QS-Bewertung eines kritischen Marktwaren-Stabilitätsausfalls.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_003",
+            "risk_statement": "Die Batch-Impact-Bewertung der Charge INS-GLA-2025-05 enthält Aussagen zur vorläufigen Erfüllung aller Analytikvorgaben und zur fehlenden Notwendigkeit marktregulierender Maßnahmen, ohne dass eine dokumentierte QA-Freigabe gemäß SOP-QA-004 Abschnitt 5.1 vorliegt. Die Freigabeentscheidung ist nicht mit den Batch Records verknüpft.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_10_01",
+          "evidence_text": "Gehalt (HPLC): 95,2%",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_capa_responsible_missing",
+          "severity": "high",
+          "risk_statement": "Die Verantwortliche für die CAPA-Maßnahme 'CAPA-OOS-INS' ist nicht dokumentiert oder unklar. Dies stellt ein hohes Compliance-Risiko dar, da die Umsetzung und Wirksamkeitsprüfung nicht nachverfolgt werden kann."
+        },
+        {
+          "finding_id": "finding_capa_effectiveness_missing",
+          "severity": "high",
+          "risk_statement": "Es liegt keine dokumentierte Wirksamkeitsprüfung (Effectiveness Check) für die CAPA-Maßnahme 'CAPA-OOS-INS' vor. Dies stellt ein hohes Compliance-Risiko dar, da die CAPA ohne Nachweis der Wirksamkeit nicht abgeschlossen werden darf."
+        },
+        {
+          "finding_id": "finding_capa_deviation_link_unclear",
+          "severity": "medium",
+          "risk_statement": "Die Verknüpfung der CAPA-Maßnahme 'CAPA-OOS-INS' zur ursprünglichen Deviation ist unklar oder nicht ausreichend dokumentiert. Dies kann zu Lücken in der Nachverfolgbarkeit und Compliance führen."
+        },
+        {
+          "finding_id": "finding_capa_qa_review_missing",
+          "severity": "high",
+          "risk_statement": "Es liegt keine dokumentierte QA-Freigabe oder Genehmigung für die CAPA-Maßnahme 'CAPA-OOS-INS' vor. Dies stellt ein hohes Compliance-Risiko dar, da QA-Freigaben gemäß SOP 'SOP-QA-004 QA Freigabe' (Abschnitt 5.1) zwingend erforderlich sind."
+        },
+        {
+          "finding_id": "finding_004",
+          "severity": "medium",
+          "risk_statement": "Die Verantwortlichkeit für die CAPA-Maßnahme 'CAPA-OOS-INS' ist nicht spezifiziert, was gegen die Anforderungen an Datenintegrität und Dokumentationspraxis gemäß SOP-DI-002 Abschnitt 4.1 und SOP-DOC-005 Abschnitt 2.6 verstößt. Unklare Verantwortlichkeiten können zu Verzögerungen oder unvollständiger Umsetzung führen."
+        },
+        {
+          "finding_id": "finding_005",
+          "severity": "high",
+          "risk_statement": "Die Datenintegrität der elektronischen Unterschriften und Datumsangaben ist fraglich. Das Zieldatum der Umsetzung (16.05.2026) liegt in der Zukunft, während das Ausstellungsdatum des Stabilitätsberichts (19.05.2026) ebenfalls in der Zukunft liegt. Dies widerspricht den ALCOA+-Prinzipien und stellt einen Datenintegritätsbefund dar."
+        },
+        {
+          "finding_id": "finding_006",
+          "severity": "medium",
+          "risk_statement": "Die Konsistenz der Angaben zu Chargen, Daten und Ergebnissen über die Dokumente hinweg ist nicht gewährleistet. Es bestehen Widersprüche zwischen der Aussage, dass die Charge bereits im Juni 2025 in den Handel überführt wurde, und den zukünftigen Datumsangaben in den Dokumenten. Dies erfordert eine Aufklärung der Widersprüche."
+        },
+        {
+          "finding_id": "finding_001_oos_spec_exceedance_no_classification",
+          "severity": "high",
+          "risk_statement": "Die unbekannte Verunreinigung der Charge INS-GLA-2025-05 überschreitet mit 0,32% die Zulassungsgrenze von maximal 0,20% um 60%. Es ist kein Claim vorhanden, der eine begründete Risikoeinstufung (Minor/Major/Kritisch) gemäß SOP-DEV-001 §6.2 dokumentiert. Die Einordnung als 'temporärer Ausreißer' ohne belastbare physikalisch-chemische Daten stellt eine unzulässige Entwarnung dar."
+        },
+        {
+          "finding_id": "finding_002_capa_target_date_implausible",
+          "severity": "high",
+          "risk_statement": "Das CAPA-Dokument CAPA-OOS-INS nennt als Zieldatum der Umsetzung den 16.05.2026 mit dem Zusatz 'innerhalb von 24 Stunden'. Das QS-Systemüberwachungs-Dokument trägt das Ausstellungsdatum 19.05.2026. Das Zieldatum liegt damit drei Tage VOR dem Ausstellungsdatum des zugehörigen QS-Dokuments, was zeitlich unplausibel ist und einen Datenintegritätsbefund gemäß SOP-DI-002 §4.1 darstellt. Zudem ist unklar, ob das CAPA-Zieldatum bereits verstrichen ist, ohne dass eine dokumentierte Umsetzung vorliegt."
+        },
+        {
+          "finding_id": "finding_003_capa_no_responsible_party",
+          "severity": "high",
+          "risk_statement": "Im Eil-CAPA-Plan CAPA-OOS-INS ist kein Verantwortlicher eingetragen. Ohne definierten Verantwortlichen ist die Umsetzung und Wirksamkeitsprüfung der CAPA-Maßnahme nicht sichergestellt. Dies stellt einen fehlenden Pflichtnachweis gemäß SOP-CAPA-003 §7.5 dar."
+        },
+        {
+          "finding_id": "finding_004_batch_impact_no_predecessor_batches",
+          "severity": "high",
+          "risk_statement": "Die Batch-Impact-Bewertung im QS-Dokument beschränkt sich auf die Charge INS-GLA-2025-05. Es sind keine Claims vorhanden, die eine Prüfung potenziell betroffener Vorgänger- oder Parallelchargen dokumentieren. Gemäß SOP-DEV-001 §6.4 und QRM Batch Impact Checkliste §3.2 müssen alle potenziell betroffenen Chargen aufgelistet und bewertet werden."
+        },
+        {
+          "finding_id": "finding_005_qa_approval_not_documented",
+          "severity": "high",
+          "risk_statement": "Kein Claim dokumentiert eine formale QA-Freigabe oder QA-Genehmigung für die Abweichungsbewertung, den CAPA-Plan oder die Batch-Impact-Entscheidung. Das QS-Dokument nennt zwar 'QS-Systemüberwachung' als Aussteller, jedoch ist keine dokumentierte QA-Approval-Entscheidung mit Signatur und Datum nachweisbar. Gemäß SOP-QA-004 §5.1 müssen QA-Freigaben vor Abschluss dokumentiert vorliegen."
+        },
+        {
+          "finding_id": "finding_redteam_001",
+          "severity": "high",
+          "risk_statement": "Es liegt eine nicht ausreichend belegte Entwarnung zur Chargen- und Marktwirkung vor, obwohl fuer die hoechste unbekannte Verunreinigung eine Ueberschreitung der Spezifikations-/Zulassungsgrenze dokumentiert ist. Die Aussagen, dass keine marktregulierenden Massnahmen erforderlich seien und saemtliche Analytikvorgaben vorlaeufig erfuellt seien, stehen im Widerspruch zu den vorliegenden Labordaten und bergen ein wesentliches Compliance- und Produktqualitaetsrisiko."
+        },
+        {
+          "finding_id": "finding_redteam_002",
+          "severity": "high",
+          "risk_statement": "Die Batch-Impact-Bewertung ist unvollstaendig dokumentiert. Es ist nur die Charge INS-GLA-2025-05 genannt, waehrend die Anforderung eine Bewertung aller potenziell betroffenen Chargen und die Verknuepfung zur Freigabe- bzw. Dispositionsentscheidung verlangt. Dadurch bleibt offen, ob weitere Chargen betroffen sind und wie die Entscheidung dokumentiert wurde."
+        },
+        {
+          "finding_id": "finding_redteam_003",
+          "severity": "medium",
+          "risk_statement": "Der Eil-CAPA-Plan ist ohne benannte verantwortliche Person dokumentiert. Dadurch ist die Umsetzungspflicht nicht eindeutig zugeordnet, was die fristgerechte und kontrollierte Bearbeitung der CAPA wesentlich schwaecht."
+        },
+        {
+          "finding_id": "finding_redteam_004",
+          "severity": "medium",
+          "risk_statement": "Fuer den dokumentierten CAPA-Vorgang liegt kein Nachweis einer definierten und dokumentierten Wirksamkeitspruefung vor. Damit ist eine spaetere CAPA-Abschlussfaehigkeit nach Anforderungslage nicht belegt."
+        },
+        {
+          "finding_id": "finding_redteam_005",
+          "severity": "high",
+          "risk_statement": "Es liegt keine dokumentierte QA-Freigabe bzw. Genehmigung fuer den Vorgang vor, obwohl Aussagen zur Fortsetzung der Stabilitaetspruefung und zur fehlenden Notwendigkeit marktregulierender Massnahmen getroffen werden. Geplante oder implizite Entscheidungen ohne dokumentierten QA Approval Record sind nicht ausreichend."
+        },
+        {
+          "finding_id": "finding_1",
+          "severity": "high",
+          "risk_statement": "Die Abweichung der unbekannten Verunreinigung (0,32% statt maximal 0,20%) in Charge INS-GLA-2025-05 wurde nicht mit einer belastbaren Risikoeinstufung (Minor/Major/Kritisch) bewertet. Eine Einstufung ohne physikalisch-chemische Daten oder klare Root-Cause-Analyse ist nicht zulässig und stellt ein hohes Risiko für die Produktqualität und Patientensicherheit dar."
+        },
+        {
+          "finding_id": "finding_2",
+          "severity": "high",
+          "risk_statement": "Die Impact-Assessment-Dokumentation für die Abweichung der unbekannten Verunreinigung in Charge INS-GLA-2025-05 ist unvollständig. Es fehlt eine vollständige Bewertung aller potenziell betroffenen Chargen sowie eine klare Verknüpfung der Freigabe- oder Dispositionsentscheidung mit den Batch Records. Dies stellt ein hohes Risiko für die Produktqualität und Patientensicherheit dar."
+        },
+        {
+          "finding_id": "finding_3",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahmen zur Abweichung der unbekannten Verunreinigung in Charge INS-GLA-2025-05 sind unvollständig dokumentiert. Es fehlt die Benennung einer verantwortlichen Partei sowie ein Nachweis der geplanten Wirksamkeitsprüfung (Effectiveness Check). Dies stellt ein hohes Risiko für die Nachverfolgbarkeit und Wirksamkeit der Maßnahmen dar."
+        },
+        {
+          "finding_id": "finding_4",
+          "severity": "medium",
+          "risk_statement": "Die Datenintegrität der elektronischen Unterschriften und Datumsangaben in den Dokumenten ist fraglich. Es fehlen Einträge zur verantwortlichen Partei, und die Plausibilität der Datumsangaben (z. B. Zieldatum der Umsetzung: 16.05.2026, jedoch innerhalb von 24 Stunden) ist nicht gegeben. Dies stellt ein Risiko für die Nachvollziehbarkeit und Compliance dar."
+        },
+        {
+          "finding_id": "finding_5",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe der Charge INS-GLA-2025-05 ist nicht ausreichend dokumentiert. Es fehlt eine klare, versionskonsistente Verknüpfung der Freigabe mit den SOP- und Change-Bezügen. Die vorläufige Freigabe trotz Abweichung ist nicht ausreichend begründet und stellt ein hohes Risiko für die Compliance dar."
+        },
+        {
+          "finding_id": "finding_05535753d871057c6c3e",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-CAPA-003 CAPA Management Abschnitt 7.5 fordert 'Effectiveness Check Nachweis'. Die Unterlagen enthalten keine(n) Definition oder Durchfuehrung einer Wirksamkeitspruefung (Effectiveness Check) im CAPA-Plan - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        },
+        {
+          "finding_id": "finding_5fbeeed735b1dd37afbc",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: SOP-QA-004 QA Freigabe Abschnitt 5.1 fordert 'QA Approval Record'. Die Unterlagen enthalten keine(n) QA-Freigabe bzw. dokumentierte Genehmigung durch die Qualitaetssicherung - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    }
+  ]
+}
