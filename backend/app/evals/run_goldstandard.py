@@ -98,143 +98,20 @@ def _configure_environment(
 
 
 def _requirement_set() -> dict[str, Any]:
-    def req(
-        requirement_id: str,
-        source_name: str,
-        section: str,
-        text: str,
-        criticality: str,
-        required_evidence: list[str],
-    ) -> dict[str, Any]:
-        return {
-            "requirement_id": requirement_id,
-            "source_type": "internal_sop",
-            "source_name": source_name,
-            "source_version": "1.0",
-            "section": section,
-            "requirement_text": text,
-            "applies_to_document_types": [
-                "deviation",
-                "deviation_record",
-                "capa",
-                "capa_record",
-                "batch_record",
-                "qa_approval",
-            ],
-            "applies_to_process_areas": [PROCESS_AREA],
-            "criticality": criticality,
-            "required_evidence": required_evidence,
-            "auto_close_allowed": False,
-            "effective_from": "2026-01-01T00:00:00Z",
-            "effective_to": None,
-        }
+    """Load the canonical general GMP library, scoped to the harness tenant.
 
-    return {
-        "requirement_set_id": REQUIREMENT_SET_ID,
-        "tenant_id": TENANT_ID,
-        "name": "Goldstandard GMP QRM Anforderungen (synthetisch)",
-        "version": "2026.1",
-        "imported_at": datetime.now(UTC).isoformat(),
-        "imported_by": "user_goldstandard_harness",
-        "active": True,
-        "requirements": [
-            req(
-                "req_gs_deviation_classification",
-                "SOP-DEV-001 Abweichungsmanagement",
-                "6.2",
-                "Abweichungen von kritischen Prozessparametern muessen mit einer"
-                " begruendeten Risikoeinstufung (Minor/Major/Kritisch) bewertet werden;"
-                " eine Einstufung ohne belastbare physikalisch-chemische Daten ist"
-                " nicht zulaessig. Root-Cause-Angaben wie 'Bedienerfehler' muessen"
-                " belegt sein.",
-                "high",
-                ["Abweichungsbericht", "Risikobewertung", "Labordaten"],
-            ),
-            req(
-                "req_gs_deviation_impact",
-                "SOP-DEV-001 Abweichungsmanagement",
-                "6.4",
-                "Jede Abweichung erfordert eine dokumentierte Bewertung des Einflusses"
-                " auf Produktqualitaet und Patientensicherheit einschliesslich aller"
-                " potenziell betroffenen Chargen.",
-                "high",
-                ["Impact Assessment", "Chargenliste"],
-            ),
-            req(
-                "req_gs_data_integrity_signatures",
-                "SOP-DI-002 Datenintegritaet",
-                "4.1",
-                "Elektronische Unterschriften und Datumsangaben muessen ALCOA+"
-                " erfuellen: zeitnah, plausibel und konsistent mit dem Audit Trail."
-                " Datums- und Signaturangaben, die zeitlich unplausibel sind"
-                " (z.B. in der Zukunft liegen), sind Datenintegritaetsbefunde.",
-                "high",
-                ["Audit Trail", "Signaturdaten", "Records"],
-            ),
-            req(
-                "req_gs_capa_effectiveness",
-                "SOP-CAPA-003 CAPA Management",
-                "7.5",
-                "CAPA-Massnahmen duerfen nur mit definierter und dokumentierter"
-                " Wirksamkeitspruefung (Effectiveness Check) abgeschlossen werden.",
-                "high",
-                ["CAPA Record", "Effectiveness Check Nachweis"],
-            ),
-            req(
-                "req_gs_batch_impact_completeness",
-                "QRM Batch Impact Checkliste",
-                "3.2",
-                "Batch-Impact-Bewertungen muessen alle betroffenen Chargen auflisten"
-                " und die Freigabe- bzw. Dispositionsentscheidung mit Batch Records"
-                " verknuepfen.",
-                "high",
-                ["Batch Record", "Dispositionsentscheidung"],
-            ),
-            req(
-                "req_gs_qa_approval_documented",
-                "SOP-QA-004 QA Freigabe",
-                "5.1",
-                "QA-Freigaben und Genehmigungen muessen vor Abschluss dokumentiert"
-                " vorliegen; geplante, aber nicht dokumentierte Freigaben sind nicht"
-                " ausreichend. SOP- und Change-Bezuege muessen versionskonsistent sein.",
-                "high",
-                ["QA Approval Record"],
-            ),
-            req(
-                "req_gs_validation_coverage",
-                "VMP-001 Validierungsmasterplan",
-                "8.3",
-                "Validierungs-, Sterilisations- und Reinigungsnachweise muessen den"
-                " aktuellen Prozesszustand abdecken; veraltete oder nicht"
-                " uebertragbare Evidenz (anderes Equipment, anderer Standort) ist"
-                " kein gueltiger Nachweis.",
-                "high",
-                ["Validierungsbericht", "Sterilisationsprotokoll"],
-            ),
-            req(
-                "req_gs_cross_document_consistency",
-                "SOP-DOC-005 Dokumentationspraxis",
-                "2.6",
-                "Angaben zu Chargen, Daten, Mengen, Temperaturen und Ergebnissen"
-                " muessen ueber alle Dokumente eines Vorgangs konsistent sein;"
-                " Widersprueche zwischen Bericht, Batch Record und Freigabenotiz"
-                " muessen aufgeklaert werden.",
-                "medium",
-                ["Vergleich der Quelldokumente"],
-            ),
-            req(
-                "req_gs_spec_limits",
-                "Herstellanweisung HA-Generic",
-                "3.1",
-                "Prozessparameter muessen innerhalb der spezifizierten Grenzen"
-                " liegen; Ueberschreitungen oder Unterschreitungen muessen als"
-                " Abweichung bewertet werden, auch wenn das Produkt visuell"
-                " unauffaellig ist.",
-                "high",
-                ["Batch Record", "Spezifikation"],
-            ),
-        ],
-    }
+    Benchmark and production check against the SAME requirement library
+    (src/data/gmp-general-requirement-library.json); only the set id and
+    tenant are overridden so the harness stays self-contained.
+    """
+    library_path = REPO_ROOT / "src" / "data" / "gmp-general-requirement-library.json"
+    library: dict[str, Any] = json.loads(library_path.read_text(encoding="utf-8"))
+    library["requirement_set_id"] = REQUIREMENT_SET_ID
+    library["tenant_id"] = TENANT_ID
+    library["imported_at"] = datetime.now(UTC).isoformat()
+    library["imported_by"] = "user_goldstandard_harness"
+    library["active"] = True
+    return library
 
 
 def _normalize(text: str) -> str:

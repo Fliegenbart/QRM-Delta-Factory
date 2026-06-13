@@ -15,7 +15,7 @@ import type {
 } from "@/src/lib/review-ui";
 import { normalizeReviewDecisionPayload } from "@/src/lib/review-ui";
 import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
-import gruenewaldSyntheticRequirementSet from "@/src/data/gruenewald-synthetic-requirement-set.json";
+import gmpGeneralRequirementLibrary from "@/src/data/gmp-general-requirement-library.json";
 
 export class ReviewApiError extends Error {
   constructor(
@@ -313,7 +313,7 @@ async function importDefaultRequirementSet(input: {
 }
 
 function defaultRequirementSet(input: { requirementSetId: string; tenantId: string }) {
-  const template = gruenewaldSyntheticRequirementSet as unknown as RequirementSet;
+  const template = gmpGeneralRequirementLibrary as unknown as RequirementSet;
   return {
     ...template,
     requirement_set_id: input.requirementSetId,
@@ -326,12 +326,23 @@ function defaultRequirementSet(input: { requirementSetId: string; tenantId: stri
 }
 
 function shouldReplaceLegacyDefaultRequirementSet(requirementSet: RequirementSet): boolean {
+  // Replace earlier seed libraries with the grounded general GMP library:
+  // the original one-rule stub, the old "Default" name, and the synthetic
+  // Grünewald SOP set. Any set whose requirements are not source-grounded
+  // (no regulatory source_refs like "EU GMP Annex 11 §9") is treated as legacy.
+  const isGroundedGeneralLibrary = requirementSet.requirements.some((requirement) =>
+    requirement.requirement_id?.startsWith("req_di_") ||
+    requirement.requirement_id?.startsWith("req_dev_") ||
+    requirement.requirement_id?.startsWith("req_capa_effectiveness")
+  );
   return (
     requirementSet.name === "Default GMP QRM Requirement Library" ||
+    requirementSet.name === "Grünewald Synthetic GMP/QRM Rule Library" ||
     (
       requirementSet.requirements.length === 1 &&
       requirementSet.requirements[0]?.requirement_id === "req_val_threshold_current_evidence"
-    )
+    ) ||
+    !isGroundedGeneralLibrary
   );
 }
 

@@ -1,0 +1,1436 @@
+{
+  "requirement_set_id": "rset_gmp_general_2026_1",
+  "tenant_id": "tenant_gruenewald",
+  "name": "Allgemeine GMP/QRM Requirement Library (ICH Q9, Annex 11, Part 11)",
+  "version": "2026.1",
+  "imported_at": "2026-01-01T00:00:00Z",
+  "imported_by": "user_quality_admin",
+  "active": true,
+  "requirements": [
+    {
+      "requirement_id": "req_di_audit_trail_review",
+      "title": "Audit-Trail-Review",
+      "domain": "data_integrity",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Audit Trail Review fehlt",
+        "relevante Events ausgeschlossen"
+      ],
+      "source_refs": [
+        "EU GMP Annex 11 9"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "regulation",
+      "source_name": "EU GMP Annex 11",
+      "source_version": "2011",
+      "section": "9",
+      "requirement_text": "GxP-relevante elektronische Daten muessen einen Audit Trail besitzen, der regelmaessig und risikobasiert geprueft wird; sicherheits- oder qualitaetsrelevante Eintraege duerfen dabei nicht ausgeschlossen werden.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Audit Trail",
+        "dokumentierter Audit-Trail-Review"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_di_signature_plausibility",
+      "title": "Plausibilitaet von Signatur und Datum",
+      "domain": "data_integrity",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Signaturdatum in der Zukunft",
+        "Pruefung datiert vor Erfassung"
+      ],
+      "source_refs": [
+        "21 CFR Part 11 11.50"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "regulation",
+      "source_name": "21 CFR Part 11",
+      "source_version": "1997",
+      "section": "11.50",
+      "requirement_text": "Elektronische Unterschriften muessen Name, Datum und Zeit der Signatur sowie deren Bedeutung enthalten; Datums- und Zeitangaben muessen zeitlich plausibel und konsistent mit dem Vorgang sein. In der Zukunft liegende oder widerspruechliche Signaturdaten sind Datenintegritaetsbefunde.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Signaturdaten",
+        "Audit Trail"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_di_alcoa_completeness",
+      "title": "ALCOA+ Vollstaendigkeit der Aufzeichnungen",
+      "domain": "data_integrity",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "fehlende Originaldaten",
+        "nachtraegliche Aenderung ohne Begruendung"
+      ],
+      "source_refs": [
+        "PIC/S PI 041 (Data Integrity) 8"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "PIC/S PI 041 (Data Integrity)",
+      "source_version": "2021",
+      "section": "8",
+      "requirement_text": "Aufzeichnungen muessen zurechenbar, lesbar, zeitgleich, original und korrekt sowie vollstaendig, konsistent, dauerhaft und verfuegbar sein (ALCOA+). Fehlende oder nachtraeglich veraenderte Originaldaten sind zu begruenden.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "vollstaendige Originalaufzeichnung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_di_access_override_control",
+      "title": "Zugriffskontrolle und manuelle Overrides",
+      "domain": "data_integrity",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "nicht autorisierter Admin-Eingriff",
+        "Override ohne Begruendung"
+      ],
+      "source_refs": [
+        "EU GMP Annex 11 12"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "regulation",
+      "source_name": "EU GMP Annex 11",
+      "source_version": "2011",
+      "section": "12",
+      "requirement_text": "Zugriffsrechte muessen rollenbasiert vergeben sein; manuelle Override- oder Admin-Eingriffe in GxP-Systeme muessen begruendet, autorisiert und im Audit Trail nachvollziehbar sein.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Berechtigungskonzept",
+        "Begruendung der Override-Aktion"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_dev_impact_assessment",
+      "title": "Dokumentierte Auswirkungsbewertung der Abweichung",
+      "domain": "deviation_management",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "keine Auswirkungsbewertung",
+        "betroffene Chargen nicht benannt"
+      ],
+      "source_refs": [
+        "ICH Q9(R1) 5"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "ICH Q9(R1)",
+      "source_version": "2023",
+      "section": "5",
+      "requirement_text": "Jede Abweichung erfordert eine dokumentierte Bewertung der Auswirkung auf Produktqualitaet und Patientensicherheit, einschliesslich aller potenziell betroffenen Chargen.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Impact Assessment",
+        "Bewertung der Auswirkung",
+        "Chargenliste"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_dev_risk_classification",
+      "title": "Begruendete Risiko- und Schweregradeinstufung",
+      "domain": "deviation_management",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Minor-Einstufung ohne Daten",
+        "Schweregrad nicht begruendet"
+      ],
+      "source_refs": [
+        "ICH Q9(R1) 5.1"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "ICH Q9(R1)",
+      "source_version": "2023",
+      "section": "5.1",
+      "requirement_text": "Die Einstufung einer Abweichung (z.B. Minor/Major/Kritisch) muss durch eine nachvollziehbare Risikobewertung belegt sein. Eine Einstufung als geringfuegig ohne belastbare physikalisch-chemische oder labortechnische Daten ist unzulaessig, auch wenn das Produkt visuell unauffaellig ist.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Risikobewertung",
+        "stuetzende Labordaten"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_dev_root_cause",
+      "title": "Belegte Grundursache",
+      "domain": "deviation_management",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Root Cause 'Bedienerfehler' ohne Beleg",
+        "technische Ursache nicht ausgeschlossen"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 1 1.4(xiv)"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 1",
+      "source_version": "2013",
+      "section": "1.4(xiv)",
+      "requirement_text": "Die Grundursache einer Abweichung muss durch eine angemessene Untersuchung belegt sein. Eine Zuschreibung als 'Bedienerfehler' ist nur zulaessig, wenn technische Ursachen (z.B. Equipment, Kalibrierung, Alarme) dokumentiert ausgeschlossen wurden.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Untersuchungsbericht",
+        "Ausschluss technischer Ursachen"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_dev_oos_before_disposition",
+      "title": "OOS/OOT-Untersuchung vor Disposition",
+      "domain": "deviation_management",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Disposition trotz offenem OOS",
+        "Folgemassnahme aufgeschoben"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 6 6.35"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 6",
+      "source_version": "2014",
+      "section": "6.35",
+      "requirement_text": "Out-of-Specification- und Out-of-Trend-Ergebnisse muessen vollstaendig untersucht und bewertet sein, bevor eine Chargen- oder Marktware-Disposition erfolgt; Folgemassnahmen duerfen nicht unzulaessig aufgeschoben werden.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "critical",
+      "required_evidence": [
+        "OOS-Untersuchungsbericht",
+        "Dispositionsentscheidung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_capa_effectiveness",
+      "title": "Wirksamkeitspruefung der CAPA",
+      "domain": "capa",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Effectiveness Check fehlt",
+        "CAPA geschlossen ohne Wirksamkeitsnachweis"
+      ],
+      "source_refs": [
+        "ICH Q10 3.2.2"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "ICH Q10",
+      "source_version": "2008",
+      "section": "3.2.2",
+      "requirement_text": "CAPA-Massnahmen, die mit einem Qualitaetsrisiko verknuepft sind, duerfen nur mit definierter und dokumentierter Wirksamkeitspruefung (Effectiveness Check) abgeschlossen werden.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "CAPA Record",
+        "Effectiveness Check Nachweis",
+        "Wirksamkeitspruefung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_capa_responsible_timeline",
+      "title": "Verantwortlicher und realistischer Termin der CAPA",
+      "domain": "capa",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "kein Verantwortlicher benannt",
+        "unrealistisches Zieldatum"
+      ],
+      "source_refs": [
+        "ICH Q10 3"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "ICH Q10",
+      "source_version": "2008",
+      "section": "3",
+      "requirement_text": "Jede CAPA-Massnahme muss einen benannten Massnahmenverantwortlichen und einen plausiblen, realisierbaren Umsetzungstermin haben.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "medium",
+      "required_evidence": [
+        "benannter Massnahmenverantwortlicher",
+        "Terminplan"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_batch_affected_completeness",
+      "title": "Vollstaendige Erfassung betroffener Chargen",
+      "domain": "batch_impact_assessment",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "betroffene Charge fehlt",
+        "Vorgaengerchargen nicht betrachtet"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 5 5.x"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 5",
+      "source_version": "2014",
+      "section": "5.x",
+      "requirement_text": "Batch-Impact-Bewertungen muessen alle potenziell betroffenen Chargen einschliesslich Vorgaenger- und Folgechargen erfassen.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Chargenliste",
+        "Begruendung der Chargenauswahl"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_batch_disposition_trace",
+      "title": "Nachvollziehbare Disposition mit Batch-Record-Verknuepfung",
+      "domain": "batch_impact_assessment",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Disposition ohne Begruendung",
+        "keine Batch-Record-Verknuepfung"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 6 6"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 6",
+      "source_version": "2014",
+      "section": "6",
+      "requirement_text": "Die Freigabe- bzw. Dispositionsentscheidung jeder betroffenen Charge muss begruendet und mit den zugehoerigen Batch Records verknuepft sein.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Batch Record",
+        "Dispositionsentscheidung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_batch_no_release_before_assessment",
+      "title": "Keine Freigabe vor abgeschlossener Bewertung",
+      "domain": "batch_impact_assessment",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Freigabe trotz offener Bewertung",
+        "Release vor QA-Disposition"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 1 1.4"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 1",
+      "source_version": "2013",
+      "section": "1.4",
+      "requirement_text": "Eine Charge darf nicht freigegeben werden, solange Abweichungsbewertung, Impact Assessment oder erforderliche QA-Freigabe nicht abgeschlossen sind.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "critical",
+      "required_evidence": [
+        "Freigabeentscheidung",
+        "abgeschlossene Bewertung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_qa_approval_documented",
+      "title": "Dokumentierte QA-Freigabe",
+      "domain": "qa_approval",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "QA approval pending",
+        "Freigabe geplant aber nicht dokumentiert"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 1 1.4(xv)"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 1",
+      "source_version": "2013",
+      "section": "1.4(xv)",
+      "requirement_text": "QA-Freigaben und Genehmigungen muessen vor Abschluss dokumentiert vorliegen. Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "QA Approval Record",
+        "dokumentierte QA-Freigabe"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_val_coverage_current_state",
+      "title": "Validierungsabdeckung des aktuellen Zustands",
+      "domain": "validation",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "veraltete Validierung",
+        "Evidenz von anderem Equipment/Standort"
+      ],
+      "source_refs": [
+        "EU GMP Annex 15 Validierung"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "regulation",
+      "source_name": "EU GMP Annex 15",
+      "source_version": "2015",
+      "section": "Validierung",
+      "requirement_text": "Validierungs-, Reinigungsvalidierungs- und Sterilisationsnachweise muessen den aktuellen Prozess-, Equipment- und Standortzustand abdecken. Veraltete oder nicht uebertragbare Evidenz (anderes Equipment, anderer Standort, abgelaufene Version) ist kein gueltiger Nachweis.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "aktueller Validierungsbericht",
+        "Uebertragbarkeitsbegruendung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_val_cleaning_sterility",
+      "title": "Reinigungsvalidierung und Sterilitaetssicherung",
+      "domain": "cleaning_validation",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Sterilitaetsrisiko nur indirekt erwaehnt",
+        "Cleaning Validation fehlt"
+      ],
+      "source_refs": [
+        "EU GMP Annex 1 Kontaminationskontrolle"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "regulation",
+      "source_name": "EU GMP Annex 1",
+      "source_version": "2022",
+      "section": "Kontaminationskontrolle",
+      "requirement_text": "Reinigungs- und Sterilitaetsrisiken muessen explizit adressiert und durch geeignete Validierung und Kontaminationskontrollstrategie belegt sein; eine nur indirekte Erwaehnung ist nicht ausreichend.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Reinigungsvalidierung",
+        "Sterilisationsprotokoll"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_cc_impact_and_validation",
+      "title": "Change mit Auswirkungsbewertung und Validierungsabdeckung",
+      "domain": "change_control",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Change ohne Impact Assessment",
+        "no-impact ohne Begruendung"
+      ],
+      "source_refs": [
+        "ICH Q10 3.2.3"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "ICH Q10",
+      "source_version": "2008",
+      "section": "3.2.3",
+      "requirement_text": "Aenderungen muessen einer dokumentierten Auswirkungsbewertung unterzogen werden; betroffene Validierungen sind zu pruefen und gegebenenfalls zu aktualisieren. Eine 'no impact'-Bewertung muss begruendet sein.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Change-Impact-Assessment",
+        "Validierungsbewertung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_doc_cross_consistency",
+      "title": "Konsistenz ueber alle Dokumente eines Vorgangs",
+      "domain": "documentation",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "widerspruechliche Angaben zwischen Dokumenten",
+        "Status inkonsistent"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 4 4.1"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 4",
+      "source_version": "2011",
+      "section": "4.1",
+      "requirement_text": "Angaben zu Chargen, Daten, Mengen, Temperaturen, Ergebnissen und Status muessen ueber alle Dokumente eines Vorgangs (Bericht, Batch Record, Anhaenge, Freigabenotiz) konsistent sein; Widersprueche muessen aufgeklaert werden.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "medium",
+      "required_evidence": [
+        "Vergleich der Quelldokumente"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_doc_mandatory_attachments",
+      "title": "Vollstaendigkeit der Pflichtanhaenge",
+      "domain": "documentation",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "referenzierter Anhang fehlt",
+        "veralteter Anhang"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 4 4.x"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 4",
+      "source_version": "2011",
+      "section": "4.x",
+      "requirement_text": "Alle in einem Vorgang referenzierten Pflichtanhaenge und Nachweise muessen tatsaechlich vorhanden und aktuell sein.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "medium",
+      "required_evidence": [
+        "referenzierte Anhaenge"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_supplier_change_impact",
+      "title": "Bewertung von Lieferanten- und Materialaenderungen",
+      "domain": "supplier_quality",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Lieferantenwechsel als no-impact",
+        "Spezifikationsaenderung nicht bewertet"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 5 5.27"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 5",
+      "source_version": "2014",
+      "section": "5.27",
+      "requirement_text": "Aenderungen an Lieferant, Material, Spezifikation, Methode oder Quelle duerfen nicht ohne Begruendung als 'no impact' gewertet werden; die Auswirkung auf Qualitaet und Validierung ist zu bewerten.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Lieferantenbewertung",
+        "Impact der Materialaenderung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_spec_acceptance_limits",
+      "title": "Einhaltung von Spezifikationen und Akzeptanzkriterien",
+      "domain": "qc_lab",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "interne Spezifikation verletzt",
+        "Zertifikat widerspricht interner Spezifikation"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 6 6"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 6",
+      "source_version": "2014",
+      "section": "6",
+      "requirement_text": "Mess- und Pruefergebnisse muessen gegen die gueltige interne Spezifikation bewertet werden. Eine Verletzung interner Akzeptanzkriterien ist auch dann als Abweichung zu behandeln, wenn ein Lieferanten-Zertifikat Konformitaet ausweist.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "interne Spezifikation",
+        "Pruefergebnis"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_process_parameter_limits",
+      "title": "Einhaltung von Prozessparametern",
+      "domain": "drug_product_manufacturing",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "Prozessparameter ausserhalb Spezifikation",
+        "Abweichung trotz visueller Unauffaelligkeit nicht bewertet"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 5 5.x"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 5",
+      "source_version": "2014",
+      "section": "5.x",
+      "requirement_text": "Kritische Prozessparameter muessen innerhalb der spezifizierten Grenzen liegen. Eine Ueber- oder Unterschreitung ist als Abweichung zu bewerten, auch wenn das Produkt visuell unauffaellig erscheint.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "Batch Record",
+        "Prozessparameter-Spezifikation"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_training_effectiveness",
+      "title": "Wirksames Training nach SOP-Aenderung",
+      "domain": "training",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base"
+      ],
+      "applies_to_agents": [],
+      "applies_when_signals_present": [],
+      "red_flags": [
+        "SOP aktualisiert ohne Training",
+        "Training nicht wirksam"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 2 2.x"
+      ],
+      "required_reviewer_roles": [],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 2",
+      "source_version": "2013",
+      "section": "2.x",
+      "requirement_text": "Wird eine SOP aktualisiert, muss das betroffene Personal nachweislich und wirksam geschult sein, bevor die geaenderte Taetigkeit ausgefuehrt wird.",
+      "applies_to_document_types": [
+        "deviation",
+        "deviation_record",
+        "capa",
+        "capa_record",
+        "batch_record",
+        "batch_impact_assessment",
+        "qa_approval",
+        "change_control",
+        "change_control_package",
+        "validation",
+        "audit_trail_review",
+        "supplier_change",
+        "oos_record"
+      ],
+      "applies_to_process_areas": [
+        "drug_product_manufacturing",
+        "api_manufacturing",
+        "aseptic_filling",
+        "automated_visual_inspection",
+        "packaging",
+        "qc_lab",
+        "cleaning_validation",
+        "computerized_system",
+        "data_integrity",
+        "supplier_quality",
+        "warehouse",
+        "environmental_monitoring",
+        "stability",
+        "utilities"
+      ],
+      "criticality": "medium",
+      "required_evidence": [
+        "Schulungsnachweis",
+        "Wirksamkeit des Trainings"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    }
+  ]
+}
