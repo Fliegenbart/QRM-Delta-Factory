@@ -99,6 +99,18 @@ class KnowledgeRetrievalProfile:
         return _dedupe_strings(packs)
 
 
+# Befundtexte (risk_statement, recommended_action, missing_information,
+# coverage_summary) auf Deutsch, damit sie zur Sprache der Quelldokumente und
+# der QA-Zielgruppe passen. Woertliche Zitate in evidence_items bleiben in der
+# Originalsprache des Dokuments.
+OUTPUT_LANGUAGE_DIRECTIVE = (
+    "AUSGABESPRACHE: Formuliere risk_statement, recommended_action, "
+    "missing_information und coverage_summary auf Deutsch. Uebernimm woertliche "
+    "Zitate (quote in evidence_items) unveraendert in der Originalsprache des "
+    "Dokuments; uebersetze sie nicht."
+)
+
+
 @dataclass(frozen=True)
 class ReviewerAgent:
     agent_id: str
@@ -135,6 +147,7 @@ class ReviewerAgent:
             if calibration_prompt_block
             else base_prompt
         )
+        prompt = f"{prompt}\n\n{OUTPUT_LANGUAGE_DIRECTIVE}"
         raw_output = self.provider.run_structured(
             prompt=prompt,
             input_schema={
