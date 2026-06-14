@@ -1,0 +1,228 @@
+{
+  "run": {
+    "mode": "live",
+    "stack": "hybrid",
+    "started_at": "2026-06-13T21:03:10+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-5.4",
+    "mistral_model": "mistral-large-latest",
+    "case_count": 1
+  },
+  "aggregate": {
+    "tokens_by_provider": {
+      "openai": {
+        "input_tokens": 16428,
+        "output_tokens": 3140,
+        "total_tokens": 19568,
+        "calls": 1
+      },
+      "mistral": {
+        "input_tokens": 126850,
+        "output_tokens": 21698,
+        "total_tokens": 148548,
+        "calls": 7
+      },
+      "anthropic": {
+        "input_tokens": 19465,
+        "output_tokens": 9404,
+        "total_tokens": 28869,
+        "calls": 1
+      },
+      "extraction:mistral": {
+        "input_tokens": 3157,
+        "output_tokens": 2124,
+        "total_tokens": 5281,
+        "calls": 1
+      }
+    },
+    "cases": 1,
+    "sensitivity": {
+      "found": 2,
+      "total": 2,
+      "rate": 1.0
+    },
+    "specificity_decoys": {
+      "passed": 1,
+      "total": 1,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 17,
+      "total_findings": 17,
+      "rate": 1.0
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_06",
+      "document_set_id": "ds_8ddca49a767b4350ad31ffe4031d06c5",
+      "documents_uploaded": [
+        "document_01_supplier_coa.md",
+        "document_02_laboratory_deviation.md",
+        "document_03_quality_approval_note.md"
+      ],
+      "pipeline_status": "completed",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 16428,
+          "output_tokens": 3140,
+          "total_tokens": 19568,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 126850,
+          "output_tokens": 21698,
+          "total_tokens": 148548,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 19465,
+          "output_tokens": 9404,
+          "total_tokens": 28869,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3157,
+          "output_tokens": 2124,
+          "total_tokens": 5281,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "succeeded"
+      },
+      "failed_model_roles": [],
+      "claim_count": 21,
+      "finding_count": 17,
+      "citation_verified_finding_count": 17,
+      "risk_decision": "human_review_required",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_06_01",
+          "severity": "high",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Akzeptanzkriterium der internen Spezifikation wird durch das Lieferanten-Zertifikat verletzt.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_006_supplier_cert_vs_internal_spec_contradiction",
+            "risk_statement": "Das QA-Freigabedokument QA-REL-AMO-01 beruft sich auf das Lieferanten-Analysenzertifikat als Konformitätsbeleg, während das Abweichungsdokument LAB-DEV-2026-031 eine interne OOS-Feststellung (13,2% Wassergehalt) dokumentiert. Dieser Widerspruch zwischen den Dokumenten ist nicht aufgeklärt: Es ist unklar, welchen Wassergehalt das Lieferantenzertifikat ausweist und warum die interne Messung davon abweicht. Die Freigabe auf Basis des Lieferantenzertifikats ohne Auflösung dieses Widerspruchs ist GMP-konform nicht zulässig.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_06_02",
+          "severity": "critical",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Wirkstofffreigabe durch QA trotz ungelöster und aktive Laborabweichung.",
+          "match": {
+            "score": 0.718,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_004",
+            "risk_statement": "Der Wassergehalt der Charge CS-AMX-9982 (13,2%) liegt außerhalb der internen Spezifikation (11,5% bis 12,8%), obwohl das Analysenzertifikat des Lieferanten Konformität bestätigt. Die interne Spezifikation wurde nicht eingehalten, und es fehlt eine dokumentierte Bewertung der Abweichung gemäß interner Akzeptanzkriterien.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_06_01",
+          "evidence_text": "Identität (IR): Konform",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_001",
+          "severity": "high",
+          "risk_statement": "Die Abweichung LAB-DEV-2026-031 betrifft den Wassergehalt des Rohstoffs Amoxicillin Trihydrat (CS-AMX-9982), der mit 13,2% außerhalb der internen Spezifikation (11,5%–12,8%) liegt. Die Grundursachenanalyse ist noch nicht abgeschlossen, und die Validierungsabdeckung des aktuellen Prozesses ist unklar. Eine Freigabe der betroffenen Formulierungscharge (AMO-SUP-2026-01) erfolgte trotz offener Abweichung."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "high",
+          "risk_statement": "Die Sterilitätsassurance für die betroffene Formulierungscharge AMO-SUP-2026-01 ist nicht ausreichend dokumentiert. Es fehlt eine explizite Bewertung der Auswirkungen der Abweichung (Wassergehalt außerhalb der Spezifikation) auf die Sterilität des Endprodukts. Eine Reinigungsvalidierung oder Sterilisationsprotokolle sind nicht referenziert."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "high",
+          "risk_statement": "Die QA-Freigabe der Formulierungscharge AMO-SUP-2026-01 erfolgte, obwohl die Abweichung LAB-DEV-2026-031 noch nicht abgeschlossen und die Auswirkungsbewertung nicht dokumentiert war. Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend."
+        },
+        {
+          "finding_id": "finding_di_audit_trail_review_missing",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierten Nachweise für einen durchgeführten Audit-Trail-Review der elektronischen Daten im Zusammenhang mit der Abweichung LAB-DEV-2026-031 und der QA-Freigabe QA-REL-AMO-01. Dies stellt ein hohes Risiko für die Datenintegrität dar, da sicherheits- oder qualitätsrelevante Eintragungen möglicherweise nicht geprüft wurden."
+        },
+        {
+          "finding_id": "finding_di_signature_plausibility_missing",
+          "severity": "high",
+          "risk_statement": "Die Plausibilität der elektronischen Unterschriften, insbesondere im QA-Freigabedokument QA-REL-AMO-01, wurde nicht ausreichend geprüft. Es fehlen Nachweise über die Konsistenz von Datum, Zeit und Bedeutung der Signatur sowie deren zeitliche Plausibilität im Kontext des Vorgangs."
+        },
+        {
+          "finding_id": "finding_di_access_override_control_missing",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierten Nachweise über die Prüfung von Zugriffsrechten oder manuellen Override-Eingriffen in GxP-Systeme im Zusammenhang mit der Abweichung LAB-DEV-2026-031 und der QA-Freigabe QA-REL-AMO-01. Dies stellt ein Risiko für die Datenintegrität dar, da nicht autorisierte oder unbegündete Eingriffe nicht ausgeschlossen werden können."
+        },
+        {
+          "finding_id": "finding_001_oos_before_disposition",
+          "severity": "critical",
+          "risk_statement": "Die Formulierungscharge AMO-SUP-2026-01 wurde am 18.05.2026 als 'frei verwendbar' freigegeben, obwohl die OOS-Untersuchung zur Abweichung LAB-DEV-2026-031 (Wassergehalt 13,2% gegenüber Spezifikation 11,5–12,8%) zum Zeitpunkt der Freigabe noch offen war (Status: 'In Untersuchung'). Dies stellt einen kritischen Verstoß gegen das Gebot dar, dass OOS-Ergebnisse vollständig untersucht und bewertet sein müssen, bevor eine Chargen-Disposition erfolgt."
+        },
+        {
+          "finding_id": "finding_002_oos_spec_violation_not_assessed",
+          "severity": "critical",
+          "risk_statement": "Der Wassergehalt des Rohstoffs CS-AMX-9982 (Amoxicillin Trihydrat) wurde intern mit 13,2% gemessen, was die gültige interne Spezifikation Prüf-Spez-API-04 (11,5–12,8%) um 0,4 Prozentpunkte überschreitet. Das Lieferanten-Analysenzertifikat wird im QA-Freigabedokument als Konformitätsbeleg angeführt, ohne dass die Verletzung der internen Spezifikation adressiert wird. Dies stellt eine unzulässige Entwarnung dar: Die interne OOS-Feststellung wird durch das Lieferantenzertifikat nicht aufgehoben."
+        },
+        {
+          "finding_id": "finding_003_no_impact_assessment_documented",
+          "severity": "high",
+          "risk_statement": "Weder im Abweichungsdokument LAB-DEV-2026-031 noch im QA-Freigabedokument QA-REL-AMO-01 ist ein dokumentiertes Impact Assessment zur Auswirkung des OOS-Wassergehalts auf die Produktqualität und Patientensicherheit nachweisbar. Es fehlt insbesondere eine Bewertung, ob weitere Chargen (Vorgänger- oder Folgechargen) von demselben Rohstoff CS-AMX-9982 oder anderen Lieferungen von ChemieSynthese GmbH betroffen sein könnten."
+        },
+        {
+          "finding_id": "finding_004_root_cause_pending",
+          "severity": "high",
+          "risk_statement": "Die Grundursache der Abweichung LAB-DEV-2026-031 ist zum Zeitpunkt der QA-Freigabe (18.05.2026) noch nicht ermittelt. Die Laboruntersuchung zur Klärung der Diskrepanz läuft noch. Eine Freigabe ohne geklärte Grundursache verhindert die Beurteilung, ob der erhöhte Wassergehalt auf ein systematisches Problem (z.B. Lagerung, Transport, Herstellungsprozess beim Lieferanten) zurückzuführen ist, das weitere Chargen betreffen könnte."
+        },
+        {
+          "finding_id": "finding_005_capa_missing",
+          "severity": "high",
+          "risk_statement": "In keinem der vorliegenden Dokumente sind CAPA-Maßnahmen zur Abweichung LAB-DEV-2026-031 dokumentiert. Weder ein benannter CAPA-Verantwortlicher noch ein Zieldatum noch ein Effectiveness-Check-Plan sind nachweisbar. Die Freigabe der Charge erfolgte ohne dokumentierte Korrektur- und Vorbeugungsmaßnahmen."
+        },
+        {
+          "finding_id": "finding_release_before_open_deviation_assessment",
+          "severity": "critical",
+          "risk_statement": "Es liegt ein kritischer Widerspruch vor: Die Rohstofflieferung CS-AMX-9982 bzw. die Formulierungscharge AMO-SUP-2026-01 wurde freigegeben/autorisert, obwohl die zugehoerige Abweichung noch offen in Untersuchung war und die Root-Cause-Untersuchung noch lief. Damit besteht das Risiko einer Disposition/Freigabe vor abgeschlossener Abweichungs- und OOS-Bewertung."
+        },
+        {
+          "finding_id": "finding_missing_documented_batch_impact_scope",
+          "severity": "high",
+          "risk_statement": "Fuer die Abweichung zum Wassergehalt des Rohstoffs CS-AMX-9982 ist in den vorliegenden Claims keine dokumentierte Batch-Impact-Bewertung mit vollstaendiger Erfassung potenziell betroffener Chargen nachweisbar. Es ist nur die Formulierungscharge AMO-SUP-2026-01 genannt; eine Betrachtung weiterer potenziell betroffener Vorgaenger-/Folgechargen oder weiterer Verwendungen des Rohstoffs ist nicht belegt."
+        },
+        {
+          "finding_id": "finding_internal_spec_failure_vs_supplier_conformity",
+          "severity": "high",
+          "risk_statement": "Es besteht ein wesentlicher Widerspruch zwischen Lieferantenkonformitaet und internem Pruefergebnis: Das Lieferantenzertifikat bescheinigt Konformitaet des Wirkstoffs, waehrend die interne Re-Analyse fuer denselben Rohstoff CS-AMX-9982 einen Wassergehalt von 13,2% gegenueber der internen Spezifikation von 11.5% bis 12.8% zeigt. Eine Freigabe auf Basis des Lieferantenzertifikats trotz interner Spezifikationsverletzung ist GMP-kritisch."
+        },
+        {
+          "finding_id": "finding_a6b9624e8609a5e139fa",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: ICH Q9(R1) Abschnitt 5 fordert 'Impact Assessment'. Die Unterlagen enthalten keine(n) dokumentierte Bewertung der Auswirkung auf Produktqualitaet und Chargen - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    }
+  ]
+}

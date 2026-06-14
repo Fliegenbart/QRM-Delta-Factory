@@ -1,0 +1,215 @@
+{
+  "run": {
+    "mode": "live",
+    "stack": "hybrid",
+    "started_at": "2026-06-13T20:57:28+00:00",
+    "anthropic_model": "claude-sonnet-4-6",
+    "openai_model": "gpt-5.4",
+    "mistral_model": "mistral-large-latest",
+    "case_count": 1
+  },
+  "aggregate": {
+    "tokens_by_provider": {
+      "openai": {
+        "input_tokens": 16410,
+        "output_tokens": 2755,
+        "total_tokens": 19165,
+        "calls": 1
+      },
+      "mistral": {
+        "input_tokens": 126815,
+        "output_tokens": 20048,
+        "total_tokens": 146863,
+        "calls": 7
+      },
+      "anthropic": {
+        "input_tokens": 16,
+        "output_tokens": 10,
+        "total_tokens": 26,
+        "calls": 1
+      },
+      "extraction:mistral": {
+        "input_tokens": 3172,
+        "output_tokens": 2148,
+        "total_tokens": 5320,
+        "calls": 1
+      }
+    },
+    "cases": 1,
+    "sensitivity": {
+      "found": 2,
+      "total": 2,
+      "rate": 1.0
+    },
+    "specificity_decoys": {
+      "passed": 1,
+      "total": 1,
+      "rate": 1.0
+    },
+    "citation_precision": {
+      "verified": 11,
+      "total_findings": 14,
+      "rate": 0.786
+    }
+  },
+  "cases": [
+    {
+      "case_id": "CASE_06",
+      "document_set_id": "ds_a59e577ab3584470a8d3541765749677",
+      "documents_uploaded": [
+        "document_01_supplier_coa.md",
+        "document_02_laboratory_deviation.md",
+        "document_03_quality_approval_note.md"
+      ],
+      "pipeline_status": "needs_human_review",
+      "failed_step": null,
+      "error_summary": null,
+      "tokens_by_provider": {
+        "openai": {
+          "input_tokens": 16410,
+          "output_tokens": 2755,
+          "total_tokens": 19165,
+          "calls": 1
+        },
+        "mistral": {
+          "input_tokens": 126815,
+          "output_tokens": 20048,
+          "total_tokens": 146863,
+          "calls": 7
+        },
+        "anthropic": {
+          "input_tokens": 16,
+          "output_tokens": 10,
+          "total_tokens": 26,
+          "calls": 1
+        },
+        "extraction:mistral": {
+          "input_tokens": 3172,
+          "output_tokens": 2148,
+          "total_tokens": 5320,
+          "calls": 1
+        }
+      },
+      "model_statuses": {
+        "RedTeamCriticOpenAI": "succeeded",
+        "ContradictionHunter": "succeeded",
+        "GMPDataIntegrityReviewer": "succeeded",
+        "BatchImpactReviewer": "succeeded",
+        "RegulatoryConsistencyReviewer": "succeeded",
+        "DeviationReviewer": "succeeded",
+        "ValidationAndSterilityReviewer": "succeeded",
+        "CAPAReviewer": "succeeded",
+        "RedTeamCriticAnthropic": "failed"
+      },
+      "failed_model_roles": [
+        "RedTeamCriticAnthropic"
+      ],
+      "claim_count": 21,
+      "finding_count": 14,
+      "citation_verified_finding_count": 11,
+      "risk_decision": "blocked_due_to_model_failure",
+      "auto_clear_allowed": false,
+      "gold_error_count": 2,
+      "matched_errors": [
+        {
+          "error_id": "ERR_06_01",
+          "severity": "high",
+          "error_type": "Regulatory / GMP Consistency",
+          "expected_reviewer_finding": "Akzeptanzkriterium der internen Spezifikation wird durch das Lieferanten-Zertifikat verletzt.",
+          "match": {
+            "score": 1.0,
+            "method": "evidence_substring",
+            "finding_id": "finding_001",
+            "risk_statement": "Die Reinigungsvalidierung deckt die geänderte Materialcharge CS-AMX-9982 (Amoxicillin Trihydrat) nicht explizit ab. Es gibt keine dokumentierte Bewertung, ob die bestehende Reinigungsvalidierungsmatrix für das neue Material oder die geänderte Wassergehaltspezifikation (13,2% statt 11,5–12,8%) gültig ist.",
+            "severity": "high"
+          }
+        },
+        {
+          "error_id": "ERR_06_02",
+          "severity": "critical",
+          "error_type": "Batch-/Produktimpact",
+          "expected_reviewer_finding": "Wirkstofffreigabe durch QA trotz ungelöster und aktive Laborabweichung.",
+          "match": {
+            "score": 0.718,
+            "method": "evidence_fuzzy",
+            "finding_id": "finding_004",
+            "risk_statement": "Der gemessene Wassergehalt von 13,2% bei der Charge CS-AMX-9982 überschreitet die interne Spezifikation (11,5% bis 12,8%) für Amoxicillin Trihydrat. Dies stellt eine Verletzung der Akzeptanzkriterien dar, unabhängig von der Konformitätsaussage des Lieferantenzertifikats.",
+            "severity": "high"
+          }
+        }
+      ],
+      "missed_errors": [],
+      "decoy_count": 1,
+      "decoy_false_alarms": [],
+      "decoys_passed": [
+        {
+          "decoy_id": "DEC_06_01",
+          "evidence_text": "Identität (IR): Konform",
+          "hit": null
+        }
+      ],
+      "unmatched_findings": [
+        {
+          "finding_id": "finding_bia_001",
+          "severity": "critical",
+          "risk_statement": "Die Formulierungscharge AMO-SUP-2026-01 wurde trotz offener Abweichungsbewertung (Deviation LAB-DEV-2026-031) und Spezifikationsverletzung des Wassergehalts (13,2% gemessen vs. 11,5-12,8% spezifiziert) freigegeben. Dies stellt ein kritisches Risiko für die Produktqualität und Patientensicherheit dar, da die Auswirkung der Abweichung nicht abschließend bewertet wurde."
+        },
+        {
+          "finding_id": "finding_bia_002",
+          "severity": "high",
+          "risk_statement": "Die Dispositionsentscheidung für die Charge AMO-SUP-2026-01 ist dokumentiert, jedoch fehlt eine detaillierte Begründung, warum die Charge trotz Spezifikationsverletzung des Wassergehalts (13,2% gemessen vs. 11,5-12,8% spezifiziert) als 'frei verwendbar' freigegeben wurde. Dies stellt ein hohes Risiko für die Nachvollziehbarkeit und Compliance dar."
+        },
+        {
+          "finding_id": "finding_capa_effectiveness_missing",
+          "severity": "high",
+          "risk_statement": "Die CAPA-Maßnahme wurde abgeschlossen, ohne dass ein dokumentierter Effectiveness Check oder ein Nachweis der Wirksamkeit vorliegt. Dies stellt ein hohes Compliance-Risiko dar, da die Wirksamkeit der Maßnahmen nicht bestätigt wurde."
+        },
+        {
+          "finding_id": "finding_capa_responsible_missing",
+          "severity": "medium",
+          "risk_statement": "Die Verantwortlichkeit für die CAPA-Maßnahmen ist nicht klar benannt, und es fehlt ein realistischer Umsetzungstermin. Dies kann zu Verzögerungen oder unvollständiger Umsetzung der Maßnahmen führen."
+        },
+        {
+          "finding_id": "finding_capa_deviation_link_unclear",
+          "severity": "high",
+          "risk_statement": "Die Verknüpfung der CAPA zur ursprünglichen Deviation (LAB-DEV-2026-031) ist unklar, und es fehlt eine nachvollziehbare Bewertung der Auswirkung auf die betroffenen Chargen. Dies stellt ein hohes Risiko für die Compliance dar."
+        },
+        {
+          "finding_id": "finding_002",
+          "severity": "critical",
+          "risk_statement": "Die Sterilitätsrisikobewertung für die Formulierungscharge AMO-SUP-2026-01 fehlt. Die Charge wurde freigegeben, obwohl die Abweichung LAB-DEV-2026-031 (Wassergehalt außerhalb der Spezifikation) noch in Untersuchung ist. Es gibt keine dokumentierte Bewertung, ob die geänderte Materialcharge CS-AMX-9982 die Sterilität oder Produktqualität der Formulierung beeinträchtigt."
+        },
+        {
+          "finding_id": "finding_003",
+          "severity": "high",
+          "risk_statement": "Der Wassergehalt der Charge CS-AMX-9982 (13,2%) liegt außerhalb der internen Spezifikation von 11,5–12,8%. Die Abweichung wurde als LAB-DEV-2026-031 erfasst, ist jedoch noch nicht abgeschlossen. Die Formulierungscharge AMO-SUP-2026-01 wurde trotz dieser Abweichung freigegeben, ohne dass die Auswirkungen auf die Produktqualität oder Patientensicherheit vollständig bewertet wurden."
+        },
+        {
+          "finding_id": "finding_di_audit_trail_review_001",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierten Nachweise für einen durchgeführten Audit-Trail-Review der elektronischen Daten im Zusammenhang mit der Abweichung LAB-DEV-2026-031 und der Freigabe der Charge AMO-SUP-2026-01. Dies stellt ein hohes Risiko für die Datenintegrität dar, da sicherheits- oder qualitätsrelevante Eintragungen möglicherweise nicht geprüft wurden."
+        },
+        {
+          "finding_id": "finding_di_access_override_001",
+          "severity": "high",
+          "risk_statement": "Es gibt keine dokumentierten Nachweise für die Autorisierung und Begründung manueller Override- oder Admin-Eingriffe in GxP-Systeme im Zusammenhang mit der Freigabe der Charge AMO-SUP-2026-01. Dies stellt ein Risiko für die Datenintegrität dar, da nicht nachvollziehbar ist, ob Zugriffsrechte rollenbasiert vergeben und Overrides ordnungsgemäß dokumentiert wurden."
+        },
+        {
+          "finding_id": "finding_release_before_open_deviation_assessment",
+          "severity": "critical",
+          "risk_statement": "Es besteht ein kritisches GMP-Risiko, dass die Formulierungscharge AMO-SUP-2026-01 freigegeben wurde, obwohl fuer den eingesetzten Rohstoff CS-AMX-9982 eine offene Abweichungsuntersuchung zu einem internen Spezifikationsverstoss beim Wassergehalt dokumentiert ist. Dies spricht fuer eine Disposition/Freigabe vor abgeschlossener Bewertung."
+        },
+        {
+          "finding_id": "finding_missing_documented_batch_impact_scope",
+          "severity": "high",
+          "risk_statement": "Es besteht ein wesentliches Compliance-Risiko, dass die Auswirkungsbewertung der Abweichung unvollstaendig dokumentiert ist. In den Claims ist nur die Verknuepfung des Rohstoffs CS-AMX-9982 zu einer Formulierungscharge ersichtlich; eine dokumentierte Chargenliste bzw. Bewertung weiterer potenziell betroffener Vorgaenger- oder Folgechargen fehlt."
+        },
+        {
+          "finding_id": "finding_9dfca0a1c00ba95aecb0",
+          "severity": "high",
+          "risk_statement": "Pflichtnachweis fehlt: ICH Q9(R1) Abschnitt 5 fordert 'Impact Assessment'. Die Unterlagen enthalten keine(n) dokumentierte Bewertung der Auswirkung auf Produktqualitaet und Chargen - im Claim Ledger existiert kein entsprechender Nachweis-Claim, obwohl der ausloesende Vorgang dokumentiert ist."
+        }
+      ]
+    }
+  ]
+}
