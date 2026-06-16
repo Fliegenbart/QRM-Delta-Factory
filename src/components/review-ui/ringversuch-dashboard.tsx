@@ -66,7 +66,7 @@ type RingversuchRun = {
   id: string;
   run: RunMeta;
   aggregate: Aggregate;
-  cases: CaseResult[];
+  cases?: CaseResult[];
 };
 
 /* ----- Hilfsfunktionen ----- */
@@ -198,6 +198,8 @@ export function RingversuchDashboard() {
           Fehler bewusst versteckt wurden — plus Kontrollstellen, die verdächtig aussehen,
           aber in Ordnung sind. So lässt sich schwarz auf weiß messen, was das System
           findet, was es übersieht und ob es falschen Alarm schlägt.
+          Die öffentliche Ansicht zeigt bewusst nur zusammengefasste Kennzahlen. Fall- und
+          Token-Rohdaten bleiben Teil der internen Qualifizierung.
         </p>
       </div>
 
@@ -206,21 +208,28 @@ export function RingversuchDashboard() {
       <section>
         <SectionHeading
           title="Lauf-Historie"
-          description="Jede Zeile ist ein kompletter Testdurchlauf über alle zehn Fälle — von der ersten Baseline ohne KI bis zum aktuellen Stand. Zeile anklicken für die Details."
+          description="Jede Zeile ist ein Testdurchlauf über die Qualifizierungsfälle — von der ersten Baseline bis zum aktuellen Stand. Zeile anklicken für die Kennzahlen."
         />
         <RunHistoryTable runs={runs} selectedId={selectedId} onSelect={setSelectedId} />
       </section>
 
       {selected ? (
         <>
-          <section>
-            <SectionHeading
-              title={`Fall-Matrix — ${stackLabel(selected.run)}`}
-              description="Pro Prüffall: Welche versteckten Fehler wurden gefunden (✓) oder übersehen (✗)? Und hat das System die harmlosen Kontrollstellen in Ruhe gelassen?"
+          {selected.cases?.length ? (
+            <section>
+              <SectionHeading
+                title={`Fall-Matrix — ${stackLabel(selected.run)}`}
+                description="Pro Prüffall: Welche versteckten Fehler wurden gefunden (✓) oder übersehen (✗)? Und hat das System die harmlosen Kontrollstellen in Ruhe gelassen?"
+              />
+              <CaseMatrix cases={selected.cases} />
+              <ChipLegend />
+            </section>
+          ) : (
+            <PanelMessage
+              title="Öffentliche Qualifizierungs-Zusammenfassung"
+              body="Diese Ansicht zeigt die verkaufsfähigen Kennzahlen des Ringversuchs. Die fallbezogene Fehler-Matrix, vollständige Risk Statements, Modell-Rohdaten und Token-Details bleiben intern, damit keine unnötigen Test- oder Betriebsdetails öffentlich ausgeliefert werden."
             />
-            <CaseMatrix cases={selected.cases} />
-            <ChipLegend />
-          </section>
+          )}
 
           {selected.aggregate.tokens_by_provider &&
           Object.keys(selected.aggregate.tokens_by_provider).length > 0 ? (
