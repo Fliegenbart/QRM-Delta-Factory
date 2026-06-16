@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NextRequest } from "next/server";
 import {
   caseWorkspaceStructure,
   aiArchitectureConcept,
@@ -30,6 +31,11 @@ import {
   type ReviewPack
 } from "@/src/lib/review-ui";
 import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
+import {
+  isProtectedReviewPath,
+  isReviewAuthRequired
+} from "@/utils/supabase/review-auth";
+import { updateSession } from "@/utils/supabase/middleware";
 
 describe("review UI helpers", () => {
   it("marks the backend review workbench as the replacement for legacy delta analysis", () => {
@@ -412,4 +418,63 @@ describe("review UI helpers", () => {
     ).toBe(true);
     expect(hasSupabasePublicConfig({ NEXT_PUBLIC_SUPABASE_URL: "" })).toBe(false);
   });
+
+  it("requires server-side auth for review workspace pages and API routes", () => {
+    expect(isProtectedReviewPath("/review-ui")).toBe(true);
+    expect(isProtectedReviewPath("/review-ui/document-sets/ds_demo")).toBe(true);
+    expect(isProtectedReviewPath("/api/review-ui/document-sets")).toBe(true);
+    expect(isProtectedReviewPath("/api/review-ui/document-sets/ds_demo/pipeline-runs")).toBe(true);
+
+    expect(isProtectedReviewPath("/ringversuch")).toBe(false);
+    expect(isProtectedReviewPath("/api/ringversuch")).toBe(false);
+    expect(isProtectedReviewPath("/review-uiish")).toBe(false);
+  });
+
+  it("requires review auth by default in production but can stay open for local tests", () => {
+    expect(isReviewAuthRequired({ NODE_ENV: "production" })).toBe(true);
+    expect(isReviewAuthRequired({ VERCEL: "1" })).toBe(true);
+    expect(isReviewAuthRequired({ NODE_ENV: "test" })).toBe(false);
+    expect(isReviewAuthRequired({ QRM_REVIEW_UI_AUTH_REQUIRED: "true" })).toBe(true);
+    expect(
+      isReviewAuthRequired({
+        NODE_ENV: "production",
+        QRM_REVIEW_UI_AUTH_REQUIRED: "false"
+      })
+    ).toBe(false);
+  });
+
+  it("fails closed for protected review API routes when auth is required but not configured", async () => {
+    const previous = {
+      authRequired: process.env.QRM_REVIEW_UI_AUTH_REQUIRED,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    };
+    process.env.QRM_REVIEW_UI_AUTH_REQUIRED = "true";
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+    try {
+      const response = await updateSession(
+        new NextRequest("https://qrm.example.test/api/review-ui/document-sets")
+      );
+
+      expect(response.status).toBe(503);
+      expect(response.headers.get("cache-control")).toBe("no-store");
+      await expect(response.json()).resolves.toEqual({
+        error: "Review authentication is not configured."
+      });
+    } finally {
+      restoreEnv("QRM_REVIEW_UI_AUTH_REQUIRED", previous.authRequired);
+      restoreEnv("NEXT_PUBLIC_SUPABASE_URL", previous.supabaseUrl);
+      restoreEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", previous.supabaseKey);
+    }
+  });
 });
+
+function restoreEnv(key: string, value: string | undefined) {
+  if (value === undefined) {
+    delete process.env[key];
+    return;
+  }
+  process.env[key] = value;
+}

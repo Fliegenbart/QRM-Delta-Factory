@@ -94,6 +94,7 @@ QRM_BACKEND_URL="http://localhost:8000"
 QRM_BACKEND_API_KEY=""
 QRM_BACKEND_TENANT_ID="tenant_example_pharma"
 QRM_DEFAULT_REQUIREMENT_SET_ID="rset_example_gmp_qrm_2026_1"
+QRM_REVIEW_UI_AUTH_REQUIRED="false"
 NEXT_PUBLIC_SUPABASE_URL=""
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=""
 ```
@@ -106,8 +107,10 @@ docs/adversarial-test-data-briefing.md
 ```
 
 Supabase browser/server helpers live under `utils/supabase/`. The middleware refreshes Supabase
-sessions when the public Supabase URL and publishable key are configured, and safely passes through
-when they are missing.
+sessions when the public Supabase URL and publishable key are configured. Review workspace routes
+(`/review-ui` and `/api/review-ui/*`) require Supabase auth automatically in production/Vercel.
+Local development can opt out with `QRM_REVIEW_UI_AUTH_REQUIRED="false"`; do not disable this for
+customer pilots or real document uploads.
 
 ## Environment Variables
 
