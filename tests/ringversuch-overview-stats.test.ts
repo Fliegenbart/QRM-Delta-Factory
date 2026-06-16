@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { selectOverviewRingversuchStats } from "@/src/lib/ringversuch-overview-stats";
 
 describe("overview ringversuch stats", () => {
@@ -19,6 +21,18 @@ describe("overview ringversuch stats", () => {
     expect(stats.best.sensitivityTotal).toBe(25);
     expect(stats.best.citationRate).toBe(0.91);
     expect(stats.hasBetterBestRun).toBe(true);
+  });
+
+  it("keeps the overview copy aligned with the public qualification boundary", () => {
+    const overview = readFileSync(
+      join(process.cwd(), "src/components/review-ui/overview-landing.tsx"),
+      "utf8"
+    );
+
+    expect(overview).toContain("öffentlich sichtbar sind");
+    expect(overview).toContain("Fall- und Token-Rohdaten bleiben Teil der");
+    expect(overview).not.toContain("inklusive");
+    expect(overview).not.toContain("aller Fälle ist im Qualifizierungsnachweis einsehbar");
   });
 });
 

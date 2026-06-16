@@ -218,8 +218,9 @@ export function OverviewLanding() {
             <div className="mt-1 text-[11px] text-[var(--text-tertiary)]">
               Werte aus dem jüngsten vollständigen Ringversuchslauf (Stand: {latest.standDate}).
               {` ${bestRunSummary} `}
-              Die Zahlen stammen direkt aus den Messdaten; der vollständige Lauf inklusive
-              aller Fälle ist im Qualifizierungsnachweis einsehbar.
+              Die Zahlen stammen direkt aus den Messdaten; öffentlich sichtbar sind
+              zusammengefasste Kennzahlen. Fall- und Token-Rohdaten bleiben Teil der
+              internen Qualifizierung.
             </div>
           </div>
         </section>
