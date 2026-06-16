@@ -12,56 +12,23 @@ import {
   Scale,
   UserCheck,
 } from "lucide-react";
+import {
+  OVERVIEW_FALLBACK_STATS,
+  selectOverviewRingversuchStats,
+  type OverviewRingversuchStats,
+} from "@/src/lib/ringversuch-overview-stats";
 
 /* ----- Live-Kennzahlen aus dem Ringversuch ----- */
 
-type LiveStats = {
-  sensitivityFound: number;
-  sensitivityTotal: number;
-  decoysPassed: number;
-  decoysTotal: number;
-  citationRate: number | null;
-  standDate: string;
-};
-
-// Werte des letzten abgeschlossenen Laufs als statischer Fallback —
-// Live-Daten aus /api/ringversuch überschreiben sie nach erfolgreichem Fetch.
-const FALLBACK_STATS: LiveStats = {
-  sensitivityFound: 24,
-  sensitivityTotal: 25,
-  decoysPassed: 11,
-  decoysTotal: 11,
-  citationRate: 0.932,
-  standDate: "11.06.2026",
-};
-
-function standDateFromRunId(id: string | undefined): string {
-  const m = id?.match(/^(\d{4})(\d{2})(\d{2})_/);
-  if (!m) return FALLBACK_STATS.standDate;
-  return `${m[3]}.${m[2]}.${m[1]}`;
-}
-
-function useRingversuchStats(): LiveStats {
-  const [stats, setStats] = useState<LiveStats>(FALLBACK_STATS);
+function useRingversuchStats(): OverviewRingversuchStats {
+  const [stats, setStats] = useState<OverviewRingversuchStats>(OVERVIEW_FALLBACK_STATS);
   useEffect(() => {
     let cancelled = false;
     fetch("/api/ringversuch")
       .then((response) => (response.ok ? response.json() : null))
       .then((payload) => {
-        if (cancelled || !payload?.runs) return;
-        const latest = payload.runs.find(
-          (run: { run?: { mode?: string } }) => run.run?.mode === "live"
-        );
-        const agg = latest?.aggregate;
-        if (!agg?.sensitivity) return;
-        setStats({
-          sensitivityFound: agg.sensitivity.found,
-          sensitivityTotal: agg.sensitivity.total,
-          decoysPassed: agg.specificity_decoys?.passed ?? 0,
-          decoysTotal: agg.specificity_decoys?.total ?? 0,
-          citationRate: agg.citation_precision?.rate ?? null,
-          standDate: standDateFromRunId(latest?.id),
-        });
+        if (cancelled) return;
+        setStats(selectOverviewRingversuchStats(payload));
       })
       .catch(() => undefined);
     return () => {
@@ -69,6 +36,15 @@ function useRingversuchStats(): LiveStats {
     };
   }, []);
   return stats;
+}
+
+function formatCitationRate(rate: number | null): string {
+  if (rate == null) return "-";
+  return `${(Math.round(rate * 1000) / 10).toLocaleString("de-DE")} %`;
+}
+
+function formatFalseAlarms(count: number): string {
+  return count === 0 ? "null" : count.toLocaleString("de-DE");
 }
 
 /* ----- Animation ----- */
@@ -95,6 +71,14 @@ function Reveal({ delay, children }: { delay: number; children: React.ReactNode 
 
 export function OverviewLanding() {
   const stats = useRingversuchStats();
+  const latest = stats.latest;
+  const best = stats.best;
+  const latestFalseAlarms = latest.decoysTotal - latest.decoysPassed;
+  const bestFalseAlarms = best.decoysTotal - best.decoysPassed;
+  const latestCitationRate = formatCitationRate(latest.citationRate);
+  const bestRunSummary = stats.hasBetterBestRun
+    ? `Bester bestätigter Lauf: ${best.sensitivityFound} von ${best.sensitivityTotal} Fehlern gefunden, ${formatFalseAlarms(bestFalseAlarms)} Fehlalarme.`
+    : "Der jüngste vollständige Lauf ist zugleich der beste bestätigte Lauf.";
 
   return (
     <div className="mx-auto max-w-4xl space-y-16 pb-8">
@@ -126,20 +110,24 @@ export function OverviewLanding() {
             className="group mt-8 inline-flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-[var(--border-default)] pt-4 text-[13px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           >
             <span className="font-medium text-[var(--text-primary)]">
-              Im Ringversuch belegt:
+              Jüngster vollständiger Ringversuch:
             </span>
             <span>
-              {stats.sensitivityFound} von {stats.sensitivityTotal} versteckten Fehlern
+              {latest.sensitivityFound} von {latest.sensitivityTotal} versteckten Fehlern
               gefunden
             </span>
             <span aria-hidden>·</span>
-            <span>{stats.decoysTotal - stats.decoysPassed} Fehlalarme</span>
+            <span>{latestFalseAlarms} Fehlalarme</span>
             <span aria-hidden>·</span>
-            <span>
-              {stats.citationRate != null
-                ? `${(Math.round(stats.citationRate * 1000) / 10).toLocaleString("de-DE")} % belegte Befunde`
-                : ""}
-            </span>
+            <span>{latestCitationRate} belegte Befunde</span>
+            {stats.hasBetterBestRun ? (
+              <>
+                <span aria-hidden>·</span>
+                <span>
+                  bester bestätigter Lauf: {best.sensitivityFound} von {best.sensitivityTotal} gefunden
+                </span>
+              </>
+            ) : null}
             <span className="inline-flex items-center gap-1 font-medium text-[var(--brand-strong)] group-hover:underline">
               Zum Nachweis
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -204,18 +192,18 @@ export function OverviewLanding() {
           <div className="mt-4 rounded-md border border-[var(--border-default)] bg-[var(--brand-soft)] p-5">
             <div className="grid gap-6 sm:grid-cols-3">
               <LiveStat
-                value={`${stats.sensitivityFound} von ${stats.sensitivityTotal}`}
-                label="versteckten Fehlern gefunden"
+                value={`${latest.sensitivityFound} von ${latest.sensitivityTotal}`}
+                label="im jüngsten vollständigen Ringversuch"
               />
               <LiveStat
-                value={`${stats.decoysTotal - stats.decoysPassed}`}
-                label={`Fehlalarme bei ${stats.decoysTotal} harmlosen Kontrollstellen`}
+                value={`${latestFalseAlarms}`}
+                label={`Fehlalarme bei ${latest.decoysTotal} harmlosen Kontrollstellen`}
               />
               <LiveStat
                 value={
-                  stats.citationRate != null
-                    ? `${(Math.round(stats.citationRate * 1000) / 10).toLocaleString("de-DE")} %`
-                    : "–"
+                  latest.citationRate != null
+                    ? `${(Math.round(latest.citationRate * 1000) / 10).toLocaleString("de-DE")} %`
+                    : "-"
                 }
                 label="der Befunde mit wortwörtlich geprüftem Zitat"
               />
@@ -228,8 +216,9 @@ export function OverviewLanding() {
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
             <div className="mt-1 text-[11px] text-[var(--text-tertiary)]">
-              Werte aus dem jüngsten abgeschlossenen Ringversuchslauf (Stand: {stats.standDate}).
-              Die Zahlen stammen direkt aus den Messdaten — der vollständige Lauf inklusive
+              Werte aus dem jüngsten vollständigen Ringversuchslauf (Stand: {latest.standDate}).
+              {` ${bestRunSummary} `}
+              Die Zahlen stammen direkt aus den Messdaten; der vollständige Lauf inklusive
               aller Fälle ist im Qualifizierungsnachweis einsehbar.
             </div>
           </div>
@@ -248,7 +237,7 @@ export function OverviewLanding() {
               index={1}
               state="done"
               title="Ringversuch mit präparierten Fällen"
-              body={`Zehn realistische GMP-Fälle mit bewusst versteckten Fehlern. Stand ${stats.standDate}: ${stats.sensitivityFound} von ${stats.sensitivityTotal} Fehlern gefunden, ${stats.decoysTotal - stats.decoysPassed === 0 ? "null" : stats.decoysTotal - stats.decoysPassed} Fehlalarme.`}
+              body={`Zehn realistische GMP-Fälle mit bewusst versteckten Fehlern. Stand ${latest.standDate}: im jüngsten vollständigen Lauf ${latest.sensitivityFound} von ${latest.sensitivityTotal} Fehlern gefunden; ${bestRunSummary}`}
               status="Erreicht"
             />
             <LadderStep
