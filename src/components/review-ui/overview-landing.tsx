@@ -54,7 +54,7 @@ export function OverviewLanding() {
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 <a
-                  href="#blindtest"
+                  href="#trust-steps"
                   className="inline-flex h-10 items-center gap-2 rounded-md bg-[var(--brand)] px-4 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)]"
                 >
                   Blindtest starten
@@ -259,7 +259,7 @@ export function OverviewLanding() {
 
       {/* Vertrauensstufen */}
       <Reveal delay={0.35}>
-        <section>
+        <section id="trust-steps">
           <LandingHeading
             title="Vertrauen in Stufen — jede mit einem prüfbaren Kriterium."
             description="Der nächste sinnvolle Schritt ist kein Sprung in den Produktivbetrieb, sondern ein Blindtest mit Ihren Fällen."
@@ -299,32 +299,8 @@ export function OverviewLanding() {
         </section>
       </Reveal>
 
-      {/* Schluss-CTA */}
-      <Reveal delay={0.4}>
-        <section
-          id="blindtest"
-          className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-5"
-        >
-          <h3 className="text-[20px] font-semibold tracking-[-0.01em] text-[var(--text-primary)]">
-            Der nächste Schritt gehört Ihnen.
-          </h3>
-          <p className="mt-2 max-w-3xl text-[14px] leading-7 text-[var(--text-secondary)]">
-            Sie bauen die Fälle. Sie kennen die Lösung. Wir sehen sie zum ersten Mal im Lauf
-            — und Sie sehen, ob das hält, was diese Seite behauptet. Ein bis zwei
-            Expertentage. Mehr kostet es Sie nicht, um es zu wissen.
-          </p>
-          <a
-            href="#blindtest"
-            className="mt-4 inline-flex h-10 w-fit items-center gap-2 rounded-md bg-[var(--brand)] px-4 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)]"
-          >
-            Blindtest anfragen
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-          </a>
-        </section>
-      </Reveal>
-
       {/* Fußnote */}
-      <Reveal delay={0.45}>
+      <Reveal delay={0.4}>
         <section className="border-t border-[var(--border-default)] pt-5">
           <p className="max-w-3xl text-[12px] leading-6 text-[var(--text-tertiary)]">
             Dies ist ein Prototyp. Produktiver Einsatz erfordert formale Validierung, SOPs

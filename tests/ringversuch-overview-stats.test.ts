@@ -43,10 +43,10 @@ describe("overview ringversuch stats", () => {
     expect(overview).toContain("Wie es funktioniert — in drei Schritten.");
     expect(overview).toContain("Gemessen, nicht behauptet.");
     expect(overview).toContain("Vertrauen in Stufen — jede mit einem prüfbaren Kriterium.");
-    expect(overview).toContain("Der nächste Schritt gehört Ihnen.");
-    expect(overview).toContain("Blindtest anfragen");
     expect(overview).toContain("Dies ist ein Prototyp.");
     expect(overview).toContain("Stand 11.06.2026");
+    expect(overview).not.toContain("Der nächste Schritt gehört Ihnen.");
+    expect(overview).not.toContain("Blindtest anfragen");
     expect(overview).not.toContain("Die Prüfung machen Sie.");
     expect(overview).not.toContain("Das Zusammentragen macht das Tool.");
     expect(overview).not.toContain("Der teuerste Teil eines Reviews ist der langweiligste.");
