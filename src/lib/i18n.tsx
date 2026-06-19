@@ -20,7 +20,6 @@ export const translations = {
   "nav.category.evidenceGaps": { de: "Quellen & Lücken", en: "Sources & Gaps" },
   "nav.category.output": { de: "Lieferpakete", en: "Deliverables" },
   "nav.category.admin": { de: "Setup", en: "Setup" },
-  "nav.category.commercial": { de: "Verkauf", en: "Sales" },
   "nav.category.howItWorks": { de: "Funktionsweise", en: "How it works" },
 
   // Navigation Items
@@ -34,7 +33,6 @@ export const translations = {
   "nav.riskLibrary": { de: "Regelwerk", en: "Rule set" },
   "nav.ringversuch": { de: "Ringversuch", en: "Proficiency test" },
   "nav.ueberblick": { de: "Überblick", en: "Overview" },
-  "nav.customerPilot": { de: "Kundenpilot", en: "Customer pilot" },
   "nav.triggerInput": { de: "Change/CAPA Eingabe", en: "Change/CAPA Input" },
   "nav.deltaAnalysis": { de: "Delta-Prozess", en: "Delta Process" },
   "nav.qrmMatrix": { de: "QRM-Matrix", en: "QRM Matrix" },

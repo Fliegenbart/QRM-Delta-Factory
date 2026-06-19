@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  ClipboardCheck,
   Compass,
   Crosshair,
   FileCheck2,
@@ -30,7 +29,6 @@ import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { RequirementLibraryManager } from "@/src/components/review-ui/requirement-library-manager";
 import { RingversuchDashboard } from "@/src/components/review-ui/ringversuch-dashboard";
 import { OverviewLanding } from "@/src/components/review-ui/overview-landing";
-import { SalesReadinessPanel } from "@/src/components/review-ui/sales-readiness-panel";
 import { aiArchitectureConcept, demoReviewCases, productHomeCopy } from "@/src/lib/review-ui";
 import { CaseCard } from "@/src/components/triage/case-card";
 import type { LucideIcon } from "lucide-react";
@@ -51,10 +49,6 @@ const navCategories: NavCategory[] = [
   {
     nameKey: "nav.category.admin",
     items: [["risk-library", "nav.riskLibrary", Library]],
-  },
-  {
-    nameKey: "nav.category.commercial",
-    items: [["kundenpilot", "nav.customerPilot", ClipboardCheck]],
   },
   {
     nameKey: "nav.category.howItWorks",
@@ -285,8 +279,6 @@ function renderSection(section: string) {
       return <RingversuchDashboard />;
     case "ueberblick":
       return <OverviewLanding />;
-    case "kundenpilot":
-      return <SalesReadinessPanel />;
     default:
       return <DashboardSection />;
   }

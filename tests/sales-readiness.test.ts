@@ -5,16 +5,17 @@ import { describe, expect, it } from "vitest";
 const repoRoot = process.cwd();
 
 describe("sales and production readiness surface", () => {
-  it("adds a customer pilot surface to the product navigation", () => {
+  it("keeps the sales/customer-pilot surface out of the public navigation", () => {
     const appShell = readFileSync(join(repoRoot, "src/components/app-shell.tsx"), "utf8");
     const i18n = readFileSync(join(repoRoot, "src/lib/i18n.tsx"), "utf8");
 
-    expect(appShell).toContain('"kundenpilot"');
-    expect(appShell).toContain("SalesReadinessPanel");
-    expect(i18n).toContain('"nav.customerPilot"');
+    expect(appShell).not.toContain('"kundenpilot"');
+    expect(appShell).not.toContain("SalesReadinessPanel");
+    expect(i18n).not.toContain('"nav.category.commercial"');
+    expect(i18n).not.toContain('"nav.customerPilot"');
   });
 
-  it("states the sellable offer with human-review and evidence-first boundaries", () => {
+  it("keeps the internal sales panel copy conservative if reused later", () => {
     const panel = readFileSync(
       join(repoRoot, "src/components/review-ui/sales-readiness-panel.tsx"),
       "utf8"

@@ -7,6 +7,26 @@ import { userFacingReviewLoadError, type Requirement, type RequirementLibraryOve
 
 type LoadState = "loading" | "ready" | "uploading" | "error";
 
+const suitableRuleSources = [
+  "Unternehmens-SOPs und Arbeitsanweisungen für QA, QC, Produktion und Freigabe",
+  "EU GMP Annex 1, Annex 11, 21 CFR Part 11 und ICH Q9(R1), soweit sie für den Falltyp gelten",
+  "Change-Control-, Abweichungs- und CAPA-Vorgaben inklusive Eskalations- und Pflichtnachweisregeln",
+  "Standort- oder kundenspezifische Vorgaben zu Reinigung, Validierung, Datenintegrität und Lieferantenqualität",
+];
+
+const unsuitableRuleSources = [
+  "Original-PDFs oder Word-SOPs als Rohdokument ohne strukturierte Regeln",
+  "Einzelne Prüffälle wie Batch Records, Abweichungsberichte, CAPA-Akten oder Change-Pakete",
+  "Lose Checklisten ohne Quelle, Version, Abschnitt und Pflichtnachweis",
+];
+
+const expectedRuleFields = [
+  "Quelle und Version, zum Beispiel SOP-DEV-04 v3 oder EU GMP Annex 1",
+  "Abschnitt und prüfbare Regel als kurzer Satz",
+  "Gültige Falltypen und Prozessbereiche",
+  "Pflichtnachweise, Kritikalität und ob Auto-Close erlaubt ist",
+];
+
 export function RequirementLibraryManager() {
   const [overview, setOverview] = useState<RequirementLibraryOverview | null>(null);
   const [state, setState] = useState<LoadState>("loading");
@@ -86,7 +106,9 @@ export function RequirementLibraryManager() {
               Aktives Regelwerk und Quelldokumente
             </h2>
             <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--text-secondary)]">
-              Dieses Regelwerk wird zur Bewertung neuer Prüffälle herangezogen. Importiere eine Regelwerk-Datei, um sie zu aktivieren.
+              Hier laden Sie nicht die Prüffall-Unterlagen hoch, sondern das Regelset,
+              gegen das spätere Prüffälle geprüft werden. Importiert wird eine
+              strukturierte JSON- oder YAML-Datei mit einzelnen, prüfbaren Regeln.
             </p>
           </div>
           <aside className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4">
@@ -125,15 +147,43 @@ export function RequirementLibraryManager() {
         </div>
       </section>
 
+      <section className="surface p-5">
+        <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+              Import-Hilfe
+            </div>
+            <h3 className="mt-1 text-[18px] font-medium text-[var(--text-primary)]">
+              Welche Regelwerke gehören hier rein?
+            </h3>
+            <p className="mt-1 max-w-3xl text-[13px] leading-6 text-[var(--text-secondary)]">
+              Alles, was später als Prüfmaßstab dienen soll: SOP-Regeln,
+              regulatorische Vorgaben und kundenspezifische Pflichtnachweise. Wenn Sie nur
+              eine SOP als PDF haben, muss sie zuerst in einzelne Regeln übertragen werden.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <GuidanceBox title="Geeignete Quellen" items={suitableRuleSources} />
+          <GuidanceBox title="Nicht hochladen:" items={unsuitableRuleSources} />
+          <GuidanceBox title="So muss die Datei aussehen" items={expectedRuleFields} />
+        </div>
+      </section>
+
       <section className="grid gap-4 xl:grid-cols-[340px_1fr]">
         <div className="surface p-5">
           <div className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
             Regelwerk importieren
           </div>
+          <p className="mt-1 text-[12px] leading-5 text-[var(--text-secondary)]">
+            Laden Sie hier ein bereits strukturiertes Regelset hoch, nicht die
+            Originaldokumente selbst.
+          </p>
           <label className="mt-3 flex min-h-[130px] cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-[var(--border-strong)] bg-[var(--surface-secondary)] px-4 py-5 text-center transition-colors hover:bg-[var(--brand-soft)] hover:border-[var(--brand)]">
             <UploadCloud className="h-7 w-7 text-[var(--brand)]" aria-hidden />
             <span className="mt-2 text-[13px] font-medium text-[var(--text-primary)]">
-              JSON oder YAML auswählen
+              JSON/YAML-Regelset auswählen
             </span>
             <span className="mt-0.5 text-[11px] text-[var(--text-tertiary)]">
               Eine Regelwerk-Datei pro Import
@@ -247,6 +297,22 @@ const criticalityTone: Record<string, { fg: string; bg: string }> = {
   low: { fg: "var(--text-tertiary)", bg: "var(--surface-secondary)" },
   informational: { fg: "var(--text-tertiary)", bg: "var(--surface-secondary)" },
 };
+
+function GuidanceBox({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4">
+      <div className="text-[13px] font-medium text-[var(--text-primary)]">{title}</div>
+      <ul className="mt-2 space-y-2 text-[12px] leading-5 text-[var(--text-secondary)]">
+        {items.map((item) => (
+          <li key={item} className="flex gap-2">
+            <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[var(--brand)]" aria-hidden />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function RequirementRow({ requirement }: { requirement: Requirement }) {
   const tone = criticalityTone[requirement.criticality] ?? criticalityTone.low;

@@ -128,6 +128,23 @@ describe("review UI helpers", () => {
     expect(intakeUploader).toContain("Lieferant/Material");
   });
 
+  it("explains which rule sources belong in the rule library import", () => {
+    const requirementLibrary = readFileSync(
+      join(process.cwd(), "src/components/review-ui/requirement-library-manager.tsx"),
+      "utf8"
+    );
+
+    expect(requirementLibrary).toContain("Welche Regelwerke gehören hier rein?");
+    expect(requirementLibrary).toContain("Unternehmens-SOPs");
+    expect(requirementLibrary).toContain("EU GMP Annex 1");
+    expect(requirementLibrary).toContain("Annex 11");
+    expect(requirementLibrary).toContain("21 CFR Part 11");
+    expect(requirementLibrary).toContain("Change-Control-, Abweichungs- und CAPA-Vorgaben");
+    expect(requirementLibrary).toContain("Nicht hochladen:");
+    expect(requirementLibrary).toContain("Original-PDFs oder Word-SOPs");
+    expect(requirementLibrary).toContain("strukturierte JSON- oder YAML-Datei");
+  });
+
   it("turns backend configuration failures into user-facing review list copy", () => {
     const message = userFacingReviewLoadError(
       "Backend nicht verbunden. Prüfe QRM_BACKEND_URL und QRM_BACKEND_API_KEY."
