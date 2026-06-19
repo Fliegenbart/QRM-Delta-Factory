@@ -29,19 +29,26 @@ describe("overview ringversuch stats", () => {
       "utf8"
     );
 
-    expect(overview).toContain("Die Prüfung machen Sie.");
-    expect(overview).toContain("Das Zusammentragen macht das Tool.");
+    expect(overview).toContain("Endlich eine KI, die nichts behauptet, was sie nicht belegen kann.");
+    expect(overview).toContain("Blindtest starten");
+    expect(overview).toContain("Wie es funktioniert");
     expect(overview).toContain("Was das Tool ist.");
     expect(overview).toContain("Warum KI-Risikoanalysen bisher gescheitert sind");
-    expect(overview).toContain("Sie prüfen nicht mehr, ob die KI sich etwas ausgedacht hat.");
-    expect(overview).toContain("Es meldet keine Phantome.");
+    expect(overview).toContain("Belegt, oder es kommt gar nicht durch.");
+    expect(overview).toContain("Still, wo nichts ist.");
+    expect(overview).toContain("Sagt, wenn es nicht weiß.");
     expect(overview).toContain("Was es kann.");
+    expect(overview).toContain("Eine CAPA mit dokumentierten Maßnahmen, aber offener Wirksamkeitsprüfung.");
     expect(overview).toContain("Was es nicht tut:");
     expect(overview).toContain("Wie es funktioniert — in drei Schritten.");
     expect(overview).toContain("Gemessen, nicht behauptet.");
     expect(overview).toContain("Vertrauen in Stufen — jede mit einem prüfbaren Kriterium.");
+    expect(overview).toContain("Der nächste Schritt gehört Ihnen.");
+    expect(overview).toContain("Blindtest anfragen");
     expect(overview).toContain("Dies ist ein Prototyp.");
     expect(overview).toContain("Stand 11.06.2026");
+    expect(overview).not.toContain("Die Prüfung machen Sie.");
+    expect(overview).not.toContain("Das Zusammentragen macht das Tool.");
     expect(overview).not.toContain("Der teuerste Teil eines Reviews ist der langweiligste.");
     expect(overview).not.toContain("Drei Gründe, warum das hier kein KI-Versprechen ist.");
     expect(overview).not.toContain("Welche KI hier arbeitet");

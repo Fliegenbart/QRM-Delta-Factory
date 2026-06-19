@@ -38,46 +38,63 @@ export function OverviewLanding() {
     <div className="mx-auto max-w-4xl space-y-14 pb-8">
       {/* Hero */}
       <Reveal delay={0}>
-        <div className="pt-4">
+        <section className="pt-4">
           <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_340px]">
             <div>
               <div className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
-                Pharma QRM Delta Engine
+                Pharma QRM · Delta Engine
               </div>
-              <h2 className="mt-3 text-[32px] font-semibold leading-[1.15] tracking-[-0.01em] text-[var(--text-primary)] sm:text-[40px]">
-                Die Prüfung machen Sie.
-                <br />
-                <span className="text-[var(--brand-strong)]">
-                  Das Zusammentragen macht das Tool.
-                </span>
+              <h2 className="mt-3 text-[34px] font-semibold leading-[1.08] tracking-[-0.01em] text-[var(--text-primary)] sm:text-[48px]">
+                Endlich eine KI, die nichts behauptet, was sie nicht belegen kann.
               </h2>
               <p className="mt-5 text-[15px] leading-7 text-[var(--text-secondary)]">
-                Ein Werkzeug für QA, RA und SME, das GMP-Unterlagen liest und eine belegte
-                Prüfmappe daraus macht — Befunde, Quellen, fehlende Nachweise und der
-                nächste Entscheidungsschritt. Sie lesen nicht mehr alles. Sie entscheiden
-                über das, was zählt.
+                Andere Tools raten weiter und überlassen Ihnen das Aufräumen. Dieses legt
+                zu jedem Befund die Quelle — oder hält an und gibt den Fall an Sie. So wird
+                aus KI-Output endlich Vorarbeit, die Sie verwenden können.
               </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <a
+                  href="#blindtest"
+                  className="inline-flex h-10 items-center gap-2 rounded-md bg-[var(--brand)] px-4 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)]"
+                >
+                  Blindtest starten
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="inline-flex h-10 items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4 text-[13px] font-medium text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]"
+                >
+                  Wie es funktioniert
+                </a>
+              </div>
             </div>
             <FindingArtifact />
           </div>
-          <Link
-            href="/ringversuch"
-            className="group mt-8 inline-flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-[var(--border-default)] pt-4 text-[13px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-          >
-            <span className="font-medium text-[var(--text-primary)]">
-              Im Ringversuch belegt:
-            </span>
-            <span>24 von 25 versteckten Fehlern gefunden</span>
-            <span aria-hidden>·</span>
-            <span>0 Fehlalarme</span>
-            <span aria-hidden>·</span>
-            <span>93 % der Befunde mit wörtlich geprüftem Zitat</span>
-            <span className="inline-flex items-center gap-1 font-medium text-[var(--brand-strong)] group-hover:underline">
-              Zum Nachweis
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-            </span>
-          </Link>
-        </div>
+        </section>
+      </Reveal>
+
+      {/* Beweisbalken */}
+      <Reveal delay={0.05}>
+        <Link
+          href="/ringversuch"
+          className="group block rounded-md border border-[var(--border-default)] bg-[var(--brand-soft)] p-4 hover:border-[var(--brand)]"
+        >
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--brand-strong)]">
+                Gemessen, nicht behauptet.
+              </div>
+              <div className="mt-1 text-[12px] text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
+                Ringversuch mit präparierten GMP-Fällen und sauberen Kontrollstellen
+              </div>
+            </div>
+            <div className="grid gap-3 text-[12px] sm:grid-cols-3 md:min-w-[420px]">
+              <LiveStat value="24 / 25" label="versteckte Fehler gefunden" />
+              <LiveStat value="0" label="Fehlalarme" />
+              <LiveStat value="93 %" label="belegte Befunde" />
+            </div>
+          </div>
+        </Link>
       </Reveal>
 
       {/* Was das Tool ist */}
@@ -85,25 +102,21 @@ export function OverviewLanding() {
         <section>
           <LandingHeading
             title="Was das Tool ist."
-            description="Es ist eine Software, die einen Stapel GMP-Unterlagen — Change Control, Abweichung, CAPA, Audit-Findings — durchliest und strukturiert, was ein Mensch sonst von Hand sichten müsste."
+            description="Eine Software, die einen Stapel GMP-Unterlagen liest — Change Control, Abweichung, CAPA, Audit-Findings — und daraus macht, was sonst Stunden Handarbeit kostet: eine geordnete, belegte Prüfmappe."
           />
           <div className="space-y-4 text-[14px] leading-7 text-[var(--text-secondary)]">
             <p>
-              Am Ende steht keine Bewertung und keine Freigabe, sondern eine
-              entscheidungsreife Prüfmappe: jede Aussage mit Fundstelle, jeder Widerspruch
-              markiert, jeder fehlende Pflichtnachweis benannt.
+              Jede Aussage mit Fundstelle, jeder Widerspruch markiert, jeder fehlende
+              Pflichtnachweis benannt.
             </p>
             <p>
-              Anders gesagt: Sie bekommen die Risikobewertung nicht abgenommen, aber
-              vollständig vorbereitet — Befunde, Belege, Nachweislücken und gewichtete
-              Risiken, soweit die Unterlagen sie hergeben. Die fachliche Risikoanalyse
-              bleibt Ihre; die Vorarbeit dazu liefert das Tool.
+              Die Risikobewertung nimmt es Ihnen nicht ab. Es bereitet sie vor — Befunde,
+              Belege, Lücken, gewichtete Risiken, soweit die Unterlagen sie hergeben. Das
+              Urteil bleibt Ihres. Die Fleißarbeit davor nicht.
             </p>
             <p>
-              Es ist kein Chatbot und kein Orakel. Es trifft keine regulatorische
-              Entscheidung. Es nimmt die Such-, Sortier- und Abgleicharbeit ab — die Stunden
-              vor der eigentlichen Bewertung — und legt dem Experten einen geordneten Fall
-              vor.
+              Kein Chatbot, kein Orakel, keine Freigabe-Automatik. Ein Werkzeug, das den
+              Fall sortiert und Ihnen vorlegt.
             </p>
           </div>
         </section>
@@ -114,39 +127,38 @@ export function OverviewLanding() {
         <section>
           <LandingHeading
             title="Warum KI-Risikoanalysen bisher gescheitert sind — und was hier anders ist."
-            description="Das Problem mit KI bei Risikoanalysen war nie die Geschwindigkeit. Es war das Misstrauen."
+            description="Das Problem war nie die Geschwindigkeit. Es war das Vertrauen."
           />
           <div className="mb-4 space-y-4 text-[14px] leading-7 text-[var(--text-secondary)]">
             <p>
-              Was die KI ausgab, ließ sich nicht ohne Weiteres verwenden — also musste man
-              alles von Hand nachprüfen. Und sobald man alles nachprüft, ist die
-              Zeitersparnis weg. Schlimmer noch: Eine selbstbewusst formulierte, aber
-              falsche KI-Aussage ist gefährlicher als gar keine.
+              Was die KI ausgab, musste man von Hand nachprüfen — und sobald man alles
+              nachprüft, ist die Ersparnis weg. Eine selbstbewusst formulierte, aber
+              falsche Aussage ist schlimmer als gar keine.
             </p>
             <p>
-              Dieses Tool ist um genau dieses Problem herum gebaut. Drei Dinge verschieben
-              den Kontrollaufwand dorthin, wo er hingehört.
+              Dieses Tool ist um genau dieses Problem herum gebaut. Drei Prinzipien — und
+              keines davon ist abschaltbar.
             </p>
           </div>
           <div className="space-y-3">
             <PrincipleRow
               icon={Quote}
-              title="Sie prüfen nicht mehr, ob die KI sich etwas ausgedacht hat."
-              body="Jeder Befund muss eine wörtliche Stelle aus dem Originaldokument nennen. Diese Stelle wird Zeichen für Zeichen gegen die Quelle abgeglichen — nicht von einer KI, sondern von festem Programmcode. Erfundene oder verfälschte Belege werden aussortiert, bevor die Prüfmappe überhaupt entsteht. Ihre Arbeit ist nicht mehr, die Maschine beim Lügen zu ertappen. Ihre Arbeit ist nur noch, einen echten, belegten Befund fachlich zu bewerten."
+              title="Belegt, oder es kommt gar nicht durch."
+              body="Jedes Zitat prüft fester Code Zeichen für Zeichen gegen das Original — keine KI, kein Ermessen. Was sich nicht belegen lässt, erreicht Ihre Mappe nie. Sie ertappen die Maschine nicht mehr beim Erfinden. Sie bewerten nur noch, was nachweislich dasteht."
             />
             <PrincipleRow
               icon={FlaskConical}
-              title="Es meldet keine Phantome."
-              body="Der eigentliche Zeitfresser bei anderen Tools sind Fehlalarme — Befunde, die keine sind und die man einzeln wegklicken muss. Genau darauf wird dieses System gemessen: null Fehlalarme bei elf bewusst harmlosen Kontrollstellen. Wo nichts ist, bleibt es still."
+              title="Still, wo nichts ist."
+              body="Der eigentliche Zeitfresser sind Fehlalarme — Befunde, die keine sind, einzeln wegzuklicken. Genau darauf wird das System gemessen: null Fehlalarme bei elf sauberen Kontrollstellen. Wo nichts ist, bleibt es still."
             />
             <PrincipleRow
               icon={UserCheck}
-              title="Es kennt seine Grenzen und sagt sie."
-              body="Wo die Beleglage dünn ist oder eine Prüfung nicht greift, übertüncht das System das nicht mit einer selbstbewussten Antwort. Es sagt offen: Hier muss ein Mensch hinsehen. Das ist das Gegenteil des verwertbar-aussehenden, aber unbrauchbaren Outputs, den Sie kennen."
+              title="Sagt, wenn es nicht weiß."
+              body="Bei dünner Beleglage rät es nicht. Es hält an und reicht den Fall weiter — dorthin, wo andere Tools selbstbewussten Unsinn liefern. Das ist keine Schwäche, die wir kaschieren. Das ist der Punkt."
             />
           </div>
           <p className="mt-4 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4 py-3 text-[13px] leading-6 text-[var(--text-secondary)]">
-            Unterm Strich verschiebt sich Ihr Aufwand: weg vom Nachprüfen der Maschine, hin
+            Unterm Strich verschiebt sich Ihr Aufwand: weg vom Kontrollieren der Maschine, hin
             zum Entscheiden des Falls. Nicht weniger Sorgfalt — dieselbe Sorgfalt, an der
             richtigen Stelle.
           </p>
@@ -158,52 +170,55 @@ export function OverviewLanding() {
         <section>
           <LandingHeading
             title="Was es kann."
-            description="Change Control · Abweichungen · CAPA · Audit-Findings · Periodic Reviews. Mehrere Dokumente pro Fall. Die Originaldateien bleiben jederzeit die Quelle."
+            description="Change Control · Abweichungen · CAPA · Audit-Findings · Periodic Reviews. Mehrere Dokumente pro Fall. Die Originaldateien bleiben jederzeit die Quelle — nichts wird umgeschrieben, alles bleibt rückverfolgbar."
           />
           <div className="grid gap-3 lg:grid-cols-3">
             <InfoBlock
               title="Was reingeht"
-              body="Change Control, Abweichungen, CAPA, Audit-Findings und Periodic Reviews — auch mehrere Dokumente pro Fall."
+              body="Change Control, Abweichungen, CAPA, Audit-Findings und Periodic Reviews — mehrere Dokumente pro Fall."
             />
-            <InfoBlock
-              title="Was es findet"
-              body="Klassifizierungen ohne Beleg, fehlende Pflichtnachweise, Widersprüche zwischen Dokumenten sowie Zitate und Regelbezüge, die im Original anders stehen."
-            />
+            <InfoBlock title="Was es findet">
+              <ul className="space-y-1.5">
+                <li>Eine Abweichung als „Minor“ eingestuft — ohne die Labordaten, die das tragen würden.</li>
+                <li>Eine CAPA mit dokumentierten Maßnahmen, aber offener Wirksamkeitsprüfung.</li>
+                <li>Ein Annex-Zitat, das auf Seite 14 anders steht, als der Bericht behauptet.</li>
+                <li>Zwei Dokumente, die sich widersprechen, ohne dass es jemandem aufgefallen ist.</li>
+              </ul>
+            </InfoBlock>
             <InfoBlock
               title="Was rauskommt"
-              body="Eine Prüfmappe pro Fall — mit Befunden, belegendem Zitat, offenen Lücken und dem konkreten nächsten QA-Schritt."
+              body="Eine Prüfmappe pro Fall: Befund, belegendes Zitat, offene Lücke, nächster QA-Schritt. Bei sauberen Unterlagen: nichts. Keine erfundene Arbeit."
             />
           </div>
           <p className="mt-3 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4 py-3 text-[13px] leading-6 text-[var(--text-secondary)]">
-            Was es nicht tut: bewerten, freigeben oder QA-Verantwortung ersetzen. Die
-            letzte Entscheidung trifft immer ein Mensch — fest eingebaut, nicht
-            abschaltbar.
+            Was es nicht tut: bewerten, freigeben, Verantwortung übernehmen. Die letzte
+            Entscheidung trifft ein Mensch — immer, fest verdrahtet.
           </p>
         </section>
       </Reveal>
 
       {/* Wie es funktioniert */}
       <Reveal delay={0.25}>
-        <section>
+        <section id="how-it-works">
           <LandingHeading
             title="Wie es funktioniert — in drei Schritten."
-            description="Vom Dokumentenstapel zur entscheidungsreifen Mappe, ohne dass die Verantwortung an die Maschine wandert."
+            description="Vom Dokumentenstapel zur Prüfmappe, ohne dass die Verantwortung an die Maschine wandert."
           />
           <div className="grid gap-3 sm:grid-cols-3">
             <StepCard
               number="01"
               title="Lesen und belegen"
-              body="Jedes Dokument wird in einzelne, zitierfähige Aussagen zerlegt. Jede behält ihre Fundstelle: Dokument, Seite, wörtliches Zitat. Nichts wird zusammengefasst, ohne dass Sie zur Quelle zurückspringen können."
+              body="Jedes Dokument wird in einzelne, zitierfähige Aussagen zerlegt. Jede behält ihre Fundstelle: Dokument, Seite, wörtliches Zitat. Sie sind nie mehr als einen Klick von der Quelle entfernt."
             />
             <StepCard
               number="02"
               title="Prüfen und aufdecken"
-              body="Sieben unabhängige Prüfinstanzen gehen die Unterlagen gegen Ihr Regelwerk durch — Datenintegrität, Abweichung, CAPA, Chargenbezug, Validierung, regulatorische Konsistenz, Widersprüche. Ob ein Zitat wirklich im Original steht, prüft fester Programmcode, keine KI — Zeichen für Zeichen."
+              body="Sieben unabhängige Prüfinstanzen gehen die Unterlagen gegen Ihr Regelwerk durch — Datenintegrität, Abweichung, CAPA, Chargenbezug, Validierung, regulatorische Konsistenz, Widersprüche. Was eine übersieht, fällt der nächsten auf. Ob ein Zitat wirklich im Original steht, entscheidet hier kein Modell, sondern fester Code."
             />
             <StepCard
               number="03"
               title="Vorlegen, nicht entscheiden"
-              body="Das Ergebnis ist die Prüfmappe. Klare Fälle sind als klar markiert, kritische und unklare wandern immer auf Ihren Tisch. Das System schließt nichts im Stillen ab."
+              body="Heraus kommt die Prüfmappe. Klares ist als klar markiert, Kritisches und Unklares landet auf Ihrem Tisch. Das System schließt nichts im Stillen ab."
             />
           </div>
         </section>
@@ -214,16 +229,17 @@ export function OverviewLanding() {
         <section>
           <LandingHeading
             title="Gemessen, nicht behauptet."
-            description="In Anlehnung an Ringversuche aus der Laborpraxis wird das System regelmäßig mit präparierten Fällen getestet, deren versteckte Fehler vorab dokumentiert und versiegelt sind."
+            description="Wie ein Ringversuch im Labor: präparierte Fälle, deren Fehler vorab dokumentiert und versiegelt sind."
           />
           <div className="rounded-md border border-[var(--border-default)] bg-[var(--brand-soft)] p-5">
             <p className="mb-5 max-w-3xl text-[13px] leading-6 text-[var(--text-secondary)]">
-              So ist belegbar, was es findet, was es übersieht — und dass es bei
-              fehlerfreien Unterlagen ruhig bleibt.
+              Das System sieht sie zum ersten Mal im Lauf. Erst danach wird der Umschlag
+              geöffnet. So steht schwarz auf weiß, was es findet, was es übersieht — und
+              dass es bei fehlerfreien Unterlagen ruhig bleibt.
             </p>
             <div className="grid gap-6 sm:grid-cols-3">
               <LiveStat value="24 von 25" label="versteckten Fehlern gefunden" />
-              <LiveStat value="0" label="Fehlalarme bei 11 bewusst harmlosen Kontrollstellen" />
+              <LiveStat value="0" label="Fehlalarme bei 11 harmlosen Kontrollstellen" />
               <LiveStat value="93 %" label="der Befunde mit wörtlich geprüftem Zitat" />
             </div>
             <Link
@@ -234,9 +250,8 @@ export function OverviewLanding() {
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
             <div className="mt-2 max-w-2xl text-[11px] leading-5 text-[var(--text-tertiary)]">
-              Stand 11.06.2026, aus den Messdaten des letzten abgeschlossenen Laufs — nicht
-              der beste ausgewählte. Der vollständige Lauf inklusive aller Fälle ist im
-              Qualifizierungsnachweis einsehbar.
+              Stand 11.06.2026, jüngster abgeschlossener Lauf — nicht der beste
+              ausgewählte. Vollständig einsehbar im Qualifizierungsnachweis.
             </div>
           </div>
         </section>
@@ -254,7 +269,7 @@ export function OverviewLanding() {
               index={1}
               state="done"
               title="Ringversuch"
-              body="Zehn realistische GMP-Fälle mit bewusst versteckten Fehlern. 24 von 25 gefunden, null Fehlalarme."
+              body="Zehn GMP-Fälle, bewusst versteckte Fehler. 24 von 25 gefunden, null Fehlalarme."
               status="Erreicht"
             />
             <LadderStep
@@ -262,21 +277,21 @@ export function OverviewLanding() {
               state="ready"
               title="Blindtest mit Ihren Fällen"
               invitation="Der Schritt, den wir heute vorschlagen."
-              body="Sie bauen Testfälle nach unserer Anleitung und behalten die Lösungen. Das System sieht sie zum ersten Mal im Lauf. Sie bewerten gegen Ihre eigene Lösung — Ihre Kriterien, Ihr Tempo. Aufwand: ein bis zwei Expertentage."
+              body="Sie bauen die Testfälle, behalten die Lösungen. Das System sieht sie zum ersten Mal im Lauf. Sie bewerten gegen Ihre eigene Lösung — Ihre Kriterien, Ihr Tempo. Aufwand: ein bis zwei Expertentage."
               status="Vorgeschlagen"
             />
             <LadderStep
               index={3}
               state="planned"
               title="Echte abgeschlossene Fälle"
-              body="Ältere, vollständig dokumentierte Vorgänge mit bekanntem Ausgang. Das System bewertet blind, verglichen wird gegen die damalige Abschlussbewertung."
+              body="Ältere Vorgänge mit bekanntem Ausgang, blind bewertet, gegen die damalige Abschlussbewertung gehalten."
               status="Geplant"
             />
             <LadderStep
               index={4}
               state="planned"
               title="Begleiteter Pilot"
-              body="Einsatz parallel zum Tagesgeschäft, mit vorab vereinbarten Erfolgskriterien."
+              body="Parallel zum Tagesgeschäft, mit vorab vereinbarten Erfolgskriterien."
               status="Geplant"
               last
             />
@@ -284,12 +299,36 @@ export function OverviewLanding() {
         </section>
       </Reveal>
 
-      {/* Fußnote */}
+      {/* Schluss-CTA */}
       <Reveal delay={0.4}>
+        <section
+          id="blindtest"
+          className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-5"
+        >
+          <h3 className="text-[20px] font-semibold tracking-[-0.01em] text-[var(--text-primary)]">
+            Der nächste Schritt gehört Ihnen.
+          </h3>
+          <p className="mt-2 max-w-3xl text-[14px] leading-7 text-[var(--text-secondary)]">
+            Sie bauen die Fälle. Sie kennen die Lösung. Wir sehen sie zum ersten Mal im Lauf
+            — und Sie sehen, ob das hält, was diese Seite behauptet. Ein bis zwei
+            Expertentage. Mehr kostet es Sie nicht, um es zu wissen.
+          </p>
+          <a
+            href="#blindtest"
+            className="mt-4 inline-flex h-10 w-fit items-center gap-2 rounded-md bg-[var(--brand)] px-4 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)]"
+          >
+            Blindtest anfragen
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          </a>
+        </section>
+      </Reveal>
+
+      {/* Fußnote */}
+      <Reveal delay={0.45}>
         <section className="border-t border-[var(--border-default)] pt-5">
           <p className="max-w-3xl text-[12px] leading-6 text-[var(--text-tertiary)]">
-            Dies ist ein Prototyp. Ein produktiver Einsatz erfordert formale Validierung,
-            SOPs und die Freigabe im Qualitätssystem des Anwenders. Genau dafür ist die
+            Dies ist ein Prototyp. Produktiver Einsatz erfordert formale Validierung, SOPs
+            und Freigabe im Qualitätssystem des Anwenders. Genau dafür ist die
             Vertrauensleiter da.
           </p>
         </section>
@@ -359,11 +398,21 @@ function StepCard({ number, title, body }: { number: string; title: string; body
   );
 }
 
-function InfoBlock({ title, body }: { title: string; body: string }) {
+function InfoBlock({
+  title,
+  body,
+  children,
+}: {
+  title: string;
+  body?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
   return (
     <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4">
       <div className="text-[13px] font-medium text-[var(--text-primary)]">{title}</div>
-      <p className="mt-1.5 text-[12.5px] leading-6 text-[var(--text-secondary)]">{body}</p>
+      <div className="mt-1.5 text-[12.5px] leading-6 text-[var(--text-secondary)]">
+        {children ?? body}
+      </div>
     </div>
   );
 }
