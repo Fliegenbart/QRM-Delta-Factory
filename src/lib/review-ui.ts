@@ -39,34 +39,25 @@ export const riskOrchestrationEntry = {
 } as const;
 
 export const productHomeCopy = {
-  title: "QA-Prüfung aus GMP-Unterlagen vorbereiten",
+  title: "Unterlagen hochladen. Prüfmappe zurückbekommen.",
   subtitle:
-    "Lade Change-, CAPA- oder Abweichungsunterlagen hoch. Das Tool zeigt Prüfpunkte, Quellen, fehlende Nachweise und den nächsten QA-Schritt.",
-  valueLine: "Unterlagen rein → Prüfmappe raus → QA entscheidet.",
-  decisionLine: "Nicht noch ein Dashboard. Eine entscheidungsreife Prüfmappe.",
+    "Change, CAPA oder Abweichung rein — das Tool zeigt Prüfpunkte, Quellen, fehlende Nachweise und den nächsten QA-Schritt. Die Originaldateien bleiben die Quelle.",
   primaryAction: "Prüffall vorbereiten",
   workflow: [
     "Unterlagen hochladen",
     "Prüfpunkte und Quellen sehen",
     "Lücken klären",
-    "QA-Entscheidung dokumentieren"
+    "Entscheidung dokumentieren"
   ],
   dossierPreview: [
-    { label: "Fall", value: "Abweichung · CAPA · Change" },
-    { label: "Befund", value: "Prüfpunkt mit Quelle" },
-    { label: "Lücke", value: "fehlender Nachweis sichtbar" },
-    { label: "Entscheidung", value: "bestätigen · nachfordern · eskalieren" }
+    { label: "Der Fall", value: "worum es geht (Abweichung, CAPA, Change)" },
+    { label: "Der Befund", value: "was auffällt, mit Quelle belegt" },
+    { label: "Die Lücke", value: "welcher Nachweis fehlt" },
+    { label: "Ihre Entscheidung", value: "bestätigen, nachfordern oder eskalieren" }
   ],
-  outcomeChecks: [
-    "Was ist der Fall?",
-    "Was wurde gefunden?",
-    "Welche Quellen stützen das?",
-    "Was fehlt?",
-    "Was muss QA entscheiden?"
-  ],
-  exampleTitle: "Beispiele für typische QA-Prüfungen",
+  exampleTitle: "Drei Beispiele: So sieht eine fertige Prüfmappe aus.",
   exampleDescription:
-    "So sieht eine vorbereitete Prüfmappe aus: der Fall, die Quellen, die Lücken und der nächste Entscheidungsschritt."
+    "Der Fall, die Quellen, die Lücken — und der nächste Entscheidungsschritt. Klicken Sie sich durch, bevor Sie eigene Unterlagen hochladen."
 } as const;
 
 export type DemoReviewCase = {
@@ -97,11 +88,11 @@ export const demoReviewCases: DemoReviewCase[] = [
     id: "DEV-2025-014",
     severity: "critical",
     severityLabel: "Kritisch",
-    area: "Aseptische Abfüllung · Reinraum B",
-    title: "Abweichung im Klima-Monitoring, Bezug zu Sterilfilter unklar",
+    area: "Aseptische Abfüllung",
+    title: "Abweichung im Klima-Monitoring, Bezug zum Sterilfilter unklar",
     noteLabel: "Prüfhinweis",
     criticNote:
-      "Mir fehlt eine Quelle für die Aussage, dass der HEPA-Vorlauf entkoppelt ist. Annex 1 §8.123 wird zitiert, aber das Zitat passt nicht zur Textstelle auf Seite 14.",
+      "Für die Aussage, der HEPA-Vorlauf sei entkoppelt, fehlt eine Quelle. Annex 1 §8.123 ist zitiert, aber das Zitat passt nicht zur Textstelle auf Seite 14.",
     ageLabel: "vor 12 min",
     sources: "3 Quellen · 1 fehlt",
     regulation: "ICH Q9 §5.3.2",
@@ -111,7 +102,7 @@ export const demoReviewCases: DemoReviewCase[] = [
       "Die Abweichung kann kritisch sein, weil ein Klima-Signal und die Sterilfilter-Bewertung noch nicht sauber zusammengeführt sind.",
     whyItMatters:
       "Warum dieser Fall wichtig ist: Eine unklare Quelle kann dazu führen, dass ein Sterilitätsrisiko zu früh als abgedeckt gilt.",
-    nextStep: "Quelle prüfen: Passt die zitierte Textstelle wirklich zur Aussage über den HEPA-Vorlauf?",
+    nextStep: "Passt die zitierte Stelle wirklich zur Aussage über den HEPA-Vorlauf?",
     findings: [
       "HEPA-Vorlauf wird als entkoppelt beschrieben, die zitierte Textstelle belegt das aber nicht klar.",
       "Klima-Monitoring und Sterilfilter-Bewertung sind fachlich verbunden, aber noch nicht sauber abgegrenzt.",
@@ -142,11 +133,11 @@ export const demoReviewCases: DemoReviewCase[] = [
     id: "CAPA-2025-082",
     severity: "major",
     severityLabel: "Hoch",
-    area: "Reinigung · Charge R-1183",
+    area: "Reinigung",
     title: "Wirksamkeitsprüfung Reinigungsmittel nach 30 Tagen offen",
     noteLabel: "Prüfhinweis",
     criticNote:
-      "Maßnahmen sind dokumentiert, die Wirksamkeit wurde aber noch nicht bewertet. Du musst entscheiden, ob das ein blockierendes Gap für die Freigabe ist.",
+      "Die Maßnahmen sind dokumentiert, die Wirksamkeit aber noch nicht bewertet. Zu entscheiden: blockierendes Gap für die Freigabe oder nicht?",
     ageLabel: "vor 1 Std.",
     sources: "5 Quellen · vollständig",
     regulation: "SOP-CLN-04 §4.2",
@@ -156,7 +147,7 @@ export const demoReviewCases: DemoReviewCase[] = [
       "Die CAPA ist formal angelegt, aber der wichtigste Wirksamkeitsnachweis ist noch offen.",
     whyItMatters:
       "Warum dieser Fall wichtig ist: Ohne Wirksamkeitsbewertung bleibt unklar, ob die Korrekturmaßnahme wirklich abgeschlossen ist.",
-    nextStep: "Entscheiden: Reicht der vorhandene Maßnahmenstand aus oder muss die Wirksamkeit vor Freigabe belegt werden?",
+    nextStep: "Reicht der Maßnahmenstand, oder muss die Wirksamkeit vor Freigabe belegt sein?",
     findings: [
       "Maßnahmen sind dokumentiert, die Wirksamkeit ist aber noch nicht bewertet.",
       "Die Frist von 30 Tagen ist im Prüfkontext sichtbar und muss bewertet werden.",
@@ -187,11 +178,11 @@ export const demoReviewCases: DemoReviewCase[] = [
     id: "CC-2025-211",
     severity: "ready",
     severityLabel: "Bereit für QA",
-    area: "QC-Labor · HPLC-04",
+    area: "QC-Labor",
     title: "Methodenänderung Gradient-Profil, SME hat abgezeichnet",
     noteLabel: "Prüfhinweis",
     criticNote:
-      "Quellen vollständig, Risiken belegt, keine Widersprüche. Die SME-Abzeichnung vom 18.05. wartet auf deine Freigabe.",
+      "Quellen vollständig, Risiken belegt, keine Widersprüche. Die SME-Abzeichnung vom 18.05. wartet auf Freigabe.",
     ageLabel: "seit gestern",
     sources: "8 Quellen · vollständig",
     regulation: "ICH Q2 R2",
@@ -343,82 +334,62 @@ const riskStatementLabels: Record<string, string> = {
 };
 
 export const aiArchitectureConcept = {
-  title: "Wie die Prüfmappe entsteht",
+  title: "Der Weg eines Befunds — und sechs Stellen, an denen geprüft wird.",
   subtitle:
-    "Aus hochgeladenen Unterlagen werden prüfbare Aussagen, passende Regelwerksbezüge, Quellen und offene Lücken. Jeder Schritt bleibt nachvollziehbar. Freigaben bleiben menschlich.",
+    "Hier sehen Sie genau, wie aus einem hochgeladenen Dokument ein belegter Befund wird. Jeder Schritt ist nachvollziehbar, jeder hat eine eingebaute Sicherung, und der letzte Schritt gehört immer einem Menschen.",
   flow: [
     {
       id: "source",
-      title: "Aussagen extrahieren",
-      description: "Wichtige Aussagen werden mit Dokument, Seite, Textstelle und Zitat gesammelt."
+      title: "Aussagen herauslesen",
+      description:
+        "Das Dokument wird in einzelne, zitierfähige Aussagen zerlegt — jede mit Dokument, Seite, Textstelle und wörtlichem Zitat.",
+      safeguard: "Sicherung: Keine Aussage ohne Quelle. Was sich nicht belegen lässt, geht nicht weiter."
     },
     {
       id: "scope-router",
-      title: "Scope routen",
-      description: "Dokumenttyp, Prozessbereich und Signale bestimmen, welche Regelpakete relevant sind."
+      title: "Den Fall einordnen",
+      description:
+        "Dokumenttyp, Prozessbereich und fachliche Signale bestimmen, welche Regelpakete für diesen Fall überhaupt gelten.",
+      safeguard: "Sicherung: Die Prüfer bekommen nur die Regeln, die zum Fall passen — kein Streuschuss."
     },
     {
       id: "reviewer-agents",
-      title: "Fachreview",
-      description: "Fachliche Prüfschritte prüfen CAPA, Abweichung, Datenintegrität, Validierung, Chargenbezug und Widersprüche."
+      title: "Fachlich prüfen",
+      description:
+        "Sieben unabhängige Prüfinstanzen gehen den Fall durch — Datenintegrität, Abweichung, CAPA, Chargenbezug, Validierung und Sterilität, regulatorische Konsistenz, Widersprüche.",
+      safeguard:
+        "Sicherung: Jede Instanz arbeitet mit den passenden Regeln und Quellen. Was eine übersieht, fällt einer anderen auf."
     },
     {
       id: "evidence-verifier",
-      title: "Quellen prüfen",
-      description: "Der Evidence Verifier gleicht Zitat, Textstelle, Seite und Regelwerksbezug ab."
+      title: "Quellen abgleichen",
+      description:
+        "Jeder Befund wird gegen seinen Beleg geprüft: Stimmt das Zitat? Passt die Seite? Trägt die Textstelle die Aussage? Diese Prüfung macht fester Programmcode, keine KI — Zeichen für Zeichen.",
+      safeguard: "Sicherung: Schwache oder fehlende Belege bleiben offen, statt durchzurutschen."
     },
     {
       id: "risk-fusion",
       title: "Risiken bündeln",
-      description: "Gegenprüfung und Risk Fusion bündeln Befunde konservativ, ohne Mehrheitsvoting."
+      description:
+        "Eine Gegenprüfung fasst die Befunde zusammen — bewusst konservativ. Ein einmal gefundener Befund wird nie per Mehrheitsentscheid weggestimmt.",
+      safeguard:
+        "Sicherung: Hohe und kritische Risiken werden nie automatisch geschlossen. Fehlt ein nötiges Regelpaket, blockiert das System die Freigabe."
     },
     {
       id: "human-review",
       title: "Entscheidung dokumentieren",
-      description: "QA oder SME prüft die offenen Punkte und dokumentiert die finale Entscheidung."
-    }
-  ],
-  aiRoles: [
-    {
-      role: "Claim Extractor",
-      purpose: "Extrahiert prüfbare Aussagen aus Uploads.",
-      guardrail: "Keine Aussage ohne Quelle."
-    },
-    {
-      role: "Scope & Signal Router",
-      purpose: "Erkennt Falltyp, Prozessbereich und fachliche Signale.",
-      guardrail: "Reviewer erhalten nur passende Regelpakete."
-    },
-    {
-      role: "7 Reviewer Agents",
-      purpose: "Prüfen Data Integrity, Deviation, CAPA, Batch Impact, Validation/Sterility, Regulatory Consistency und Widersprüche.",
-      guardrail: "Jeder Prüfschritt nutzt passende Regeln und Quellen."
-    },
-    {
-      role: "Evidence Verifier",
-      purpose: "Prüft Zitat, Seite, Textstelle und Requirement-Bezug.",
-      guardrail: "Schwache oder fehlende Evidenz bleibt offen."
-    },
-    {
-      role: "Risk Fusion",
-      purpose: "Bündelt Befunde, Modellstatus und fehlende Knowledge Packs.",
-      guardrail: "Kein Auto-Clear bei hohen Risiken, fehlender Evidenz oder fehlenden Regelpaketen."
-    },
-    {
-      role: "Human Review",
-      purpose: "QA oder SME entscheidet und begründet.",
-      guardrail: "Die KI bereitet vor, sie gibt nicht frei."
+      description: "QA oder SME prüft die offenen Punkte und dokumentiert die finale Entscheidung.",
+      safeguard: "Sicherung: Die KI bereitet vor. Sie gibt nicht frei. Dieser Schritt ist nicht abschaltbar."
     }
   ],
   nonNegotiables: [
-    "KI entscheidet nicht.",
+    "Die KI entscheidet nicht. Der letzte Schritt gehört QA oder SME.",
     "Keine Mehrheitsabstimmung.",
     "Jeder Prüfpunkt braucht Quelle oder klar benannte Nachweislücke.",
-    "Jeder Modelllauf speichert Modell, Prompt und Regelpakete.",
-    "Firmenspezifische SOPs können geladen werden; die Agenten ziehen daraus rollenbezogen passende Regelkarten und Textstellen.",
-    "Hohe und kritische Risiken werden nicht automatisch geschlossen.",
-    "Fehlende Knowledge Packs blockieren Auto-Clear.",
-    "QA/SME bleibt letzter Schritt."
+    "Jeder Lauf protokolliert Modell, Prüfauftrag und Regelpakete.",
+    "Eigene SOPs lassen sich laden; die Prüfer ziehen daraus die passenden Regeln.",
+    "Hohe und kritische Risiken werden nie automatisch geschlossen.",
+    "Fehlt ein nötiges Regelpaket, blockiert das die Freigabe."
   ]
 } as const;
 

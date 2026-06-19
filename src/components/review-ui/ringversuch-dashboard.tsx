@@ -87,6 +87,11 @@ function percent(rate: number | null | undefined): string {
   return `${(Math.round(rate * 1000) / 10).toLocaleString("de-DE")} %`;
 }
 
+function wholePercent(rate: number | null | undefined): string {
+  if (rate == null) return "–";
+  return `${Math.round(rate * 100).toLocaleString("de-DE")} %`;
+}
+
 function severityClasses(severity: string): string {
   switch (severity) {
     case "critical":
@@ -165,6 +170,7 @@ export function RingversuchDashboard() {
     () => runs?.find((run) => run.id === selectedId) ?? null,
     [runs, selectedId]
   );
+  const defaultRun = runs?.find((run) => run.run.mode === "live") ?? runs?.[0] ?? null;
 
   if (error) {
     return (
@@ -188,55 +194,58 @@ export function RingversuchDashboard() {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h2 className="text-[18px] font-medium text-[var(--text-primary)]">
-          Ringversuch — Qualifizierungsnachweis
-        </h2>
-        <p className="mt-1 max-w-3xl text-[13px] leading-6 text-[var(--text-secondary)]">
-          Wie bei einem Laborringversuch wird das System mit Prüfaufgaben getestet, deren
-          Lösungen vorab feststehen: zehn erfundene, aber realistische GMP-Fälle, in denen
-          Fehler bewusst versteckt wurden — plus Kontrollstellen, die verdächtig aussehen,
-          aber in Ordnung sind. So lässt sich schwarz auf weiß messen, was das System
-          findet, was es übersieht und ob es falschen Alarm schlägt.
-          Die öffentliche Ansicht zeigt bewusst nur zusammengefasste Kennzahlen. Fall- und
-          Token-Rohdaten bleiben Teil der internen Qualifizierung.
-        </p>
-      </div>
+      <RingversuchHero />
+      <MethodologySection />
 
-      {selected ? <KpiRow run={selected} /> : null}
-
-      <section>
-        <SectionHeading
-          title="Lauf-Historie"
-          description="Jede Zeile ist ein Testdurchlauf über die Qualifizierungsfälle — von der ersten Baseline bis zum aktuellen Stand. Zeile anklicken für die Kennzahlen."
-        />
-        <RunHistoryTable runs={runs} selectedId={selectedId} onSelect={setSelectedId} />
-      </section>
+      {selected ? (
+        <section>
+          <SectionHeading
+            title={
+              selected.id === defaultRun?.id
+                ? "Letzter abgeschlossener Lauf · Stand 11.06.2026"
+                : `Ausgewählter Lauf · ${formatTimestamp(selected.id)}`
+            }
+            description={`System-Aufbau: ${stackLabel(selected.run)}.`}
+          />
+          <KpiRow run={selected} />
+        </section>
+      ) : null}
 
       {selected ? (
         <>
           {selected.cases?.length ? (
             <section>
               <SectionHeading
-                title={`Fall-Matrix — ${stackLabel(selected.run)}`}
-                description="Pro Prüffall: Welche versteckten Fehler wurden gefunden (✓) oder übersehen (✗)? Und hat das System die harmlosen Kontrollstellen in Ruhe gelassen?"
+                title="Jeder Fall einzeln — auch der verfehlte."
+                description="Pro Fall: der eingebaute Fehler, was das System gemeldet hat, ob es getroffen oder verfehlt hat. Nichts ausgeblendet."
               />
               <CaseMatrix cases={selected.cases} />
               <ChipLegend />
             </section>
           ) : (
             <PanelMessage
-              title="Öffentliche Qualifizierungs-Zusammenfassung"
-              body="Diese Ansicht zeigt die verkaufsfähigen Kennzahlen des Ringversuchs. Die fallbezogene Fehler-Matrix, vollständige Risk Statements, Modell-Rohdaten und Token-Details bleiben intern, damit keine unnötigen Test- oder Betriebsdetails öffentlich ausgeliefert werden."
+              title="Jeder Fall einzeln — auch der verfehlte."
+              body="Für diesen Lauf ist die fallbezogene Matrix nicht öffentlich ausgeliefert. Die Zusammenfassung oben bleibt sichtbar; die Detaildaten liegen im internen Qualifizierungsnachweis."
             />
           )}
+
+          <LimitsSection />
+          <ReproducibilitySection />
+
+          <section>
+            <SectionHeading
+              title="Lauf-Historie"
+              description="Jede Zeile ist ein Testdurchlauf. Beim ersten Laden ist der jüngste Live-Lauf ausgewählt; ältere Läufe können zum Vergleich geöffnet werden."
+            />
+            <RunHistoryTable runs={runs} selectedId={selectedId} onSelect={setSelectedId} />
+          </section>
 
           {selected.aggregate.tokens_by_provider &&
           Object.keys(selected.aggregate.tokens_by_provider).length > 0 ? (
             <section>
               <SectionHeading
-                title="Token-Verbrauch"
-                description="Gemessener Verbrauch pro KI-Dienst für diesen Lauf. Zur Einordnung: Ein kompletter Durchlauf über zehn Fälle kostet wenige Euro."
+                title="Technische Laufdaten"
+                description="Gemessener Verbrauch pro KI-Dienst für diesen Lauf. Diese Daten dienen der internen Nachvollziehbarkeit."
               />
               <TokenTable tokens={selected.aggregate.tokens_by_provider} />
             </section>
@@ -247,42 +256,111 @@ export function RingversuchDashboard() {
   );
 }
 
+/* ----- Rahmen-Copy ----- */
+
+function RingversuchHero() {
+  return (
+    <section>
+      <h2 className="max-w-3xl text-[28px] font-semibold leading-tight text-[var(--text-primary)] md:text-[36px]">
+        Was das System findet — und was nicht. Gemessen.
+      </h2>
+      <p className="mt-4 max-w-3xl text-[14px] leading-7 text-[var(--text-secondary)]">
+        Ein Ringversuch prüft das Tool wie ein Labor: mit präparierten Fällen, deren Fehler
+        vorab dokumentiert und versiegelt sind. Erst nach dem Lauf wird der Umschlag geöffnet
+        und verglichen. Hier steht das Ergebnis — vollständig, auch die Fälle, die das System
+        verfehlt hat.
+      </p>
+    </section>
+  );
+}
+
+function MethodologySection() {
+  return (
+    <section>
+      <SectionHeading title="So läuft der Ringversuch." description="Was hier gemessen wird." />
+      <div className="max-w-3xl space-y-3 text-[13px] leading-6 text-[var(--text-secondary)]">
+        <p>
+          Zehn realistische GMP-Fälle werden präpariert: Change-, Abweichungs- und
+          CAPA-Unterlagen, in die bewusst Fehler eingebaut sind — eine Klassifizierung, die die
+          Daten nicht hergeben, ein fehlender Pflichtnachweis, ein Zitat, das im Original anders
+          steht. Jeder eingebaute Fehler wird vorab dokumentiert und versiegelt. Dazu kommen
+          harmlose Kontrollstellen ohne jeden Fehler.
+        </p>
+        <p>
+          Das System sieht die Fälle zum ersten Mal im Lauf. Danach wird verglichen: Welche
+          eingebauten Fehler hat es gefunden? Welche übersehen? Und ist es bei den harmlosen
+          Kontrollstellen ruhig geblieben — oder hat es Fehler gemeldet, wo keine waren?
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function LimitsSection() {
+  return (
+    <section>
+      <SectionHeading
+        title="Was dieser Nachweis zeigt — und was noch nicht."
+        description="Dieser Ringversuch läuft mit synthetischen Fällen. Er beweist, dass das System die eingebauten Fehlertypen zuverlässig findet und bei sauberen Unterlagen ruhig bleibt. Er beweist noch nicht, wie es sich mit Ihren echten Unterlagen und Ihrem Regelwerk verhält — dafür ist der nächste Schritt da: ein Blindtest mit Ihren eigenen Fällen, deren Lösung nur Sie kennen."
+      />
+    </section>
+  );
+}
+
+function ReproducibilitySection() {
+  return (
+    <section className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-5">
+      <p className="max-w-3xl text-[13px] leading-6 text-[var(--text-secondary)]">
+        Die Streuung von KI ist kein Geheimnis, das hier versteckt wird. Der Ringversuch wird
+        wiederholt; jeder Lauf ist mit Modell, Version und Prüfauftrag protokolliert und im
+        Detail einsehbar. Was Sie oben sehen, ist beim ersten Laden der jüngste abgeschlossene
+        Live-Lauf — nicht der beste ausgewählte.
+      </p>
+    </section>
+  );
+}
+
 /* ----- KPI-Kacheln ----- */
 
 function KpiRow({ run }: { run: RingversuchRun }) {
   const sens = run.aggregate.sensitivity;
   const spec = run.aggregate.specificity_decoys;
   const cite = run.aggregate.citation_precision;
+  const missedCount = sens ? Math.max(sens.total - sens.found, 0) : null;
+  const falseAlarmCount = spec ? Math.max(spec.total - spec.passed, 0) : null;
+
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <KpiCard
         icon={Crosshair}
-        label="Sensitivität"
-        question="Findet das System die versteckten Fehler?"
-        value={percent(sens?.rate)}
-        detail={sens ? `${sens.found} von ${sens.total} versteckten Fehlern gefunden` : "–"}
+        label="Eingebaute Fehler"
+        value={sens ? `${sens.found} von ${sens.total}` : "–"}
+        detail="eingebauten Fehlern gefunden"
+        explanation={
+          missedCount === 1
+            ? "Die Trefferquote zeigt, wie viel das System aufdeckt. Der eine verfehlte Fall ist unten dokumentiert."
+            : missedCount != null
+              ? `Die Trefferquote zeigt, wie viel das System aufdeckt. Verfehlte Fälle: ${missedCount}.`
+              : "Die Trefferquote zeigt, wie viel das System aufdeckt."
+        }
       />
       <KpiCard
         icon={ShieldCheck}
-        label="Spezifität"
-        question="Bleibt es bei Harmlosem ruhig?"
-        value={percent(spec?.rate)}
-        detail={
-          spec
-            ? `${spec.passed} von ${spec.total} Kontrollstellen korrekt nicht beanstandet`
-            : "–"
+        label="Fehlalarme"
+        value={falseAlarmCount != null ? falseAlarmCount.toLocaleString("de-DE") : "–"}
+        detail={spec ? `Fehlalarme bei ${spec.total} harmlosen Kontrollstellen` : "–"}
+        explanation={
+          falseAlarmCount === 0
+            ? "Null Fehlalarme heißt: Das System produziert keine Arbeit, wo keine nötig ist. Das ist so wichtig wie die Trefferquote."
+            : "Fehlalarme zeigen, wo das System Arbeit erzeugt, obwohl keine nötig wäre."
         }
       />
       <KpiCard
         icon={FileSearch}
-        label="Belegtreue"
-        question="Ist jeder Befund mit Zitat belegt?"
-        value={percent(cite?.rate)}
-        detail={
-          cite
-            ? `${cite.verified} von ${cite.total_findings} Befunden mit wortwörtlich geprüftem Zitat`
-            : "–"
-        }
+        label="Belegte Befunde"
+        value={wholePercent(cite?.rate)}
+        detail="der Befunde mit wörtlich geprüftem Zitat"
+        explanation="Jeder belegte Befund verweist auf eine Stelle, die maschinell gegen das Original geprüft wurde."
       />
     </div>
   );
@@ -291,15 +369,15 @@ function KpiRow({ run }: { run: RingversuchRun }) {
 function KpiCard({
   icon: Icon,
   label,
-  question,
   value,
   detail,
+  explanation,
 }: {
   icon: typeof Crosshair;
   label: string;
-  question: string;
   value: string;
   detail: string;
+  explanation: string;
 }) {
   return (
     <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4">
@@ -307,11 +385,11 @@ function KpiCard({
         <Icon className="h-3.5 w-3.5" aria-hidden />
         {label}
       </div>
-      <div className="mt-1 text-[12px] text-[var(--text-secondary)]">{question}</div>
       <div className="mt-2 text-[28px] font-semibold leading-none text-[var(--text-primary)]">
         {value}
       </div>
-      <div className="mt-2 text-[12px] leading-5 text-[var(--text-tertiary)]">{detail}</div>
+      <div className="mt-2 text-[12px] leading-5 text-[var(--text-primary)]">{detail}</div>
+      <p className="mt-3 text-[12px] leading-5 text-[var(--text-secondary)]">{explanation}</p>
     </div>
   );
 }
@@ -334,9 +412,9 @@ function RunHistoryTable({
           <tr className="border-b border-[var(--border-default)] text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
             <th className="px-4 py-2.5 font-medium">Zeitpunkt</th>
             <th className="px-4 py-2.5 font-medium">System-Aufbau</th>
-            <th className="px-4 py-2.5 font-medium">Sensitivität</th>
-            <th className="px-4 py-2.5 font-medium">Spezifität</th>
-            <th className="px-4 py-2.5 font-medium">Belegtreue</th>
+            <th className="px-4 py-2.5 font-medium">Gefundene Fehler</th>
+            <th className="px-4 py-2.5 font-medium">Kontrollstellen ruhig</th>
+            <th className="px-4 py-2.5 font-medium">Belegte Befunde</th>
           </tr>
         </thead>
         <tbody>
@@ -381,7 +459,7 @@ function RunHistoryTable({
                 <td className="px-4 py-2.5">
                   {spec ? `${spec.passed}/${spec.total}` : "–"}
                 </td>
-                <td className="px-4 py-2.5">{percent(cite?.rate)}</td>
+                <td className="px-4 py-2.5">{wholePercent(cite?.rate)}</td>
               </tr>
             );
           })}
@@ -399,10 +477,10 @@ function CaseMatrix({ cases }: { cases: CaseResult[] }) {
       <table className="w-full min-w-[860px] text-left text-[13px]">
         <thead>
           <tr className="border-b border-[var(--border-default)] text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-            <th className="px-4 py-2.5 font-medium">Fall</th>
-            <th className="px-4 py-2.5 font-medium">Ergebnis</th>
-            <th className="px-4 py-2.5 font-medium">Aussagen</th>
-            <th className="px-4 py-2.5 font-medium">Befunde</th>
+            <th className="px-4 py-2.5 font-medium">Prüffall</th>
+            <th className="px-4 py-2.5 font-medium">Laufstatus</th>
+            <th className="px-4 py-2.5 font-medium">Extrahierte Aussagen</th>
+            <th className="px-4 py-2.5 font-medium">Gemeldete Befunde</th>
             <th className="px-4 py-2.5 font-medium">Versteckte Fehler</th>
             <th className="px-4 py-2.5 font-medium">Kontrollstellen</th>
           </tr>

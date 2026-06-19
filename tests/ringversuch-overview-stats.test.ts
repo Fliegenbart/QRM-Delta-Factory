@@ -23,16 +23,37 @@ describe("overview ringversuch stats", () => {
     expect(stats.hasBetterBestRun).toBe(true);
   });
 
-  it("keeps the overview copy aligned with the public qualification boundary", () => {
+  it("keeps the overview copy aligned with the consultant-facing qualification story", () => {
     const overview = readFileSync(
       join(process.cwd(), "src/components/review-ui/overview-landing.tsx"),
       "utf8"
     );
 
-    expect(overview).toContain("öffentlich sichtbar sind");
-    expect(overview).toContain("Fall- und Token-Rohdaten bleiben Teil der");
-    expect(overview).not.toContain("inklusive");
-    expect(overview).not.toContain("aller Fälle ist im Qualifizierungsnachweis einsehbar");
+    expect(overview).toContain("Die Prüfung machen Sie.");
+    expect(overview).toContain("Das Zusammentragen macht das Tool.");
+    expect(overview).toContain("Der teuerste Teil eines Reviews ist der langweiligste.");
+    expect(overview).toContain("Drei Gründe, warum das hier kein KI-Versprechen ist.");
+    expect(overview).toContain("Vertrauen in Stufen");
+    expect(overview).toContain("Stand 11.06.2026");
+    expect(overview).not.toContain("Welche KI hier arbeitet");
+    expect(overview).not.toContain("Was das System ausdrücklich nicht tut");
+    expect(overview).not.toContain("Mistral Large");
+  });
+
+  it("frames the ringversuch page as a precise evidence page", () => {
+    const ringversuch = readFileSync(
+      join(process.cwd(), "src/components/review-ui/ringversuch-dashboard.tsx"),
+      "utf8"
+    );
+
+    expect(ringversuch).toContain("Was das System findet — und was nicht. Gemessen.");
+    expect(ringversuch).toContain("So läuft der Ringversuch.");
+    expect(ringversuch).toContain("Letzter abgeschlossener Lauf · Stand 11.06.2026");
+    expect(ringversuch).toContain("Jeder Fall einzeln — auch der verfehlte.");
+    expect(ringversuch).toContain("Was dieser Nachweis zeigt — und was noch nicht.");
+    expect(ringversuch).toContain("nicht der beste ausgewählte");
+    expect(ringversuch).toContain("Der eine verfehlte Fall ist unten dokumentiert.");
+    expect(ringversuch).not.toContain("verkaufsfähigen Kennzahlen");
   });
 });
 

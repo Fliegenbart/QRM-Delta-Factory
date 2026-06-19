@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { NextRequest } from "next/server";
 import {
   caseWorkspaceStructure,
@@ -60,27 +62,26 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.decision.rationaleRequired).toContain("begründen");
   });
 
-  it("states the product USP in plain QA language", () => {
-    expect(productHomeCopy.title).toBe("QA-Prüfung aus GMP-Unterlagen vorbereiten");
-    expect(productHomeCopy.subtitle).toContain("Change-, CAPA- oder Abweichungsunterlagen");
+  it("states the start screen as a guided work surface", () => {
+    expect(productHomeCopy.title).toBe("Unterlagen hochladen. Prüfmappe zurückbekommen.");
+    expect(productHomeCopy.subtitle).toContain("Change, CAPA oder Abweichung rein");
     expect(productHomeCopy.subtitle).toContain("Prüfpunkte");
-    expect(productHomeCopy.valueLine).toBe("Unterlagen rein → Prüfmappe raus → QA entscheidet.");
-    expect(productHomeCopy.decisionLine).toBe("Nicht noch ein Dashboard. Eine entscheidungsreife Prüfmappe.");
     expect(productHomeCopy.primaryAction).toBe("Prüffall vorbereiten");
     expect(productHomeCopy.workflow).toEqual([
       "Unterlagen hochladen",
       "Prüfpunkte und Quellen sehen",
       "Lücken klären",
-      "QA-Entscheidung dokumentieren"
+      "Entscheidung dokumentieren"
     ]);
     expect(productHomeCopy.dossierPreview.map((item) => item.label)).toEqual([
-      "Fall",
-      "Befund",
-      "Lücke",
-      "Entscheidung"
+      "Der Fall",
+      "Der Befund",
+      "Die Lücke",
+      "Ihre Entscheidung"
     ]);
-    expect(productHomeCopy.outcomeChecks).toContain("Was muss QA entscheiden?");
-    expect(productHomeCopy.exampleTitle).toBe("Beispiele für typische QA-Prüfungen");
+    expect(productHomeCopy.dossierPreview[3].value).toContain("bestätigen");
+    expect(productHomeCopy.exampleTitle).toBe("Drei Beispiele: So sieht eine fertige Prüfmappe aus.");
+    expect(productHomeCopy.exampleDescription).toContain("Klicken Sie sich durch");
   });
 
   it("keeps demo triage cards connected to concrete demo detail routes", () => {
@@ -95,7 +96,11 @@ describe("review UI helpers", () => {
       "Prüfhinweis",
       "Prüfhinweis"
     ]);
-    expect(demoReviewCases[0].nextStep).toContain("Quelle prüfen");
+    expect(demoReviewCases[0].criticNote).toContain("Für die Aussage");
+    expect(demoReviewCases[0].nextStep).toContain("Passt die zitierte Stelle wirklich");
+    expect(demoReviewCases[1].criticNote).toContain("Zu entscheiden");
+    expect(demoReviewCases[1].nextStep).toContain("muss die Wirksamkeit vor Freigabe belegt sein");
+    expect(demoReviewCases[2].criticNote).toContain("wartet auf Freigabe");
     expect(demoReviewCases[0].whyItMatters).toContain("Warum dieser Fall wichtig ist");
     expect(demoReviewCases[0].findings).toHaveLength(3);
     expect(demoReviewCases[0].missingEvidence[0]).toContain("Nachweis");
@@ -104,6 +109,23 @@ describe("review UI helpers", () => {
       "Weitere Unterlagen anfordern",
       "An QA eskalieren"
     ]);
+  });
+
+  it("uses reviewer-friendly upload guidance on the start form", () => {
+    const appShell = readFileSync(join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
+    const intakeUploader = readFileSync(
+      join(process.cwd(), "src/components/review-ui/intake-uploader.tsx"),
+      "utf8"
+    );
+
+    expect(appShell).toContain("Change, CAPA, Abweichung oder Audit-Finding hochladen.");
+    expect(appShell).toContain("Mehrere Dokumente sind möglich");
+    expect(intakeUploader).toContain("Was ist der Auslöser?");
+    expect(intakeUploader).toContain("Wo passiert es?");
+    expect(intakeUploader).toContain("optional, fürs Protokoll");
+    expect(intakeUploader).toContain("Audit-Finding");
+    expect(intakeUploader).toContain("QC-Labor");
+    expect(intakeUploader).toContain("Lieferant/Material");
   });
 
   it("turns backend configuration failures into user-facing review list copy", () => {
@@ -307,27 +329,34 @@ describe("review UI helpers", () => {
   });
 
   it("documents the AI architecture as a controlled review chain, not model voting", () => {
-    expect(aiArchitectureConcept.title).toBe("Wie die Prüfmappe entsteht");
-    expect(aiArchitectureConcept.subtitle).toContain("Jeder Schritt bleibt nachvollziehbar");
-    expect(aiArchitectureConcept.subtitle).toContain("Freigaben bleiben menschlich");
+    const appShell = readFileSync(join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
+
+    expect(aiArchitectureConcept.title).toBe("Der Weg eines Befunds — und sechs Stellen, an denen geprüft wird.");
+    expect(aiArchitectureConcept.subtitle).toContain("wie aus einem hochgeladenen Dokument ein belegter Befund wird");
+    expect(aiArchitectureConcept.subtitle).toContain("der letzte Schritt gehört immer einem Menschen");
     expect(aiArchitectureConcept.subtitle).not.toContain("Multi-Agent");
     expect(aiArchitectureConcept.subtitle).not.toContain("Regelkarten");
-    expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Claim Ledger");
-    expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Requirement Cards");
-    expect(aiArchitectureConcept.flow.map((step) => step.id)).toEqual([
-      "source",
-      "scope-router",
-      "reviewer-agents",
-      "evidence-verifier",
-      "risk-fusion",
-      "human-review"
+    expect(aiArchitectureConcept.flow).toHaveLength(6);
+    expect(aiArchitectureConcept.flow.map((step) => step.title)).toEqual([
+      "Aussagen herauslesen",
+      "Den Fall einordnen",
+      "Fachlich prüfen",
+      "Quellen abgleichen",
+      "Risiken bündeln",
+      "Entscheidung dokumentieren"
     ]);
+    expect(aiArchitectureConcept.flow.every((step) => step.safeguard.startsWith("Sicherung:"))).toBe(true);
+    expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).toContain("Diese Prüfung macht fester Programmcode, keine KI");
+    expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Claim Ledger");
+    expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Evidence Verifier");
+    expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Risk Fusion");
     expect(aiArchitectureConcept.nonNegotiables).toContain("Keine Mehrheitsabstimmung.");
-    expect(aiArchitectureConcept.nonNegotiables).toContain("Fehlende Knowledge Packs blockieren Auto-Clear.");
-    expect(aiArchitectureConcept.nonNegotiables).toContain("Firmenspezifische SOPs können geladen werden; die Agenten ziehen daraus rollenbezogen passende Regelkarten und Textstellen.");
-    expect(aiArchitectureConcept.nonNegotiables).toContain("QA/SME bleibt letzter Schritt.");
-    expect(aiArchitectureConcept.aiRoles.map((role) => role.role)).toContain("Evidence Verifier");
-    expect(aiArchitectureConcept.aiRoles.map((role) => role.role)).toContain("7 Reviewer Agents");
+    expect(aiArchitectureConcept.nonNegotiables).toContain("Fehlt ein nötiges Regelpaket, blockiert das die Freigabe.");
+    expect(aiArchitectureConcept.nonNegotiables).toContain("Eigene SOPs lassen sich laden; die Prüfer ziehen daraus die passenden Regeln.");
+    expect(aiArchitectureConcept.nonNegotiables).not.toContain("Fehlende Knowledge Packs blockieren Auto-Clear.");
+    expect("aiRoles" in aiArchitectureConcept).toBe(false);
+    expect(appShell).not.toContain("Human Feedback Registry");
+    expect(appShell).not.toContain("<HumanFeedbackRegistryPanel");
   });
 
   it("exposes the reviewer decisions required by the workflow", () => {
@@ -420,8 +449,14 @@ describe("review UI helpers", () => {
   });
 
   it("requires server-side auth for review workspace pages and API routes", () => {
+    const appShell = readFileSync(join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
+
+    expect(appShell).toContain('["prueffaelle", "nav.backendReview", ShieldCheck]');
+    expect(appShell).not.toContain('["review-ui", "nav.backendReview", ShieldCheck]');
     expect(isProtectedReviewPath("/review-ui")).toBe(true);
     expect(isProtectedReviewPath("/review-ui/document-sets/ds_demo")).toBe(true);
+    expect(isProtectedReviewPath("/review-ui/demo/dev-2025-014")).toBe(false);
+    expect(isProtectedReviewPath("/prueffaelle")).toBe(false);
     expect(isProtectedReviewPath("/api/review-ui/document-sets")).toBe(true);
     expect(isProtectedReviewPath("/api/review-ui/document-sets/ds_demo/pipeline-runs")).toBe(true);
 

@@ -13,14 +13,12 @@ import {
   Compass,
   Crosshair,
   FileCheck2,
-  FileText,
   Gauge,
   Globe,
   Library,
   Menu,
   Moon,
   Plus,
-  SearchCheck,
   ShieldCheck,
   Sun,
   X,
@@ -30,7 +28,6 @@ import { useTheme } from "@/src/lib/theme";
 import { motion } from "@/src/components/ui/motion";
 import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { RequirementLibraryManager } from "@/src/components/review-ui/requirement-library-manager";
-import { HumanFeedbackRegistryPanel } from "@/src/components/review-ui/human-feedback-registry-panel";
 import { RingversuchDashboard } from "@/src/components/review-ui/ringversuch-dashboard";
 import { OverviewLanding } from "@/src/components/review-ui/overview-landing";
 import { SalesReadinessPanel } from "@/src/components/review-ui/sales-readiness-panel";
@@ -47,7 +44,7 @@ const navCategories: NavCategory[] = [
     items: [
       ["ueberblick", "nav.ueberblick", Compass],
       ["dashboard", "nav.dashboard", Gauge],
-      ["review-ui", "nav.backendReview", ShieldCheck],
+      ["prueffaelle", "nav.backendReview", ShieldCheck],
       ["ringversuch", "nav.ringversuch", Crosshair],
     ],
   },
@@ -80,8 +77,13 @@ function pageTitle(slug: string, t: (key: TranslationKey) => string) {
   return t(pageTitleKeys[slug] ?? "nav.dashboard");
 }
 
+function normalizePublicSection(section: string) {
+  if (section === "review-ui") return "prueffaelle";
+  return sectionSlugs.includes(section) ? section : "dashboard";
+}
+
 export function AppShell({ section }: { section: string; projectId?: string }) {
-  const active = sectionSlugs.includes(section) ? section : "dashboard";
+  const active = normalizePublicSection(section);
   return <AppFrame section={active}>{renderSection(active)}</AppFrame>;
 }
 
@@ -92,7 +94,7 @@ export function AppFrame({
   section: string;
   children: React.ReactNode;
 }) {
-  const active = sectionSlugs.includes(section) ? section : "dashboard";
+  const active = normalizePublicSection(section);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navCategories.map((category) => [category.nameKey, true]))
@@ -273,7 +275,7 @@ function BrandMark() {
 
 function renderSection(section: string) {
   switch (section) {
-    case "review-ui":
+    case "prueffaelle":
       return <ReviewEntrySection />;
     case "ai-architecture":
       return <AiArchitectureSection />;
@@ -296,13 +298,13 @@ function DashboardSection() {
   return (
     <div className="space-y-10">
       <ProductHero />
-      <OutcomeChecklist />
+      <WorkflowSteps />
 
       <section id="new-case">
         <SectionIntro
           title={productHomeCopy.primaryAction}
-          description="Change, CAPA, Abweichung oder Audit hochladen. Die Originaldateien bleiben die Quelle."
-          meta="KI bereitet vor. QA entscheidet."
+          description="Change, CAPA, Abweichung oder Audit-Finding hochladen. Mehrere Dokumente sind möglich — die Originaldateien bleiben die Quelle."
+          meta="4 Schritte bis zur Prüfmappe"
         />
         <IntakeUploader />
       </section>
@@ -355,13 +357,13 @@ function ProductHero() {
   return (
     <section className="relative overflow-hidden border-b border-[var(--border-default)] pb-10">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-stretch">
-        <div className="flex min-h-[520px] flex-col justify-between border-l-4 border-[var(--brand)] pl-5 md:pl-7">
+        <div className="flex min-h-[420px] flex-col justify-between border-l-4 border-[var(--brand)] pl-5 md:pl-7">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 py-1 text-[11px] font-medium text-[var(--text-secondary)]">
               <FileCheck2 className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden />
               QA-Mappe mit Quellen, Lücken und Entscheidung
             </div>
-            <h2 className="mt-6 max-w-4xl text-[42px] font-medium leading-[0.98] text-[var(--text-primary)] md:text-[68px]">
+            <h2 className="mt-6 max-w-4xl text-[40px] font-medium leading-[1.03] text-[var(--text-primary)] md:text-[62px]">
               {productHomeCopy.title}
             </h2>
             <p className="mt-6 max-w-2xl text-[18px] leading-8 text-[var(--text-secondary)]">
@@ -369,15 +371,7 @@ function ProductHero() {
             </p>
           </div>
 
-          <div className="mt-8 grid gap-5 xl:grid-cols-[1fr_auto] xl:items-end">
-            <div>
-              <div className="text-[24px] font-medium leading-tight text-[var(--text-primary)] md:text-[32px]">
-                {productHomeCopy.decisionLine}
-              </div>
-              <p className="mt-2 text-[13px] font-medium text-[var(--text-secondary)]">
-                {productHomeCopy.valueLine}
-              </p>
-            </div>
+          <div className="mt-8">
             <a
               href="#new-case"
               className="inline-flex h-12 w-fit items-center gap-2 rounded-md bg-[var(--brand)] px-5 text-[14px] font-medium text-white hover:bg-[var(--brand-strong)]"
@@ -390,22 +384,20 @@ function ProductHero() {
 
         <DossierPreview />
       </div>
-
-      <WorkflowSteps />
     </section>
   );
 }
 
 function DossierPreview() {
   return (
-    <aside className="flex min-h-[520px] flex-col justify-between rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)]">
+    <aside className="flex min-h-[420px] flex-col justify-between rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)]">
       <div className="border-b border-[var(--border-default)] px-5 py-4">
         <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
           Prüfmappe-Vorschau
         </div>
         <div className="mt-2 flex items-center justify-between gap-3">
           <div className="text-[15px] font-medium text-[var(--text-primary)]">
-            Entscheidung offen
+            So sieht ein bearbeiteter Fall aus
           </div>
           <span className="rounded-full bg-[var(--severity-major-soft)] px-2.5 py-1 text-[11px] font-medium text-[var(--severity-major)]">
             QA prüfen
@@ -453,7 +445,7 @@ function DossierAlert({ title, description }: { title: string; description: stri
 
 function DossierPreviewRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[96px_1fr] gap-3 py-3 text-[13px]">
+    <div className="grid gap-1 py-3 text-[13px] sm:grid-cols-[136px_1fr] sm:gap-3">
       <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
         {label}
       </div>
@@ -478,7 +470,7 @@ function DecisionActionPreview({ action, active }: { action: string; active: boo
 
 function WorkflowSteps() {
   return (
-    <ol className="mt-8 grid gap-2 sm:grid-cols-4">
+    <ol className="grid gap-2 sm:grid-cols-4">
       {productHomeCopy.workflow.map((step, index) => (
         <li key={step} className="flex items-center gap-2 border-t border-[var(--border-default)] pt-3 text-[12px] leading-5 text-[var(--text-secondary)]">
           <span className="mono grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[var(--surface-primary)] text-[11px] text-[var(--text-tertiary)]">
@@ -488,19 +480,6 @@ function WorkflowSteps() {
         </li>
       ))}
     </ol>
-  );
-}
-
-function OutcomeChecklist() {
-  return (
-    <section className="grid gap-4 md:grid-cols-5">
-      {productHomeCopy.outcomeChecks.map((check) => (
-        <div key={check} className="border-l border-[var(--border-default)] pl-3 text-[13px] leading-6 text-[var(--text-secondary)]">
-          <CheckCircle2 className="mb-2 h-4 w-4 text-[var(--brand)]" aria-hidden />
-          {check}
-        </div>
-      ))}
-    </section>
   );
 }
 
@@ -524,24 +503,15 @@ function ReviewEntrySection() {
 }
 
 function AiArchitectureSection() {
-  const roleIcons: Record<string, React.ReactNode> = {
-    "Claim Extractor": <FileText className="h-4 w-4" />,
-    "Scope & Signal Router": <SearchCheck className="h-4 w-4" />,
-    "7 Reviewer Agents": <Brain className="h-4 w-4" />,
-    "Evidence Verifier": <SearchCheck className="h-4 w-4" />,
-    "Risk Fusion": <ShieldCheck className="h-4 w-4" />,
-    "Human Review": <ClipboardCheck className="h-4 w-4" />,
-  };
-
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <section className="surface p-6">
-        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="grid gap-7 lg:grid-cols-[0.82fr_1.18fr]">
           <div>
             <div className="text-[11px] font-medium uppercase tracking-[0.16em] text-[var(--brand)]">
               Funktionsweise
             </div>
-            <h2 className="mt-3 max-w-2xl text-[24px] font-medium leading-snug text-[var(--text-primary)]">
+            <h2 className="mt-3 max-w-2xl text-[30px] font-semibold leading-tight text-[var(--text-primary)]">
               {aiArchitectureConcept.title}
             </h2>
             <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-[var(--text-secondary)]">
@@ -562,6 +532,9 @@ function AiArchitectureSection() {
                   <p className="mt-0.5 text-[12px] leading-relaxed text-[var(--text-secondary)]">
                     {step.description}
                   </p>
+                  <div className="mt-2 rounded border border-[var(--border-muted)] bg-[var(--surface-primary)] px-2.5 py-2 text-[11px] leading-relaxed text-[var(--text-secondary)]">
+                    {step.safeguard}
+                  </div>
                 </div>
               </li>
             ))}
@@ -569,34 +542,7 @@ function AiArchitectureSection() {
         </div>
       </section>
 
-      <Panel title="KI-Rollen">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {aiArchitectureConcept.aiRoles.map((role) => (
-            <div
-              key={role.role}
-              className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4"
-            >
-              <div className="grid h-8 w-8 place-items-center rounded bg-[var(--brand-soft)] text-[var(--brand-strong)]">
-                {roleIcons[role.role] ?? <Brain className="h-4 w-4" />}
-              </div>
-              <h3 className="mt-3 text-[14px] font-medium">{role.role}</h3>
-              <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--text-secondary)]">
-                {role.purpose}
-              </p>
-              <div className="mt-3 rounded border border-[var(--border-muted)] bg-[var(--surface-secondary)] p-2.5 text-[11px] leading-relaxed text-[var(--text-secondary)]">
-                <span className="font-medium text-[var(--text-primary)]">Gate:</span>{" "}
-                {role.guardrail}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Panel>
-
-      <Panel title="Human Feedback Registry">
-        <HumanFeedbackRegistryPanel />
-      </Panel>
-
-      <Panel title="Guardrails">
+      <Panel title="Die Grenzen, die fest eingebaut sind:">
         <div className="grid gap-2 md:grid-cols-2">
           {aiArchitectureConcept.nonNegotiables.map((rule) => (
             <div

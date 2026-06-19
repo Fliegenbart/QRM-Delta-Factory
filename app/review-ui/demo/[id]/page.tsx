@@ -125,7 +125,7 @@ export default async function DemoReviewCasePage({
         title="Echte Prüffälle"
         action={
           <Link
-            href="/review-ui"
+            href="/prueffaelle"
             className="inline-flex h-9 items-center gap-2 rounded-md bg-[var(--brand)] px-3 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
           >
             <CheckCircle2 className="h-4 w-4" aria-hidden />

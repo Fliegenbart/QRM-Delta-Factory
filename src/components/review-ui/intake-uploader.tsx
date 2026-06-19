@@ -17,7 +17,7 @@ const documentTypes = [
   { value: "change_control_package", label: "Change Control" },
   { value: "deviation_package", label: "Abweichung" },
   { value: "capa_package", label: "CAPA" },
-  { value: "audit_finding_package", label: "Audit Finding" },
+  { value: "audit_finding_package", label: "Audit-Finding" },
   { value: "periodic_review_package", label: "Periodic Review" }
 ];
 
@@ -25,9 +25,9 @@ const processAreas = [
   { value: "aseptic_filling", label: "Aseptische Abfüllung" },
   { value: "automated_visual_inspection", label: "Automatische Sichtprüfung" },
   { value: "cleaning_validation", label: "Reinigung" },
-  { value: "qc_lab", label: "QC Labor" },
+  { value: "qc_lab", label: "QC-Labor" },
   { value: "data_integrity", label: "Datenintegrität" },
-  { value: "supplier_quality", label: "Lieferant / Material" },
+  { value: "supplier_quality", label: "Lieferant/Material" },
   { value: "computerized_system", label: "Computergestütztes System" }
 ];
 
@@ -81,6 +81,28 @@ function resultCopy(status?: string, failedStep?: string | null) {
       "Die Prüffälle zeigen die hochgeladenen Unterlagen. Die Prüfmappe zeigt die daraus erstellten Prüfpunkte, Quellen und fehlenden Nachweise.",
     tone: "success" as const
   };
+}
+
+function FieldLabel({
+  label,
+  helper,
+  required = false
+}: {
+  label: string;
+  helper: string;
+  required?: boolean;
+}) {
+  return (
+    <span className="block">
+      <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+        {label}
+        {required ? " *" : null}
+      </span>
+      <span className="mt-1 block text-[12px] normal-case tracking-normal text-[var(--text-secondary)]">
+        {helper}
+      </span>
+    </span>
+  );
 }
 
 export function IntakeUploader() {
@@ -191,9 +213,7 @@ export function IntakeUploader() {
 
       <div className="grid gap-3 md:grid-cols-3">
         <label className="block">
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-            Anlass
-          </span>
+          <FieldLabel label="Anlass" helper="Was ist der Auslöser?" required />
           <select
             className="mt-2 h-10 w-full rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-[13px] text-[var(--text-primary)] outline-none ring-[var(--brand-ring)] transition focus:ring-4"
             value={declaredDocumentType}
@@ -207,9 +227,7 @@ export function IntakeUploader() {
           </select>
         </label>
         <label className="block">
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-            Prozessbereich
-          </span>
+          <FieldLabel label="Prozessbereich" helper="Wo passiert es?" required />
           <select
             className="mt-2 h-10 w-full rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-[13px] text-[var(--text-primary)] outline-none ring-[var(--brand-ring)] transition focus:ring-4"
             value={declaredProcessArea}
@@ -223,9 +241,7 @@ export function IntakeUploader() {
           </select>
         </label>
         <label className="block">
-          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-            Bearbeiter
-          </span>
+          <FieldLabel label="Bearbeiter" helper="optional, fürs Protokoll" />
           <input
             className="mt-2 h-10 w-full rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-[13px] text-[var(--text-primary)] outline-none ring-[var(--brand-ring)] transition focus:ring-4"
             value={uploadedBy}

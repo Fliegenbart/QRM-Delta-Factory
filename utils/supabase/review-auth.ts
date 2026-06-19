@@ -12,6 +12,7 @@ function cleanEnvFlag(value: string | undefined) {
 }
 
 export function isProtectedReviewPath(pathname: string) {
+  if (isSamePathOrChild(pathname, "/review-ui/demo")) return false;
   return (
     isSamePathOrChild(pathname, "/review-ui") ||
     isSamePathOrChild(pathname, "/api/review-ui")
