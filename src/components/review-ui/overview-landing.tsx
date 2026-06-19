@@ -35,7 +35,7 @@ function Reveal({ delay, children }: { delay: number; children: React.ReactNode 
 
 export function OverviewLanding() {
   return (
-    <div className="mx-auto max-w-4xl space-y-16 pb-8">
+    <div className="mx-auto max-w-4xl space-y-14 pb-8">
       {/* Hero */}
       <Reveal delay={0}>
         <div className="pt-4">
@@ -52,10 +52,10 @@ export function OverviewLanding() {
                 </span>
               </h2>
               <p className="mt-5 text-[15px] leading-7 text-[var(--text-secondary)]">
-                Aus einem Stapel Change-, Abweichungs- und CAPA-Unterlagen wird eine
-                Prüfmappe: jede Aussage mit Fundstelle, jeder Widerspruch markiert, jeder
-                fehlende Pflichtnachweis benannt. Sie lesen nicht mehr alles — Sie
-                entscheiden über das, was zählt.
+                Ein Werkzeug für QA, RA und SME, das GMP-Unterlagen liest und eine belegte
+                Prüfmappe daraus macht — Befunde, Quellen, fehlende Nachweise und der
+                nächste Entscheidungsschritt. Sie lesen nicht mehr alles. Sie entscheiden
+                über das, was zählt.
               </p>
             </div>
             <FindingArtifact />
@@ -80,22 +80,114 @@ export function OverviewLanding() {
         </div>
       </Reveal>
 
-      {/* Das Problem */}
+      {/* Was das Tool ist */}
       <Reveal delay={0.1}>
         <section>
           <LandingHeading
-            title="Der teuerste Teil eines Reviews ist der langweiligste."
-            description="Bevor ein Fall überhaupt bewertet werden kann, geht Stunden drauf: Unterlagen sichten, Aussagen gegen das Regelwerk halten, prüfen ob jeder Pflichtnachweis da ist, Widersprüche zwischen Dokumenten finden. Diese Arbeit ist nötig, aber sie verlangt keine Expertise — sie verlangt Geduld. Und genau hier rutscht im Zweifel etwas durch: ein fehlender Labornachweis, eine Klassifizierung, die die Daten nicht hergeben, ein Zitat, das im Original anders steht."
+            title="Was das Tool ist."
+            description="Es ist eine Software, die einen Stapel GMP-Unterlagen — Change Control, Abweichung, CAPA, Audit-Findings — durchliest und strukturiert, was ein Mensch sonst von Hand sichten müsste."
           />
+          <div className="space-y-4 text-[14px] leading-7 text-[var(--text-secondary)]">
+            <p>
+              Am Ende steht keine Bewertung und keine Freigabe, sondern eine
+              entscheidungsreife Prüfmappe: jede Aussage mit Fundstelle, jeder Widerspruch
+              markiert, jeder fehlende Pflichtnachweis benannt.
+            </p>
+            <p>
+              Anders gesagt: Sie bekommen die Risikobewertung nicht abgenommen, aber
+              vollständig vorbereitet — Befunde, Belege, Nachweislücken und gewichtete
+              Risiken, soweit die Unterlagen sie hergeben. Die fachliche Risikoanalyse
+              bleibt Ihre; die Vorarbeit dazu liefert das Tool.
+            </p>
+            <p>
+              Es ist kein Chatbot und kein Orakel. Es trifft keine regulatorische
+              Entscheidung. Es nimmt die Such-, Sortier- und Abgleicharbeit ab — die Stunden
+              vor der eigentlichen Bewertung — und legt dem Experten einen geordneten Fall
+              vor.
+            </p>
+          </div>
         </section>
       </Reveal>
 
-      {/* So arbeitet das System */}
+      {/* Warum KI hier anders ist */}
       <Reveal delay={0.15}>
         <section>
           <LandingHeading
-            title="Vom Dokumentenstapel zur entscheidungsreifen Mappe — in drei Schritten."
-            description="Das Tool nimmt die Fleißarbeit aus dem Review und legt Ihnen die entscheidenden Stellen geordnet vor."
+            title="Warum KI-Risikoanalysen bisher gescheitert sind — und was hier anders ist."
+            description="Das Problem mit KI bei Risikoanalysen war nie die Geschwindigkeit. Es war das Misstrauen."
+          />
+          <div className="mb-4 space-y-4 text-[14px] leading-7 text-[var(--text-secondary)]">
+            <p>
+              Was die KI ausgab, ließ sich nicht ohne Weiteres verwenden — also musste man
+              alles von Hand nachprüfen. Und sobald man alles nachprüft, ist die
+              Zeitersparnis weg. Schlimmer noch: Eine selbstbewusst formulierte, aber
+              falsche KI-Aussage ist gefährlicher als gar keine.
+            </p>
+            <p>
+              Dieses Tool ist um genau dieses Problem herum gebaut. Drei Dinge verschieben
+              den Kontrollaufwand dorthin, wo er hingehört.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <PrincipleRow
+              icon={Quote}
+              title="Sie prüfen nicht mehr, ob die KI sich etwas ausgedacht hat."
+              body="Jeder Befund muss eine wörtliche Stelle aus dem Originaldokument nennen. Diese Stelle wird Zeichen für Zeichen gegen die Quelle abgeglichen — nicht von einer KI, sondern von festem Programmcode. Erfundene oder verfälschte Belege werden aussortiert, bevor die Prüfmappe überhaupt entsteht. Ihre Arbeit ist nicht mehr, die Maschine beim Lügen zu ertappen. Ihre Arbeit ist nur noch, einen echten, belegten Befund fachlich zu bewerten."
+            />
+            <PrincipleRow
+              icon={FlaskConical}
+              title="Es meldet keine Phantome."
+              body="Der eigentliche Zeitfresser bei anderen Tools sind Fehlalarme — Befunde, die keine sind und die man einzeln wegklicken muss. Genau darauf wird dieses System gemessen: null Fehlalarme bei elf bewusst harmlosen Kontrollstellen. Wo nichts ist, bleibt es still."
+            />
+            <PrincipleRow
+              icon={UserCheck}
+              title="Es kennt seine Grenzen und sagt sie."
+              body="Wo die Beleglage dünn ist oder eine Prüfung nicht greift, übertüncht das System das nicht mit einer selbstbewussten Antwort. Es sagt offen: Hier muss ein Mensch hinsehen. Das ist das Gegenteil des verwertbar-aussehenden, aber unbrauchbaren Outputs, den Sie kennen."
+            />
+          </div>
+          <p className="mt-4 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4 py-3 text-[13px] leading-6 text-[var(--text-secondary)]">
+            Unterm Strich verschiebt sich Ihr Aufwand: weg vom Nachprüfen der Maschine, hin
+            zum Entscheiden des Falls. Nicht weniger Sorgfalt — dieselbe Sorgfalt, an der
+            richtigen Stelle.
+          </p>
+        </section>
+      </Reveal>
+
+      {/* Was es kann */}
+      <Reveal delay={0.2}>
+        <section>
+          <LandingHeading
+            title="Was es kann."
+            description="Change Control · Abweichungen · CAPA · Audit-Findings · Periodic Reviews. Mehrere Dokumente pro Fall. Die Originaldateien bleiben jederzeit die Quelle."
+          />
+          <div className="grid gap-3 lg:grid-cols-3">
+            <InfoBlock
+              title="Was reingeht"
+              body="Change Control, Abweichungen, CAPA, Audit-Findings und Periodic Reviews — auch mehrere Dokumente pro Fall."
+            />
+            <InfoBlock
+              title="Was es findet"
+              body="Klassifizierungen ohne Beleg, fehlende Pflichtnachweise, Widersprüche zwischen Dokumenten sowie Zitate und Regelbezüge, die im Original anders stehen."
+            />
+            <InfoBlock
+              title="Was rauskommt"
+              body="Eine Prüfmappe pro Fall — mit Befunden, belegendem Zitat, offenen Lücken und dem konkreten nächsten QA-Schritt."
+            />
+          </div>
+          <p className="mt-3 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4 py-3 text-[13px] leading-6 text-[var(--text-secondary)]">
+            Was es nicht tut: bewerten, freigeben oder QA-Verantwortung ersetzen. Die
+            letzte Entscheidung trifft immer ein Mensch — fest eingebaut, nicht
+            abschaltbar.
+          </p>
+        </section>
+      </Reveal>
+
+      {/* Wie es funktioniert */}
+      <Reveal delay={0.25}>
+        <section>
+          <LandingHeading
+            title="Wie es funktioniert — in drei Schritten."
+            description="Vom Dokumentenstapel zur entscheidungsreifen Mappe, ohne dass die Verantwortung an die Maschine wandert."
           />
           <div className="grid gap-3 sm:grid-cols-3">
             <StepCard
@@ -106,52 +198,29 @@ export function OverviewLanding() {
             <StepCard
               number="02"
               title="Prüfen und aufdecken"
-              body="Sieben unabhängige Prüfinstanzen gehen die Unterlagen gegen Ihr Regelwerk durch — Datenintegrität, Abweichung, CAPA, Chargenbezug, Validierung, regulatorische Konsistenz, Widersprüche."
+              body="Sieben unabhängige Prüfinstanzen gehen die Unterlagen gegen Ihr Regelwerk durch — Datenintegrität, Abweichung, CAPA, Chargenbezug, Validierung, regulatorische Konsistenz, Widersprüche. Ob ein Zitat wirklich im Original steht, prüft fester Programmcode, keine KI — Zeichen für Zeichen."
             />
             <StepCard
               number="03"
               title="Vorlegen, nicht entscheiden"
-              body="Sie bekommen eine Mappe mit Befunden, Zitaten und offenen Fragen. Klare Fälle sind als klar markiert, kritische und unklare wandern immer auf Ihren Tisch. Das System schließt nichts im Stillen ab."
+              body="Das Ergebnis ist die Prüfmappe. Klare Fälle sind als klar markiert, kritische und unklare wandern immer auf Ihren Tisch. Das System schließt nichts im Stillen ab."
             />
           </div>
         </section>
       </Reveal>
 
-      {/* Warum vertrauen */}
-      <Reveal delay={0.2}>
+      {/* Gemessen */}
+      <Reveal delay={0.3}>
         <section>
           <LandingHeading
-            title="Drei Gründe, warum das hier kein KI-Versprechen ist."
-            description="Die Prüfmappe soll nicht beeindrucken, sondern prüfbar bleiben: mit Originalzitaten, klarer Eskalation und wiederholbaren Messungen."
-          />
-          <div className="space-y-3">
-            <PrincipleRow
-              icon={Quote}
-              title="Kein Befund ohne Beleg"
-              body="Jeder Befund muss eine wörtliche Stelle aus dem Originaldokument nennen. Diese Stelle wird Zeichen für Zeichen gegen die Quelle geprüft — nicht von einer KI, sondern von festem Programmcode. Was sich nicht wörtlich belegen lässt, kommt gar nicht erst in die Mappe. Ob der Beleg die Schlussfolgerung trägt, entscheiden Sie — das Zitat steht einen Klick entfernt im Original."
-            />
-            <PrincipleRow
-              icon={UserCheck}
-              title="Im Zweifel: Mensch"
-              body="Ist die Beleglage dünn oder fällt eine Prüfinstanz aus, gibt das System den Fall nie automatisch frei. Es sagt offen, wo ein Mensch hinschauen muss. Das ist fest eingebaut, nicht abschaltbar."
-            />
-            <PrincipleRow
-              icon={FlaskConical}
-              title="Gemessen, nicht behauptet"
-              body="Das System wird regelmäßig mit präparierten Fällen getestet, deren Fehler vorab dokumentiert und versiegelt sind — wie ein Ringversuch im Labor. So ist nachweisbar, was es findet, was es übersieht, und dass es bei sauberen Unterlagen ruhig bleibt."
-            />
-          </div>
-        </section>
-      </Reveal>
-
-      {/* Die Zahlen */}
-      <Reveal delay={0.25}>
-        <section>
-          <LandingHeading
-            title="Das letzte Ergebnis im Detail."
-            description="Stand 11.06.2026, aus den Messdaten des letzten abgeschlossenen Laufs."
+            title="Gemessen, nicht behauptet."
+            description="In Anlehnung an Ringversuche aus der Laborpraxis wird das System regelmäßig mit präparierten Fällen getestet, deren versteckte Fehler vorab dokumentiert und versiegelt sind."
           />
           <div className="rounded-md border border-[var(--border-default)] bg-[var(--brand-soft)] p-5">
+            <p className="mb-5 max-w-3xl text-[13px] leading-6 text-[var(--text-secondary)]">
+              So ist belegbar, was es findet, was es übersieht — und dass es bei
+              fehlerfreien Unterlagen ruhig bleibt.
+            </p>
             <div className="grid gap-6 sm:grid-cols-3">
               <LiveStat value="24 von 25" label="versteckten Fehlern gefunden" />
               <LiveStat value="0" label="Fehlalarme bei 11 bewusst harmlosen Kontrollstellen" />
@@ -164,15 +233,17 @@ export function OverviewLanding() {
               Zum vollständigen Nachweis
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
-            <div className="mt-1 text-[11px] text-[var(--text-tertiary)]">
-              Der vollständige Lauf ist im Qualifizierungsnachweis einsehbar.
+            <div className="mt-2 max-w-2xl text-[11px] leading-5 text-[var(--text-tertiary)]">
+              Stand 11.06.2026, aus den Messdaten des letzten abgeschlossenen Laufs — nicht
+              der beste ausgewählte. Der vollständige Lauf inklusive aller Fälle ist im
+              Qualifizierungsnachweis einsehbar.
             </div>
           </div>
         </section>
       </Reveal>
 
       {/* Vertrauensstufen */}
-      <Reveal delay={0.3}>
+      <Reveal delay={0.35}>
         <section>
           <LandingHeading
             title="Vertrauen in Stufen — jede mit einem prüfbaren Kriterium."
@@ -210,6 +281,17 @@ export function OverviewLanding() {
               last
             />
           </ol>
+        </section>
+      </Reveal>
+
+      {/* Fußnote */}
+      <Reveal delay={0.4}>
+        <section className="border-t border-[var(--border-default)] pt-5">
+          <p className="max-w-3xl text-[12px] leading-6 text-[var(--text-tertiary)]">
+            Dies ist ein Prototyp. Ein produktiver Einsatz erfordert formale Validierung,
+            SOPs und die Freigabe im Qualitätssystem des Anwenders. Genau dafür ist die
+            Vertrauensleiter da.
+          </p>
         </section>
       </Reveal>
     </div>
@@ -272,6 +354,15 @@ function StepCard({ number, title, body }: { number: string; title: string; body
     <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4">
       <div className="mono text-[22px] font-semibold text-[var(--brand-strong)]">{number}</div>
       <div className="mt-2 text-[14px] font-medium text-[var(--text-primary)]">{title}</div>
+      <p className="mt-1.5 text-[12.5px] leading-6 text-[var(--text-secondary)]">{body}</p>
+    </div>
+  );
+}
+
+function InfoBlock({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4">
+      <div className="text-[13px] font-medium text-[var(--text-primary)]">{title}</div>
       <p className="mt-1.5 text-[12.5px] leading-6 text-[var(--text-secondary)]">{body}</p>
     </div>
   );

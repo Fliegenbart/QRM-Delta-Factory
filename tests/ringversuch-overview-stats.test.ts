@@ -31,10 +31,19 @@ describe("overview ringversuch stats", () => {
 
     expect(overview).toContain("Die Prüfung machen Sie.");
     expect(overview).toContain("Das Zusammentragen macht das Tool.");
-    expect(overview).toContain("Der teuerste Teil eines Reviews ist der langweiligste.");
-    expect(overview).toContain("Drei Gründe, warum das hier kein KI-Versprechen ist.");
-    expect(overview).toContain("Vertrauen in Stufen");
+    expect(overview).toContain("Was das Tool ist.");
+    expect(overview).toContain("Warum KI-Risikoanalysen bisher gescheitert sind");
+    expect(overview).toContain("Sie prüfen nicht mehr, ob die KI sich etwas ausgedacht hat.");
+    expect(overview).toContain("Es meldet keine Phantome.");
+    expect(overview).toContain("Was es kann.");
+    expect(overview).toContain("Was es nicht tut:");
+    expect(overview).toContain("Wie es funktioniert — in drei Schritten.");
+    expect(overview).toContain("Gemessen, nicht behauptet.");
+    expect(overview).toContain("Vertrauen in Stufen — jede mit einem prüfbaren Kriterium.");
+    expect(overview).toContain("Dies ist ein Prototyp.");
     expect(overview).toContain("Stand 11.06.2026");
+    expect(overview).not.toContain("Der teuerste Teil eines Reviews ist der langweiligste.");
+    expect(overview).not.toContain("Drei Gründe, warum das hier kein KI-Versprechen ist.");
     expect(overview).not.toContain("Welche KI hier arbeitet");
     expect(overview).not.toContain("Was das System ausdrücklich nicht tut");
     expect(overview).not.toContain("Mistral Large");
