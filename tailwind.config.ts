@@ -64,12 +64,12 @@ const config: Config = {
         },
       },
 
-      // Improved text colors for better readability
+      // Text colors driven by CSS-variable tokens (theme-aware, light + dark)
       textColor: {
-        primary: "#172026",
-        secondary: "#475569", // Improved from slate-500 for WCAG AA
-        tertiary: "#64748b",
-        muted: "#94a3b8",
+        primary: "var(--text-primary)",
+        secondary: "var(--text-secondary)",
+        tertiary: "var(--text-tertiary)",
+        muted: "var(--text-muted)",
       },
 
       // Animation for loading states

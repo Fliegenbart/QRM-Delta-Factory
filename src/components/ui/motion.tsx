@@ -283,7 +283,7 @@ export function AnimatedProgress({ value, max = 100, className = "", barClassNam
   return (
     <div className={`h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden ${className}`}>
       <motion.div
-        className={`h-full bg-teal-500 rounded-full ${barClassName}`}
+        className={`h-full bg-[var(--brand)] rounded-full ${barClassName}`}
         initial={{ width: 0 }}
         animate={{ width: `${percentage}%` }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -329,7 +329,7 @@ export function FlowConnector({ isActive }: { isActive?: boolean }) {
   return (
     <div className="flex-1 h-0.5 bg-slate-200 dark:bg-slate-700 mx-2 overflow-hidden">
       <motion.div
-        className="h-full bg-teal-500"
+        className="h-full bg-[var(--brand)]"
         initial={{ width: 0 }}
         animate={{ width: isActive ? "100%" : 0 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}

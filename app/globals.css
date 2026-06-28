@@ -5,30 +5,30 @@
 :root {
   color-scheme: light;
 
-  /* Surfaces — flat, no glass, no gradients */
-  --background: #f7f6f2;
+  /* Surfaces — cool, flat, no glass, no gradients */
+  --background: #f7f9fb;
   --surface-primary: #ffffff;
-  --surface-secondary: #f3f2ee;
+  --surface-secondary: #eef2f6;
   --surface-elevated: #ffffff;
 
-  /* Brand — calmer pharma green, less saturated than old teal */
-  --brand: #0f6e56;
-  --brand-strong: #0c5a47;
-  --brand-soft: #e6f1ed;
-  --brand-ring: rgba(15, 110, 86, 0.18);
+  /* Brand — confident pharma green */
+  --brand: #0d7a5f;
+  --brand-strong: #0a5f4a;
+  --brand-soft: #e7f4ef;
+  --brand-ring: rgba(13, 122, 95, 0.18);
 
-  /* Ink */
-  --foreground: #14181c;
-  --ink: #14181c;
-  --text-primary: #14181c;
-  --text-secondary: #4b5560;
-  --text-tertiary: #6c7682;
-  --text-muted: #97a0aa;
+  /* Ink — cool slate */
+  --foreground: #0f172a;
+  --ink: #0f172a;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
 
-  /* Borders */
-  --border-default: #e1ddd3;
-  --border-strong: #c7c2b6;
-  --border-muted: #ece8de;
+  /* Borders — cool */
+  --border-default: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --border-muted: #eef2f6;
 
   /* Severity tokens */
   --severity-critical: #a3221b;
@@ -37,8 +37,8 @@
   --severity-major-soft: #fbf0d8;
   --severity-minor: #2f567a;
   --severity-minor-soft: #e7eef5;
-  --severity-ready: #0f6e56;
-  --severity-ready-soft: #e3efea;
+  --severity-ready: #0d7a5f;
+  --severity-ready-soft: #e7f4ef;
 
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -51,26 +51,26 @@
 .dark {
   color-scheme: dark;
 
-  --background: #0e1216;
-  --surface-primary: #161b21;
-  --surface-secondary: #11161b;
-  --surface-elevated: #1c2229;
+  --background: #0b1220;
+  --surface-primary: #131c2b;
+  --surface-secondary: #0f1825;
+  --surface-elevated: #1b2535;
 
-  --brand: #2dd4bf;
-  --brand-strong: #59ddc8;
-  --brand-soft: rgba(45, 212, 191, 0.10);
-  --brand-ring: rgba(45, 212, 191, 0.30);
+  --brand: #10b981;
+  --brand-strong: #34d399;
+  --brand-soft: rgba(16, 185, 129, 0.12);
+  --brand-ring: rgba(16, 185, 129, 0.30);
 
-  --foreground: #ecedee;
-  --ink: #ecedee;
-  --text-primary: #ecedee;
-  --text-secondary: #b6bcc4;
-  --text-tertiary: #8a909a;
-  --text-muted: #6a707a;
+  --foreground: #e6edf3;
+  --ink: #e6edf3;
+  --text-primary: #e6edf3;
+  --text-secondary: #97a6b6;
+  --text-tertiary: #6a7888;
+  --text-muted: #4c5a6a;
 
-  --border-default: #2a3038;
-  --border-strong: #3a4049;
-  --border-muted: #1c2229;
+  --border-default: #25303f;
+  --border-strong: #374559;
+  --border-muted: #18222f;
 
   --severity-critical: #f08080;
   --severity-critical-soft: rgba(240, 128, 128, 0.12);
@@ -78,8 +78,8 @@
   --severity-major-soft: rgba(224, 168, 90, 0.12);
   --severity-minor: #7aa7d3;
   --severity-minor-soft: rgba(122, 167, 211, 0.12);
-  --severity-ready: #6ddcc0;
-  --severity-ready-soft: rgba(109, 220, 192, 0.12);
+  --severity-ready: #34d399;
+  --severity-ready-soft: rgba(52, 211, 153, 0.12);
 }
 
 /* Standalone pitch landing — cool, modern palette scoped to the marketing page only.
