@@ -7,8 +7,6 @@ import {
   ArrowRight,
   Brain,
   CheckCircle2,
-  ChevronDown,
-  ChevronRight,
   Compass,
   Crosshair,
   FileCheck2,
@@ -94,159 +92,97 @@ export function AppFrame({
 }) {
   const active = normalizePublicSection(section);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(navCategories.map((category) => [category.nameKey, true]))
-  );
   const { locale, setLocale, t } = useI18n();
   const { resolvedTheme, setTheme } = useTheme();
 
-  function toggleCategory(categoryName: string) {
-    setExpandedCategories((current) => ({
-      ...current,
-      [categoryName]: !current[categoryName],
-    }));
+  function NavLink({
+    slug,
+    labelKey,
+    Icon,
+    block,
+  }: {
+    slug: string;
+    labelKey: TranslationKey;
+    Icon: LucideIcon;
+    block?: boolean;
+  }) {
+    const isActive = active === slug;
+    return (
+      <Link
+        href={slug === "dashboard" ? "/" : `/${slug}`}
+        onClick={() => setMobileNavOpen(false)}
+        aria-current={isActive ? "page" : undefined}
+        className={`${block ? "flex" : "inline-flex"} items-center gap-2 rounded-md px-3 py-2 text-[13px] transition-colors ${
+          isActive
+            ? "bg-[var(--brand-soft)] text-[var(--brand-strong)] font-medium"
+            : "text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
+        }`}
+      >
+        <Icon className="h-4 w-4 shrink-0" aria-hidden />
+        <span>{t(labelKey)}</span>
+      </Link>
+    );
   }
-
-  const navigation = (
-    <>
-      {navCategories.map((category) => (
-        <div key={category.nameKey} className="mb-3">
-          <button
-            type="button"
-            onClick={() => toggleCategory(category.nameKey)}
-            className="flex w-full items-center justify-between px-2 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
-            aria-expanded={expandedCategories[category.nameKey]}
-          >
-            <span>{t(category.nameKey)}</span>
-            {expandedCategories[category.nameKey] ? (
-              <ChevronDown className="h-3 w-3" aria-hidden />
-            ) : (
-              <ChevronRight className="h-3 w-3" aria-hidden />
-            )}
-          </button>
-          {expandedCategories[category.nameKey] ? (
-            <div className="mt-1 space-y-0.5">
-              {category.items.map(([slug, labelKey, Icon]) => {
-                const isActive = active === slug;
-                return (
-                  <Link
-                    key={slug}
-                    href={slug === "dashboard" ? "/" : `/${slug}`}
-                    onClick={() => setMobileNavOpen(false)}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] transition-colors ${
-                      isActive
-                        ? "bg-[var(--brand-soft)] text-[var(--brand-strong)] font-medium"
-                        : "text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                    <span className="truncate">{t(labelKey)}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : null}
-        </div>
-      ))}
-    </>
-  );
 
   return (
     <div className="min-h-screen text-[var(--text-primary)]">
-      {mobileNavOpen ? (
-        <button
-          type="button"
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-          onClick={() => setMobileNavOpen(false)}
-          aria-label="Close navigation"
-        />
-      ) : null}
-
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[240px] transform border-r border-[var(--border-default)] bg-[var(--surface-secondary)] transition-transform duration-200 lg:hidden ${
-          mobileNavOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        aria-label="Mobile navigation"
-      >
-        <div className="flex h-full flex-col">
-          <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 py-4">
-            <BrandMark />
+      <header className="sticky top-0 z-20 border-b border-[var(--border-default)] bg-[var(--background)]">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-4 py-3 lg:px-8">
+          <div className="flex items-center gap-5">
+            <Link href="/" aria-label="Pharma QRM" className="shrink-0">
+              <BrandMark />
+            </Link>
+            <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Hauptnavigation">
+              {navItems.map(([slug, labelKey, Icon]) => (
+                <NavLink key={slug} slug={slug} labelKey={labelKey} Icon={Icon} />
+              ))}
+            </nav>
+          </div>
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setMobileNavOpen(false)}
-              className="grid h-9 w-9 place-items-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--surface-primary)]"
-              aria-label="Close navigation"
+              onClick={() => setLocale(locale === "de" ? "en" : "de")}
+              className="hidden h-9 items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] sm:inline-flex"
+              aria-label={locale === "de" ? "Switch to English" : "Auf Deutsch wechseln"}
             >
-              <X className="h-4 w-4" />
+              <Globe className="h-3.5 w-3.5" />
+              <span className="font-medium">{locale.toUpperCase()}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="grid h-9 w-9 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]"
+              aria-label={resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
+            >
+              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((open) => !open)}
+              className="grid h-9 w-9 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-secondary)] lg:hidden"
+              aria-label="Menü"
+              aria-expanded={mobileNavOpen}
+            >
+              {mobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
           </div>
-          <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
-            {navigation}
+        </div>
+        {mobileNavOpen ? (
+          <nav
+            className="border-t border-[var(--border-default)] px-4 py-3 lg:hidden"
+            aria-label="Hauptnavigation"
+          >
+            <div className="flex flex-col gap-0.5">
+              {navItems.map(([slug, labelKey, Icon]) => (
+                <NavLink key={slug} slug={slug} labelKey={labelKey} Icon={Icon} block />
+              ))}
+            </div>
           </nav>
-        </div>
-      </aside>
+        ) : null}
+      </header>
 
-      <aside className="fixed inset-y-0 left-0 hidden w-[240px] flex-col border-r border-[var(--border-default)] bg-[var(--surface-secondary)] lg:flex">
-        <div className="border-b border-[var(--border-default)] px-4 py-5">
-          <BrandMark />
-          <div className="mt-3 text-[11px] leading-5 text-[var(--text-tertiary)]">
-            {t("brand.tagline")}
-          </div>
-        </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main navigation">
-          {navigation}
-        </nav>
-        <div className="border-t border-[var(--border-default)] px-4 py-3 text-[11px] text-[var(--text-tertiary)]">
-          <div className="mono">ICH Q9 R1 · v2026.1</div>
-          <div className="mt-0.5">Reviewer: David</div>
-        </div>
-      </aside>
-
-      <main id="main-content" className="lg:pl-[240px]">
-        <header className="sticky top-0 z-10 border-b border-[var(--border-default)] bg-[var(--background)] px-4 py-3 lg:px-8">
-          <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setMobileNavOpen(true)}
-                className="grid h-9 w-9 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-secondary)] lg:hidden"
-                aria-label="Open navigation menu"
-              >
-                <Menu className="h-4 w-4" />
-              </button>
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-                  Pharma QRM
-                </div>
-                <h1 className="mt-0.5 text-[20px] font-medium leading-tight text-[var(--text-primary)]">
-                  {pageTitle(active, t)}
-                </h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setLocale(locale === "de" ? "en" : "de")}
-                className="hidden h-9 items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] sm:inline-flex"
-                aria-label={locale === "de" ? "Switch to English" : "Auf Deutsch wechseln"}
-              >
-                <Globe className="h-3.5 w-3.5" />
-                <span className="font-medium">{locale.toUpperCase()}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className="hidden h-9 w-9 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] sm:grid"
-                aria-label={resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
-              >
-                {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <div className="mx-auto max-w-[1280px] px-4 py-7 lg:px-8">{children}</div>
+      <main id="main-content">
+        <div className="mx-auto max-w-[1280px] px-4 py-8 lg:px-8">{children}</div>
       </main>
     </div>
   );
