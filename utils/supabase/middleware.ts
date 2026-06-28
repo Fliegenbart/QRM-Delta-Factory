@@ -73,6 +73,17 @@ function reviewAuthFailureResponse(request: NextRequest, message: string, status
     return NextResponse.json({ error: message }, { status, headers });
   }
 
+  // Protected page route + missing session: send the visitor to the login page
+  // and remember where they were headed. (The 503 "not configured" case keeps the
+  // plain message, since login would not help there.)
+  if (status === 401) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
+    loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl, { headers });
+  }
+
   return new NextResponse(message, {
     status,
     headers: {

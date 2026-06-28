@@ -112,6 +112,7 @@ export function IntakeUploader() {
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<IntakeStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [result, setResult] = useState<IntakeResult | null>(null);
   const [activeAgentIndex, setActiveAgentIndex] = useState(0);
 
@@ -152,6 +153,7 @@ export function IntakeUploader() {
     if (!canSubmit) return;
     setStatus("creating");
     setError(null);
+    setNeedsLogin(false);
     setResult(null);
 
     try {
@@ -164,6 +166,11 @@ export function IntakeUploader() {
           uploadedBy
         })
       });
+      if (createResponse.status === 401) {
+        setStatus("error");
+        setNeedsLogin(true);
+        return;
+      }
       const created = await readJson(createResponse);
       const documentSetId = created.documentSet?.document_set_id;
       if (!documentSetId) {
@@ -299,6 +306,22 @@ export function IntakeUploader() {
               </div>
             ))}
           </div>
+        </div>
+      ) : null}
+
+      {needsLogin ? (
+        <div className="mt-4 flex flex-col gap-2 rounded-md border border-[var(--border-strong)] bg-[var(--surface-secondary)] px-4 py-3 text-sm">
+          <span className="font-semibold text-[var(--text-primary)]">Bitte zuerst anmelden</span>
+          <span className="leading-6 text-[var(--text-secondary)]">
+            Der Prüf-Arbeitsbereich ist geschützt. Melden Sie sich an, um Unterlagen
+            hochzuladen und die Prüfmappe zu erstellen.
+          </span>
+          <Link
+            href="/login?redirect=/"
+            className="mt-1 inline-flex h-9 w-fit items-center rounded-md bg-[var(--brand)] px-4 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)]"
+          >
+            Anmelden
+          </Link>
         </div>
       ) : null}
 
