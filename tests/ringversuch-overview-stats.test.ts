@@ -29,22 +29,27 @@ describe("overview ringversuch stats", () => {
       "utf8"
     );
 
-    expect(overview).toContain("Endlich eine KI, die nichts behauptet, was sie nicht belegen kann.");
+    expect(overview).toContain("Ihre GMP-Fälle, vorgeprüft und belegt.");
     expect(overview).toContain("Blindtest starten");
     expect(overview).toContain("Wie es funktioniert");
-    expect(overview).toContain("Was das Tool ist.");
-    expect(overview).toContain("Warum KI-Risikoanalysen bisher gescheitert sind");
-    expect(overview).toContain("Belegt, oder es kommt gar nicht durch.");
-    expect(overview).toContain("Still, wo nichts ist.");
-    expect(overview).toContain("Sagt, wenn es nicht weiß.");
-    expect(overview).toContain("Was es kann.");
+    expect(overview).toContain("Was Sie damit machen.");
+    expect(overview).toContain("Warum Sie dem Ergebnis vertrauen können.");
+    expect(overview).toContain("Sie prüfen keine erfundenen Zitate mehr.");
+    expect(overview).toContain("Keine Fehlalarme zum Wegklicken.");
+    expect(overview).toContain("Bei dünner Beleglage rät es nicht.");
+    expect(overview).toContain("Was rein- und was rauskommt.");
     expect(overview).toContain("Eine CAPA mit dokumentierten Maßnahmen, aber offener Wirksamkeitsprüfung.");
     expect(overview).toContain("Was es nicht tut:");
-    expect(overview).toContain("Wie es funktioniert — in drei Schritten.");
-    expect(overview).toContain("Gemessen, nicht behauptet.");
-    expect(overview).toContain("Vertrauen in Stufen — jede mit einem prüfbaren Kriterium.");
+    expect(overview).toContain("In drei Schritten zur Prüfmappe.");
+    expect(overview).toContain("Im Ringversuch gemessen.");
+    expect(overview).toContain("Vertrauen in Stufen, jede mit einem prüfbaren Kriterium.");
     expect(overview).toContain("Dies ist ein Prototyp.");
     expect(overview).toContain("Stand 11.06.2026");
+    // Guard against the retired, over-marketed / AI-sounding voice
+    expect(overview).not.toContain("Endlich eine KI");
+    expect(overview).not.toContain("Belegt, oder es kommt gar nicht durch.");
+    expect(overview).not.toContain("Das ist der Punkt.");
+    expect(overview).not.toContain("kein Orakel");
     expect(overview).not.toContain("Der nächste Schritt gehört Ihnen.");
     expect(overview).not.toContain("Blindtest anfragen");
     expect(overview).not.toContain("Die Prüfung machen Sie.");

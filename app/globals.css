@@ -43,6 +43,9 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
+
+  /* Serif display — system stack, premium on macOS (New York / Charter), graceful elsewhere */
+  --font-serif: "Iowan Old Style", "Charter", "Source Serif 4", "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
 }
 
 .dark {
@@ -77,6 +80,37 @@
   --severity-minor-soft: rgba(122, 167, 211, 0.12);
   --severity-ready: #6ddcc0;
   --severity-ready-soft: rgba(109, 220, 192, 0.12);
+}
+
+/* Standalone pitch landing — cool, modern palette scoped to the marketing page only.
+   Defined on the wrapper so it wins over :root and .dark for everything inside,
+   without touching the rest of the app. */
+.qrm-landing {
+  color-scheme: light;
+
+  --background: #f7f9fb;
+  --surface-primary: #ffffff;
+  --surface-secondary: #eef2f6;
+  --surface-elevated: #ffffff;
+
+  --brand: #0d7a5f;
+  --brand-strong: #0a5f4a;
+  --brand-soft: #e7f4ef;
+  --brand-ring: rgba(13, 122, 95, 0.18);
+
+  --foreground: #0f172a;
+  --ink: #0f172a;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+
+  --border-default: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --border-muted: #eef2f6;
+
+  background: var(--background);
+  color: var(--text-primary);
 }
 
 * { box-sizing: border-box; }

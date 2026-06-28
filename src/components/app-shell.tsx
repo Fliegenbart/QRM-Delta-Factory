@@ -78,6 +78,10 @@ function normalizePublicSection(section: string) {
 
 export function AppShell({ section }: { section: string; projectId?: string }) {
   const active = normalizePublicSection(section);
+  // Public pitch landing renders standalone — no workspace sidebar/header chrome.
+  if (active === "ueberblick") {
+    return <OverviewLanding />;
+  }
   return <AppFrame section={active}>{renderSection(active)}</AppFrame>;
 }
 
@@ -277,8 +281,6 @@ function renderSection(section: string) {
       return <RequirementLibraryManager />;
     case "ringversuch":
       return <RingversuchDashboard />;
-    case "ueberblick":
-      return <OverviewLanding />;
     default:
       return <DashboardSection />;
   }
