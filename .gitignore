@@ -23,3 +23,4 @@ backend/.local-storage
 backend/src/*.egg-info
 backend/*.egg-info
 .env*.local
+.claude/

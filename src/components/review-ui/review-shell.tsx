@@ -23,7 +23,7 @@ export function ReviewPanel({
   return (
     <section className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-primary)]">
       <div className="flex flex-col gap-3 border-b border-[var(--border-default)] px-5 py-3 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{title}</h2>
+        <h2 className="ui-title text-[14px] font-medium text-[var(--text-primary)]">{title}</h2>
         {action}
       </div>
       <div className="p-5">{children}</div>

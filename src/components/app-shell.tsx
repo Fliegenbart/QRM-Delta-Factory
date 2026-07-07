@@ -11,7 +11,6 @@ import {
   Crosshair,
   FileCheck2,
   Gauge,
-  Globe,
   Library,
   Menu,
   Moon,
@@ -20,16 +19,39 @@ import {
   Sun,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useI18n, type TranslationKey } from "@/src/lib/i18n";
 import { useTheme } from "@/src/lib/theme";
-import { motion } from "@/src/components/ui/motion";
 import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
-import { RequirementLibraryManager } from "@/src/components/review-ui/requirement-library-manager";
-import { RingversuchDashboard } from "@/src/components/review-ui/ringversuch-dashboard";
-import { OverviewLanding } from "@/src/components/review-ui/overview-landing";
 import { aiArchitectureConcept, demoReviewCases, productHomeCopy } from "@/src/lib/review-ui";
+import type { RingversuchRun } from "@/src/components/review-ui/ringversuch-dashboard";
+import type { LandingProofStats } from "@/src/components/review-ui/overview-landing";
 import { CaseCard } from "@/src/components/triage/case-card";
 import type { LucideIcon } from "lucide-react";
+
+// Heavy sections load on demand so each route only ships the code it needs.
+function SectionSkeleton() {
+  return (
+    <div className="surface animate-pulse p-6" aria-hidden>
+      <div className="h-5 w-48 rounded bg-[var(--surface-secondary)]" />
+      <div className="mt-4 h-3 w-full max-w-xl rounded bg-[var(--surface-secondary)]" />
+      <div className="mt-2 h-3 w-3/4 max-w-lg rounded bg-[var(--surface-secondary)]" />
+    </div>
+  );
+}
+
+const RequirementLibraryManager = dynamic(
+  () => import("@/src/components/review-ui/requirement-library-manager").then((m) => m.RequirementLibraryManager),
+  { loading: () => <SectionSkeleton /> }
+);
+const RingversuchDashboard = dynamic(
+  () => import("@/src/components/review-ui/ringversuch-dashboard").then((m) => m.RingversuchDashboard),
+  { loading: () => <SectionSkeleton /> }
+);
+const OverviewLanding = dynamic(
+  () => import("@/src/components/review-ui/overview-landing").then((m) => m.OverviewLanding),
+  { loading: () => <SectionSkeleton /> }
+);
 
 type NavItem = [slug: string, labelKey: TranslationKey, icon: LucideIcon];
 type NavCategory = { nameKey: TranslationKey; items: NavItem[] };
@@ -74,13 +96,77 @@ function normalizePublicSection(section: string) {
   return sectionSlugs.includes(section) ? section : "dashboard";
 }
 
-export function AppShell({ section }: { section: string; projectId?: string }) {
+export function AppShell({
+  section,
+  ringversuchRuns,
+}: {
+  section: string;
+  ringversuchRuns?: RingversuchRun[];
+}) {
   const active = normalizePublicSection(section);
   // Public pitch landing renders standalone — no workspace sidebar/header chrome.
   if (active === "ueberblick") {
-    return <OverviewLanding />;
+    return <OverviewLanding proofStats={deriveLandingProofStats(ringversuchRuns)} />;
   }
-  return <AppFrame section={active}>{renderSection(active)}</AppFrame>;
+  return <AppFrame section={active}>{renderSection(active, ringversuchRuns)}</AppFrame>;
+}
+
+// Landing proof numbers come from the latest completed live run so the
+// pitch page can never drift out of sync with the published Ringversuch.
+function deriveLandingProofStats(runs?: RingversuchRun[]): LandingProofStats | undefined {
+  const latestLive = runs?.find((run) => run.run.mode === "live");
+  const sens = latestLive?.aggregate.sensitivity;
+  const spec = latestLive?.aggregate.specificity_decoys;
+  const cite = latestLive?.aggregate.citation_precision;
+  if (!latestLive || !sens || !spec || !cite) return undefined;
+
+  const dateMatch = latestLive.id.match(/^(\d{4})(\d{2})(\d{2})_/);
+  const standLabel = dateMatch
+    ? `Stand ${dateMatch[3]}.${dateMatch[2]}.${dateMatch[1]}`
+    : "Jüngster Lauf";
+
+  return {
+    foundValue: `${sens.found} / ${sens.total}`,
+    falseAlarmValue: `${spec.total - spec.passed}`,
+    falseAlarmLabel: `Fehlalarme bei ${spec.total} harmlosen Kontrollstellen`,
+    citationValue: cite.rate == null ? "–" : `${Math.round(cite.rate * 100)} %`,
+    standLabel,
+  };
+}
+
+function NavLink({
+  slug,
+  labelKey,
+  Icon,
+  block,
+  active,
+  t,
+  onNavigate,
+}: {
+  slug: string;
+  labelKey: TranslationKey;
+  Icon: LucideIcon;
+  block?: boolean;
+  active: string;
+  t: (key: TranslationKey) => string;
+  onNavigate: () => void;
+}) {
+  const isActive = active === slug;
+  return (
+    <Link
+      href={slug === "dashboard" ? "/" : `/${slug}`}
+      onClick={onNavigate}
+      aria-current={isActive ? "page" : undefined}
+      className={`${block ? "flex" : "inline-flex"} items-center gap-2 rounded-md px-3 py-2 text-[13px] transition-colors ${
+        isActive
+          ? "bg-[var(--brand-soft)] text-[var(--brand-strong)] font-medium"
+          : "text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
+      }`}
+    >
+      <Icon className="h-4 w-4 shrink-0" aria-hidden />
+      <span>{t(labelKey)}</span>
+    </Link>
+  );
 }
 
 export function AppFrame({
@@ -92,37 +178,9 @@ export function AppFrame({
 }) {
   const active = normalizePublicSection(section);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const { locale, setLocale, t } = useI18n();
+  const { t } = useI18n();
   const { resolvedTheme, setTheme } = useTheme();
-
-  function NavLink({
-    slug,
-    labelKey,
-    Icon,
-    block,
-  }: {
-    slug: string;
-    labelKey: TranslationKey;
-    Icon: LucideIcon;
-    block?: boolean;
-  }) {
-    const isActive = active === slug;
-    return (
-      <Link
-        href={slug === "dashboard" ? "/" : `/${slug}`}
-        onClick={() => setMobileNavOpen(false)}
-        aria-current={isActive ? "page" : undefined}
-        className={`${block ? "flex" : "inline-flex"} items-center gap-2 rounded-md px-3 py-2 text-[13px] transition-colors ${
-          isActive
-            ? "bg-[var(--brand-soft)] text-[var(--brand-strong)] font-medium"
-            : "text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
-        }`}
-      >
-        <Icon className="h-4 w-4 shrink-0" aria-hidden />
-        <span>{t(labelKey)}</span>
-      </Link>
-    );
-  }
+  const closeMobileNav = () => setMobileNavOpen(false);
 
   return (
     <div className="min-h-screen text-[var(--text-primary)]">
@@ -134,20 +192,11 @@ export function AppFrame({
             </Link>
             <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Hauptnavigation">
               {navItems.map(([slug, labelKey, Icon]) => (
-                <NavLink key={slug} slug={slug} labelKey={labelKey} Icon={Icon} />
+                <NavLink key={slug} slug={slug} labelKey={labelKey} Icon={Icon} active={active} t={t} onNavigate={closeMobileNav} />
               ))}
             </nav>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setLocale(locale === "de" ? "en" : "de")}
-              className="hidden h-9 items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-[12px] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] sm:inline-flex"
-              aria-label={locale === "de" ? "Switch to English" : "Auf Deutsch wechseln"}
-            >
-              <Globe className="h-3.5 w-3.5" />
-              <span className="font-medium">{locale.toUpperCase()}</span>
-            </button>
             <button
               type="button"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
@@ -174,7 +223,7 @@ export function AppFrame({
           >
             <div className="flex flex-col gap-0.5">
               {navItems.map(([slug, labelKey, Icon]) => (
-                <NavLink key={slug} slug={slug} labelKey={labelKey} Icon={Icon} block />
+                <NavLink key={slug} slug={slug} labelKey={labelKey} Icon={Icon} block active={active} t={t} onNavigate={closeMobileNav} />
               ))}
             </div>
           </nav>
@@ -207,7 +256,7 @@ function BrandMark() {
   );
 }
 
-function renderSection(section: string) {
+function renderSection(section: string, ringversuchRuns?: RingversuchRun[]) {
   switch (section) {
     case "prueffaelle":
       return <ReviewEntrySection />;
@@ -216,7 +265,7 @@ function renderSection(section: string) {
     case "risk-library":
       return <RequirementLibraryManager />;
     case "ringversuch":
-      return <RingversuchDashboard />;
+      return <RingversuchDashboard initialRuns={ringversuchRuns} />;
     default:
       return <DashboardSection />;
   }
@@ -246,7 +295,9 @@ function DashboardSection() {
           meta={
             <div className="hidden gap-4 text-[11px] text-[var(--text-tertiary)] sm:flex">
               <span>3 Beispiele</span>
-              <span className="mono">{new Date().toLocaleDateString("de-DE")}</span>
+              <span className="mono" suppressHydrationWarning>
+                {new Date().toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
+              </span>
             </div>
           }
         />
@@ -418,7 +469,7 @@ function ReviewEntrySection() {
     <Panel title="Prüffälle">
       <EmptyState
         title="Noch kein echter Prüffall"
-        text="Lege auf der Startseite einen Prüffall an. Danach erscheint hier der Link zur Prüfmappe."
+        text="Legen Sie auf der Startseite einen Prüffall an. Danach erscheint hier der Link zur Prüfmappe."
         action={
           <Link
             href="/"
@@ -499,18 +550,13 @@ function Panel({
   action?: React.ReactNode;
 }) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.18 }}
-      className="surface overflow-hidden"
-    >
+    <section className="surface overflow-hidden rise-in">
       <div className="flex items-center justify-between border-b border-[var(--border-default)] px-5 py-3">
-        <h2 className="text-[14px] font-medium text-[var(--text-primary)]">{title}</h2>
+        <h2 className="ui-title text-[14px] font-medium text-[var(--text-primary)]">{title}</h2>
         {action}
       </div>
       <div className="p-5">{children}</div>
-    </motion.section>
+    </section>
   );
 }
 

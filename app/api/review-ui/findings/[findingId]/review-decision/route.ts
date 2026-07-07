@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { submitReviewDecision } from "@/src/lib/review-api";
+import { resolveReviewActor } from "@/utils/supabase/actor";
 import { decisionOptions, type ReviewDecisionValue } from "@/src/lib/review-ui";
 
 type RouteContext = {
@@ -22,7 +23,7 @@ export async function POST(request: Request, context: RouteContext) {
   try {
     const result = await submitReviewDecision({
       findingId,
-      reviewerId: String(body.reviewerId || "reviewer_qa_1"),
+      reviewerId: await resolveReviewActor(String(body.reviewerId || "reviewer_qa_1")),
       decision: body.decision as ReviewDecisionValue,
       rationale: String(body.rationale)
     });

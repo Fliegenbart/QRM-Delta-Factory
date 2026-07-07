@@ -5,7 +5,8 @@ import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/compone
 import {
   consultantReviewCopy,
   displayReviewValue,
-  isHiddenDemoDocumentSetId
+  isHiddenDemoDocumentSetId,
+  userFacingReviewLoadError
 } from "@/src/lib/review-ui";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
               <Detail label={consultantReviewCopy.detail.labels.documentType} value={displayReviewValue(documentSet.declared_document_type)} />
               <Detail label={consultantReviewCopy.detail.labels.processArea} value={displayReviewValue(documentSet.declared_process_area)} />
               <Detail label={consultantReviewCopy.detail.labels.uploadedBy} value={documentSet.uploaded_by} />
-              <Detail label={consultantReviewCopy.detail.labels.uploaded} value={new Date(documentSet.upload_timestamp).toLocaleString()} />
+              <Detail label={consultantReviewCopy.detail.labels.uploaded} value={`${new Date(documentSet.upload_timestamp).toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Berlin" })} Uhr`} />
               <div>
                 <dt className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">{consultantReviewCopy.detail.labels.status}</dt>
                 <dd className="mt-2">
@@ -91,7 +92,7 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
   } catch (error) {
     return (
       <ReviewShell>
-        <EmptyState message={`${consultantReviewCopy.detail.loadErrorPrefix}: ${error instanceof Error ? error.message : "Unbekannter Fehler"}`} />
+        <EmptyState message={userFacingReviewLoadError(error instanceof Error ? error.message : "").message} />
       </ReviewShell>
     );
   }

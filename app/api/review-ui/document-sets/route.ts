@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { createDocumentSet } from "@/src/lib/review-api";
+import { resolveReviewActor } from "@/utils/supabase/actor";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
   const declaredDocumentType = String(body.declaredDocumentType || "").trim();
   const declaredProcessArea = String(body.declaredProcessArea || "").trim();
-  const uploadedBy = String(body.uploadedBy || "qrm_author").trim();
+  const uploadedBy = await resolveReviewActor(String(body.uploadedBy || "qrm_author").trim());
 
   if (!declaredDocumentType || !declaredProcessArea) {
     return NextResponse.json(

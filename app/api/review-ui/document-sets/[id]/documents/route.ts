@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { uploadDocumentToDocumentSet } from "@/src/lib/review-api";
+import { resolveReviewActor } from "@/utils/supabase/actor";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -8,7 +9,7 @@ type RouteContext = {
 export async function POST(request: Request, context: RouteContext) {
   const { id } = await context.params;
   const formData = await request.formData();
-  const uploadedBy = String(formData.get("uploadedBy") || "qrm_author").trim();
+  const uploadedBy = await resolveReviewActor(String(formData.get("uploadedBy") || "qrm_author").trim());
   const file = formData.get("file");
 
   if (!(file instanceof File)) {

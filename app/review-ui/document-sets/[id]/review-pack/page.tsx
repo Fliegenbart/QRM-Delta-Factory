@@ -5,11 +5,13 @@ import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/compone
 import {
   consultantReviewCopy,
   displayReviewPackSummary,
+  displayMissingInformationList,
   displayReviewReasons,
   displayRiskStatement,
   displayReviewValue,
   isHiddenDemoDocumentSetId,
-  reviewPackProgress
+  reviewPackProgress,
+  userFacingReviewLoadError
 } from "@/src/lib/review-ui";
 
 export const dynamic = "force-dynamic";
@@ -130,7 +132,7 @@ export default async function ReviewPackPage({ params }: PageProps) {
               <ReasonList reasons={reviewReasons} />
             </ReviewPanel>
             <ReviewPanel title={consultantReviewCopy.pack.missingInformation}>
-              <ReasonList reasons={pack.missing_information} />
+              <ReasonList reasons={pack.missing_information} kind="missing" />
             </ReviewPanel>
           </div>
         </div>
@@ -139,13 +141,13 @@ export default async function ReviewPackPage({ params }: PageProps) {
   } catch (error) {
     return (
       <ReviewShell>
-        <EmptyState message={`${consultantReviewCopy.pack.loadError} ${error instanceof Error ? error.message : ""}`} />
+        <EmptyState message={userFacingReviewLoadError(error instanceof Error ? error.message : "").message} />
       </ReviewShell>
     );
   }
 }
 
-function ReasonList({ reasons }: { reasons: string[] }) {
+function ReasonList({ reasons, kind = "review" }: { reasons: string[]; kind?: "review" | "missing" }) {
   if (reasons.length === 0) {
     return (
       <p className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
@@ -155,7 +157,10 @@ function ReasonList({ reasons }: { reasons: string[] }) {
     );
   }
 
-  const uniqueReasons = displayReviewReasons(reasons.join(";"));
+  const uniqueReasons =
+    kind === "missing"
+      ? displayMissingInformationList(reasons)
+      : displayReviewReasons(reasons.join(";"));
   return (
     <div>
       {uniqueReasons.length === 0 ? (
@@ -164,7 +169,7 @@ function ReasonList({ reasons }: { reasons: string[] }) {
         <ul className="mt-2 space-y-2">
           {uniqueReasons.map((reason) => (
             <li key={reason} className="flex items-start gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2 text-sm text-[var(--text-secondary)]">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" aria-hidden />
               {reason}
             </li>
           ))}

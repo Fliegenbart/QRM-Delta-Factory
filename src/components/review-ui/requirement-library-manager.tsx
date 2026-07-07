@@ -284,6 +284,9 @@ export function RequirementLibraryManager() {
           {currentSet && currentSet.requirements.length === 0 ? (
             <EmptyLine text="Das aktive Regelwerk enthält noch keine Regeln." />
           ) : null}
+          {!currentSet ? (
+            <EmptyLine text="Noch kein aktives Regelwerk. Importieren Sie links ein Regelset, dann erscheinen die Regeln hier." />
+          ) : null}
         </div>
       </section>
     </div>

@@ -225,12 +225,24 @@ export function findDemoReviewCase(id: string): DemoReviewCase | undefined {
   return demoReviewCases.find((demoCase) => demoCase.href.endsWith(`/${id}`));
 }
 
+const technicalErrorSignals = [
+  "QRM_BACKEND",
+  "Backend nicht verbunden",
+  "Not Found",
+  '{"detail"',
+  "fetch failed",
+  "ECONNREFUSED",
+  "HTTP 5",
+  "502",
+  "503",
+];
+
 export function userFacingReviewLoadError(error: string): { title: string; message: string } {
-  if (error.includes("QRM_BACKEND") || error.includes("Backend nicht verbunden")) {
+  if (technicalErrorSignals.some((signal) => error.includes(signal))) {
     return {
-      title: "Prüffälle gerade nicht verfügbar",
+      title: "Prüfdienst gerade nicht erreichbar",
       message:
-        "Echte Prüffälle brauchen eine Backend-Verbindung. Du kannst trotzdem einen neuen Prüffall auf der Startseite vorbereiten oder die Demo-Prüfmappe öffnen."
+        "Die Verbindung zum Prüfdienst ist unterbrochen. Sie können trotzdem einen neuen Prüffall auf der Startseite vorbereiten oder die Demo-Prüfmappe öffnen. Bitte versuchen Sie es in ein paar Minuten erneut."
     };
   }
 
@@ -252,7 +264,7 @@ export const consultantReviewCopy = {
   list: {
     title: "Prüffälle",
     empty:
-      "Noch kein echter Prüffall vorhanden. Lade auf der Startseite Unterlagen hoch, dann erscheint hier der Fall.",
+      "Noch kein echter Prüffall vorhanden. Laden Sie auf der Startseite Unterlagen hoch, dann erscheint hier der Fall.",
     loadErrorPrefix: "Fallliste konnte nicht geladen werden",
     columns: {
       package: "Prüffall",
@@ -291,7 +303,7 @@ export const consultantReviewCopy = {
     openFinding: "Prüfpunkt ansehen",
     noEntries: "Keine Einträge.",
     loadError:
-      "Prüfmappe nicht verfügbar. Lade zuerst Unterlagen hoch und starte die Prüfung."
+      "Prüfmappe nicht verfügbar. Laden Sie zuerst Unterlagen hoch und starten Sie die Prüfung."
   },
   finding: {
     backToPack: "Zurück zur Prüfmappe",
@@ -891,6 +903,12 @@ function displayMissingInformation(value: string): string {
   return missingInformationLabels[value] ?? displayReviewValue(value);
 }
 
+export function displayMissingInformationList(values: string[]): string[] {
+  return Array.from(
+    new Set(values.map((entry) => entry.trim()).filter(Boolean).map(displayMissingInformation))
+  );
+}
+
 function shortQuote(quote: string): string {
   return quote.length > 140 ? `${quote.slice(0, 137)}...` : quote;
 }
@@ -899,7 +917,7 @@ export function cleanEvidenceQuote(quote: string): string {
   return quote
     .replace(/\*\*/g, "")
     .replace(/\s+/g, " ")
-    .replace(/^\d+\s+/, "")
+    .replace(/^\d+\s+(?!CFR\b|EU\b|GMP\b|ISO\b)/, "")
     .trim();
 }
 
@@ -927,7 +945,7 @@ export function buildFindingReviewChecklist(input: {
   missingInformation: string[];
 }): string[] {
   const items = [
-    `Prüfe den Befund: ${displayRiskStatement(input.riskStatement)}`
+    `Prüfen Sie den Befund: ${displayRiskStatement(input.riskStatement)}`
   ];
 
   for (const missing of input.missingInformation.slice(0, 4)) {

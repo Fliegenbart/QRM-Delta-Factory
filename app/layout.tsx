@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { Providers } from "@/src/components/providers";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "Pharma QRM Delta Engine",
@@ -9,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="de" suppressHydrationWarning>
+    <html lang="de" suppressHydrationWarning className={inter.variable}>
       <head>
         <meta name="theme-color" content="#ffffff" />
         {/* Prevent flash of wrong theme */}
@@ -32,7 +39,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <a href="#main-content" className="skip-link">
-          Skip to main content
+          Zum Inhalt springen
         </a>
         <Providers>
           {children}

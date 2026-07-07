@@ -127,7 +127,7 @@ export function SalesReadinessPanel() {
                 className="flex gap-3 border-b border-[var(--border-default)] p-4 last:border-b-0"
               >
                 {state === "bereit" ? (
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success-600" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
                 ) : (
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 )}

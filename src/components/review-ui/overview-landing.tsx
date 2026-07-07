@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   CheckCircle2,
@@ -11,29 +10,40 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-/* ----- Animation ----- */
-
-const reveal = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0 },
-};
+/* ----- Animation -----
+   Pure CSS (.rise-in) so content is never gated on JS animation ticks. */
 
 function Reveal({ delay = 0, children }: { delay?: number; children: React.ReactNode }) {
   return (
-    <motion.div
-      variants={reveal}
-      initial="initial"
-      animate="animate"
-      transition={{ duration: 0.5, delay, ease: [0.21, 0.65, 0.36, 1] }}
+    <div
+      className="rise-in"
+      style={delay ? ({ "--rise-delay": `${delay}s` } as React.CSSProperties) : undefined}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
 /* ----- Hauptkomponente ----- */
 
-export function OverviewLanding() {
+export type LandingProofStats = {
+  foundValue: string;
+  falseAlarmValue: string;
+  falseAlarmLabel: string;
+  citationValue: string;
+  standLabel: string;
+};
+
+const fallbackProofStats: LandingProofStats = {
+  foundValue: "24 / 25",
+  falseAlarmValue: "0",
+  falseAlarmLabel: "Fehlalarme bei 11 harmlosen Kontrollstellen",
+  citationValue: "93 %",
+  standLabel: "Stand 11.06.2026",
+};
+
+export function OverviewLanding({ proofStats }: { proofStats?: LandingProofStats }) {
+  const stats = proofStats ?? fallbackProofStats;
   return (
     <div className="qrm-landing min-h-screen">
       <TopBar />
@@ -76,9 +86,9 @@ export function OverviewLanding() {
               und wie es auf fehlerfreie Unterlagen reagierte.
             </p>
             <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[var(--border-default)] sm:grid-cols-3">
-              <BigStat value="24 / 25" label="versteckte Fehler gefunden" />
-              <BigStat value="0" label="Fehlalarme bei 11 harmlosen Kontrollstellen" />
-              <BigStat value="93 %" label="der Befunde mit wörtlich geprüftem Zitat" accent />
+              <BigStat value={stats.foundValue} label="versteckte Fehler gefunden" />
+              <BigStat value={stats.falseAlarmValue} label={stats.falseAlarmLabel} />
+              <BigStat value={stats.citationValue} label="der Befunde mit wörtlich geprüftem Zitat" accent />
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <Link
@@ -89,7 +99,7 @@ export function OverviewLanding() {
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               <p className="max-w-md text-[12px] leading-5 text-[var(--text-tertiary)]">
-                Stand 11.06.2026, jüngster abgeschlossener Lauf — nicht der beste
+                {stats.standLabel}, jüngster abgeschlossener Lauf — nicht der beste
                 ausgewählte. Vollständig einsehbar im Qualifizierungsnachweis.
               </p>
             </div>

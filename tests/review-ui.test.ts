@@ -150,8 +150,8 @@ describe("review UI helpers", () => {
       "Backend nicht verbunden. Prüfe QRM_BACKEND_URL und QRM_BACKEND_API_KEY."
     );
 
-    expect(message.title).toBe("Prüffälle gerade nicht verfügbar");
-    expect(message.message).toContain("Backend");
+    expect(message.title).toBe("Prüfdienst gerade nicht erreichbar");
+    expect(message.message).toContain("Prüfdienst");
     expect(message.message).not.toContain("QRM_BACKEND_URL");
     expect(message.message).not.toContain("QRM_BACKEND_API_KEY");
   });
@@ -261,7 +261,7 @@ describe("review UI helpers", () => {
       missingInformation: ["current validation report", "approved validation addendum"]
     });
 
-    expect(checklist).toContain("Prüfe den Befund: Erforderliche Nachweise fehlen oder sind in den Quellen nicht klar belegt.");
+    expect(checklist).toContain("Prüfen Sie den Befund: Erforderliche Nachweise fehlen oder sind in den Quellen nicht klar belegt.");
     expect(checklist).toContain("Fehlender Nachweis: aktueller Validierungsbericht.");
     expect(checklist).toContain("Fehlender Nachweis: genehmigter Validierungsnachtrag.");
     expect(checklist).toContain("Regelwerksbezug prüfen oder nachtragen.");
@@ -482,17 +482,19 @@ describe("review UI helpers", () => {
     expect(isProtectedReviewPath("/review-uiish")).toBe(false);
   });
 
-  it("requires review auth by default in production but can stay open for local tests", () => {
+  it("requires review auth in production unconditionally, opt-in elsewhere", () => {
     expect(isReviewAuthRequired({ NODE_ENV: "production" })).toBe(true);
     expect(isReviewAuthRequired({ VERCEL: "1" })).toBe(true);
     expect(isReviewAuthRequired({ NODE_ENV: "test" })).toBe(false);
     expect(isReviewAuthRequired({ QRM_REVIEW_UI_AUTH_REQUIRED: "true" })).toBe(true);
+    // Fail secure: a leftover "false" (e.g. from .env.example) must not
+    // disable auth on a production deployment.
     expect(
       isReviewAuthRequired({
         NODE_ENV: "production",
         QRM_REVIEW_UI_AUTH_REQUIRED: "false"
       })
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("fails closed for protected review API routes when auth is required but not configured", async () => {

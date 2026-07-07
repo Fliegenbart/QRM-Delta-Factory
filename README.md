@@ -68,7 +68,6 @@ Production use would require formal validation, SOPs, supplier assessment, secur
 ```bash
 npm install
 cp .env.example .env
-npm run db:setup
 npm test
 npm run dev
 ```
@@ -151,32 +150,6 @@ docker compose up --build
 ```
 
 The frontend role selector is an MVP convenience only. It is not authentication.
-
-## Notes on database setup
-
-The Prisma schema is the source for the SQLite structure. In this local environment, `prisma db push` returned a schema-engine error without diagnostic detail, so `npm run db:setup` uses Prisma to generate SQL from the schema and then applies that SQL with `sqlite3` before running the seed script.
-
-## Key safety rules covered by tests
-
-- Risk item cannot be approved without source link.
-- `AI_DRAFT` cannot directly move to `QA_APPROVED`.
-- Editing a QA workflow item version creates a superseded old version and a new version.
-- Status changes create audit-log entries.
-- Export is blocked if unresolved high-priority gaps exist.
-- User without QA Approver role cannot perform QA workflow step.
-- Source snippet hash is stored.
-- Unapproved risk-library item cannot be used as approved basis.
-- High-severity item requires SME review.
-- Critic result `FAIL` blocks QA workflow step.
-- Missing evidence blocks approved-style export.
-- Deleting or superseding a source snippet flags linked risk items for review.
-- Risk Review Package Builder creates gated review packages.
-- Packages without source snippets become `INPUT_INCOMPLETE`.
-- Evidence gaps can satisfy completeness when evidence links are missing.
-- `NO_APPROVED_LIBRARY_MATCH` must be explicit when no approved library basis exists.
-- Incomplete packages cannot run the Independent Plausibility Reviewer.
-- Review-level calculation routes incomplete, quick-check, targeted-SME, and full-SME/QA items.
-- Draft Risk Delta Review Pack export includes AI disclosure, workload estimate, evidence map, blocking issues, and limitations.
 
 ## MVP ingestion scope
 

@@ -69,8 +69,8 @@ function resultCopy(status?: string, failedStep?: string | null) {
       title: "Der Prüffall wurde angelegt, aber die automatische Analyse ist fehlgeschlagen.",
       description:
         failedStep
-          ? `Die Prüffälle zeigen deine hochgeladenen Unterlagen. Die Analyse ist beim Schritt "${failedStep}" stehen geblieben.`
-          : "Die Prüffälle zeigen deine hochgeladenen Unterlagen. Die Prüfmappe zeigt erst dann Prüfpunkte und fehlende Nachweise, wenn die Analyse erfolgreich durchgelaufen ist.",
+          ? `Die Prüffälle zeigen Ihre hochgeladenen Unterlagen. Die Analyse ist beim Schritt "${failedStep}" stehen geblieben.`
+          : "Die Prüffälle zeigen Ihre hochgeladenen Unterlagen. Die Prüfmappe zeigt erst dann Prüfpunkte und fehlende Nachweise, wenn die Analyse erfolgreich durchgelaufen ist.",
       tone: "warning" as const
     };
   }
@@ -108,7 +108,7 @@ function FieldLabel({
 export function IntakeUploader() {
   const [declaredDocumentType, setDeclaredDocumentType] = useState(documentTypes[0].value);
   const [declaredProcessArea, setDeclaredProcessArea] = useState(processAreas[0].value);
-  const [uploadedBy, setUploadedBy] = useState("qrm_author");
+  const [uploadedBy, setUploadedBy] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<IntakeStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -163,7 +163,7 @@ export function IntakeUploader() {
         body: JSON.stringify({
           declaredDocumentType,
           declaredProcessArea,
-          uploadedBy
+          ...(uploadedBy.trim() ? { uploadedBy: uploadedBy.trim() } : {})
         })
       });
       if (createResponse.status === 401) {
@@ -180,7 +180,7 @@ export function IntakeUploader() {
       setStatus("uploading");
       for (const file of files) {
         const formData = new FormData();
-        formData.set("uploadedBy", uploadedBy);
+        if (uploadedBy.trim()) formData.set("uploadedBy", uploadedBy.trim());
         formData.set("file", file);
         const uploadResponse = await fetch(`/api/review-ui/document-sets/${encodeURIComponent(documentSetId)}/documents`, {
           method: "POST",
@@ -253,6 +253,7 @@ export function IntakeUploader() {
             className="mt-2 h-10 w-full rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-[13px] text-[var(--text-primary)] outline-none ring-[var(--brand-ring)] transition focus:ring-4"
             value={uploadedBy}
             onChange={(event) => setUploadedBy(event.target.value)}
+            placeholder="Name oder Kürzel"
           />
         </label>
       </div>
@@ -277,7 +278,11 @@ export function IntakeUploader() {
           type="file"
           multiple
           accept=".pdf,.docx,.txt,.md,.csv,text/plain,text/markdown,text/csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          onChange={(event) => addFiles(event.target.files)}
+          onChange={(event) => {
+            addFiles(event.target.files);
+            // Reset so the same file can be selected again after removal.
+            event.target.value = "";
+          }}
         />
       </label>
 

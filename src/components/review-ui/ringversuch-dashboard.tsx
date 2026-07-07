@@ -62,7 +62,7 @@ type Aggregate = {
   tokens_by_provider?: Record<string, TokenUsage>;
 };
 
-type RingversuchRun = {
+export type RingversuchRun = {
   id: string;
   run: RunMeta;
   aggregate: Aggregate;
@@ -95,7 +95,7 @@ function wholePercent(rate: number | null | undefined): string {
 function severityClasses(severity: string): string {
   switch (severity) {
     case "critical":
-      return "bg-danger-50 text-danger-700 border-danger-200 dark:bg-danger-900/30 dark:text-danger-300 dark:border-danger-800";
+      return "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800";
     case "high":
       return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800";
     default:
@@ -140,12 +140,20 @@ const providerLabels: Record<string, string> = {
 
 /* ----- Hauptkomponente ----- */
 
-export function RingversuchDashboard() {
-  const [runs, setRuns] = useState<RingversuchRun[] | null>(null);
+function pickDefaultRunId(runs: RingversuchRun[] | null | undefined): string | null {
+  if (!runs?.length) return null;
+  const firstLive = runs.find((run) => run.run.mode === "live");
+  return (firstLive ?? runs[0])?.id ?? null;
+}
+
+export function RingversuchDashboard({ initialRuns }: { initialRuns?: RingversuchRun[] }) {
+  const [runs, setRuns] = useState<RingversuchRun[] | null>(initialRuns ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => pickDefaultRunId(initialRuns));
 
   useEffect(() => {
+    // Server-geliefert — kein Client-Fetch nötig.
+    if (initialRuns) return;
     let cancelled = false;
     fetch("/api/ringversuch")
       .then((response) => {
@@ -155,8 +163,7 @@ export function RingversuchDashboard() {
       .then((payload: { runs: RingversuchRun[] }) => {
         if (cancelled) return;
         setRuns(payload.runs);
-        const firstLive = payload.runs.find((run) => run.run.mode === "live");
-        setSelectedId((firstLive ?? payload.runs[0])?.id ?? null);
+        setSelectedId(pickDefaultRunId(payload.runs));
       })
       .catch((cause: Error) => {
         if (!cancelled) setError(cause.message);
@@ -164,7 +171,7 @@ export function RingversuchDashboard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialRuns]);
 
   const selected = useMemo(
     () => runs?.find((run) => run.id === selectedId) ?? null,
@@ -202,7 +209,7 @@ export function RingversuchDashboard() {
           <SectionHeading
             title={
               selected.id === defaultRun?.id
-                ? "Letzter abgeschlossener Lauf · Stand 11.06.2026"
+                ? `Letzter abgeschlossener Lauf · ${formatTimestamp(selected.id)}`
                 : `Ausgewählter Lauf · ${formatTimestamp(selected.id)}`
             }
             description={`System-Aufbau: ${stackLabel(selected.run)}.`}
@@ -427,8 +434,16 @@ function RunHistoryTable({
               <tr
                 key={run.id}
                 onClick={() => onSelect(run.id)}
-                aria-selected={isSelected}
-                className={`cursor-pointer border-b border-[var(--border-default)] last:border-b-0 transition-colors ${
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect(run.id);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-pressed={isSelected}
+                className={`cursor-pointer border-b border-[var(--border-default)] last:border-b-0 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--brand)] ${
                   isSelected
                     ? "bg-[var(--brand-soft)]"
                     : "hover:bg-[var(--surface-secondary)]"
@@ -517,12 +532,12 @@ function CaseMatrix({ cases }: { cases: CaseResult[] }) {
               </td>
               <td className="px-4 py-2.5">
                 {caseResult.decoy_false_alarms.length === 0 ? (
-                  <span className="inline-flex items-center gap-1 text-success-600 dark:text-success-400">
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                     {caseResult.decoy_count}/{caseResult.decoy_count} bestanden
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-danger-600">
+                  <span className="inline-flex items-center gap-1 text-red-600">
                     <XCircle className="h-3.5 w-3.5" aria-hidden />
                     {caseResult.decoy_false_alarms.length} Fehlalarm(e)
                   </span>
@@ -544,7 +559,7 @@ function ErrorChip({ error, found }: { error: MatchedError; found: boolean }) {
       className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] ${
         found
           ? severityClasses(error.severity)
-          : "border-danger-300 bg-danger-50 text-danger-700 line-through dark:border-danger-800 dark:bg-danger-900/30 dark:text-danger-300"
+          : "border-red-300 bg-red-50 text-red-700 line-through dark:border-red-800 dark:bg-red-900/30 dark:text-red-300"
       }`}
     >
       {found ? (
@@ -565,7 +580,7 @@ function StatusBadge({ status }: { status: string }) {
       className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] ${
         isHealthy
           ? "border-[var(--border-default)] bg-[var(--surface-secondary)] text-[var(--text-secondary)]"
-          : "border-danger-300 bg-danger-50 text-danger-700"
+          : "border-red-300 bg-red-50 text-red-700"
       }`}
     >
       <Activity className="h-3 w-3" aria-hidden />
@@ -623,11 +638,11 @@ function ChipLegend() {
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[var(--text-tertiary)]">
       <span className="inline-flex items-center gap-1">
-        <CheckCircle2 className="h-3 w-3 text-success-600" aria-hidden />
+        <CheckCircle2 className="h-3 w-3 text-emerald-600" aria-hidden />
         versteckter Fehler gefunden
       </span>
       <span className="inline-flex items-center gap-1">
-        <XCircle className="h-3 w-3 text-danger-600" aria-hidden />
+        <XCircle className="h-3 w-3 text-red-600" aria-hidden />
         versteckter Fehler übersehen
       </span>
       <span>Farbe = Schweregrad des Fehlers (rot kritisch, gelb hoch, grau mittel/niedrig)</span>
