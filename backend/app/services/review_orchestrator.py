@@ -110,6 +110,19 @@ OUTPUT_LANGUAGE_DIRECTIVE = (
     "Dokuments; uebersetze sie nicht."
 )
 
+# This contract is deliberately shared by every reviewer.  Provider JSON mode
+# guarantees valid JSON, but not the semantic distinction between the two
+# evidence enums used by ReviewerAgentOutput.
+REVIEWER_OUTPUT_CONTRACT = (
+    "STRUCTURED OUTPUT CONTRACT: For every finding, copy at least one "
+    "requirement_id exactly from the supplied requirements. "
+    "Each evidence_item support_type must be exactly one of: supports, "
+    "contradicts, contextual. Use strong, partial, weak, or none only for "
+    "evidence_support, never for evidence_item support_type. If no supplied "
+    "requirement applies, do not create a finding; explain the scope in "
+    "coverage_summary."
+)
+
 
 @dataclass(frozen=True)
 class ReviewerAgent:
@@ -147,7 +160,10 @@ class ReviewerAgent:
             if calibration_prompt_block
             else base_prompt
         )
-        prompt = f"{prompt}\n\n{OUTPUT_LANGUAGE_DIRECTIVE}"
+        prompt = (
+            f"{prompt}\n\n{OUTPUT_LANGUAGE_DIRECTIVE}\n\n"
+            f"{REVIEWER_OUTPUT_CONTRACT}"
+        )
         raw_output = self.provider.run_structured(
             prompt=prompt,
             input_schema={

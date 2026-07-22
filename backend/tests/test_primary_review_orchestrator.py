@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from app.agents.providers import MockProvider
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.main import app
@@ -92,6 +93,46 @@ def test_model_run_audit_includes_tenant_provider_model_id_prompt_and_hashes() -
     )
     assert completed_event.payload["knowledge_pack_ids"] == result.model_runs[0].knowledge_pack_ids
     assert completed_event.payload["case_signals"] == result.model_runs[0].case_signals
+
+
+def test_reviewer_prompt_states_exact_structured_output_constraints() -> None:
+    captured_prompts: list[str] = []
+
+    def output_factory(
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[Any],
+    ) -> dict[str, Any]:
+        del input_schema, output_schema
+        captured_prompts.append(prompt)
+        return {
+            "findings": [],
+            "coverage_summary": "Reviewed the assigned scope without a finding.",
+        }
+
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id="agent_prompt_contract",
+                role="PromptContractReviewer",
+                prompt_version="prompt-contract-v0.1",
+                applicable_risk_categories=["deviation_management"],
+                provider=MockProvider(output_factory=output_factory),
+            )
+        ],
+    )
+
+    orchestrator.run_primary_review("ds_review_demo")
+
+    assert len(captured_prompts) == 1
+    assert "support_type must be exactly one of: supports, contradicts, contextual" in (
+        captured_prompts[0]
+    )
+    assert "copy at least one requirement_id exactly from the supplied requirements" in (
+        captured_prompts[0]
+    )
 
 
 def test_orchestrator_runs_review_agents_in_parallel() -> None:

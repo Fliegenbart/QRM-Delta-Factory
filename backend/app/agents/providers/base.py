@@ -121,10 +121,11 @@ class BaseModelProvider(ABC):
         )
         started = time.perf_counter()
         last_error: Exception | None = None
-        for _attempt in range(self.runtime_options.max_retries + 1):
+        attempt_prompt = prompt
+        for attempt in range(self.runtime_options.max_retries + 1):
             try:
                 raw_output = self._run_structured_once(
-                    prompt=prompt,
+                    prompt=attempt_prompt,
                     input_schema=input_schema,
                     output_schema=output_schema,
                 )
@@ -133,6 +134,11 @@ class BaseModelProvider(ABC):
                 validation_payload.pop("token_usage", None)
                 validation_payload = _normalize_structured_payload(
                     validation_payload,
+                    output_schema=output_schema,
+                )
+                _validate_reviewer_requirement_references(
+                    validation_payload,
+                    input_schema=input_schema,
                     output_schema=output_schema,
                 )
                 parsed = output_schema.model_validate(validation_payload)
@@ -151,10 +157,14 @@ class BaseModelProvider(ABC):
                 )
                 self._failure_count = 0
                 return structured_output
-            except ValidationError as exc:
+            except (ValidationError, ProviderStructuredOutputError) as exc:
                 self._record_failure()
-                if _attempt < self.runtime_options.max_retries:
+                if attempt < self.runtime_options.max_retries:
                     last_error = ProviderStructuredOutputError(str(exc))
+                    attempt_prompt = _repair_prompt_for_structured_output(
+                        prompt=prompt,
+                        validation_error=str(exc),
+                    )
                     continue
                 raise ProviderStructuredOutputError(str(exc)) from exc
             except Exception as exc:
@@ -256,7 +266,71 @@ def _normalize_evidence_item(item: Any) -> Any:
     quote = normalized.get("quote")
     if isinstance(quote, str) and not _is_sha256_hash(quote_hash):
         normalized["quote_hash"] = sha256(quote.encode()).hexdigest()
+    support_type = normalized.get("support_type")
+    if isinstance(support_type, str) and support_type.strip().lower() in {
+        "strong",
+        "partial",
+        "weak",
+    }:
+        normalized["support_type"] = "contextual"
     return normalized
+
+
+def _validate_reviewer_requirement_references(
+    payload: dict[str, Any],
+    *,
+    input_schema: dict[str, Any],
+    output_schema: type[BaseModel],
+) -> None:
+    if output_schema.__name__ != "ReviewerAgentOutput":
+        return
+
+    supplied_requirements = input_schema.get("requirements")
+    if not isinstance(supplied_requirements, list):
+        return
+    allowed_requirement_ids = {
+        requirement.get("requirement_id")
+        for requirement in supplied_requirements
+        if isinstance(requirement, dict)
+        and isinstance(requirement.get("requirement_id"), str)
+    }
+    if not allowed_requirement_ids:
+        return
+
+    findings = payload.get("findings")
+    if not isinstance(findings, list):
+        return
+    for index, finding in enumerate(findings):
+        if not isinstance(finding, dict):
+            continue
+        references = finding.get("requirement_references")
+        if not isinstance(references, list) or not references:
+            raise ProviderStructuredOutputError(
+                f"findings.{index}.requirement_references must contain at least one "
+                "requirement_id copied exactly from the supplied requirements"
+            )
+        unknown_references = [
+            reference
+            for reference in references
+            if not isinstance(reference, str) or reference not in allowed_requirement_ids
+        ]
+        if unknown_references:
+            raise ProviderStructuredOutputError(
+                f"findings.{index}.requirement_references contains unknown IDs: "
+                f"{', '.join(map(str, unknown_references))}"
+            )
+
+
+def _repair_prompt_for_structured_output(*, prompt: str, validation_error: str) -> str:
+    return (
+        f"{prompt}\n\n"
+        "REPAIR REQUIRED: Your previous JSON failed schema validation. Return a new "
+        "complete JSON object only. For every finding, copy at least one "
+        "requirement_id exactly from the supplied requirements. Each evidence_item "
+        "support_type must be exactly one of: supports, contradicts, contextual. "
+        "Use strong, partial, weak, or none only for evidence_support, never for "
+        f"evidence_item.support_type. Validation error: {validation_error}"
+    )
 
 
 def _is_sha256_hash(value: Any) -> bool:

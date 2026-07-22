@@ -16,6 +16,7 @@ from app.agents.providers import (
     ModelProviderNotAllowedError,
     OpenAIProvider,
     ProviderConfigurationError,
+    ProviderRuntimeOptions,
     ProviderStructuredOutputError,
 )
 from app.audit.events import audit_log
@@ -141,6 +142,134 @@ def test_provider_normalizes_model_supplied_quote_hashes_for_reviewer_output() -
         output["findings"][0]["evidence_items"][0]["quote_hash"]
         == sha256(quote.encode()).hexdigest()
     )
+
+
+def test_provider_normalizes_model_supplied_evidence_strength_alias_to_contextual() -> None:
+    quote = "QA approval remains pending."
+    provider = MockProvider(
+        model_name="mock-reviewer",
+        model_version="0.1.0",
+        configured_model_id="mock-local",
+        structured_output={
+            "coverage_summary": "Reviewed one claim.",
+            "findings": [
+                {
+                    "finding_id": "finding_provider_strength_alias",
+                    "document_set_id": "ds_provider_demo",
+                    "risk_category": "qa_approval",
+                    "severity": "medium",
+                    "likelihood": 3,
+                    "detectability": 3,
+                    "risk_statement": "QA approval appears pending.",
+                    "evidence_items": [
+                        {
+                            "document_id": "doc_provider_demo",
+                            "chunk_id": "chunk_provider_demo",
+                            "page": 1,
+                            "quote": quote,
+                            "quote_hash": sha256(quote.encode()).hexdigest(),
+                            "support_type": "partial",
+                            "verifier_score": 0.7,
+                        }
+                    ],
+                    "requirement_references": ["req_provider_deviation_review"],
+                    "missing_information": ["documented QA approval decision"],
+                    "model_provider": "mock",
+                    "model_name": "mock-reviewer",
+                    "model_version": "0.1.0",
+                    "prompt_version": "prompt-v1",
+                    "evidence_support": "partial",
+                    "recommended_action": "Review approval status.",
+                    "auto_close_allowed": False,
+                    "status": "needs_human_review",
+                }
+            ],
+        },
+        prompt_version="prompt-v1",
+    )
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={},
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert output["findings"][0]["evidence_items"][0]["support_type"] == "contextual"
+
+
+def test_provider_repairs_missing_requirement_reference_on_retry() -> None:
+    quote = "QA approval remains pending."
+    prompts: list[str] = []
+
+    def output_factory(
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[BaseModel],
+    ) -> dict[str, Any]:
+        del input_schema, output_schema
+        prompts.append(prompt)
+        requirement_references = (
+            [] if len(prompts) == 1 else ["req_provider_deviation_review"]
+        )
+        return {
+            "coverage_summary": "Reviewed one claim.",
+            "findings": [
+                {
+                    "finding_id": "finding_provider_requirement_retry",
+                    "document_set_id": "ds_provider_demo",
+                    "risk_category": "qa_approval",
+                    "severity": "medium",
+                    "likelihood": 3,
+                    "detectability": 3,
+                    "risk_statement": "QA approval appears pending.",
+                    "evidence_items": [
+                        {
+                            "document_id": "doc_provider_demo",
+                            "chunk_id": "chunk_provider_demo",
+                            "page": 1,
+                            "quote": quote,
+                            "quote_hash": sha256(quote.encode()).hexdigest(),
+                            "support_type": "supports",
+                            "verifier_score": 0.7,
+                        }
+                    ],
+                    "requirement_references": requirement_references,
+                    "missing_information": ["documented QA approval decision"],
+                    "model_provider": "mock",
+                    "model_name": "mock-reviewer",
+                    "model_version": "0.1.0",
+                    "prompt_version": "prompt-v1",
+                    "evidence_support": "partial",
+                    "recommended_action": "Review approval status.",
+                    "auto_close_allowed": False,
+                    "status": "needs_human_review",
+                }
+            ],
+        }
+
+    provider = MockProvider(
+        model_name="mock-reviewer",
+        model_version="0.1.0",
+        configured_model_id="mock-local",
+        runtime_options=ProviderRuntimeOptions(max_retries=1),
+        output_factory=output_factory,
+    )
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={
+            "requirements": [
+                {"requirement_id": "req_provider_deviation_review"},
+            ]
+        },
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert output["findings"][0]["requirement_references"] == [
+        "req_provider_deviation_review"
+    ]
+    assert len(prompts) == 2
+    assert "REPAIR REQUIRED" in prompts[1]
 
 
 @pytest.mark.parametrize(
