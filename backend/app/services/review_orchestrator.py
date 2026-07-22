@@ -116,6 +116,7 @@ OUTPUT_LANGUAGE_DIRECTIVE = (
 REVIEWER_OUTPUT_CONTRACT = (
     "STRUCTURED OUTPUT CONTRACT: For every finding, copy at least one "
     "requirement_id exactly from the supplied requirements. "
+    "Every finding must contain at least one evidence_item with a document quote. "
     "Each evidence_item support_type must be exactly one of: supports, "
     "contradicts, contextual. Use strong, partial, weak, or none only for "
     "evidence_support, never for evidence_item support_type. If no supplied "

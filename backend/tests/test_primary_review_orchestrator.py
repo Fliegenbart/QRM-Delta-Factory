@@ -133,6 +133,7 @@ def test_reviewer_prompt_states_exact_structured_output_constraints() -> None:
     assert "copy at least one requirement_id exactly from the supplied requirements" in (
         captured_prompts[0]
     )
+    assert "Every finding must contain at least one evidence_item" in captured_prompts[0]
 
 
 def test_orchestrator_runs_review_agents_in_parallel() -> None:
