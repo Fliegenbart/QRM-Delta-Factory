@@ -1,0 +1,19 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+    container_name: qrm-delta-frontend
+    restart: unless-stopped
+    env_file:
+      - .env.frontend
+    environment:
+      NODE_ENV: production
+      QRM_BACKEND_URL: http://host.docker.internal:8100
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "172.17.0.1:3105:3000"
