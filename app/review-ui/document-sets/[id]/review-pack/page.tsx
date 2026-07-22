@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { getReviewPack } from "@/src/lib/review-api";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
+import { ReviewPackExportActions } from "@/src/components/review-ui/review-pack-export-actions";
 import {
   consultantReviewCopy,
   displayReviewPackSummary,
@@ -45,7 +46,12 @@ export default async function ReviewPackPage({ params }: PageProps) {
         <div className="space-y-5">
           <ReviewPanel
             title={consultantReviewCopy.pack.title}
-            action={<StatusBadge tone={pack.decision.auto_clear_allowed ? "green" : "amber"}>{displayReviewValue(pack.decision.decision)}</StatusBadge>}
+            action={
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <ReviewPackExportActions pack={pack} />
+                <StatusBadge tone={pack.decision.auto_clear_allowed ? "green" : "amber"}>{displayReviewValue(pack.decision.decision)}</StatusBadge>
+              </div>
+            }
           >
             <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
               <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-4 py-3">
