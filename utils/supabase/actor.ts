@@ -15,7 +15,7 @@ export async function resolveReviewActor(fallback: string): Promise<string> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (user) return user.email ?? user.id;
+    if (user) return user.id;
   } catch {
     // No session available (e.g. unauthenticated demo route) — keep fallback.
   }

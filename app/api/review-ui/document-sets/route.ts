@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createDocumentSet } from "@/src/lib/review-api";
+import { createDocumentSet, ReviewApiError } from "@/src/lib/review-api";
 import { resolveReviewActor } from "@/utils/supabase/actor";
 
 export async function POST(request: Request) {
@@ -24,6 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ documentSet }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Fall konnte nicht angelegt werden.";
-    return NextResponse.json({ error: message }, { status: 502 });
+    const status = error instanceof ReviewApiError && error.status ? error.status : 502;
+    return NextResponse.json({ error: message }, { status });
   }
 }

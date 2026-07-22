@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { uploadDocumentToDocumentSet } from "@/src/lib/review-api";
+import { ReviewApiError, uploadDocumentToDocumentSet } from "@/src/lib/review-api";
 import { resolveReviewActor } from "@/utils/supabase/actor";
 
 type RouteContext = {
@@ -25,6 +25,7 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ upload }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Dokument konnte nicht hochgeladen werden.";
-    return NextResponse.json({ error: message }, { status: 502 });
+    const status = error instanceof ReviewApiError && error.status ? error.status : 502;
+    return NextResponse.json({ error: message }, { status });
   }
 }
