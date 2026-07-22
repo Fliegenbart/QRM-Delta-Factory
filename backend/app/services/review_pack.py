@@ -435,7 +435,7 @@ def _review_progress(
         for finding in findings
         if review_decisions_by_finding.get(finding.finding_id)
     )
-    percent = 100 if total == 0 else round((reviewed / total) * 100)
+    percent = 0 if total == 0 else round((reviewed / total) * 100)
     return {"percent": percent, "reviewed": reviewed, "total": total}
 
 

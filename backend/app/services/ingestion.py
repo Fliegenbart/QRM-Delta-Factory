@@ -17,6 +17,7 @@ from app.schemas.ingestion import CreateDocumentSetRequest, DocumentUploadRespon
 from app.services.chunking import create_chunks
 from app.services.document_parser import ParsedDocument, ParserError, ParserRegistry
 from app.services.document_quality import score_parsing_quality
+from app.services.identifiers import with_prefix
 from app.storage.local import StorageBackend
 
 
@@ -52,13 +53,13 @@ class DocumentIngestionService:
 
         document_set = DocumentSet(
             document_set_id=f"ds_{uuid4().hex}",
-            tenant_id=_with_prefix(request.tenant_id, "tenant"),
+            tenant_id=with_prefix(request.tenant_id, "tenant", field_name="tenant_id"),
             requirement_set_id=request.requirement_set_id,
             upload_timestamp=datetime.now(UTC),
             document_ids=[],
             declared_document_type=request.declared_document_type,
             declared_process_area=request.declared_process_area,
-            uploaded_by=_with_prefix(request.uploaded_by, "user"),
+            uploaded_by=with_prefix(request.uploaded_by, "user", field_name="uploaded_by"),
             status=DocumentSetStatus.UPLOADED,
         )
         self.repository.create_document_set(document_set)
@@ -87,10 +88,11 @@ class DocumentIngestionService:
         document_id = f"doc_{uuid4().hex}"
         file_hash = sha256(content).hexdigest()
         storage_key = f"{document_set_id}/{document_id}/{Path(filename).name}"
+        audit_actor_id = with_prefix(uploaded_by, "user", field_name="uploaded_by")
         storage_uri = self.storage.put_object(key=storage_key, content=content)
         self.audit_log.append(
             event_type="document_uploaded",
-            actor_id=_with_prefix(uploaded_by, "user"),
+            actor_id=audit_actor_id,
             entity_type="Document",
             entity_id=document_id,
             tenant_id=document_set.tenant_id,
@@ -144,7 +146,7 @@ class DocumentIngestionService:
         self.repository.update_document_set(updated_set)
         self.audit_log.append(
             event_type="document_parsed",
-            actor_id=_with_prefix(uploaded_by, "user"),
+            actor_id=audit_actor_id,
             entity_type="Document",
             entity_id=document_id,
             tenant_id=document_set.tenant_id,
@@ -158,7 +160,7 @@ class DocumentIngestionService:
         )
         self.audit_log.append(
             event_type="chunks_created",
-            actor_id=_with_prefix(uploaded_by, "user"),
+            actor_id=audit_actor_id,
             entity_type="Document",
             entity_id=document_id,
             tenant_id=document_set.tenant_id,
@@ -171,7 +173,7 @@ class DocumentIngestionService:
         )
         self.audit_log.append(
             event_type="document_parser_run",
-            actor_id=_with_prefix(uploaded_by, "user"),
+            actor_id=audit_actor_id,
             entity_type="Document",
             entity_id=document_id,
             tenant_id=document_set.tenant_id,
@@ -184,8 +186,3 @@ class DocumentIngestionService:
             },
         )
         return DocumentUploadResponse(document_set=updated_set, document=document, chunks=chunks)
-
-
-def _with_prefix(value: str, prefix: str) -> str:
-    expected = f"{prefix}_"
-    return value if value.startswith(expected) else f"{expected}{value}"

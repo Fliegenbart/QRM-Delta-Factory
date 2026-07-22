@@ -9,6 +9,7 @@ import {
   UserCheck,
   type LucideIcon,
 } from "lucide-react";
+import type { LandingProofStats } from "@/src/lib/ringversuch-overview";
 
 /* ----- Animation -----
    Pure CSS (.rise-in) so content is never gated on JS animation ticks. */
@@ -26,20 +27,12 @@ function Reveal({ delay = 0, children }: { delay?: number; children: React.React
 
 /* ----- Hauptkomponente ----- */
 
-export type LandingProofStats = {
-  foundValue: string;
-  falseAlarmValue: string;
-  falseAlarmLabel: string;
-  citationValue: string;
-  standLabel: string;
-};
-
 const fallbackProofStats: LandingProofStats = {
-  foundValue: "24 / 25",
-  falseAlarmValue: "0",
-  falseAlarmLabel: "Fehlalarme bei 11 harmlosen Kontrollstellen",
-  citationValue: "93 %",
-  standLabel: "Stand 11.06.2026",
+  foundValue: "–",
+  falseAlarmValue: "–",
+  falseAlarmLabel: "noch keine veröffentlichte Live-Messung",
+  citationValue: "–",
+  standLabel: "Noch kein veröffentlichter Ringversuch",
 };
 
 export function OverviewLanding({ proofStats }: { proofStats?: LandingProofStats }) {

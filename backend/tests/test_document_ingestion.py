@@ -39,6 +39,28 @@ def test_create_document_set() -> None:
     assert payload["status"] == "uploaded"
 
 
+def test_create_document_set_trims_uploaded_by() -> None:
+    client = TestClient(app)
+    payload = _document_set_payload()
+    payload["uploaded_by"] = " qrm_author "
+
+    response = client.post("/document-sets", json=payload)
+
+    assert response.status_code == 201
+    assert response.json()["uploaded_by"] == "user_qrm_author"
+
+
+def test_create_document_set_rejects_blank_uploaded_by_without_server_error() -> None:
+    client = TestClient(app, raise_server_exceptions=False)
+    payload = _document_set_payload()
+    payload["uploaded_by"] = "   "
+
+    response = client.post("/document-sets", json=payload)
+
+    assert response.status_code == 422
+    assert "uploaded_by" in response.json()["detail"]
+
+
 def test_upload_txt_document_creates_chunks_and_audit_events() -> None:
     client = TestClient(app)
     document_set_id = _create_document_set(client)
@@ -69,6 +91,50 @@ def test_upload_txt_document_creates_chunks_and_audit_events() -> None:
         "chunks_created",
         "document_parser_run",
     ]
+
+
+def test_upload_document_trims_uploaded_by_for_audit_actor() -> None:
+    client = TestClient(app)
+    document_set_id = _create_document_set(client)
+
+    response = client.post(
+        f"/document-sets/{document_set_id}/documents",
+        files={
+            "file": (
+                "process.txt",
+                b"This is a meaningful process control document.",
+                "text/plain",
+            )
+        },
+        data={"uploaded_by": " qrm_author "},
+    )
+
+    assert response.status_code == 201
+    upload_events = [
+        event for event in audit_log.list_events() if event.event_type == "document_uploaded"
+    ]
+    assert upload_events[0].actor_id == "user_qrm_author"
+
+
+def test_upload_document_rejects_blank_uploaded_by_without_audit_actor() -> None:
+    client = TestClient(app, raise_server_exceptions=False)
+    document_set_id = _create_document_set(client)
+
+    response = client.post(
+        f"/document-sets/{document_set_id}/documents",
+        files={
+            "file": (
+                "process.txt",
+                b"This is a meaningful process control document.",
+                "text/plain",
+            )
+        },
+        data={"uploaded_by": "   "},
+    )
+
+    assert response.status_code == 422
+    assert "uploaded_by" in response.json()["detail"]
+    assert all(event.event_type != "document_uploaded" for event in audit_log.list_events())
 
 
 def test_delete_document_set_removes_case_and_uploaded_documents() -> None:
@@ -151,6 +217,22 @@ def test_empty_pdf_escalates_to_human_review() -> None:
     assert payload["document"]["parsing_quality_score"] < 0.65
     assert payload["document_set"]["status"] == "needs_human_review"
     assert payload["chunks"] == []
+
+
+def test_upload_rejects_documents_above_configured_size(monkeypatch: MonkeyPatch) -> None:
+    monkeypatch.setenv("QRM_MAX_UPLOAD_BYTES", "8")
+    get_settings.cache_clear()
+    client = TestClient(app)
+    document_set_id = _create_document_set(client)
+
+    response = client.post(
+        f"/document-sets/{document_set_id}/documents",
+        files={"file": ("too-large.txt", b"this is too large", "text/plain")},
+        data={"uploaded_by": "user_qrm_author"},
+    )
+
+    assert response.status_code == 413
+    assert "larger than the configured limit" in response.json()["detail"]
 
 
 def test_parser_error_is_audited_and_escalates(monkeypatch: MonkeyPatch) -> None:

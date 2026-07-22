@@ -225,6 +225,10 @@ export function findDemoReviewCase(id: string): DemoReviewCase | undefined {
   return demoReviewCases.find((demoCase) => demoCase.href.endsWith(`/${id}`));
 }
 
+export function demoDecisionStorageKey(caseId: string): string {
+  return `pharmaqrm:demo-decision:v1:${caseId}`;
+}
+
 const technicalErrorSignals = [
   "QRM_BACKEND",
   "Backend nicht verbunden",
@@ -342,7 +346,15 @@ export const reviewDecisionRequiresHumanRationale = true;
 
 const riskStatementLabels: Record<string, string> = {
   "Adversarial review found required evidence missing or not clearly present in the claim ledger.":
-    "Erforderliche Nachweise fehlen oder sind in den Quellen nicht klar belegt."
+    "Erforderliche Nachweise fehlen oder sind in den Quellen nicht klar belegt.",
+  "Deviation impact needs human review against documented requirements.":
+    "Die Auswirkungen der Abweichung müssen anhand der dokumentierten Anforderungen geprüft werden.",
+  "Batch-linked deviation requires documented batch impact trace.":
+    "Für die chargenbezogene Abweichung fehlt eine dokumentierte Bewertung der Chargenauswirkung.",
+  "CAPA reference requires effectiveness evidence if linked to quality risk.":
+    "Für die CAPA-Verknüpfung fehlt ein Wirksamkeitsnachweis zum Qualitätsrisiko.",
+  "QA approval appears pending and should not be treated as closed.":
+    "Die QA-Freigabe ist noch offen und darf nicht als abgeschlossen behandelt werden."
 };
 
 export const aiArchitectureConcept = {
@@ -727,34 +739,51 @@ export function isVisibleReviewDocumentSet(documentSet: DocumentSet): boolean {
 
 const plainGermanLabels: Record<string, string> = {
   aseptic_filling: "Sterile Abfüllung",
+  auto_clear_candidate: "Keine auffälligen Prüfpunkte",
   batch_impact_assessment: "Chargenauswirkung",
+  batch_record: "Chargenprotokoll",
   blocked_due_to_model_failure: "Prüfung notwendig",
   blocked_due_to_unverified_high_risk: "Blockiert: hohes Risiko noch nicht geprüft",
   capa: "CAPA / Korrekturmaßnahme",
+  capa_plan: "CAPA-Plan",
+  change_control_package: "Change-Control-Paket",
   change_control: "Geplante Änderung",
+  completed: "Analyse abgeschlossen",
   confirm: "Befund bestätigt",
   critical: "Kritisch",
+  data_integrity: "Datenintegrität",
   deviation_management: "Abweichungsmanagement",
   downgrade: "Herabgestuft",
   escalate_to_qa: "An QA eskaliert",
+  failed: "Fehlgeschlagen",
   high: "Hoch",
+  human_review_required: "Menschliche Prüfung nötig",
+  informational: "Informativ",
   medium: "Mittel",
   missed_critical_risk: "Mögliches übersehenes Risiko",
   missing_required_evidence: "Pflichtnachweis fehlt",
   needs_human_review: "Menschliche Prüfung nötig",
+  needs_more_information: "Weitere Unterlagen nötig",
   none: "Nicht belegt",
+  out_of_scope: "Außerhalb des Regelbereichs",
   partial: "Teilweise belegt",
   qa_approval: "QA-Freigabe",
   ready: "Bereit",
+  ready_for_orchestration: "Bereit zur Analyse",
   ready_for_review: "Bereit zur Prüfung",
   reject_false_positive: "Als Fehlalarm markiert",
   request_more_information: "Weitere Unterlagen angefordert",
-  reviewed: "Geprüft"
+  reviewed: "Geprüft",
+  running: "Läuft",
+  strong: "Belegt",
+  weak: "Schwach belegt"
 };
 
 const reasonLabels: Record<string, string> = {
   "adversarial challenge involves possible high/critical risk":
     "Eine Gegenprüfung sieht möglicherweise ein hohes oder kritisches Risiko.",
+  "adversarial challenge names missing evidence":
+    "Eine Gegenprüfung benennt fehlende Nachweise.",
   "audit trail review evidence":
     "Nachweis, dass der Audit Trail geprüft wurde.",
   "batch record reconciliation evidence":
@@ -765,8 +794,14 @@ const reasonLabels: Record<string, string> = {
     "Menschliche Bewertung, ob die hohe Auswirkung ausreichend abgedeckt ist.",
   "human review required for high/critical risk":
     "Bei hohem oder kritischem Risiko muss ein qualifizierter Mensch prüfen.",
+  "high/critical finding has weak or partial evidence":
+    "Ein hoher oder kritischer Prüfpunkt ist nur schwach oder teilweise belegt.",
   "missing information must be resolved by reviewer":
     "Fehlende Informationen müssen in der Prüfung geklärt werden.",
+  "no matching requirements found":
+    "Für diesen Fall wurde kein passendes Regelwerk gefunden.",
+  "root cause claim": "Dokumentierte Ursachenanalyse.",
+  "CAPA effectiveness check evidence": "Nachweis der CAPA-Wirksamkeitsprüfung.",
   "missing required document: training record for revised AVI SOP":
     "Pflichtunterlage fehlt: Trainingsnachweis zur geänderten AVI-SOP.",
   "missing required document: validation addendum for new rejection threshold":
@@ -775,6 +810,10 @@ const reasonLabels: Record<string, string> = {
     "Die Prüfhelfer sind sich bei einem möglichen hohen oder kritischen Risiko nicht einig.",
   "single high/critical finding is sufficient for human review":
     "Ein einzelner hoher oder kritischer Prüfpunkt reicht aus, damit ein Mensch prüfen muss.",
+  "unusually few claims":
+    "Aus dem Dokument wurden ungewöhnlich wenige prüfbare Aussagen extrahiert.",
+  "unusually many unclear claims":
+    "Ungewöhnlich viele Aussagen im Dokument sind unklar oder nicht eindeutig.",
   "verifier did not pass all deterministic checks":
     "Die automatische Quellenprüfung konnte nicht alles sicher bestätigen."
 };
@@ -787,6 +826,18 @@ export function displayReviewValue(value?: string | null): string {
 export function displayReviewReason(reason: string): string {
   if (reason.startsWith("required knowledge pack not retrieved:")) {
     return "Ein benötigtes Regelpaket wurde für diese Analyse nicht geladen.";
+  }
+  if (reason.startsWith("missing required document:")) {
+    const document = reason.replace("missing required document:", "").trim();
+    return `Pflichtunterlage fehlt: ${displayReviewValue(document)}.`;
+  }
+  const inapplicableRequirementPrefix = [
+    "requirement id is not applicable to document/process area:",
+    "requirement_id is not applicable to document/process area:"
+  ].find((prefix) => reason.startsWith(prefix));
+  if (inapplicableRequirementPrefix) {
+    const requirementId = reason.replace(inapplicableRequirementPrefix, "").trim();
+    return `Regelwerksbezug passt nicht zum Dokumenttyp oder Prozessbereich: ${displayReviewValue(requirementId)}.`;
   }
   return reasonLabels[reason] ?? displayReviewValue(reason);
 }
@@ -847,12 +898,24 @@ export function reviewPackProgress(input: ReviewPackProgressInput): {
   total: number;
   label: string;
 } {
-  const total = input.total_finding_count ?? input.top_risks.length;
-  const reviewed = input.reviewed_finding_count ??
-    input.top_risks.filter((risk) => risk.review_status === "reviewed").length;
-  const percent = total === 0
-    ? 100
-    : input.review_progress_percent ?? Math.round((reviewed / total) * 100);
+  const total = Math.max(0, input.total_finding_count ?? input.top_risks.length);
+  const reviewed = Math.min(
+    total,
+    Math.max(
+      0,
+      input.reviewed_finding_count ??
+        input.top_risks.filter((risk) => risk.review_status === "reviewed").length
+    )
+  );
+
+  if (total === 0) {
+    return { percent: 0, reviewed: 0, total: 0, label: "Keine Prüfpunkte zur Bearbeitung" };
+  }
+
+  const percent = Math.min(
+    100,
+    Math.max(0, input.review_progress_percent ?? Math.round((reviewed / total) * 100))
+  );
 
   return {
     percent,

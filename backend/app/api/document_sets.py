@@ -16,6 +16,7 @@ from app.db.in_memory import repository
 from app.schemas.domain import DocumentSet
 from app.schemas.ingestion import CreateDocumentSetRequest, DocumentUploadResponse
 from app.services.document_parser import ParserRegistry
+from app.services.identifiers import InvalidIdentifierError
 from app.services.ingestion import (
     DocumentIngestionService,
     DocumentSetNotFoundError,
@@ -67,6 +68,11 @@ def create_document_set(request: CreateDocumentSetRequest, http_request: Request
     enforce_request_tenant(request=http_request, requested_tenant_id=request.tenant_id)
     try:
         return get_ingestion_service().create_document_set(request)
+    except InvalidIdentifierError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
     except RequirementSetInactiveError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -91,6 +97,15 @@ async def upload_document(
         request=http_request,
     )
     content = await file.read()
+    max_upload_bytes = get_settings().max_upload_bytes
+    if len(content) > max_upload_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail=(
+                f"Uploaded document is larger than the configured limit "
+                f"({max_upload_bytes} bytes)"
+            ),
+        )
     mime_type = file.content_type or "application/octet-stream"
     filename = file.filename or "uploaded-document"
     try:
@@ -101,5 +116,10 @@ async def upload_document(
             content=content,
             uploaded_by=uploaded_by,
         )
+    except InvalidIdentifierError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
     except DocumentSetNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

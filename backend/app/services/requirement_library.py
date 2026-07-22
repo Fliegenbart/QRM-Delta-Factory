@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from app.audit.events import InMemoryAuditLog
 from app.db.in_memory import InMemoryDocumentRepository
 from app.schemas.domain import Criticality, Requirement, RequirementSet
+from app.services.identifiers import with_prefix
 
 
 class RequirementSetNotFoundError(Exception):
@@ -45,7 +46,9 @@ class RequirementLibraryService:
     ) -> RequirementSet:
         payload = _parse_payload(filename=filename, content=content)
         payload["imported_at"] = payload.get("imported_at") or datetime.now(UTC)
-        payload["imported_by"] = _with_prefix(imported_by, "user")
+        payload["imported_by"] = with_prefix(
+            imported_by, "user", field_name="imported_by"
+        )
 
         try:
             requirement_set = RequirementSet.model_validate(payload)
@@ -153,8 +156,3 @@ def _parse_payload(*, filename: str, content: bytes) -> dict[str, Any]:
     if not isinstance(loaded, dict):
         raise RequirementLibraryImportError("Requirement import root must be an object")
     return loaded
-
-
-def _with_prefix(value: str, prefix: str) -> str:
-    expected = f"{prefix}_"
-    return value if value.startswith(expected) else f"{expected}{value}"

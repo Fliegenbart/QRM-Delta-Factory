@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     model_provider_timeout_seconds: float = Field(default=30.0, gt=0)
     model_provider_max_retries: int = Field(default=0, ge=0)
     model_provider_circuit_breaker_threshold: int = Field(default=3, gt=0)
+    max_upload_bytes: int = Field(default=20 * 1024 * 1024, gt=0)
 
     def api_key_to_tenant_id(self) -> dict[str, str]:
         key_map: dict[str, str] = {}

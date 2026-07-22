@@ -167,6 +167,29 @@ def test_review_pack_progress_reflects_human_review_decisions() -> None:
     assert pack.top_risks[0].latest_reviewed_at is not None
 
 
+def test_review_pack_with_no_findings_is_not_marked_fully_reviewed() -> None:
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[],
+    )
+    repository.replace_risk_fusion_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[],
+    )
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert pack.review_progress_percent == 0
+    assert pack.reviewed_finding_count == 0
+    assert pack.total_finding_count == 0
+    assert pack.top_risks == []
+
+
 def _setup_review_pack_context() -> None:
     repository.create_requirement_set(_requirement_set())
     repository.create_document_set(_document_set())

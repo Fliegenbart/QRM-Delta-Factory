@@ -135,6 +135,10 @@ class PipelineService:
                 document_set_id=document_set_id,
                 risk_decision=risk_decision,
             )
+            self._sync_document_set_status(
+                document_set=document_set,
+                pipeline_status=completed_status,
+            )
             completed_run = pipeline_run.model_copy(
                 update={
                     "status": completed_status,
@@ -398,6 +402,15 @@ class PipelineService:
         self.repository.update_document_set(
             document_set.model_copy(update={"status": DocumentSetStatus.NEEDS_HUMAN_REVIEW})
         )
+
+    def _sync_document_set_status(
+        self,
+        *,
+        document_set: DocumentSet,
+        pipeline_status: PipelineRunStatus,
+    ) -> None:
+        if pipeline_status == PipelineRunStatus.NEEDS_HUMAN_REVIEW:
+            self._mark_document_set_for_human_review(document_set)
 
     def _audit_step_completed(
         self,

@@ -25,7 +25,7 @@ import { useTheme } from "@/src/lib/theme";
 import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { aiArchitectureConcept, demoReviewCases, productHomeCopy } from "@/src/lib/review-ui";
 import type { RingversuchRun } from "@/src/components/review-ui/ringversuch-dashboard";
-import type { LandingProofStats } from "@/src/components/review-ui/overview-landing";
+import { deriveLandingProofStats } from "@/src/lib/ringversuch-overview";
 import { CaseCard } from "@/src/components/triage/case-card";
 import type { LucideIcon } from "lucide-react";
 
@@ -109,29 +109,6 @@ export function AppShell({
     return <OverviewLanding proofStats={deriveLandingProofStats(ringversuchRuns)} />;
   }
   return <AppFrame section={active}>{renderSection(active, ringversuchRuns)}</AppFrame>;
-}
-
-// Landing proof numbers come from the latest completed live run so the
-// pitch page can never drift out of sync with the published Ringversuch.
-function deriveLandingProofStats(runs?: RingversuchRun[]): LandingProofStats | undefined {
-  const latestLive = runs?.find((run) => run.run.mode === "live");
-  const sens = latestLive?.aggregate.sensitivity;
-  const spec = latestLive?.aggregate.specificity_decoys;
-  const cite = latestLive?.aggregate.citation_precision;
-  if (!latestLive || !sens || !spec || !cite) return undefined;
-
-  const dateMatch = latestLive.id.match(/^(\d{4})(\d{2})(\d{2})_/);
-  const standLabel = dateMatch
-    ? `Stand ${dateMatch[3]}.${dateMatch[2]}.${dateMatch[1]}`
-    : "Jüngster Lauf";
-
-  return {
-    foundValue: `${sens.found} / ${sens.total}`,
-    falseAlarmValue: `${spec.total - spec.passed}`,
-    falseAlarmLabel: `Fehlalarme bei ${spec.total} harmlosen Kontrollstellen`,
-    citationValue: cite.rate == null ? "–" : `${Math.round(cite.rate * 100)} %`,
-    standLabel,
-  };
 }
 
 function NavLink({

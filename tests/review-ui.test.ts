@@ -10,6 +10,7 @@ import {
   buildFindingReviewChecklist,
   cleanEvidenceQuote,
   decisionOptions,
+  demoDecisionStorageKey,
   displayReviewReason,
   displayReviewReasons,
   displayReviewPackSummary,
@@ -111,6 +112,12 @@ describe("review UI helpers", () => {
     ]);
   });
 
+  it("uses a versioned, case-specific browser key for demo decisions", () => {
+    expect(demoDecisionStorageKey("DEV-2025-014")).toBe(
+      "pharmaqrm:demo-decision:v1:DEV-2025-014"
+    );
+  });
+
   it("uses reviewer-friendly upload guidance on the start form", () => {
     const appShell = readFileSync(join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
     const intakeUploader = readFileSync(
@@ -156,6 +163,13 @@ describe("review UI helpers", () => {
     expect(message.message).not.toContain("QRM_BACKEND_API_KEY");
   });
 
+  it("does not convert a missing backend route into an empty case list", () => {
+    const reviewListPage = readFileSync(join(process.cwd(), "app/review-ui/page.tsx"), "utf8");
+
+    expect(reviewListPage).not.toContain("caught instanceof ReviewApiError && caught.status === 404");
+    expect(reviewListPage).toContain("loadState = userFacingReviewLoadError(error)");
+  });
+
   it("hides the retired public demo case from the review UI", () => {
     const demoCase = {
       document_set_id: "ds_demo_avi_threshold",
@@ -176,9 +190,21 @@ describe("review UI helpers", () => {
 
   it("shows backend codes as plain German labels", () => {
     expect(displayReviewValue("needs_human_review")).toBe("Menschliche Prüfung nötig");
+    expect(displayReviewValue("ready_for_orchestration")).toBe("Bereit zur Analyse");
+    expect(displayReviewValue("change_control_package")).toBe("Change-Control-Paket");
     expect(displayReviewValue("change_control")).toBe("Geplante Änderung");
     expect(displayReviewValue("blocked_due_to_model_failure")).toBe("Prüfung notwendig");
     expect(displayReviewReason("human review required for high/critical risk")).toContain("Mensch");
+    expect(displayReviewReason("unusually few claims")).toContain("wenige prüfbare Aussagen");
+    expect(
+      displayReviewReason("requirement_id is not applicable to document/process area: req_demo")
+    ).toContain("Regelwerksbezug passt nicht");
+    expect(
+      displayRiskStatement("Deviation impact needs human review against documented requirements.")
+    ).toContain("Abweichung");
+    expect(
+      displayRiskStatement("CAPA reference requires effectiveness evidence if linked to quality risk.")
+    ).toContain("Wirksamkeitsnachweis");
   });
 
   it("shows review pack summaries without backend decision jargon", () => {
@@ -204,6 +230,22 @@ describe("review UI helpers", () => {
       reviewed: 1,
       total: 2,
       label: "50% bearbeitet (1 von 2 Prüfpunkten)"
+    });
+  });
+
+  it("does not present an empty review pack as fully reviewed", () => {
+    expect(
+      reviewPackProgress({
+        review_progress_percent: 100,
+        reviewed_finding_count: 0,
+        total_finding_count: 0,
+        top_risks: []
+      })
+    ).toEqual({
+      percent: 0,
+      reviewed: 0,
+      total: 0,
+      label: "Keine Prüfpunkte zur Bearbeitung"
     });
   });
 

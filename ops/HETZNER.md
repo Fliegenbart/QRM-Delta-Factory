@@ -53,18 +53,24 @@ OPENAI_API_KEY=...
 
 | Aufgabe | Befehl |
 |---|---|
-| Status | `cd /opt/qrm-delta && docker compose -f docker-compose.hetzner.yml ps` |
+| Status | `cd /opt/qrm-delta && docker compose -f docker-compose.hetzner.yml ps` (App muss `healthy` sein) |
 | Logs | `docker compose -f docker-compose.hetzner.yml logs -f app` |
 | Update einspielen | `git pull && docker compose -f docker-compose.hetzner.yml up -d --build` |
 | Neustart | `docker compose -f docker-compose.hetzner.yml restart app` |
 | Health | `curl -s https://compliance.labpulse.ai/health` |
 
+Der Compose-Healthcheck ruft im App-Container `/health` auf. Er bestätigt die
+laufende FastAPI-App, nicht die fachliche Verfügbarkeit externer Modellanbieter.
+
 ## Backup & Restore
 
-Nächtlicher Dump per Cron (läuft als root, 03:17 Uhr):
+Nächtliche Sicherung per Cron (läuft als root): Datenbank um 03:17 Uhr,
+hochgeladene Originaldokumente um 03:23 Uhr. Beide Sicherungen werden 14 Tage
+aufbewahrt und müssen gemeinsam restauriert werden.
 
 ```
 17 3 * * * docker exec qrm-delta-postgres-1 pg_dump -U qrm_app qrm_orchestration | gzip > /opt/qrm-delta/backups/qrm_$(date +\%F).sql.gz && find /opt/qrm-delta/backups -name "qrm_*.sql.gz" -mtime +14 -delete
+23 3 * * * tar -C /var/lib/docker/volumes/qrm-delta_qrm_app_documents/_data -czf /opt/qrm-delta/backups/qrm_documents_$(date +\%F).tar.gz . && find /opt/qrm-delta/backups -name "qrm_documents_*.tar.gz" -mtime +14 -delete
 ```
 
 Restore (geprobt bei Erstinstallation):
@@ -72,7 +78,14 @@ Restore (geprobt bei Erstinstallation):
 ```bash
 gunzip -c /opt/qrm-delta/backups/qrm_<datum>.sql.gz | \
   docker exec -i qrm-delta-postgres-1 psql -U qrm_app -d qrm_orchestration
+
+tar -C /var/lib/docker/volumes/qrm-delta_qrm_app_documents/_data \
+  -xzf /opt/qrm-delta/backups/qrm_documents_<datum>.tar.gz
 ```
+
+Vor dem Restore die App stoppen, damit Snapshot-Metadaten und Dokumentvolume
+konsistent eingespielt werden. Danach App starten und einen vorhandenen Fall
+inklusive Originaldokument und Prüfmappe kontrollieren.
 
 ## Proxy / TLS
 

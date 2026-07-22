@@ -34,6 +34,46 @@ def test_import_requirement_set_from_yaml_and_get_by_id() -> None:
     assert audit_log.list_events()[0].event_type == "requirement_set_imported"
 
 
+def test_import_requirement_set_trims_imported_by() -> None:
+    client = TestClient(app)
+
+    response = client.post(
+        "/requirement-sets/import",
+        files={
+            "file": (
+                "deviation_management.yaml",
+                _load_yaml_text(),
+                "application/x-yaml",
+            )
+        },
+        data={"imported_by": " quality_admin "},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["imported_by"] == "user_quality_admin"
+    assert audit_log.list_events()[0].actor_id == "user_quality_admin"
+
+
+def test_import_requirement_set_rejects_blank_imported_by() -> None:
+    client = TestClient(app, raise_server_exceptions=False)
+
+    response = client.post(
+        "/requirement-sets/import",
+        files={
+            "file": (
+                "deviation_management.yaml",
+                _load_yaml_text(),
+                "application/x-yaml",
+            )
+        },
+        data={"imported_by": "   "},
+    )
+
+    assert response.status_code == 422
+    assert "imported_by" in response.json()["detail"]
+    assert audit_log.list_events() == []
+
+
 def test_requirement_set_versions_are_preserved() -> None:
     client = TestClient(app)
     first = _import_yaml(client)

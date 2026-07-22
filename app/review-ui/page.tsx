@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listDocumentSets, ReviewApiError } from "@/src/lib/review-api";
+import { listDocumentSets } from "@/src/lib/review-api";
 import { DeleteDocumentSetButton } from "@/src/components/review-ui/delete-document-set-button";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import { ReviewCalibrationPanel } from "@/src/components/review-ui/review-calibration-panel";
@@ -22,12 +22,8 @@ export default async function ReviewUiDocumentSetsPage() {
   try {
     documentSets = (await listDocumentSets()).filter(isVisibleReviewDocumentSet);
   } catch (caught) {
-    if (caught instanceof ReviewApiError && caught.status === 404) {
-      documentSets = [];
-    } else {
-      error = caught instanceof Error ? caught.message : "Prüfpakete konnten nicht geladen werden.";
-      loadState = userFacingReviewLoadError(error);
-    }
+    error = caught instanceof Error ? caught.message : "Prüfpakete konnten nicht geladen werden.";
+    loadState = userFacingReviewLoadError(error);
   }
 
   return (

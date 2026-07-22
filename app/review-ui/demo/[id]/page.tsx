@@ -11,7 +11,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
-import { findDemoReviewCase, type DemoReviewCase } from "@/src/lib/review-ui";
+import { DemoDecisionDesk } from "@/src/components/review-ui/demo-decision-desk";
+import { findDemoReviewCase } from "@/src/lib/review-ui";
 
 const decisionReadinessItems = ["Quelle sichtbar", "Lücke benannt", "QA-Schritt klar"] as const;
 
@@ -79,7 +80,7 @@ export default async function DemoReviewCasePage({
             </div>
           </div>
 
-          <DecisionDesk demoCase={demoCase} />
+          <DemoDecisionDesk demoCase={demoCase} />
         </div>
       </ReviewPanel>
 
@@ -138,38 +139,6 @@ export default async function DemoReviewCasePage({
         </p>
       </ReviewPanel>
     </ReviewShell>
-  );
-}
-
-function DecisionDesk({ demoCase }: { demoCase: DemoReviewCase }) {
-  return (
-    <aside className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)]">
-      <div className="border-b border-[var(--border-default)] px-4 py-3">
-        <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-          Decision Desk
-        </div>
-        <div className="mt-1 text-[14px] font-medium text-[var(--text-primary)]">
-          QA muss entscheiden
-        </div>
-      </div>
-      <div className="divide-y divide-[var(--border-muted)] px-4">
-        {demoCase.decisionActions.map((action, index) => (
-          <button
-            key={action}
-            type="button"
-            className={`flex w-full items-center justify-between gap-3 py-3 text-left text-[13px] font-medium ${
-              index === 0 ? "text-[var(--brand)]" : "text-[var(--text-secondary)]"
-            }`}
-          >
-            <span>{action}</span>
-            <span className={`h-2 w-2 rounded-full ${index === 0 ? "bg-[var(--brand)]" : "bg-[var(--border-strong)]"}`} />
-          </button>
-        ))}
-      </div>
-      <div className="border-t border-[var(--border-default)] px-4 py-3 text-[12px] leading-5 text-[var(--text-secondary)]">
-        Entscheidung erst speichern, wenn Quelle, Lücke und Begründung zusammenpassen.
-      </div>
-    </aside>
   );
 }
 

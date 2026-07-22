@@ -11,6 +11,7 @@ from app.core.security import (
 )
 from app.db.in_memory import repository
 from app.schemas.domain import Criticality, Requirement, RequirementSet
+from app.services.identifiers import InvalidIdentifierError
 from app.services.requirement_library import (
     RequirementLibraryImportError,
     RequirementLibraryService,
@@ -43,6 +44,11 @@ async def import_requirement_set(
             imported_by=imported_by,
             expected_tenant_id=current_tenant_id(request),
         )
+    except InvalidIdentifierError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
     except RequirementLibraryImportError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
