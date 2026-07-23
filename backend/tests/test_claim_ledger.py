@@ -57,6 +57,34 @@ def test_claim_ledger_endpoint_extracts_expected_claims_from_chunks() -> None:
     assert all(0 <= claim["confidence"] <= 1 for claim in claims)
 
 
+def test_mock_claim_extractor_covers_german_case01_red_flag_signals() -> None:
+    text = (
+        "Abweichungsbericht DEV-2026-891. "
+        "Datum der Erfassung: 12.03.2026. "
+        "Die Abweichung wird als Minor eingestuft, da die Salbe visuell homogen blieb. "
+        "Digitale Signatur am 14.12.2026. "
+        "Manteltemperatur fuer einen Zeitraum von 45 Minuten auf 34,2°C ab. "
+        "Solltemperatur laut Herstellanweisung betraegt 40°C bis 45°C. "
+        "Viskositaet 2850 mPa·s, 2900 mPa·s und 2910 mPa·s."
+    )
+    chunk = _chunk("chunk_case01_deviation_p1", "doc_deviation_record", text)
+
+    claims = MockClaimExtractor().extract_claims("ds_claim_demo", [chunk], [])
+    quotes = {claim.raw_text_quote for claim in claims}
+    subjects = {claim.normalized_subject for claim in claims}
+
+    assert any("14.12.2026" in quote for quote in quotes)
+    assert any("Minor" in quote for quote in quotes)
+    assert any("34,2°C" in quote for quote in quotes)
+    assert any("2910 mPa·s" in quote for quote in quotes)
+    assert {
+        "qa_signature_date",
+        "deviation_classification",
+        "process_temperature",
+        "viscosity_observation",
+    }.issubset(subjects)
+
+
 def test_cross_document_claims_are_linked_by_shared_ids() -> None:
     client = TestClient(app)
 
@@ -145,7 +173,7 @@ def test_claim_extraction_audit_includes_extractor_and_prompt_versions() -> None
     assert response.status_code == 200
     event = audit_log.list_events()[-1]
     assert event.event_type == "claim_extraction_run"
-    assert event.payload["extractor_version"] == "mock-claim-extractor-v0.1"
+    assert event.payload["extractor_version"] == "mock-claim-extractor-v0.2"
     assert event.payload["prompt_version"] == "mock-claim-ledger-v0.1"
     assert event.payload["claim_count"] == len(response.json())
 

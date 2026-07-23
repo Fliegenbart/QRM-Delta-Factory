@@ -14,6 +14,7 @@ from app.schemas.pipeline import PipelineModelManifestItem, PipelineRun, Pipelin
 from app.schemas.risk import RiskDecision, RiskDecisionClass
 from app.services.adversarial_review import AdversarialReviewService
 from app.services.claim_ledger import ClaimLedgerService, default_claim_extractor
+from app.services.objective_red_flags import ObjectiveRedFlagService
 from app.services.review_orchestrator import PrimaryReviewOrchestrator
 from app.services.review_pack import ReviewPackService
 from app.services.risk_fusion import RiskFusionService
@@ -54,6 +55,7 @@ class PipelineService:
         primary_review_orchestrator: PrimaryReviewOrchestrator | None = None,
         adversarial_review_service: AdversarialReviewService | None = None,
         evidence_verifier_service: EvidenceVerifierService | None = None,
+        objective_red_flag_service: ObjectiveRedFlagService | None = None,
         risk_fusion_service: RiskFusionService | None = None,
         review_pack_service: ReviewPackService | None = None,
         config_version: str = PIPELINE_CONFIG_VERSION,
@@ -75,6 +77,10 @@ class PipelineService:
             audit_log=audit_log,
         )
         self.evidence_verifier_service = evidence_verifier_service or EvidenceVerifierService(
+            repository=repository,
+            audit_log=audit_log,
+        )
+        self.objective_red_flag_service = objective_red_flag_service or ObjectiveRedFlagService(
             repository=repository,
             audit_log=audit_log,
         )
@@ -139,6 +145,7 @@ class PipelineService:
                 ("primary_multi_agent_review", self._primary_multi_agent_review),
                 ("evidence_verification", self._evidence_verification),
                 ("adversarial_review", self._adversarial_review),
+                ("objective_red_flag_scan", self._objective_red_flag_scan),
                 ("adversarial_evidence_verification", self._adversarial_evidence_verification),
                 ("risk_fusion", self._risk_fusion),
                 ("review_pack_generation", self._review_pack_generation),
@@ -462,6 +469,10 @@ class PipelineService:
             + len(result.challenged_no_issue_claims),
             "unresolved_question_count": len(result.unresolved_questions),
         }
+
+    def _objective_red_flag_scan(self, document_set_id: str) -> dict[str, Any]:
+        findings = self.objective_red_flag_service.run_objective_red_flag_scan(document_set_id)
+        return {"finding_count": len(findings)}
 
     def _adversarial_evidence_verification(self, document_set_id: str) -> dict[str, Any]:
         findings = self.repository.list_risk_fusion_findings(document_set_id)

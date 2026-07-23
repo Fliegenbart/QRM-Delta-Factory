@@ -287,6 +287,70 @@ def test_pipeline_manifest_uses_latest_attempt_per_reviewer() -> None:
     assert all(item.status == "succeeded" for item in manifest)
 
 
+def test_pipeline_adds_objective_red_flags_to_fusion_findings() -> None:
+    repository.create_requirement_set(_case01_requirement_set())
+    repository.create_document_set(
+        _document_set(
+            document_set_id="ds_pipeline_case01",
+            document_type="deviation",
+            process_area="aseptic_filling",
+        )
+    )
+    deviation_text = (
+        "Abweichungsbericht DEV-2026-891\n"
+        "Datum der Erfassung: 12.03.2026.\n"
+        "Die Abweichung wird als Minor eingestuft, da die Salbe visuell homogen blieb. "
+        "Ein Einfluss auf die Produktqualitaet wird ausgeschlossen.\n"
+        "Geprueft durch: Dr. Anna Klar - Digitale Signatur am 14.12.2026."
+    )
+    batch_text = (
+        "Die Manteltemperatur sank fuer einen Zeitraum von 45 Minuten auf 34,2°C ab. "
+        "Die spezifizierte Solltemperatur betraegt 40°C bis 45°C. "
+        "Viskositaet: 2400 mPa·s, 2850 mPa·s, 2900 mPa·s, 2910 mPa·s."
+    )
+    repository.add_document(
+        document=_document(
+            document_id="doc_pipeline_case01_deviation",
+            document_set_id="ds_pipeline_case01",
+        ),
+        chunks=[
+            _text_chunk(
+                chunk_id="chunk_pipeline_case01_deviation_p1",
+                document_id="doc_pipeline_case01_deviation",
+                text=deviation_text,
+            )
+        ],
+    )
+    repository.add_document(
+        document=_document(
+            document_id="doc_pipeline_case01_batch",
+            document_set_id="ds_pipeline_case01",
+        ),
+        chunks=[
+            _text_chunk(
+                chunk_id="chunk_pipeline_case01_batch_p1",
+                document_id="doc_pipeline_case01_batch",
+                text=batch_text,
+            )
+        ],
+    )
+
+    pipeline_run = PipelineService(repository=repository, audit_log=audit_log).run_pipeline(
+        "ds_pipeline_case01"
+    )
+
+    fusion_findings = repository.list_risk_fusion_findings("ds_pipeline_case01")
+    statements = " ".join(finding.risk_statement for finding in fusion_findings).lower()
+    assert pipeline_run.failed_step is None
+    assert "signaturdatum" in statements
+    assert "fehlklassifizierung" in statements
+    assert any(
+        event.event_type == "objective_red_flag_scan_completed"
+        and event.payload["finding_count"] == 2
+        for event in audit_log.list_events()
+    )
+
+
 class FailingProvider(BaseModelProvider):
     def __init__(self) -> None:
         super().__init__(
@@ -374,6 +438,55 @@ def _requirement_set(
     )
 
 
+def _case01_requirement_set() -> RequirementSet:
+    return RequirementSet(
+        requirement_set_id="rset_pipeline_demo",
+        tenant_id="tenant_demo_pharma",
+        name="Pipeline Case 01 Requirements",
+        version="2026.1",
+        imported_at=datetime.now(UTC),
+        imported_by="user_quality_admin",
+        active=True,
+        requirements=[
+            {
+                "requirement_id": "req_pipeline_signature_plausibility",
+                "source_type": "internal_sop",
+                "source_name": "SOP-DI-001",
+                "source_version": "1.0",
+                "section": "6",
+                "requirement_text": (
+                    "Electronic signatures and dates must be accurate and contemporaneous."
+                ),
+                "applies_to_document_types": ["deviation"],
+                "applies_to_process_areas": ["aseptic_filling"],
+                "criticality": "high",
+                "required_evidence": ["signature timestamp"],
+                "auto_close_allowed": False,
+                "effective_from": "2026-01-01T00:00:00Z",
+                "effective_to": None,
+            },
+            {
+                "requirement_id": "req_pipeline_deviation_classification",
+                "source_type": "internal_sop",
+                "source_name": "SOP-DEV-001",
+                "source_version": "1.0",
+                "section": "7",
+                "requirement_text": (
+                    "Deviation classification must reflect parameter excursions "
+                    "and quality impact."
+                ),
+                "applies_to_document_types": ["deviation"],
+                "applies_to_process_areas": ["aseptic_filling"],
+                "criticality": "high",
+                "required_evidence": ["process parameter excursion"],
+                "auto_close_allowed": False,
+                "effective_from": "2026-01-01T00:00:00Z",
+                "effective_to": None,
+            },
+        ],
+    )
+
+
 def _document(
     *,
     document_id: str = "doc_pipeline_failure",
@@ -393,6 +506,20 @@ def _document(
         parsing_quality_score=parsing_quality_score,
         language="en",
         metadata={},
+    )
+
+
+def _text_chunk(*, chunk_id: str, document_id: str, text: str) -> DocumentChunk:
+    return DocumentChunk(
+        chunk_id=chunk_id,
+        document_id=document_id,
+        page_start=1,
+        page_end=1,
+        text=text,
+        token_count=len(text.split()),
+        extraction_confidence=0.95,
+        bbox=None,
+        source_hash=sha256(text.encode()).hexdigest(),
     )
 
 

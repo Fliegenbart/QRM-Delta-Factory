@@ -41,7 +41,7 @@ class ClaimExtractor(Protocol):
 
 
 class MockClaimExtractor:
-    extractor_version = "mock-claim-extractor-v0.1"
+    extractor_version = "mock-claim-extractor-v0.2"
     prompt_version = "mock-claim-ledger-v0.1"
 
     def extract_claims(
@@ -107,6 +107,7 @@ class MockClaimExtractor:
             )
 
         claims.extend(self._extract_labeled_claims(chunk))
+        claims.extend(self._extract_german_gmp_claims(chunk))
         claims.extend(self._extract_dates(chunk))
         claims.extend(self._extract_unclear_claims(chunk))
         return claims
@@ -153,6 +154,128 @@ class MockClaimExtractor:
                 )
         return claims
 
+    def _extract_german_gmp_claims(self, chunk: DocumentChunk) -> list[Claim]:
+        claims: list[Claim] = []
+        text = chunk.text
+
+        for match in re.finditer(
+            r"Digitale\s+Signatur\s+am\s+(\d{1,2}\.\d{1,2}\.20\d{2})",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            claims.append(
+                _claim(
+                    chunk=chunk,
+                    claim_type=ClaimType.DATE_OR_DEADLINE,
+                    normalized_subject="qa_signature_date",
+                    normalized_predicate="signed_on",
+                    normalized_object=_german_date_to_iso(match.group(1)),
+                    quote=match.group(0),
+                    confidence=0.9,
+                    extractor_version=self.extractor_version,
+                    prompt_version=self.prompt_version,
+                )
+            )
+
+        for match in re.finditer(
+            r"Die\s+Abweichung\s+wird\s+als\s+\*{0,2}(Minor|Major|Critical)\*{0,2}\s+eingestuft",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            claims.append(
+                _claim(
+                    chunk=chunk,
+                    claim_type=ClaimType.DEVIATION_DESCRIPTION,
+                    normalized_subject="deviation_classification",
+                    normalized_predicate="classified_as",
+                    normalized_object=match.group(1).lower(),
+                    quote=match.group(0),
+                    confidence=0.9,
+                    extractor_version=self.extractor_version,
+                    prompt_version=self.prompt_version,
+                )
+            )
+
+        for match in re.finditer(
+            r"Manteltemperatur[^.\n]{0,120}?\b(\d{1,2},\d)\s*°?C[^.\n]{0,80}",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            claims.append(
+                _claim(
+                    chunk=chunk,
+                    claim_type=ClaimType.TEST_RESULT,
+                    normalized_subject="process_temperature",
+                    normalized_predicate="measured",
+                    normalized_object=_decimal_comma_to_dot(match.group(1)) + " C",
+                    quote=match.group(0).strip(),
+                    confidence=0.85,
+                    extractor_version=self.extractor_version,
+                    prompt_version=self.prompt_version,
+                )
+            )
+
+        for match in re.finditer(
+            r"Solltemperatur[^.\n]{0,80}?\b(\d{1,2})\s*°?C\s+bis\s+(\d{1,2})\s*°?C",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            claims.append(
+                _claim(
+                    chunk=chunk,
+                    claim_type=ClaimType.ACCEPTANCE_CRITERION,
+                    normalized_subject="process_temperature_specification",
+                    normalized_predicate="specified_range",
+                    normalized_object=f"{match.group(1)}-{match.group(2)} C",
+                    quote=match.group(0).strip(),
+                    confidence=0.85,
+                    extractor_version=self.extractor_version,
+                    prompt_version=self.prompt_version,
+                )
+            )
+
+        for line_match in re.finditer(
+            r"Viskosit(?:aet|ät)[^.\n]{0,220}",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            line = line_match.group(0).strip()
+            for value_match in re.finditer(r"\b(\d{3,5})\s*mPa[·.]?s", line):
+                claims.append(
+                    _claim(
+                        chunk=chunk,
+                        claim_type=ClaimType.TEST_RESULT,
+                        normalized_subject="viscosity_observation",
+                        normalized_predicate="measured",
+                        normalized_object=f"{value_match.group(1)} mPa*s",
+                        quote=line,
+                        confidence=0.8,
+                        extractor_version=self.extractor_version,
+                        prompt_version=self.prompt_version,
+                    )
+                )
+
+        for match in re.finditer(
+            r"Einfluss\s+auf\s+die\s+Produktqualit(?:aet|ät)\s+wird\s+ausgeschlossen",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            claims.append(
+                _claim(
+                    chunk=chunk,
+                    claim_type=ClaimType.IMPACT_ASSESSMENT,
+                    normalized_subject="product_quality_impact",
+                    normalized_predicate="excluded",
+                    normalized_object="impact_excluded",
+                    quote=match.group(0),
+                    confidence=0.8,
+                    extractor_version=self.extractor_version,
+                    prompt_version=self.prompt_version,
+                )
+            )
+
+        return claims
+
     def _extract_dates(self, chunk: DocumentChunk) -> list[Claim]:
         claims: list[Claim] = []
         for match in re.finditer(r"\b(20\d{2}-\d{2}-\d{2})\b", chunk.text):
@@ -166,6 +289,26 @@ class MockClaimExtractor:
                     normalized_object=match.group(1),
                     quote=quote,
                     confidence=0.9,
+                    extractor_version=self.extractor_version,
+                    prompt_version=self.prompt_version,
+                )
+            )
+        for match in re.finditer(r"\b(\d{1,2})\.(\d{1,2})\.(20\d{2})\b", chunk.text):
+            context = chunk.text[max(0, match.start() - 60) : match.end() + 60].lower()
+            subject = (
+                "qa_signature_date"
+                if "signatur" in context or "gepr" in context
+                else "date_or_deadline"
+            )
+            claims.append(
+                _claim(
+                    chunk=chunk,
+                    claim_type=ClaimType.DATE_OR_DEADLINE,
+                    normalized_subject=subject,
+                    normalized_predicate="states_date",
+                    normalized_object=_german_date_to_iso(match.group(0)),
+                    quote=match.group(0),
+                    confidence=0.85,
                     extractor_version=self.extractor_version,
                     prompt_version=self.prompt_version,
                 )
@@ -486,6 +629,15 @@ def _sentence_containing(*, text: str, start: int, end: int) -> str:
     else:
         sentence_end += 1
     return text[sentence_start:sentence_end].strip()
+
+
+def _german_date_to_iso(value: str) -> str:
+    day, month, year = value.split(".")
+    return f"{year}-{int(month):02d}-{int(day):02d}"
+
+
+def _decimal_comma_to_dot(value: str) -> str:
+    return value.replace(",", ".")
 
 
 def _validate_claims_against_chunks(
