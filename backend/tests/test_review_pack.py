@@ -70,12 +70,53 @@ def test_review_pack_contains_evidence_model_positions_and_verifier_status() -> 
     assert pack.top_risks[0].found_by_agents == ["primary-reviewer"]
     assert pack.top_risks[0].contradicted_by_agents == ["FalseClearanceChallenger"]
     assert pack.top_risks[0].no_issue_agents == ["RegulatoryConsistencyReviewer"]
-    assert pack.top_risks[0].verifier_status == "weak"
+    assert pack.top_risks[0].verifier_status == "strong"
     assert "human review" in pack.top_risks[0].human_review_reason.lower()
     assert pack.top_risks[0].review_status == "open"
     assert pack.top_risks[0].review_decision_count == 0
     assert pack.top_risks[0].latest_review_decision is None
     assert pack.verifier_results[0].finding_id == "finding_pack_high"
+
+
+def test_review_pack_publishes_one_root_risk_with_supporting_model_signals() -> None:
+    supporting = _finding().model_copy(
+        update={
+            "finding_id": "finding_pack_secondary",
+            "risk_statement": "Threshold change may still require a validation bridge.",
+            "evidence_support": "weak",
+            "missing_information": ["current validation addendum"],
+            "verification_result": FindingVerificationResult(
+                finding_id="finding_pack_secondary",
+                evidence_support="weak",
+                quote_exists=True,
+                quote_matches_chunk=True,
+                requirement_applicable=True,
+                unsupported_claims=[],
+                missing_evidence=["current validation addendum"],
+                verifier_rationale="Additional signal needs validation evidence.",
+                verifier_model_run_id=None,
+                deterministic_checks_passed=False,
+            ),
+        }
+    )
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[_finding(), supporting],
+    )
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert pack.raw_finding_count == 2
+    assert pack.total_finding_count == 1
+    assert [risk.finding_id for risk in pack.top_risks] == ["finding_pack_high"]
+    assert pack.top_risks[0].supporting_finding_ids == ["finding_pack_secondary"]
+    assert pack.top_risks[0].supporting_signals[0].finding_id == "finding_pack_secondary"
+    assert "QA-Prüfung erforderlich" in pack.decision_summary
 
 
 def test_review_pack_includes_reviewer_actions_and_audit_references() -> None:
@@ -92,10 +133,9 @@ def test_review_pack_includes_reviewer_actions_and_audit_references() -> None:
         "confirm",
         "downgrade",
         "reject_false_positive",
-        "request_more_information",
         "escalate_to_qa",
     }
-    assert "current validation addendum" in pack.missing_information
+    assert pack.missing_information == []
     assert any(reference.startswith("audit_") for reference in pack.audit_references)
 
 
@@ -318,26 +358,26 @@ def _finding() -> RiskFinding:
             }
         ],
         requirement_references=["req_pack_threshold_validation"],
-        missing_information=["current validation addendum"],
+        missing_information=[],
         model_provider="mock",
         model_name="primary-reviewer",
         model_version="0.1.0",
         prompt_version="test-review-v0.1",
-        evidence_support="weak",
+        evidence_support="strong",
         recommended_action="Route to QA reviewer.",
         auto_close_allowed=False,
         status="needs_human_review",
         verification_result=FindingVerificationResult(
             finding_id="finding_pack_high",
-            evidence_support="weak",
+            evidence_support="strong",
             quote_exists=True,
             quote_matches_chunk=True,
             requirement_applicable=True,
             unsupported_claims=[],
-            missing_evidence=["current validation addendum"],
-            verifier_rationale="Quote exists, but current validation evidence is missing.",
+            missing_evidence=[],
+            verifier_rationale="Quote and requirement are verified.",
             verifier_model_run_id=None,
-            deterministic_checks_passed=False,
+            deterministic_checks_passed=True,
         ),
     )
 

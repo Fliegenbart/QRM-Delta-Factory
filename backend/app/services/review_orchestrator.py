@@ -114,13 +114,15 @@ OUTPUT_LANGUAGE_DIRECTIVE = (
 # guarantees valid JSON, but not the semantic distinction between the two
 # evidence enums used by ReviewerAgentOutput.
 REVIEWER_OUTPUT_CONTRACT = (
-    "STRUCTURED OUTPUT CONTRACT: For every finding, copy at least one "
+    "STRUCTURED OUTPUT CONTRACT: Treat every model finding as a candidate finding; "
+    "the deterministic verifier and root-finding publisher decide whether it is shown "
+    "to QA. For every candidate finding, copy at least one "
     "requirement_id exactly from the supplied requirements. "
     "Every finding must contain at least one evidence_item with a document quote. "
     "Each evidence_item support_type must be exactly one of: supports, "
     "contradicts, contextual. Use strong, partial, weak, or none only for "
-    "evidence_support, never for evidence_item support_type. If no supplied "
-    "requirement applies, do not create a finding; explain the scope in "
+    "evidence_support, never for evidence_item support_type. If evidence or requirement "
+    "support is missing, do not create a finding; explain the scope in "
     "coverage_summary."
 )
 

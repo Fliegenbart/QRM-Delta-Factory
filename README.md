@@ -39,6 +39,12 @@ The previous simple ensemble-analysis direction is retired. The new process is:
 6. conservatively aggregate risk without model-majority voting
 7. generate draft Review Packs for qualified QA/Regulatory human review
 
+Mehrere Modellanbieter sind dabei keine Abstimmung über die Wahrheit: Sie liefern
+unabhängige Kandidaten. Ein deterministischer Verifikations- und Red-Team-Schritt
+prüft Quellen, Anforderungen und Widersprüche; erst danach wird pro Risikocluster
+ein belegtes Kernrisiko für QA veröffentlicht. Fehlgeschlagene Modellläufe bleiben
+als technische Abdeckung sichtbar und werden nicht als fachlicher Befund ausgegeben.
+
 The initial backend lives in `backend/`. It uses Python 3.12, FastAPI, Pydantic v2 settings, pytest, ruff, mypy, Docker Compose, PostgreSQL, and Redis. It does not use real API keys.
 
 ## Important limits

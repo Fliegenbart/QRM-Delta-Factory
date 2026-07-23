@@ -27,6 +27,14 @@ class ReviewPackEvidenceQuote(StrictSchema):
     support_type: str = Field(min_length=1)
 
 
+class ReviewPackSupportingSignal(StrictSchema):
+    finding_id: FindingId
+    risk_statement: str = Field(min_length=1)
+    severity: Severity
+    evidence_quotes: list[ReviewPackEvidenceQuote] = Field(default_factory=list)
+    verifier_status: str = Field(min_length=1)
+
+
 class ReviewPackTopRisk(StrictSchema):
     finding_id: FindingId
     risk_statement: str = Field(min_length=1)
@@ -43,6 +51,9 @@ class ReviewPackTopRisk(StrictSchema):
     review_decision_count: int = Field(default=0, ge=0)
     latest_review_decision: ReviewDecisionValue | None = None
     latest_reviewed_at: datetime | None = None
+    supporting_finding_ids: list[FindingId] = Field(default_factory=list)
+    supporting_finding_count: int = Field(default=0, ge=0)
+    supporting_signals: list[ReviewPackSupportingSignal] = Field(default_factory=list)
 
 
 class ReviewPackEvidenceRow(StrictSchema):
@@ -74,6 +85,9 @@ class ReviewPack(StrictSchema):
     document_set_id: DocumentSetId
     decision: RiskDecision
     summary: str = Field(min_length=1)
+    decision_summary: str = Field(min_length=1)
+    operational_warnings: list[str] = Field(default_factory=list)
+    raw_finding_count: int = Field(default=0, ge=0)
     review_progress_percent: int = Field(default=0, ge=0, le=100)
     reviewed_finding_count: int = Field(default=0, ge=0)
     total_finding_count: int = Field(default=0, ge=0)

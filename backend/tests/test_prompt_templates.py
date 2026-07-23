@@ -11,7 +11,11 @@ from app.agents.prompt_templates import (
 )
 from app.audit.events import audit_log
 from app.db.in_memory import repository
-from app.services.review_orchestrator import PrimaryReviewOrchestrator, default_reviewer_agents
+from app.services.review_orchestrator import (
+    REVIEWER_OUTPUT_CONTRACT,
+    PrimaryReviewOrchestrator,
+    default_reviewer_agents,
+)
 from tests.test_primary_review_orchestrator import _claims, _document_set, _requirement_set
 
 PROMPT_DIR = Path(__file__).resolve().parents[1] / "app" / "agents" / "prompts"
@@ -62,6 +66,13 @@ def test_each_reviewer_prompt_uses_specialized_pharma_risk_reviewer_contract() -
         template = loader.load(file_name)
         for phrase in required_contract_phrases:
             assert phrase in template.content
+
+
+def test_primary_review_contract_marks_model_output_as_candidates_for_deterministic_publication(
+) -> None:
+    assert "candidate finding" in REVIEWER_OUTPUT_CONTRACT.lower()
+    assert "do not create a finding" in REVIEWER_OUTPUT_CONTRACT.lower()
+    assert "evidence or requirement support is missing" in REVIEWER_OUTPUT_CONTRACT.lower()
 
 
 def test_missing_prompt_template_fails_cleanly(tmp_path: Path) -> None:

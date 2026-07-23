@@ -670,6 +670,13 @@ export type ReviewPackTopRisk = {
   latest_reviewed_at?: string | null;
   supporting_finding_ids?: string[];
   supporting_finding_count?: number;
+  supporting_signals?: Array<{
+    finding_id: string;
+    risk_statement: string;
+    severity: string;
+    evidence_quotes: EvidenceQuote[];
+    verifier_status: string;
+  }>;
 };
 
 export type ReviewPackEvidenceRow = {

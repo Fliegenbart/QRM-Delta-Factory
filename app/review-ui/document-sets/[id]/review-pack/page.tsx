@@ -118,6 +118,25 @@ export default async function ReviewPackPage({ params }: PageProps) {
                         <div className="mt-3 text-xs text-[var(--text-tertiary)]">
                           {consultantReviewCopy.pack.requirement}: {risk.requirement_references.join(", ") || consultantReviewCopy.pack.notLinked}
                         </div>
+                        {risk.supporting_signals && risk.supporting_signals.length > 0 ? (
+                          <details className="mt-3 text-sm text-[var(--text-secondary)]">
+                            <summary className="cursor-pointer font-medium text-[var(--brand)]">
+                              {risk.supporting_signals.length} unterstützende{risk.supporting_signals.length === 1 ? "s Signal" : " Signale"} anzeigen
+                            </summary>
+                            <ul className="mt-2 space-y-2 border-l border-[var(--border-default)] pl-3">
+                              {risk.supporting_signals.map((signal) => (
+                                <li key={signal.finding_id}>
+                                  <p>{displayRiskStatement(signal.risk_statement)}</p>
+                                  {signal.evidence_quotes[0] ? (
+                                    <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                                      Quelle, Seite {signal.evidence_quotes[0].page}: {signal.evidence_quotes[0].quote}
+                                    </p>
+                                  ) : null}
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        ) : null}
                       </div>
                       <Link
                         className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-center text-sm font-semibold text-[var(--brand)] hover:border-[var(--brand)] hover:bg-[var(--brand-soft)]"

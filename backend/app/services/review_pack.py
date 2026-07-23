@@ -22,8 +22,10 @@ from app.schemas.review_pack import (
     ReviewPack,
     ReviewPackEvidenceQuote,
     ReviewPackEvidenceRow,
+    ReviewPackSupportingSignal,
     ReviewPackTopRisk,
 )
+from app.schemas.risk import RiskDecision
 from app.services.review_calibration import ReviewCalibrationService
 
 
@@ -60,7 +62,8 @@ class ReviewPackService:
                 "Review pack requires a generated RiskDecision"
             )
 
-        findings = _findings_for_pack(self.repository, document_set_id)
+        raw_findings = _findings_for_pack(self.repository, document_set_id)
+        findings = _published_findings_for_pack(raw_findings, decision.published_finding_ids)
         review_decisions_by_finding = {
             finding.finding_id: self.repository.list_review_decisions(finding.finding_id)
             for finding in findings
@@ -71,6 +74,11 @@ class ReviewPackService:
         )
         challenges = self.repository.list_adversarial_challenges(document_set_id)
         coverage_summaries = self.repository.list_coverage_summaries(document_set_id)
+        raw_findings_by_id = {finding.finding_id: finding for finding in raw_findings}
+        supporting_findings_by_root = _supporting_findings_by_root(
+            decision=decision,
+            findings_by_id=raw_findings_by_id,
+        )
         top_risks = [
             _top_risk(
                 finding=finding,
@@ -78,6 +86,7 @@ class ReviewPackService:
                 challenges=challenges,
                 coverage_summaries=coverage_summaries,
                 decision_reasons=decision.required_human_review_reasons,
+                supporting_findings=supporting_findings_by_root.get(finding.finding_id, []),
             )
             for finding in _sort_findings(findings)
         ]
@@ -100,11 +109,11 @@ class ReviewPackService:
             if finding.verification_result is not None
         ]
         missing_information = _missing_information(
-            findings=findings,
+            findings=raw_findings,
             decision_blockers=decision.auto_clear_blockers,
         )
         recommended_actions = _recommended_actions(
-            findings=findings,
+            findings=raw_findings,
             missing_information=missing_information,
             human_review_required=bool(decision.required_human_review_reasons),
         )
@@ -119,6 +128,9 @@ class ReviewPackService:
                 ood_reason_count=len(decision.ood_reasons),
                 coverage_gap_count=len(decision.coverage_gap_reasons),
             ),
+            decision_summary=_decision_summary(decision=decision, findings=findings),
+            operational_warnings=_operational_warnings(decision=decision),
+            raw_finding_count=len(raw_findings),
             review_progress_percent=review_progress["percent"],
             reviewed_finding_count=review_progress["reviewed"],
             total_finding_count=review_progress["total"],
@@ -217,6 +229,41 @@ def _findings_for_pack(
     return repository.list_risk_findings(document_set_id)
 
 
+def _published_findings_for_pack(
+    findings: Sequence[RiskFinding],
+    published_finding_ids: Sequence[str],
+) -> list[RiskFinding]:
+    findings_by_id = {finding.finding_id: finding for finding in findings}
+    if published_finding_ids:
+        return [
+            findings_by_id[finding_id]
+            for finding_id in published_finding_ids
+            if finding_id in findings_by_id
+        ]
+    return []
+
+
+def _supporting_findings_by_root(
+    *,
+    decision: RiskDecision,
+    findings_by_id: dict[str, RiskFinding],
+) -> dict[str, list[RiskFinding]]:
+    # FindingCluster is deliberately the source of this mapping: raw model
+    # candidates are never promoted to a separate QA card.
+    clusters = decision.finding_clusters
+    supporting: dict[str, list[RiskFinding]] = {}
+    for cluster in clusters:
+        root_id = cluster.published_finding_id
+        if root_id is None:
+            continue
+        supporting[root_id] = [
+            findings_by_id[finding_id]
+            for finding_id in cluster.finding_ids
+            if finding_id != root_id and finding_id in findings_by_id
+        ]
+    return supporting
+
+
 def _top_risk(
     *,
     finding: RiskFinding,
@@ -224,6 +271,7 @@ def _top_risk(
     challenges: Sequence[AdversarialChallenge],
     coverage_summaries: Sequence[CoverageSummary],
     decision_reasons: Sequence[str],
+    supporting_findings: Sequence[RiskFinding],
 ) -> ReviewPackTopRisk:
     latest_review_decision = _latest_review_decision(review_decisions)
     return ReviewPackTopRisk(
@@ -246,6 +294,20 @@ def _top_risk(
         latest_reviewed_at=(
             latest_review_decision.created_at if latest_review_decision is not None else None
         ),
+        supporting_finding_ids=[finding.finding_id for finding in supporting_findings],
+        supporting_finding_count=len(supporting_findings),
+        supporting_signals=[
+            ReviewPackSupportingSignal(
+                finding_id=supporting.finding_id,
+                risk_statement=supporting.risk_statement,
+                severity=supporting.severity,
+                evidence_quotes=[
+                    _evidence_quote(evidence) for evidence in supporting.evidence_items
+                ],
+                verifier_status=_verifier_status(supporting),
+            )
+            for supporting in _sort_findings(supporting_findings)
+        ],
     )
 
 
@@ -478,6 +540,38 @@ def _summary(
         f"max severity {max_severity}, {blocker_count} auto-clear blocker(s), "
         f"and {ood_reason_count + coverage_gap_count} OOD/Coverage reason(s)."
     )
+
+
+def _decision_summary(*, decision: RiskDecision, findings: Sequence[RiskFinding]) -> str:
+    decision_class = str(decision.decision)
+    if decision_class == "human_review_required":
+        return (
+            f"QA-Prüfung erforderlich: {len(findings)} Kernrisiko"
+            f"{'n' if len(findings) != 1 else ''} vor einer Freigabe bewerten."
+        )
+    if decision_class == "needs_more_information":
+        return "Weitere Unterlagen erforderlich, bevor QA eine Freigabe bewerten kann."
+    if decision_class == "blocked_due_to_model_failure":
+        return (
+            "Die technische Prüfung ist unvollständig; "
+            "eine fachliche Freigabe ist nicht möglich."
+        )
+    if decision_class == "auto_clear_candidate":
+        return (
+            "Keine veröffentlichten Kernrisiken; "
+            "QA-Freigabe bleibt nachvollziehbar zu dokumentieren."
+        )
+    return "Der Prüffall benötigt eine menschliche QA-Bewertung."
+
+
+def _operational_warnings(*, decision: RiskDecision) -> list[str]:
+    warnings: list[str] = []
+    if decision.model_coverage_status != "complete":
+        warnings.append(
+            "Ein technischer Prüfschritt konnte nicht vollständig abgeschlossen werden."
+        )
+    warnings.extend(decision.operational_blockers)
+    return _dedupe_text(warnings)
 
 
 def _audit_references(audit_log: InMemoryAuditLog, document_set_id: str) -> list[str]:
