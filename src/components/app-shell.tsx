@@ -27,6 +27,7 @@ import { aiArchitectureConcept, demoReviewCases, productHomeCopy } from "@/src/l
 import type { RingversuchRun } from "@/src/components/review-ui/ringversuch-dashboard";
 import { deriveLandingProofStats } from "@/src/lib/ringversuch-overview";
 import { CaseCard } from "@/src/components/triage/case-card";
+import { SignOutButton } from "@/src/components/auth/sign-out-button";
 import type { LucideIcon } from "lucide-react";
 
 // Heavy sections load on demand so each route only ships the code it needs.
@@ -174,6 +175,7 @@ export function AppFrame({
             </nav>
           </div>
           <div className="flex items-center gap-2">
+            <SignOutButton />
             <button
               type="button"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
