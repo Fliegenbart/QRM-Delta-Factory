@@ -36,7 +36,7 @@ class FindingSimilarityStrategy(Protocol):
 class DeterministicFindingClusterer:
     def cluster_findings(self, findings: Sequence[RiskFinding]) -> list[FindingCluster]:
         grouped: dict[tuple[str, tuple[str, ...]], list[RiskFinding]] = {}
-        for finding in findings:
+        for finding in sorted(findings, key=lambda item: item.finding_id):
             key = (
                 finding.risk_category,
                 tuple(sorted(finding.requirement_references)),
@@ -46,6 +46,7 @@ class DeterministicFindingClusterer:
         clusters: list[FindingCluster] = []
         for (risk_category, requirement_references), cluster_findings in grouped.items():
             finding_ids = [finding.finding_id for finding in cluster_findings]
+            root_finding = _published_root_finding(cluster_findings)
             cluster_id = _cluster_id(risk_category, list(requirement_references), finding_ids)
             clusters.append(
                 FindingCluster(
@@ -60,6 +61,12 @@ class DeterministicFindingClusterer:
                         "requirement_id",
                         "deterministic evidence overlap",
                     ],
+                    root_finding_id=(
+                        root_finding.finding_id if root_finding is not None else None
+                    ),
+                    published_finding_id=(
+                        root_finding.finding_id if root_finding is not None else None
+                    ),
                 )
             )
         return sorted(clusters, key=lambda cluster: cluster.cluster_id)
@@ -97,6 +104,11 @@ class RiskFusionService:
             self.repository.list_model_runs(document_set_id)
         )
         clusters = self.clusterer.cluster_findings(findings)
+        published_finding_ids = [
+            cluster.published_finding_id
+            for cluster in clusters
+            if cluster.published_finding_id is not None
+        ]
 
         document_quality_score = _document_quality_score(documents)
         ood_result = OODService(repository=self.repository, audit_log=self.audit_log).evaluate(
@@ -123,6 +135,12 @@ class RiskFusionService:
             challenges=challenges,
         )
         failed_model_runs_exist = any(run.status == ModelRunStatus.FAILED for run in model_runs)
+        operational_blockers = _operational_blockers(
+            failed_model_runs_exist=failed_model_runs_exist,
+        )
+        model_coverage_status = _model_coverage_status(
+            failed_model_runs_exist=failed_model_runs_exist,
+        )
         missing_knowledge_pack_ids = _missing_knowledge_pack_ids(model_runs)
         missing_knowledge_packs_exist = bool(missing_knowledge_pack_ids)
         unverified_high_risk_exists = any(
@@ -142,8 +160,7 @@ class RiskFusionService:
             auto_clear_blockers.append("coverage gap blocks auto-clear")
         if coverage_result.high_or_critical_coverage_gap:
             auto_clear_blockers.append("coverage gap for high/critical scope")
-        if failed_model_runs_exist:
-            auto_clear_blockers.append("failed model run affects review coverage")
+        auto_clear_blockers.extend(operational_blockers)
         if missing_knowledge_packs_exist:
             auto_clear_blockers.append("required knowledge pack was not retrieved")
         if unverified_high_risk_exists:
@@ -192,6 +209,10 @@ class RiskFusionService:
             findings=findings,
             challenges=challenges,
             credible_high_or_critical_exists=credible_high_or_critical_exists,
+            reviewable_findings_exist=_reviewable_findings_exist(
+                findings=findings,
+                published_finding_ids=published_finding_ids,
+            ),
             model_disagreement_score=model_disagreement_score,
         )
         auto_clear_allowed = (
@@ -212,8 +233,11 @@ class RiskFusionService:
             coverage_gap_reasons=coverage_result.gap_reasons,
             auto_clear_allowed=auto_clear_allowed,
             auto_clear_blockers=_dedupe_text(auto_clear_blockers),
+            operational_blockers=operational_blockers,
+            model_coverage_status=model_coverage_status,
             required_human_review_reasons=_dedupe_text(required_human_review_reasons),
             finding_clusters=clusters,
+            published_finding_ids=published_finding_ids,
             generated_at=datetime.now(UTC),
             policy_version=self.policy_version,
         )
@@ -229,6 +253,9 @@ class RiskFusionService:
             "cluster_count": len(clusters),
             "auto_clear_allowed": decision.auto_clear_allowed,
             "auto_clear_blockers": decision.auto_clear_blockers,
+            "operational_blockers": decision.operational_blockers,
+            "model_coverage_status": decision.model_coverage_status,
+            "published_finding_ids": decision.published_finding_ids,
             "missing_knowledge_pack_ids": missing_knowledge_pack_ids,
             "ood_score": decision.ood_score,
             "ood_reasons": decision.ood_reasons,
@@ -270,12 +297,15 @@ def _select_decision(
     findings: Sequence[RiskFinding],
     challenges: Sequence[AdversarialChallenge],
     credible_high_or_critical_exists: bool,
+    reviewable_findings_exist: bool,
     model_disagreement_score: float,
 ) -> RiskDecisionClass:
     if document_quality_score < document_quality_threshold:
         return RiskDecisionClass.INSUFFICIENT_DOCUMENT_QUALITY
     if ood_score >= 1:
         return RiskDecisionClass.OUT_OF_SCOPE
+    if reviewable_findings_exist:
+        return RiskDecisionClass.HUMAN_REVIEW_REQUIRED
     if failed_model_runs_exist:
         return RiskDecisionClass.BLOCKED_DUE_TO_MODEL_FAILURE
     if missing_knowledge_packs_exist:
@@ -341,6 +371,48 @@ def _high_or_critical_is_unverified(finding: RiskFinding) -> bool:
     if finding.verification_result is None:
         return False
     return not finding.verification_result.deterministic_checks_passed
+
+
+def _published_root_finding(findings: Sequence[RiskFinding]) -> RiskFinding | None:
+    eligible_findings = [finding for finding in findings if _is_publishable(finding)]
+    if not eligible_findings:
+        return None
+    return min(
+        eligible_findings,
+        key=lambda finding: (-_severity_rank(finding.severity), finding.finding_id),
+    )
+
+
+def _is_publishable(finding: RiskFinding) -> bool:
+    if finding.evidence_support != EvidenceSupport.STRONG or finding.missing_information:
+        return False
+    return (
+        finding.verification_result is None
+        or finding.verification_result.deterministic_checks_passed
+    )
+
+
+def _reviewable_findings_exist(
+    *,
+    findings: Sequence[RiskFinding],
+    published_finding_ids: Sequence[str],
+) -> bool:
+    findings_by_id = {finding.finding_id: finding for finding in findings}
+    return any(
+        not findings_by_id[finding_id].auto_close_allowed
+        for finding_id in published_finding_ids
+        if finding_id in findings_by_id
+    )
+
+
+def _operational_blockers(*, failed_model_runs_exist: bool) -> list[str]:
+    if failed_model_runs_exist:
+        return ["failed model run affects review coverage"]
+    return []
+
+
+def _model_coverage_status(*, failed_model_runs_exist: bool) -> str:
+    return "incomplete" if failed_model_runs_exist else "complete"
 
 
 def _model_disagreement_score(
@@ -440,7 +512,7 @@ def _dedupe_findings(findings: Sequence[RiskFinding]) -> list[RiskFinding]:
     deduped: dict[str, RiskFinding] = {}
     for finding in findings:
         deduped[finding.finding_id] = finding
-    return list(deduped.values())
+    return [deduped[finding_id] for finding_id in sorted(deduped)]
 
 
 def _dedupe_text(items: Sequence[str]) -> list[str]:

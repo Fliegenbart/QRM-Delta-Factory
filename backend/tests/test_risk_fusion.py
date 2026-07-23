@@ -166,6 +166,29 @@ def test_failed_model_run_blocks_auto_clear_when_review_coverage_is_affected() -
 
     assert decision.decision == "blocked_due_to_model_failure"
     assert "failed model run affects review coverage" in decision.auto_clear_blockers
+    assert decision.operational_blockers == ["failed model run affects review coverage"]
+    assert decision.model_coverage_status == "incomplete"
+
+
+def test_reviewable_finding_keeps_human_review_decision_when_model_coverage_fails() -> None:
+    _setup_document_context()
+    repository.replace_risk_findings(
+        document_set_id="ds_fusion_demo",
+        findings=[_finding("finding_reviewable", severity="high")],
+    )
+    repository.add_model_run(
+        document_set_id="ds_fusion_demo",
+        model_run=_model_run(status="failed"),
+    )
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    assert decision.decision == "human_review_required"
+    assert decision.auto_clear_allowed is False
+    assert "failed model run affects review coverage" in decision.operational_blockers
+    assert decision.model_coverage_status == "incomplete"
 
 
 def test_successful_rerun_replaces_a_prior_failure_for_the_same_reviewer_coverage() -> None:
@@ -269,6 +292,71 @@ def test_finding_clustering_groups_related_findings_without_majority_vote() -> N
         "finding_same_cluster_a",
         "finding_same_cluster_b",
     }
+
+
+def test_canonical_root_is_deterministic_and_publishes_only_the_root_finding() -> None:
+    _setup_document_context()
+    repository.replace_risk_findings(
+        document_set_id="ds_fusion_demo",
+        findings=[
+            _finding(
+                "finding_same_cluster_medium",
+                severity="medium",
+                risk_category="data_integrity",
+                requirement_references=["req_fusion_data_integrity"],
+            ),
+            _finding(
+                "finding_same_cluster_high",
+                severity="high",
+                risk_category="data_integrity",
+                requirement_references=["req_fusion_data_integrity"],
+                model_name="second-reviewer",
+            ),
+        ],
+    )
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    cluster = decision.finding_clusters[0]
+    assert cluster.root_finding_id == "finding_same_cluster_high"
+    assert cluster.published_finding_id == "finding_same_cluster_high"
+    assert decision.published_finding_ids == ["finding_same_cluster_high"]
+    assert set(cluster.finding_ids) == {
+        "finding_same_cluster_medium",
+        "finding_same_cluster_high",
+    }
+
+
+def test_publishing_gate_preserves_weak_raw_finding_without_publishing_it() -> None:
+    _setup_document_context()
+    repository.replace_risk_findings(
+        document_set_id="ds_fusion_demo",
+        findings=[
+            _finding(
+                "finding_high_weak_raw",
+                severity="high",
+                evidence_support="weak",
+                verification_result=_verification(
+                    finding_id="finding_high_weak_raw",
+                    evidence_support="weak",
+                    deterministic_checks_passed=False,
+                ),
+            )
+        ],
+    )
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    cluster = decision.finding_clusters[0]
+    assert cluster.root_finding_id is None
+    assert cluster.published_finding_id is None
+    assert cluster.finding_ids == ["finding_high_weak_raw"]
+    assert decision.published_finding_ids == []
+    assert decision.auto_clear_allowed is False
 
 
 def test_risk_decision_is_persisted_and_audited_with_policy_version() -> None:

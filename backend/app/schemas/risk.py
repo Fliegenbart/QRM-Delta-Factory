@@ -26,6 +26,8 @@ class FindingCluster(StrictSchema):
     max_severity: Severity
     evidence_overlap_score: float = Field(ge=0, le=1)
     similarity_basis: list[str] = Field(default_factory=list)
+    root_finding_id: FindingId | None = None
+    published_finding_id: FindingId | None = None
 
 
 class RiskDecision(StrictSchema):
@@ -41,7 +43,10 @@ class RiskDecision(StrictSchema):
     coverage_gap_reasons: list[str] = Field(default_factory=list)
     auto_clear_allowed: bool
     auto_clear_blockers: list[str] = Field(default_factory=list)
+    operational_blockers: list[str] = Field(default_factory=list)
+    model_coverage_status: str = Field(default="complete", min_length=1)
     required_human_review_reasons: list[str] = Field(default_factory=list)
     finding_clusters: list[FindingCluster] = Field(default_factory=list)
+    published_finding_ids: list[FindingId] = Field(default_factory=list)
     generated_at: datetime
     policy_version: str = Field(min_length=1)

@@ -166,6 +166,8 @@ def test_model_run_failure_in_pipeline_does_not_allow_auto_clear() -> None:
     assert decision.auto_clear_allowed is False
     assert decision.decision == "blocked_due_to_model_failure"
     assert "failed model run affects review coverage" in decision.auto_clear_blockers
+    assert "failed model run affects review coverage" in decision.operational_blockers
+    assert decision.model_coverage_status == "incomplete"
     document_set = repository.get_document_set("ds_pipeline_failure")
     assert document_set is not None
     assert document_set.status == "needs_human_review"
