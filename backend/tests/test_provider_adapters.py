@@ -574,6 +574,9 @@ def test_mistral_provider_runs_structured_call_with_mocked_http(
         assert "mistral.ai" in url
         assert headers["Authorization"] == "Bearer test-mistral-key"
         assert json_body["model"] == "mistral-test"
+        assert json_body["response_format"]["type"] == "json_schema"
+        assert json_body["response_format"]["json_schema"]["name"] == "simpleoutput"
+        assert json_body["response_format"]["json_schema"]["schema"]["type"] == "object"
         return {
             "choices": [{"message": {"content": '{"value": "ok-mistral"}'}}],
             "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},

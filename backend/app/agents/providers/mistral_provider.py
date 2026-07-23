@@ -43,7 +43,13 @@ class MistralProvider(ExternalProviderBase):
             "model": self.configured_model_id,
             "temperature": 0,
             "max_tokens": get_settings().model_provider_max_output_tokens,
-            "response_format": {"type": "json_object"},
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": output_schema.__name__.lower(),
+                    "schema": output_schema.model_json_schema(),
+                },
+            },
             "messages": [
                 {
                     "role": "system",
