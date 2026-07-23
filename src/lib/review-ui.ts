@@ -668,6 +668,8 @@ export type ReviewPackTopRisk = {
   review_decision_count?: number;
   latest_review_decision?: ReviewDecisionValue | null;
   latest_reviewed_at?: string | null;
+  supporting_finding_ids?: string[];
+  supporting_finding_count?: number;
 };
 
 export type ReviewPackEvidenceRow = {
@@ -702,8 +704,13 @@ export type ReviewPack = {
     auto_clear_allowed?: boolean;
     auto_clear_blockers?: string[];
     required_human_review_reasons?: string[];
+    operational_blockers?: string[];
+    model_coverage_status?: string;
   };
   summary: string;
+  decision_summary?: string;
+  operational_warnings?: string[];
+  raw_finding_count?: number;
   review_progress_percent?: number;
   reviewed_finding_count?: number;
   total_finding_count?: number;
@@ -890,6 +897,51 @@ export function displayReviewPackSummary(input: {
   }
 
   return `${parts.join(". ")}.`;
+}
+
+export type ReviewPackRiskPresentation = {
+  summary: string;
+  rootRisks: ReviewPackTopRisk[];
+  supportingFindingCount: number;
+  operationalWarnings: string[];
+  modelCoverageStatus?: string;
+};
+
+export function reviewPackRiskPresentation(
+  input: Pick<
+    ReviewPack,
+    "decision" | "decision_summary" | "operational_warnings" | "raw_finding_count" | "top_risks"
+  >
+): ReviewPackRiskPresentation {
+  const supportingIds = new Set(
+    input.top_risks.flatMap((risk) => risk.supporting_finding_ids ?? [])
+  );
+  const rootRisks = input.top_risks.filter((risk) => !supportingIds.has(risk.finding_id));
+  const rootRiskCount = rootRisks.length;
+  const supportingById = supportingIds.size;
+  const supportingByCount = rootRisks.reduce(
+    (total, risk) => total + Math.max(0, risk.supporting_finding_count ?? 0),
+    0
+  );
+  const supportingByRawCount = Math.max(0, (input.raw_finding_count ?? 0) - rootRiskCount);
+
+  return {
+    summary:
+      input.decision_summary?.trim() || `${displayReviewValue(input.decision.decision)}.`,
+    rootRisks,
+    supportingFindingCount: Math.max(supportingById, supportingByCount, supportingByRawCount),
+    operationalWarnings: uniqueReviewMessages([
+      ...(input.operational_warnings ?? []),
+      ...(input.decision.operational_blockers ?? [])
+    ]),
+    modelCoverageStatus: input.decision.model_coverage_status
+      ? displayReviewValue(input.decision.model_coverage_status)
+      : undefined
+  };
+}
+
+function uniqueReviewMessages(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
 }
 
 export function reviewPackProgress(input: ReviewPackProgressInput): {

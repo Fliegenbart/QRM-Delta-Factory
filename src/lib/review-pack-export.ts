@@ -1,4 +1,10 @@
-import type { ReviewPack } from "@/src/lib/review-ui";
+import {
+  displayReviewReason,
+  displayReviewValue,
+  displayRiskStatement,
+  reviewPackRiskPresentation,
+  type ReviewPack
+} from "@/src/lib/review-ui";
 
 type ExportFormat = "pdf" | "csv";
 
@@ -37,29 +43,39 @@ export function buildReviewPackCsv(pack: ReviewPack): string {
 
 export function createReviewPackPdf(pack: ReviewPack): Blob {
   const pages = new PdfPageBuilder();
-  pages.heading("Pruefmappe");
+  const presentation = reviewPackRiskPresentation(pack);
+  pages.heading("Prüfmappe");
   pages.text(`Fall: ${pack.document_set_id}`);
-  pages.text(`Entscheidung: ${pack.decision.decision}`);
-  pages.text(`Hoechste Einstufung: ${pack.decision.max_severity ?? "nicht angegeben"}`);
   pages.text(`Erstellt: ${new Date().toLocaleDateString("de-DE")}`);
   pages.spacer();
-  pages.heading("Zusammenfassung", 13);
-  pages.paragraph(pack.summary || "Keine Zusammenfassung vorhanden.");
+  pages.heading("QA-Entscheidung", 13);
+  pages.paragraph(presentation.summary || pack.summary || "Keine Zusammenfassung vorhanden.");
 
-  pages.heading("Pruefpunkte", 13);
-  if (pack.top_risks.length === 0) {
-    pages.text("Keine Pruefpunkte vorhanden.");
+  pages.heading("Kernrisiken", 13);
+  if (presentation.rootRisks.length === 0) {
+    pages.text("Keine Kernrisiken vorhanden.");
   }
-  for (const [index, risk] of pack.top_risks.entries()) {
-    pages.subheading(`${index + 1}. ${risk.severity.toUpperCase()} - ${risk.risk_category ?? "Risiko"}`);
-    pages.paragraph(risk.risk_statement);
-    pages.text(`Anforderungen: ${risk.requirement_references.join(", ") || "nicht zugeordnet"}`);
-    pages.text(`Verifikation: ${risk.verifier_status}`);
-    pages.text(`Pruefhinweis: ${risk.human_review_reason || "Menschliche Pruefung erforderlich."}`);
-    for (const evidence of risk.evidence_quotes) {
-      pages.paragraph(`Quelle ${evidence.document_id}, Seite ${evidence.page}: ${evidence.quote}`, 9, 10);
+  for (const [index, risk] of presentation.rootRisks.entries()) {
+    pages.subheading(
+      `${index + 1}. ${displayReviewValue(risk.severity)} – ${displayReviewValue(risk.risk_category ?? "risk")}`
+    );
+    pages.paragraph(displayRiskStatement(risk.risk_statement));
+    const supportingCount = risk.supporting_finding_count ?? risk.supporting_finding_ids?.length ?? 0;
+    if (supportingCount > 0) {
+      pages.text(
+        `${supportingCount} unterstützendes Signal${supportingCount === 1 ? "" : "e"} zugeordnet.`
+      );
     }
+    pages.text(`Für die QA-Prüfung: ${risk.human_review_reason || "Menschliche Prüfung erforderlich."}`);
     pages.spacer(4);
+  }
+
+  if (presentation.operationalWarnings.length > 0 || presentation.modelCoverageStatus) {
+    pages.heading("Technische Hinweise", 13);
+    if (presentation.modelCoverageStatus) {
+      pages.paragraph(`Technische Abdeckung: ${presentation.modelCoverageStatus}`);
+    }
+    presentation.operationalWarnings.forEach((warning) => pages.paragraph(`- ${warning}`));
   }
 
   const reasons = unique([
@@ -70,7 +86,19 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
   ]);
   if (reasons.length > 0) {
     pages.heading("Offene Punkte", 13);
-    reasons.forEach((reason) => pages.paragraph(`- ${reason}`));
+    reasons.forEach((reason) => pages.paragraph(`- ${displayReviewReason(reason)}`));
+  }
+
+  pages.heading("Evidenzanhang", 13);
+  if (pack.evidence_table.length === 0) {
+    pages.text("Keine Evidenzstellen vorhanden.");
+  }
+  for (const evidence of pack.evidence_table) {
+    pages.paragraph(
+      `Quelle ${evidence.document_id}, Seite ${evidence.page}: ${evidence.quote}`,
+      9,
+      0
+    );
   }
 
   return new Blob([new Uint8Array(buildPdf(pages.finish()))], { type: "application/pdf" });

@@ -85,6 +85,42 @@ describe("review pack exports", () => {
     expect(content).toContain("Chargenbewertung");
   });
 
+  it("uses German QA headings, shows each root risk once, and keeps evidence in an appendix", async () => {
+    const pdf = createReviewPackPdf({
+      ...pack,
+      decision: {
+        ...pack.decision
+      },
+      decision_summary: "QA muss die Chargenauswirkung vor der Freigabe bewerten.",
+      raw_finding_count: 2,
+      operational_warnings: ["Ein Prüfschritt konnte technisch nicht vollständig abgedeckt werden."],
+      top_risks: [
+        {
+          ...pack.top_risks[0],
+          supporting_finding_ids: ["finding_support"],
+          supporting_finding_count: 1
+        },
+        {
+          ...pack.top_risks[0],
+          finding_id: "finding_support",
+          risk_statement: "Unterstützendes Teilsignal zur Chargenbewertung.",
+          severity: "medium"
+        }
+      ]
+    });
+    const content = String.fromCharCode(...new Uint8Array(await pdf.arrayBuffer()));
+
+    expect(content).toContain("Prüfmappe");
+    expect(content).toContain("QA-Entscheidung");
+    expect(content).toContain("Kernrisiken");
+    expect(content).toContain("Evidenzanhang");
+    expect(content).toContain("QA muss die Chargenauswirkung vor der Freigabe bewerten.");
+    expect(content).toContain("Technische Hinweise");
+    expect(content).toContain("1 unterstützendes Signal");
+    expect(content.split("Die Chargenbewertung ist nicht belegt.")).toHaveLength(2);
+    expect(content).not.toContain("Unterstützendes Teilsignal zur Chargenbewertung.");
+  });
+
   it("uses a safe, case-specific filename", () => {
     expect(reviewPackExportFileName(pack, "pdf")).toBe("pruefmappe-ds_case_42.pdf");
     expect(reviewPackExportFileName(pack, "csv")).toBe("pruefmappe-ds_case_42-evidenz.csv");

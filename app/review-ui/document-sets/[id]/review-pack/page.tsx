@@ -5,12 +5,12 @@ import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/compone
 import { ReviewPackExportActions } from "@/src/components/review-ui/review-pack-export-actions";
 import {
   consultantReviewCopy,
-  displayReviewPackSummary,
   displayMissingInformationList,
   displayReviewReasons,
   displayRiskStatement,
   displayReviewValue,
   isHiddenDemoDocumentSetId,
+  reviewPackRiskPresentation,
   reviewPackProgress,
   userFacingReviewLoadError
 } from "@/src/lib/review-ui";
@@ -40,6 +40,7 @@ export default async function ReviewPackPage({ params }: PageProps) {
       ...pack.coverage_gap_reasons
     ];
     const progress = reviewPackProgress(pack);
+    const presentation = reviewPackRiskPresentation(pack);
 
     return (
       <ReviewShell>
@@ -59,19 +60,18 @@ export default async function ReviewPackPage({ params }: PageProps) {
                   Kurzantwort
                 </div>
                 <p className="mt-1 text-sm leading-6 text-[var(--text-primary)]">
-                  {displayReviewPackSummary({
-                    decision: pack.decision.decision,
-                    findingCount: pack.top_risks.length,
-                    maxSeverity: pack.decision.max_severity
-                  })}
+                  {presentation.summary}
                 </p>
               </div>
               <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-4 py-3">
                 <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-                  QA-Ziel
+                  Kernrisiken
                 </div>
                 <p className="mt-1 text-sm leading-6 text-[var(--text-primary)]">
-                  Prüfpunkte bearbeiten, Lücken klären, Entscheidung dokumentieren.
+                  {presentation.rootRisks.length} Kernrisiko{presentation.rootRisks.length === 1 ? "" : "en"}
+                  {presentation.supportingFindingCount > 0
+                    ? ` · ${presentation.supportingFindingCount} unterstützende${presentation.supportingFindingCount === 1 ? "s" : ""} Signal${presentation.supportingFindingCount === 1 ? "" : "e"}`
+                    : ""}
                 </p>
               </div>
             </div>
@@ -93,12 +93,12 @@ export default async function ReviewPackPage({ params }: PageProps) {
             </div>
           </ReviewPanel>
 
-          <ReviewPanel title={consultantReviewCopy.pack.findingsTitle}>
-            {pack.top_risks.length === 0 ? (
+          <ReviewPanel title="Kernrisiken">
+            {presentation.rootRisks.length === 0 ? (
               <EmptyState message={consultantReviewCopy.pack.emptyFindings} />
             ) : (
               <div className="space-y-3">
-                {pack.top_risks.map((risk) => (
+                {presentation.rootRisks.map((risk) => (
                   <article key={risk.finding_id} className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
@@ -132,6 +132,22 @@ export default async function ReviewPackPage({ params }: PageProps) {
               </div>
             )}
           </ReviewPanel>
+
+          {presentation.operationalWarnings.length > 0 || presentation.modelCoverageStatus ? (
+            <ReviewPanel title="Technische Hinweise">
+              <p className="text-sm leading-6 text-[var(--text-secondary)]">
+                Diese Hinweise betreffen die technische Abdeckung der Prüfung und ersetzen keine QA-Bewertung.
+              </p>
+              {presentation.modelCoverageStatus ? (
+                <p className="mt-3 text-sm font-medium text-[var(--text-primary)]">
+                  Technische Abdeckung: {presentation.modelCoverageStatus}
+                </p>
+              ) : null}
+              {presentation.operationalWarnings.length > 0 ? (
+                <ReasonList reasons={presentation.operationalWarnings} />
+              ) : null}
+            </ReviewPanel>
+          ) : null}
 
           <div className="grid gap-4 lg:grid-cols-2">
             <ReviewPanel title={consultantReviewCopy.pack.humanReasons}>

@@ -14,6 +14,7 @@ import {
   displayReviewReason,
   displayReviewReasons,
   displayReviewPackSummary,
+  reviewPackRiskPresentation,
   displayRiskStatement,
   displayReviewValue,
   displayFeedbackOutcome,
@@ -215,6 +216,69 @@ describe("review UI helpers", () => {
         maxSeverity: "high"
       })
     ).toBe("Prüfung notwendig. 4 Prüfpunkte gefunden. höchste Einstufung: Hoch.");
+  });
+
+  it("presents a human decision summary with root risks and supporting finding count", () => {
+    const presentation = reviewPackRiskPresentation({
+      decision: {
+        decision: "needs_human_review"
+      },
+      decision_summary: "QA muss die Chargenauswirkung vor der Freigabe bewerten.",
+      top_risks: [
+        {
+          finding_id: "root-risk",
+          risk_statement: "Die Chargenbewertung ist nicht belegt.",
+          severity: "high",
+          requirement_references: [],
+          evidence_quotes: [],
+          found_by_agents: [],
+          contradicted_by_agents: [],
+          no_issue_agents: [],
+          verifier_status: "verified",
+          human_review_reason: "Charge prüfen",
+          supporting_finding_ids: ["support-1", "support-2"],
+          supporting_finding_count: 2
+        },
+        {
+          finding_id: "support-1",
+          risk_statement: "Ein einzelnes Teilsignal stützt die Chargenprüfung.",
+          severity: "medium",
+          requirement_references: [],
+          evidence_quotes: [],
+          found_by_agents: [],
+          contradicted_by_agents: [],
+          no_issue_agents: [],
+          verifier_status: "verified",
+          human_review_reason: ""
+        }
+      ],
+      raw_finding_count: 3
+    });
+
+    expect(presentation.summary).toBe("QA muss die Chargenauswirkung vor der Freigabe bewerten.");
+    expect(presentation.rootRisks.map((risk) => risk.finding_id)).toEqual(["root-risk"]);
+    expect(presentation.supportingFindingCount).toBe(2);
+  });
+
+  it("keeps technical coverage blockers separate from the QA outcome", () => {
+    const presentation = reviewPackRiskPresentation({
+      decision: {
+        decision: "needs_human_review",
+        operational_blockers: ["model coverage incomplete"],
+        model_coverage_status: "partial"
+      },
+      decision_summary: "",
+      top_risks: [],
+      operational_warnings: ["Ein Prüfschritt konnte technisch nicht vollständig abgedeckt werden."],
+      raw_finding_count: 0
+    });
+
+    expect(presentation.summary).toBe("Menschliche Prüfung nötig.");
+    expect(presentation.operationalWarnings).toEqual([
+      "Ein Prüfschritt konnte technisch nicht vollständig abgedeckt werden.",
+      "model coverage incomplete"
+    ]);
+    expect(presentation.modelCoverageStatus).toBe("Teilweise belegt");
   });
 
   it("calculates human review progress for a review pack", () => {
