@@ -425,7 +425,7 @@ class PrimaryReviewOrchestrator:
 
             try:
                 output = run_reviewer()
-            except ValueError:
+            except (ProviderStructuredOutputError, ValueError):
                 # A syntactically structured answer can still violate a strict
                 # evidence or requirement-reference constraint. Retry once with
                 # the same bounded context before recording a coverage failure.

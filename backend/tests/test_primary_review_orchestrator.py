@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from app.agents.providers.base import ProviderStructuredOutputError
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.main import app
@@ -160,6 +161,30 @@ def test_invalid_model_output_is_caught_as_failed_model_run() -> None:
     )
 
 
+def test_transient_structured_output_error_is_retried() -> None:
+    provider = FlakyStructuredOutputProvider()
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id="agent_flaky",
+                role="DeviationReviewer",
+                prompt_version="flaky-v0.1",
+                applicable_risk_categories=["deviation_management"],
+                provider=provider,
+            )
+        ],
+    )
+
+    result = orchestrator.run_primary_review("ds_review_demo")
+
+    assert provider.call_count == 2
+    assert not result.failed_model_runs
+    assert result.model_runs[0].status == "succeeded"
+    assert result.findings
+
+
 def test_no_findings_requires_coverage_summary() -> None:
     agents = [
         ReviewerAgent(
@@ -234,6 +259,31 @@ class MissingCoverageProvider:
         output_schema: type[Any],
     ) -> dict[str, Any]:
         return {"findings": []}
+
+
+class FlakyStructuredOutputProvider:
+    provider_name = "mock"
+    model_name = "flaky-output-model"
+    model_version = "0.1.0"
+    configured_model_id = "flaky-output-model-v0.1"
+
+    def __init__(self) -> None:
+        self.call_count = 0
+        self._delegate = MockModelProvider()
+        self.last_run_metadata = None
+
+    def run_structured(
+        self,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[Any],
+    ) -> dict[str, Any]:
+        self.call_count += 1
+        if self.call_count == 1:
+            raise ProviderStructuredOutputError("transient malformed JSON")
+        output = self._delegate.run_structured(prompt, input_schema, output_schema)
+        self.last_run_metadata = self._delegate.last_run_metadata
+        return output
 
 
 def _document_set() -> DocumentSet:
