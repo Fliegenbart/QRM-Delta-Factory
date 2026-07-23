@@ -107,12 +107,40 @@ damit sie ein künftiges VoxDrop-Deployment nicht entfernt. Falls sie doch
 verloren geht: Zeile wieder einfügen, `nginx -t`, Reload — der Vhost selbst
 bleibt erhalten.
 
-## Vercel-Anbindung
+## Frontend auf `qrm.labpulse.ai`
 
-Environment-Variablen im Vercel-Projekt:
+Das Next.js-Frontend läuft als eigenes Compose-Projekt unter
+`/opt/qrm-delta-frontend` und spricht das Backend nur über das Docker-Host-Gateway
+an. Der Browser erhält weder den Backend-API-Key noch direkten Zugriff auf das
+Backend.
+
+```bash
+cd /opt/qrm-delta-frontend
+git fetch origin codex/pharmaqrm-production
+git checkout --detach origin/codex/pharmaqrm-production
+./ops/deploy-frontend-hetzner.sh
+```
+
+`.env.frontend` bleibt ausschließlich auf dem Server und enthält:
 
 ```
-QRM_BACKEND_URL=https://compliance.labpulse.ai
-QRM_BACKEND_API_KEY=<der Key aus QRM_API_KEYS>
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+QRM_BACKEND_API_KEY=...
 QRM_BACKEND_TENANT_ID=tenant_gruenewald
+```
+
+**Wichtig:** Die beiden `NEXT_PUBLIC_SUPABASE_*` Werte müssen beim Docker-Build
+als Compose-Variablen vorliegen. Deshalb immer das obige Skript verwenden; ein
+bloßes `docker compose ... up --build` übernimmt nur die Runtime-Variablen und
+würde die Login-Konfiguration nicht in das Browser-Bundle einbauen.
+
+Zugriff wird im Frontend aus signierten Supabase-`app_metadata`-Claims abgeleitet.
+Für einen System-Owner sind mindestens diese Werte erforderlich:
+
+```json
+{
+  "qrm_role": "system-owner",
+  "qrm_tenant_id": "tenant_gruenewald"
+}
 ```
