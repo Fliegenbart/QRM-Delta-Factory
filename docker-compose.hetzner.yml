@@ -46,17 +46,15 @@ services:
       QRM_ALLOW_MODEL_LIVE_INTERNET: "false"
       # Mandanten-Auth: "tenant_id=api-key" (kommagetrennt), siehe .env
       QRM_API_KEYS: ${QRM_API_KEYS:?QRM_API_KEYS fehlt in .env}
-      # High-quality live stack: Mistral primary reviewer plus Anthropic critic.
-      # OpenAI is wired below, but keep it out of critic_providers until the
-      # OpenAI project quota/billing returns healthy; otherwise each review
-      # records a failed OpenAI model run and becomes operationally incomplete.
+      # High-quality live stack: Mistral primary reviewer plus Anthropic and
+      # OpenAI critic providers.
       QRM_EXTERNAL_MODEL_CALLS_ENABLED: "true"
       # Keep source indexing deterministic for demo reliability; the primary
       # review and critic layers below still use live model providers.
       QRM_LLM_CLAIM_EXTRACTION_ENABLED: "false"
-      QRM_ALLOWED_MODEL_PROVIDERS: "mistral,anthropic,mock"
+      QRM_ALLOWED_MODEL_PROVIDERS: "mistral,anthropic,openai,mock"
       QRM_REVIEWER_PROVIDER_OVERRIDE: "mistral"
-      QRM_CRITIC_PROVIDERS: "anthropic"
+      QRM_CRITIC_PROVIDERS: "anthropic,openai"
       QRM_MISTRAL_MODEL_ID: "mistral-large-latest"
       QRM_ANTHROPIC_MODEL_ID: "claude-sonnet-4-6"
       QRM_OPENAI_MODEL_ID: "gpt-5.4"
