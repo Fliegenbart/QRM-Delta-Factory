@@ -378,6 +378,50 @@ def test_anthropic_provider_runs_structured_call_with_mocked_http(
     assert provider.last_run_metadata.token_usage.total_tokens == 18
 
 
+def test_anthropic_provider_extracts_structured_output_from_forced_tool_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
+    monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-anthropic-key")
+    get_settings.cache_clear()
+    provider = AnthropicProvider(configured_model_id="claude-test")
+
+    def fake_post_json(
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, Any],
+    ) -> dict[str, Any]:
+        del url, headers
+        assert json_body["tool_choice"] == {
+            "type": "tool",
+            "name": "submit_structured_output",
+        }
+        assert json_body["tools"] == [
+            {
+                "name": "submit_structured_output",
+                "description": "Submit the final structured review output.",
+                "input_schema": SimpleOutput.model_json_schema(),
+            }
+        ]
+        return {
+            "content": [
+                {
+                    "type": "tool_use",
+                    "name": "submit_structured_output",
+                    "input": {"value": "ok-anthropic-tool"},
+                }
+            ]
+        }
+
+    monkeypatch.setattr(provider, "_post_json", fake_post_json)
+
+    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert output == {"value": "ok-anthropic-tool"}
+
+
 def test_gemini_provider_runs_structured_call_with_mocked_http(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

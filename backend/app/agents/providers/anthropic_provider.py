@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from app.agents.providers.base import ProviderRuntimeOptions
 from app.agents.providers.external_base import ExternalProviderBase
 
+STRUCTURED_OUTPUT_TOOL_NAME = "submit_structured_output"
+
 
 class AnthropicProvider(ExternalProviderBase):
     api_key_env_var = "QRM_ANTHROPIC_API_KEY"
@@ -56,6 +58,17 @@ class AnthropicProvider(ExternalProviderBase):
                     ),
                 }
             ],
+            "tools": [
+                {
+                    "name": STRUCTURED_OUTPUT_TOOL_NAME,
+                    "description": "Submit the final structured review output.",
+                    "input_schema": output_schema.model_json_schema(),
+                }
+            ],
+            "tool_choice": {
+                "type": "tool",
+                "name": STRUCTURED_OUTPUT_TOOL_NAME,
+            },
         }
         response = self._post_json(
             url=self.endpoint,
@@ -66,7 +79,9 @@ class AnthropicProvider(ExternalProviderBase):
             },
             json_body=payload,
         )
-        output = self._parse_json_object_from_text(_anthropic_text(response))
+        output = _anthropic_tool_input(response) or self._parse_json_object_from_text(
+            _anthropic_text(response)
+        )
         usage = response.get("usage")
         if isinstance(usage, dict):
             input_tokens = int(usage.get("input_tokens", 0) or 0)
@@ -89,3 +104,18 @@ def _anthropic_text(response: dict[str, Any]) -> str:
         if isinstance(block, dict) and block.get("type") == "text"
     ]
     return "\n".join(text for text in texts if text)
+
+
+def _anthropic_tool_input(response: dict[str, Any]) -> dict[str, Any] | None:
+    content_blocks = response.get("content", [])
+    if not isinstance(content_blocks, list):
+        return None
+    for block in content_blocks:
+        if (
+            isinstance(block, dict)
+            and block.get("type") == "tool_use"
+            and block.get("name") == STRUCTURED_OUTPUT_TOOL_NAME
+            and isinstance(block.get("input"), dict)
+        ):
+            return dict(block["input"])
+    return None
