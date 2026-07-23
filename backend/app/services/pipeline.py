@@ -431,7 +431,9 @@ class PipelineService:
                 status=str(model_run.status),
                 model_run_id=model_run.model_run_id,
             )
-            for model_run in self.repository.list_model_runs(document_set_id)
+            for model_run in _latest_model_runs_by_agent(
+                self.repository.list_model_runs(document_set_id)
+            )
         ]
 
     def _evidence_verification(self, document_set_id: str) -> dict[str, Any]:
@@ -504,15 +506,14 @@ class PipelineService:
         document_set_id: str,
         risk_decision: RiskDecision | None,
     ) -> PipelineRunStatus:
-        document_set = self._document_set(document_set_id)
         failed_model_runs = [
             run
-            for run in self.repository.list_model_runs(document_set_id)
+            for run in _latest_model_runs_by_agent(
+                self.repository.list_model_runs(document_set_id)
+            )
             if run.status == ModelRunStatus.FAILED
         ]
         if failed_model_runs:
-            return PipelineRunStatus.NEEDS_HUMAN_REVIEW
-        if document_set.status == DocumentSetStatus.NEEDS_HUMAN_REVIEW:
             return PipelineRunStatus.NEEDS_HUMAN_REVIEW
         if risk_decision is None:
             return PipelineRunStatus.NEEDS_HUMAN_REVIEW
@@ -590,6 +591,26 @@ class PipelineService:
 def _pipeline_run_id(document_set_id: str, started_at: datetime) -> str:
     seed = f"{document_set_id}|{started_at.isoformat()}"
     return f"prun_{sha256(seed.encode()).hexdigest()[:20]}"
+
+
+def _latest_model_runs_by_agent(model_runs: list[Any]) -> list[Any]:
+    """Return only the most recent attempt for each reviewer agent.
+
+    Retried runs retain their earlier model attempts for auditability. Those
+    superseded attempts must not make the current run look incomplete.
+    """
+    latest_by_agent: dict[str, Any] = {}
+    for model_run in model_runs:
+        previous = latest_by_agent.get(model_run.agent_id)
+        if previous is None or (
+            model_run.completed_at,
+            model_run.started_at,
+        ) >= (
+            previous.completed_at,
+            previous.started_at,
+        ):
+            latest_by_agent[model_run.agent_id] = model_run
+    return sorted(latest_by_agent.values(), key=lambda item: item.agent_id)
 
 
 def _safe_step_summary(step_result: Any) -> dict[str, Any]:

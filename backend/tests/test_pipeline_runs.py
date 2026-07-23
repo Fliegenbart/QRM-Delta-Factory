@@ -250,6 +250,37 @@ def test_pipeline_requires_explicit_retry_after_a_terminal_run() -> None:
     assert retry_run.pipeline_run_id != terminal_run.pipeline_run_id
 
 
+def test_pipeline_manifest_uses_latest_attempt_per_reviewer() -> None:
+    _setup_document_set_for_model_failure()
+    service = PipelineService(repository=repository, audit_log=audit_log)
+    service.run_pipeline("ds_pipeline_failure")
+
+    original = repository.list_model_runs("ds_pipeline_failure")[0]
+    repository.add_model_run(
+        document_set_id="ds_pipeline_failure",
+        model_run=original.model_copy(
+            update={
+                "status": "failed",
+                "completed_at": original.completed_at + timedelta(seconds=1),
+            }
+        ),
+    )
+    repository.add_model_run(
+        document_set_id="ds_pipeline_failure",
+        model_run=original.model_copy(
+            update={
+                "status": "succeeded",
+                "completed_at": original.completed_at + timedelta(seconds=2),
+            }
+        ),
+    )
+
+    manifest = service._model_manifest("ds_pipeline_failure")
+
+    assert len(manifest) == 7
+    assert all(item.status == "succeeded" for item in manifest)
+
+
 class FailingProvider(BaseModelProvider):
     def __init__(self) -> None:
         super().__init__(
