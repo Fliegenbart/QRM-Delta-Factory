@@ -168,6 +168,27 @@ def test_failed_model_run_blocks_auto_clear_when_review_coverage_is_affected() -
     assert "failed model run affects review coverage" in decision.auto_clear_blockers
 
 
+def test_successful_rerun_replaces_a_prior_failure_for_the_same_reviewer_coverage() -> None:
+    _setup_document_context()
+    failed_run = _model_run(status="failed")
+    successful_rerun = failed_run.model_copy(
+        update={
+            "model_run_id": "run_successful_rerun",
+            "status": "succeeded",
+            "completed_at": failed_run.completed_at + timedelta(seconds=1),
+        }
+    )
+    repository.add_model_run(document_set_id="ds_fusion_demo", model_run=failed_run)
+    repository.add_model_run(document_set_id="ds_fusion_demo", model_run=successful_rerun)
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    assert decision.decision != "blocked_due_to_model_failure"
+    assert "failed model run affects review coverage" not in decision.auto_clear_blockers
+
+
 def test_auto_clear_candidate_only_when_all_gates_pass() -> None:
     _setup_document_context()
     repository.replace_risk_findings(

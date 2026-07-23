@@ -93,7 +93,9 @@ class RiskFusionService:
         )
         documents = _documents_for_set(self.repository, document_set)
         challenges = self.repository.list_adversarial_challenges(document_set_id)
-        model_runs = self.repository.list_model_runs(document_set_id)
+        model_runs = _latest_model_runs_by_agent(
+            self.repository.list_model_runs(document_set_id)
+        )
         clusters = self.clusterer.cluster_findings(findings)
 
         document_quality_score = _document_quality_score(documents)
@@ -372,6 +374,20 @@ def _missing_knowledge_pack_ids(model_runs: Sequence[ModelRun]) -> list[str]:
             continue
         missing.extend(model_run.missing_knowledge_pack_ids)
     return _dedupe_text(missing)
+
+
+def _latest_model_runs_by_agent(model_runs: Sequence[ModelRun]) -> list[ModelRun]:
+    latest_by_agent: dict[tuple[str, str], ModelRun] = {}
+    for model_run in model_runs:
+        agent_key = (model_run.agent_id, model_run.agent_role)
+        existing = latest_by_agent.get(agent_key)
+        if existing is None or _model_run_finished_at(model_run) > _model_run_finished_at(existing):
+            latest_by_agent[agent_key] = model_run
+    return list(latest_by_agent.values())
+
+
+def _model_run_finished_at(model_run: ModelRun) -> datetime:
+    return model_run.completed_at or model_run.started_at
 
 
 def _max_severity(findings: Sequence[RiskFinding]) -> Severity:
