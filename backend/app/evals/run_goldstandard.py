@@ -71,6 +71,12 @@ def _configure_environment(
     openai_model: str,
     mistral_model: str,
 ) -> None:
+    # The harness must never read, clear, or append the production snapshot.
+    # It calls the ASGI app in a dedicated process, so an in-memory repository
+    # and a temporary document root are both sufficient and safer.
+    os.environ["QRM_PERSISTENCE_ENABLED"] = "false"
+    os.environ["QRM_API_KEYS"] = ""
+    os.environ["QRM_LOCAL_STORAGE_ROOT"] = "/tmp/qrm-goldstandard-documents"
     if mode == "live":
         _load_dotenv_keys()
         os.environ["QRM_EXTERNAL_MODEL_CALLS_ENABLED"] = "true"

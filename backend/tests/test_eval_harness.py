@@ -43,6 +43,27 @@ def test_goldstandard_harness_adds_configured_tenant_auth_header() -> None:
     assert headers == {"X-API-Key": "test-key"}
 
 
+def test_goldstandard_harness_isolates_storage_and_auth_from_production(monkeypatch) -> None:
+    monkeypatch.setenv("QRM_PERSISTENCE_ENABLED", "true")
+    monkeypatch.setenv("QRM_API_KEYS", "tenant_live=live-key")
+    monkeypatch.setenv("QRM_LOCAL_STORAGE_ROOT", "/data/documents")
+
+    run_goldstandard._configure_environment(
+        "mock",
+        "frontier",
+        "claude-sonnet-4-6",
+        "gpt-5.4",
+        "mistral-large-latest",
+    )
+
+    assert run_goldstandard.os.environ["QRM_PERSISTENCE_ENABLED"] == "false"
+    assert run_goldstandard.os.environ["QRM_API_KEYS"] == ""
+    assert (
+        run_goldstandard.os.environ["QRM_LOCAL_STORAGE_ROOT"]
+        == "/tmp/qrm-goldstandard-documents"
+    )
+
+
 def test_metrics_calculation_counts_recall_precision_and_false_positives() -> None:
     dataset = _dataset()
     matching_finding = _finding(
