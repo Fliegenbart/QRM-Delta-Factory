@@ -122,7 +122,7 @@ REVIEWER_OUTPUT_CONTRACT = (
     "contradicts, contextual. Use strong, partial, weak, or none only for "
     "evidence_support, never for evidence_item support_type. If evidence or requirement "
     "support is missing, do not create a finding; explain the scope in "
-    "coverage_summary."
+    "coverage_summary. Return at most five concise candidate findings."
 )
 
 
@@ -185,10 +185,6 @@ class ReviewerAgent:
                     example.calibration_example_id for example in calibration_examples
                 ],
                 "calibration_pack_hash": calibration_pack_hash,
-                "calibration_prompt_block": calibration_prompt_block,
-                "calibration_examples": [
-                    example.model_dump(mode="json") for example in calibration_examples
-                ],
                 "claims": [claim.model_dump(mode="json") for claim in claims],
                 "requirements": [
                     requirement.model_dump(mode="json") for requirement in requirements
@@ -347,12 +343,18 @@ class PrimaryReviewOrchestrator:
         calibration_pack_hash = (
             calibration_pack.pack_hash if calibration_pack.example_ids else None
         )
+        agent_claims = _claims_for_agent(
+            agent=agent,
+            claims=claims,
+            requirements=agent_requirements,
+            max_claims=get_settings().reviewer_max_claims_per_agent,
+        )
         input_hash = _hash_json(
             {
                 "document_set_id": document_set_id,
                 "agent_id": agent.agent_id,
                 "role": agent.role,
-                "claims": [claim.model_dump(mode="json") for claim in claims],
+                "claims": [claim.model_dump(mode="json") for claim in agent_claims],
                 "requirements": [
                     requirement.model_dump(mode="json") for requirement in agent_requirements
                 ],
@@ -399,7 +401,7 @@ class PrimaryReviewOrchestrator:
         agent.provider.last_run_metadata = None
         try:
             output = agent.run(
-                claims,
+                agent_claims,
                 agent_requirements,
                 document_set_id=document_set_id,
                 case_signals=case_signals,
@@ -1083,7 +1085,16 @@ def _requirement_matches_agent(
         & set(_normalise_keys(case_signals))
     )
     pack_match = bool(
-        set(_normalise_keys(_requirement_pack_candidates(requirement)))
+        # Every requirement inherits the universal base pack. It establishes
+        # baseline applicability but must not make every specialised reviewer
+        # receive the complete requirement library.
+        set(
+            _normalise_keys(
+                pack
+                for pack in _requirement_pack_candidates(requirement)
+                if pack != "universal_gmp_qrm_base"
+            )
+        )
         & set(_normalise_keys(expected_knowledge_pack_ids))
     )
     categories_match = any(
@@ -1097,6 +1108,90 @@ def _requirement_matches_agent(
         or categories_match
         or keywords_match
     )
+
+
+def _claims_for_agent(
+    *,
+    agent: ReviewerAgent,
+    claims: Sequence[Claim],
+    requirements: Sequence[Requirement],
+    max_claims: int,
+) -> list[Claim]:
+    """Select a bounded, role-relevant and source-diverse claim context."""
+    if len(claims) <= max_claims:
+        return list(claims)
+
+    profile = AGENT_RETRIEVAL_PROFILES.get(agent.role, DEFAULT_RETRIEVAL_PROFILE)
+    role_terms = [
+        *agent.applicable_risk_categories,
+        *ROLE_REQUIREMENT_KEYWORDS.get(agent.role, ()),
+        *profile.keywords,
+    ]
+    for requirement in requirements:
+        role_terms.extend(
+            [
+                requirement.requirement_id,
+                requirement.title or "",
+                requirement.domain or "",
+                requirement.requirement_text,
+                *requirement.red_flags,
+                *requirement.required_evidence,
+            ]
+        )
+    terms = {
+        term.lower()
+        for term in role_terms
+        if len(term.strip()) >= 4
+    }
+
+    ranked = sorted(
+        enumerate(claims),
+        key=lambda item: (
+            -_claim_relevance_score(item[1], terms),
+            item[0],
+        ),
+    )
+    selected: list[Claim] = []
+    selected_ids: set[str] = set()
+
+    # Keep at least one relevant source excerpt for every document before
+    # filling the remaining context slots with the highest scoring claims.
+    for document_id in _dedupe_strings(claim.document_id for claim in claims):
+        match = next(
+            (
+                claim
+                for _, claim in ranked
+                if claim.document_id == document_id and _claim_relevance_score(claim, terms) > 0
+            ),
+            None,
+        )
+        if match is not None and len(selected) < max_claims:
+            selected.append(match)
+            selected_ids.add(match.claim_id)
+
+    for _, claim in ranked:
+        if len(selected) >= max_claims:
+            break
+        if claim.claim_id not in selected_ids:
+            selected.append(claim)
+            selected_ids.add(claim.claim_id)
+    return selected
+
+
+def _claim_relevance_score(claim: Claim, terms: set[str]) -> int:
+    searchable = " ".join(
+        [
+            str(claim.claim_type),
+            claim.normalized_subject,
+            claim.normalized_predicate,
+            claim.normalized_object,
+            claim.raw_text_quote,
+        ]
+    ).lower()
+    score = sum(1 for term in terms if term in searchable)
+    if str(claim.claim_type) == "missing_or_unclear":
+        score += 4
+    return score
 
 
 def _case_signals(*, document_set: DocumentSet, claims: Sequence[Claim]) -> list[str]:

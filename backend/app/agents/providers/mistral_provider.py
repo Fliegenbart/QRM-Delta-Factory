@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app.agents.providers.base import ProviderRuntimeOptions
 from app.agents.providers.external_base import ExternalProviderBase
+from app.core.config import get_settings
 
 
 class MistralProvider(ExternalProviderBase):
@@ -41,6 +42,7 @@ class MistralProvider(ExternalProviderBase):
         payload = {
             "model": self.configured_model_id,
             "temperature": 0,
+            "max_tokens": get_settings().model_provider_max_output_tokens,
             "response_format": {"type": "json_object"},
             "messages": [
                 {
