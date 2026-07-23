@@ -12,7 +12,7 @@ from app.schemas.evals import (
     RegressionRun,
 )
 
-GATE_POLICY_VERSION = "regression-gate-policy-v0.1"
+GATE_POLICY_VERSION = "regression-gate-policy-v0.2"
 
 
 class RegressionGateService:
@@ -39,6 +39,8 @@ class RegressionGateService:
             *self._critical_miss_blockers(candidate.eval_reports),
             *self._high_miss_blockers(candidate.eval_reports),
             *self._auto_clear_blockers(candidate.eval_reports),
+            *self._high_undercall_blockers(candidate.eval_reports),
+            *self._unsupported_published_high_critical_blockers(candidate.eval_reports),
             *self._metric_threshold_blockers(candidate.eval_reports),
             *self._human_review_rate_blockers(
                 baseline_summary=baseline_summary,
@@ -165,6 +167,49 @@ class RegressionGateService:
             )
         return blockers
 
+    def _high_undercall_blockers(
+        self,
+        reports: Sequence[EvalReport],
+    ) -> list[RegressionBlockingCriterion]:
+        return [
+            RegressionBlockingCriterion(
+                criterion=RegressionGateCriterionType.HIGH_SEVERITY_UNDERCALL,
+                dataset_id=report.dataset.dataset_id,
+                reason=(
+                    "Candidate under-called one or more High/Critical gold findings; "
+                    "release requires no High/Critical severity under-calls."
+                ),
+                candidate_value=float(report.metrics.high_or_critical_undercall_count),
+                threshold=0.0,
+            )
+            for report in reports
+            if report.metrics.high_or_critical_undercall_count > 0
+        ]
+
+    def _unsupported_published_high_critical_blockers(
+        self,
+        reports: Sequence[EvalReport],
+    ) -> list[RegressionBlockingCriterion]:
+        return [
+            RegressionBlockingCriterion(
+                criterion=(
+                    RegressionGateCriterionType.
+                    UNSUPPORTED_PUBLISHED_HIGH_CRITICAL_FINDING
+                ),
+                dataset_id=report.dataset.dataset_id,
+                reason=(
+                    "Candidate published High/Critical finding(s) without strong "
+                    "evidence support."
+                ),
+                candidate_value=float(
+                    report.metrics.unsupported_high_critical_published_count
+                ),
+                threshold=0.0,
+            )
+            for report in reports
+            if report.metrics.unsupported_high_critical_published_count > 0
+        ]
+
     def _metric_threshold_blockers(
         self,
         reports: Sequence[EvalReport],
@@ -252,6 +297,15 @@ def _run_summary(run: RegressionRun) -> dict[str, float]:
         ),
         "auto_clear_false_negative_count": float(
             sum(report.metrics.auto_clear_false_negative_count for report in reports)
+        ),
+        "high_or_critical_undercall_count": float(
+            sum(report.metrics.high_or_critical_undercall_count for report in reports)
+        ),
+        "unsupported_high_critical_published_count": float(
+            sum(
+                report.metrics.unsupported_high_critical_published_count
+                for report in reports
+            )
         ),
     }
 

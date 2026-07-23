@@ -25,6 +25,10 @@ class RegressionGateCriterionType(StrEnum):
     MISSED_CRITICAL_MUST_DETECT = "MISSED_CRITICAL_MUST_DETECT"
     MISSED_HIGH_MUST_DETECT = "MISSED_HIGH_MUST_DETECT"
     AUTO_CLEAR_HIGH_CRITICAL_GOLD = "AUTO_CLEAR_HIGH_CRITICAL_GOLD"
+    HIGH_SEVERITY_UNDERCALL = "HIGH_SEVERITY_UNDERCALL"
+    UNSUPPORTED_PUBLISHED_HIGH_CRITICAL_FINDING = (
+        "UNSUPPORTED_PUBLISHED_HIGH_CRITICAL_FINDING"
+    )
     CITATION_PRECISION_BELOW_THRESHOLD = "CITATION_PRECISION_BELOW_THRESHOLD"
     REQUIREMENT_MATCH_ACCURACY_BELOW_THRESHOLD = (
         "REQUIREMENT_MATCH_ACCURACY_BELOW_THRESHOLD"
@@ -48,6 +52,7 @@ class GoldFinding(StrictSchema):
     expected_requirement_ids: list[RequirementId] = Field(default_factory=list)
     expected_evidence_refs: list[ExpectedEvidenceRef] = Field(default_factory=list)
     must_detect: bool
+    should_block_auto_clear: bool = False
 
 
 class EvalDataset(StrictSchema):
@@ -58,6 +63,7 @@ class EvalDataset(StrictSchema):
     process_area: str = Field(min_length=1)
     gold_findings: list[GoldFinding] = Field(default_factory=list)
     seeded_defects: list[str] = Field(default_factory=list)
+    acceptable_false_positive_boundaries: list[str] = Field(default_factory=list)
 
 
 class EvalMetrics(StrictSchema):
@@ -68,6 +74,16 @@ class EvalMetrics(StrictSchema):
     requirement_match_accuracy: float = Field(ge=0, le=1)
     auto_clear_false_negative_count: int = Field(ge=0)
     human_review_rate: float = Field(ge=0, le=1)
+    must_detect_recall: float = Field(default=0.0, ge=0, le=1)
+    duplicate_finding_count: int = Field(default=0, ge=0)
+    duplicate_finding_rate: float = Field(default=0.0, ge=0, le=1)
+    unsupported_finding_rate: float = Field(default=0.0, ge=0, le=1)
+    unsupported_high_critical_published_count: int = Field(default=0, ge=0)
+    false_positive_boundary_violation_count: int = Field(default=0, ge=0)
+    severity_exact_count: int = Field(default=0, ge=0)
+    severity_undercall_count: int = Field(default=0, ge=0)
+    severity_overcall_count: int = Field(default=0, ge=0)
+    high_or_critical_undercall_count: int = Field(default=0, ge=0)
 
 
 class EvalFixture(StrictSchema):

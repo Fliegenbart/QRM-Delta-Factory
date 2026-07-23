@@ -229,6 +229,60 @@ def test_regression_gate_allows_human_review_rate_increase_when_recall_improves(
     assert "Status: PASS" in report.markdown_report
 
 
+def test_regression_gate_blocks_high_or_critical_undercalls() -> None:
+    report = RegressionGateService().compare(
+        baseline=_run(
+            run_id="regrun_baseline_undercall",
+            config_id="cfg_baseline",
+            reports=[_report(dataset_id="evalds_undercall", severity="high", recall=1.0)],
+        ),
+        candidate=_run(
+            run_id="regrun_candidate_undercall",
+            config_id="cfg_candidate",
+            reports=[
+                _report(
+                    dataset_id="evalds_undercall",
+                    severity="high",
+                    recall=1.0,
+                    high_or_critical_undercall_count=1,
+                )
+            ],
+        ),
+    )
+
+    assert report.passed is False
+    assert "HIGH_SEVERITY_UNDERCALL" in {
+        criterion.criterion for criterion in report.blocking_criteria
+    }
+
+
+def test_regression_gate_blocks_unsupported_published_high_or_critical_findings() -> None:
+    report = RegressionGateService().compare(
+        baseline=_run(
+            run_id="regrun_baseline_unsupported",
+            config_id="cfg_baseline",
+            reports=[_report(dataset_id="evalds_unsupported", severity="high", recall=1.0)],
+        ),
+        candidate=_run(
+            run_id="regrun_candidate_unsupported",
+            config_id="cfg_candidate",
+            reports=[
+                _report(
+                    dataset_id="evalds_unsupported",
+                    severity="high",
+                    recall=1.0,
+                    unsupported_high_critical_published_count=1,
+                )
+            ],
+        ),
+    )
+
+    assert report.passed is False
+    assert "UNSUPPORTED_PUBLISHED_HIGH_CRITICAL_FINDING" in {
+        criterion.criterion for criterion in report.blocking_criteria
+    }
+
+
 def _run(
     *,
     run_id: str,
@@ -269,6 +323,8 @@ def _report(
     citation_precision: float = 0.95,
     requirement_match_accuracy: float = 0.95,
     auto_clear_false_negative_count: int = 0,
+    high_or_critical_undercall_count: int = 0,
+    unsupported_high_critical_published_count: int = 0,
     human_review_rate: float = 0.4,
 ) -> EvalReport:
     matched = (
@@ -308,6 +364,8 @@ def _report(
             requirement_match_accuracy=requirement_match_accuracy,
             auto_clear_false_negative_count=auto_clear_false_negative_count,
             human_review_rate=human_review_rate,
+            high_or_critical_undercall_count=high_or_critical_undercall_count,
+            unsupported_high_critical_published_count=unsupported_high_critical_published_count,
         ),
         passed=passed,
         failures=failures,

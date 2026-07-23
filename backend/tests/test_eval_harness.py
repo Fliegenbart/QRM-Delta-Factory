@@ -97,6 +97,122 @@ def test_auto_clear_with_known_high_or_critical_gold_fails_eval() -> None:
     )
 
 
+def test_evaluator_tracks_pkg_quality_metrics_without_counting_duplicates_as_new_risks() -> None:
+    dataset = EvalDataset(
+        dataset_id="evalds_pkg_quality_metrics",
+        name="PKG quality metrics",
+        version="2026.1",
+        document_type="change_control",
+        process_area="quality_control",
+        acceptable_false_positive_boundaries=["Manual baseline adjustment alone"],
+        gold_findings=[
+            {
+                "gold_finding_id": "gold_pkg_high_validation",
+                "expected_risk_category": "method_validation",
+                "expected_severity": "high",
+                "expected_requirement_ids": ["req_eval_batch_impact"],
+                "must_detect": True,
+                "should_block_auto_clear": True,
+            },
+            {
+                "gold_finding_id": "gold_pkg_critical_approval",
+                "expected_risk_category": "qa_approval",
+                "expected_severity": "critical",
+                "expected_requirement_ids": ["req_eval_qa_approval"],
+                "must_detect": True,
+                "should_block_auto_clear": True,
+            },
+        ],
+    )
+
+    report = EvalRunner().evaluate(
+        dataset=dataset,
+        system_findings=[
+            _finding(
+                finding_id="finding_pkg_validation",
+                risk_category="method_validation",
+                severity="high",
+                requirement_references=["req_eval_batch_impact"],
+                quote="The new limit is not covered by the current validation.",
+            ),
+            _finding(
+                finding_id="finding_pkg_validation_duplicate",
+                risk_category="method_validation",
+                severity="high",
+                requirement_references=["req_eval_batch_impact"],
+                quote="The new limit is not covered by the current validation.",
+            ),
+            _finding(
+                finding_id="finding_pkg_approval_undercalled",
+                risk_category="qa_approval",
+                severity="high",
+                requirement_references=["req_eval_qa_approval"],
+                quote="QA approval is not documented before use.",
+            ),
+            _finding(
+                finding_id="finding_pkg_unsupported_high",
+                risk_category="unrelated_claim",
+                severity="high",
+                requirement_references=[],
+                quote="Unsupported high claim.",
+                evidence_support="weak",
+            ),
+            _finding(
+                finding_id="finding_pkg_boundary_violation",
+                risk_category="unrelated_claim",
+                severity="medium",
+                requirement_references=[],
+                quote="Manual baseline adjustment alone is a deviation.",
+            ),
+        ],
+        risk_decision=_risk_decision(decision="human_review_required", auto_clear=False),
+    )
+
+    assert report.metrics.must_detect_recall == 1.0
+    assert report.metrics.duplicate_finding_count == 1
+    assert report.metrics.duplicate_finding_rate == 0.5
+    assert report.metrics.unsupported_finding_rate == 0.2
+    assert report.metrics.unsupported_high_critical_published_count == 1
+    assert report.metrics.false_positive_boundary_violation_count == 1
+    assert report.metrics.severity_exact_count == 1
+    assert report.metrics.severity_undercall_count == 1
+    assert report.metrics.high_or_critical_undercall_count == 1
+    assert report.metrics.severity_overcall_count == 0
+    assert report.false_positive_finding_ids == [
+        "finding_pkg_unsupported_high",
+        "finding_pkg_boundary_violation",
+    ]
+
+
+def test_auto_clear_with_any_blocking_gold_finding_fails_eval() -> None:
+    dataset = EvalDataset(
+        dataset_id="evalds_blocking_medium",
+        name="Blocking medium gold",
+        version="2026.1",
+        document_type="deviation",
+        process_area="aseptic_filling",
+        gold_findings=[
+            {
+                "gold_finding_id": "gold_blocking_medium",
+                "expected_risk_category": "batch_impact_assessment",
+                "expected_severity": "medium",
+                "expected_requirement_ids": ["req_eval_batch_impact"],
+                "must_detect": True,
+                "should_block_auto_clear": True,
+            }
+        ],
+    )
+
+    report = EvalRunner().evaluate(
+        dataset=dataset,
+        system_findings=[],
+        risk_decision=_risk_decision(decision="auto_clear_candidate", auto_clear=True),
+    )
+
+    assert report.metrics.auto_clear_false_negative_count == 1
+    assert any("blocking gold finding" in failure for failure in report.failures)
+
+
 def test_runner_loads_three_fixture_datasets_and_generates_markdown() -> None:
     runner = EvalRunner(fixture_dir=Path("examples/evals"))
 
@@ -164,6 +280,7 @@ def _finding(
     severity: str,
     requirement_references: list[str],
     quote: str,
+    evidence_support: str = "strong",
 ) -> dict[str, object]:
     return {
         "finding_id": finding_id,
@@ -190,7 +307,7 @@ def _finding(
         "model_name": "mock-eval-reviewer",
         "model_version": "0.1.0",
         "prompt_version": "eval-v0.1",
-        "evidence_support": "strong",
+        "evidence_support": evidence_support,
         "recommended_action": "Route according to eval policy.",
         "auto_close_allowed": False,
         "status": "open",

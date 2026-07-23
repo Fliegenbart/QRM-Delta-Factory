@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from app.schemas.domain import RiskFinding, Severity
+from app.schemas.domain import EvidenceSupport, FindingStatus, RiskFinding, Severity
 from app.schemas.evals import (
     EvalDataset,
     EvalFixture,
@@ -63,8 +63,16 @@ class EvalRunner:
             if gold.gold_finding_id not in set(matched_gold_ids)
         ]
         matched_finding_ids = {finding.finding_id for _gold, finding in matches}
+        duplicate_finding_ids = _duplicate_finding_ids(
+            gold_findings=dataset.gold_findings,
+            findings=findings,
+            matches=matches,
+        )
         false_positive_findings = [
-            finding for finding in findings if finding.finding_id not in matched_finding_ids
+            finding
+            for finding in findings
+            if finding.finding_id not in matched_finding_ids
+            and finding.finding_id not in duplicate_finding_ids
         ]
         metrics = _metrics(
             dataset=dataset,
@@ -72,6 +80,7 @@ class EvalRunner:
             matches=matches,
             unmatched_gold=unmatched_gold,
             false_positive_findings=false_positive_findings,
+            duplicate_finding_ids=duplicate_finding_ids,
             risk_decision=risk_decision,
         )
         failures = _failures(
@@ -167,8 +176,6 @@ def _match_findings(
 def _finding_matches_gold(finding: RiskFinding, gold: GoldFinding) -> bool:
     if finding.risk_category != gold.expected_risk_category:
         return False
-    if _severity_rank(finding.severity) < _severity_rank(gold.expected_severity):
-        return False
     return not (
         gold.expected_requirement_ids
         and not set(gold.expected_requirement_ids).intersection(
@@ -184,6 +191,7 @@ def _metrics(
     matches: Sequence[tuple[GoldFinding, RiskFinding]],
     unmatched_gold: Sequence[GoldFinding],
     false_positive_findings: Sequence[RiskFinding],
+    duplicate_finding_ids: set[str],
     risk_decision: RiskDecision,
 ) -> EvalMetrics:
     must_detect_gold = [gold for gold in dataset.gold_findings if gold.must_detect]
@@ -198,6 +206,26 @@ def _metrics(
         risk_decision=risk_decision,
     )
     human_review_rate = 0.0 if risk_decision.auto_clear_allowed else 1.0
+    must_detect_recall = _must_detect_recall(dataset.gold_findings, matches)
+    severity_metrics = _severity_metrics(matches)
+    unsupported_findings = [
+        finding
+        for finding in findings
+        if finding.evidence_support != EvidenceSupport.STRONG
+        and finding.status != FindingStatus.REJECTED
+    ]
+    unsupported_high_critical = [
+        finding
+        for finding in unsupported_findings
+        if finding.severity in {Severity.HIGH, Severity.CRITICAL}
+    ]
+    boundary_violations = [
+        finding
+        for finding in false_positive_findings
+        if _violates_false_positive_boundary(
+            finding, dataset.acceptable_false_positive_boundaries
+        )
+    ]
     return EvalMetrics(
         recall_by_severity=recall_by_severity,
         false_omission_rate=false_omission_rate,
@@ -206,6 +234,15 @@ def _metrics(
         requirement_match_accuracy=requirement_match_accuracy,
         auto_clear_false_negative_count=auto_clear_false_negative_count,
         human_review_rate=human_review_rate,
+        must_detect_recall=must_detect_recall,
+        duplicate_finding_count=len(duplicate_finding_ids),
+        duplicate_finding_rate=_safe_ratio(
+            len(duplicate_finding_ids), len(matches)
+        ),
+        unsupported_finding_rate=_safe_ratio(len(unsupported_findings), len(findings)),
+        unsupported_high_critical_published_count=len(unsupported_high_critical),
+        false_positive_boundary_violation_count=len(boundary_violations),
+        **severity_metrics,
     )
 
 
@@ -279,7 +316,11 @@ def _auto_clear_false_negative_count(
         [
             gold
             for gold in dataset.gold_findings
-            if gold.must_detect and gold.expected_severity in {Severity.HIGH, Severity.CRITICAL}
+            if gold.should_block_auto_clear
+            or (
+                gold.must_detect
+                and gold.expected_severity in {Severity.HIGH, Severity.CRITICAL}
+            )
         ]
     )
 
@@ -298,12 +339,98 @@ def _failures(
             failures.append(f"High must_detect finding missed: {gold.gold_finding_id}")
     if risk_decision.auto_clear_allowed:
         for gold in dataset.gold_findings:
-            if gold.must_detect and gold.expected_severity in {Severity.HIGH, Severity.CRITICAL}:
+            if gold.should_block_auto_clear:
+                failures.append(
+                    "Auto-clear despite blocking gold finding: "
+                    f"{gold.gold_finding_id}"
+                )
+            elif gold.must_detect and gold.expected_severity in {Severity.HIGH, Severity.CRITICAL}:
                 failures.append(
                     "Auto-clear despite known high/critical gold finding: "
                     f"{gold.gold_finding_id}"
                 )
     return failures
+
+
+def _duplicate_finding_ids(
+    *,
+    gold_findings: Sequence[GoldFinding],
+    findings: Sequence[RiskFinding],
+    matches: Sequence[tuple[GoldFinding, RiskFinding]],
+) -> set[str]:
+    matched_by_gold = {gold.gold_finding_id: finding.finding_id for gold, finding in matches}
+    duplicate_ids: set[str] = set()
+    for gold in gold_findings:
+        matched_finding_id = matched_by_gold.get(gold.gold_finding_id)
+        if matched_finding_id is None:
+            continue
+        duplicate_ids.update(
+            finding.finding_id
+            for finding in findings
+            if finding.finding_id != matched_finding_id
+            and _finding_matches_gold(finding, gold)
+        )
+    return duplicate_ids
+
+
+def _must_detect_recall(
+    gold_findings: Sequence[GoldFinding],
+    matches: Sequence[tuple[GoldFinding, RiskFinding]],
+) -> float:
+    must_detect = [gold for gold in gold_findings if gold.must_detect]
+    matched_ids = {gold.gold_finding_id for gold, _finding in matches}
+    return _safe_ratio(
+        sum(gold.gold_finding_id in matched_ids for gold in must_detect), len(must_detect)
+    )
+
+
+def _severity_metrics(
+    matches: Sequence[tuple[GoldFinding, RiskFinding]],
+) -> dict[str, int]:
+    exact = 0
+    under = 0
+    over = 0
+    high_or_critical_under = 0
+    for gold, finding in matches:
+        expected_rank = _severity_rank(gold.expected_severity)
+        actual_rank = _severity_rank(finding.severity)
+        if actual_rank == expected_rank:
+            exact += 1
+        elif actual_rank < expected_rank:
+            under += 1
+            if gold.expected_severity in {Severity.HIGH, Severity.CRITICAL}:
+                high_or_critical_under += 1
+        else:
+            over += 1
+    return {
+        "severity_exact_count": exact,
+        "severity_undercall_count": under,
+        "severity_overcall_count": over,
+        "high_or_critical_undercall_count": high_or_critical_under,
+    }
+
+
+def _violates_false_positive_boundary(
+    finding: RiskFinding,
+    boundaries: Sequence[str],
+) -> bool:
+    finding_text = " ".join(
+        [
+            finding.risk_statement,
+            finding.recommended_action,
+            *(item.quote for item in finding.evidence_items),
+        ]
+    )
+    normalized_finding = _normalized_text(finding_text)
+    return any(
+        (boundary_text := _normalized_text(boundary))
+        and boundary_text in normalized_finding
+        for boundary in boundaries
+    )
+
+
+def _normalized_text(value: str) -> str:
+    return " ".join("".join(char.lower() if char.isalnum() else " " for char in value).split())
 
 
 def _evidence_matches_expected(evidence: dict[str, Any], expected: dict[str, Any]) -> bool:

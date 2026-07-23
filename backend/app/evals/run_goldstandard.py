@@ -37,6 +37,8 @@ PROCESS_AREA = "drug_product_manufacturing"
 DOCUMENT_TYPE = "deviation"
 TENANT_ID = "tenant_goldstandard_pharmaqrm"
 REQUIREMENT_SET_ID = "rset_goldstandard_gmp_2026_1"
+_TERMINAL_PIPELINE_STATUSES = {"completed", "failed", "needs_human_review"}
+_ORACLE_FILENAMES = {"gold_standard.json", "hidden_errors_answer_key.json"}
 
 
 def _load_dotenv_keys() -> None:
@@ -206,10 +208,90 @@ def _match_decoy(decoy: dict[str, Any], findings: list[dict[str, Any]]) -> dict[
     return None
 
 
-def run_case(client: Any, repository: Any, case_dir: Path) -> dict[str, Any]:
-    answer_key_path = case_dir / "hidden_errors_answer_key.json"
-    answer_key = json.loads(answer_key_path.read_text(encoding="utf-8"))
-    case_id = answer_key["case_id"]
+def _package_document_paths(package_dir: Path) -> list[Path]:
+    """Return source documents only; evaluation oracles are never pipeline inputs."""
+    return [
+        path
+        for path in sorted(package_dir.iterdir())
+        if path.is_file()
+        and path.suffix.lower() in {".md", ".txt", ".pdf", ".docx"}
+        and path.name.lower() not in _ORACLE_FILENAMES
+    ]
+
+
+def _oracle_path(case_dir: Path) -> Path:
+    for filename in ("GOLD_STANDARD.json", "hidden_errors_answer_key.json"):
+        path = case_dir / filename
+        if path.exists():
+            return path
+    raise FileNotFoundError(f"No post-run oracle found in {case_dir}")
+
+
+def _load_post_run_oracle(path: Path) -> dict[str, Any]:
+    """Normalize supported oracle formats after the pipeline has completed."""
+    payload: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    if "must_detect_findings" not in payload:
+        return payload
+    return {
+        "case_id": payload["package_id"],
+        "errors": [
+            {
+                "error_id": finding["finding_id"],
+                "severity": finding["severity"],
+                "error_type": finding.get("risk_category", "gold_finding"),
+                "expected_reviewer_finding": finding.get("risk_statement", ""),
+                "why_it_is_a_problem": finding.get("why_it_is_hard", ""),
+                "exact_evidence_text": "\n".join(
+                    ref.get("quote", "")
+                    for ref in finding.get("expected_evidence_refs", [])
+                ),
+                "should_block_auto_clear": finding.get("should_block_auto_clear", False),
+            }
+            for finding in payload["must_detect_findings"]
+        ],
+        "non_error_decoys": [],
+        "acceptable_false_positive_boundaries": payload.get(
+            "acceptable_false_positive_boundaries", []
+        ),
+    }
+
+
+def _wait_for_pipeline_completion(
+    client: Any,
+    initial_payload: dict[str, Any],
+    *,
+    poll_interval_seconds: float = 0.25,
+    timeout_seconds: float = 300.0,
+) -> dict[str, Any]:
+    """Poll the asynchronous pipeline-run endpoint until it reaches a terminal status."""
+    pipeline_run_id = initial_payload.get("pipeline_run_id")
+    if not pipeline_run_id:
+        raise RuntimeError("Pipeline accepted run without pipeline_run_id")
+    payload = initial_payload
+    deadline = time.monotonic() + timeout_seconds
+    while payload.get("status") not in _TERMINAL_PIPELINE_STATUSES:
+        if time.monotonic() >= deadline:
+            raise TimeoutError(f"Pipeline run {pipeline_run_id} did not complete before timeout")
+        if poll_interval_seconds:
+            time.sleep(poll_interval_seconds)
+        response = client.get(f"/pipeline-runs/{pipeline_run_id}")
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"Pipeline run {pipeline_run_id} polling failed: {response.text}"
+            )
+        payload = response.json()
+    return payload
+
+
+def run_case(
+    client: Any,
+    repository: Any,
+    case_dir: Path,
+    *,
+    pipeline_timeout_seconds: float = 300.0,
+) -> dict[str, Any]:
+    case_id = case_dir.name.upper()
+    oracle_path = _oracle_path(case_dir)
 
     create_response = client.post(
         "/document-sets",
@@ -227,7 +309,7 @@ def run_case(client: Any, repository: Any, case_dir: Path) -> dict[str, Any]:
     document_set_id = create_response.json()["document_set_id"]
 
     uploaded = []
-    for doc_path in sorted(case_dir.glob("document_*.md")):
+    for doc_path in _package_document_paths(case_dir):
         upload = client.post(
             f"/document-sets/{document_set_id}/documents",
             files={"file": (doc_path.name, doc_path.read_bytes(), "text/markdown")},
@@ -238,9 +320,13 @@ def run_case(client: Any, repository: Any, case_dir: Path) -> dict[str, Any]:
         uploaded.append(doc_path.name)
 
     pipeline_response = client.post(f"/document-sets/{document_set_id}/pipeline-runs")
-    if pipeline_response.status_code != 201:
+    if pipeline_response.status_code != 202:
         raise RuntimeError(f"{case_id}: pipeline run failed: {pipeline_response.text}")
-    pipeline_payload = pipeline_response.json()
+    pipeline_payload = _wait_for_pipeline_completion(
+        client,
+        pipeline_response.json(),
+        timeout_seconds=pipeline_timeout_seconds,
+    )
 
     claims = repository.list_claims(document_set_id)
     fusion_findings = repository.list_risk_fusion_findings(document_set_id)
@@ -248,6 +334,10 @@ def run_case(client: Any, repository: Any, case_dir: Path) -> dict[str, Any]:
     findings_models = fusion_findings or primary_findings
     findings = [finding.model_dump(mode="json") for finding in findings_models]
     decision = repository.get_latest_risk_decision(document_set_id)
+
+    # The oracle is read only after the full pipeline result is available.
+    answer_key = _load_post_run_oracle(oracle_path)
+    case_id = answer_key["case_id"]
 
     matched: list[dict[str, Any]] = []
     missed: list[dict[str, Any]] = []
@@ -352,7 +442,105 @@ def run_case(client: Any, repository: Any, case_dir: Path) -> dict[str, Any]:
         "decoy_false_alarms": decoy_hits,
         "decoys_passed": decoys_passed,
         "unmatched_findings": unmatched_findings,
+        "quality_metrics": _quality_metrics(
+            answer_key=answer_key,
+            findings=findings,
+            matched=matched,
+            risk_decision=decision,
+        ),
     }
+
+
+def _quality_metrics(
+    *,
+    answer_key: dict[str, Any],
+    findings: list[dict[str, Any]],
+    matched: list[dict[str, Any]],
+    risk_decision: Any,
+) -> dict[str, Any]:
+    errors = answer_key.get("errors", [])
+    matched_ids = {
+        record["match"]["finding_id"] for record in matched if record.get("match")
+    }
+    duplicate_count = 0
+    exact = 0
+    under = 0
+    over = 0
+    high_or_critical_under = 0
+    for record in matched:
+        gold = next(error for error in errors if error["error_id"] == record["error_id"])
+        candidate_matches = [
+            finding for finding in findings if _match_error(gold, [finding]) is not None
+        ]
+        duplicate_count += max(0, len(candidate_matches) - 1)
+        actual = record["match"].get("severity")
+        expected = gold.get("severity")
+        if actual == expected:
+            exact += 1
+        elif _severity_rank_name(actual) < _severity_rank_name(expected):
+            under += 1
+            if expected in {"high", "critical"}:
+                high_or_critical_under += 1
+        else:
+            over += 1
+    unmatched_findings = [
+        finding for finding in findings if finding.get("finding_id") not in matched_ids
+    ]
+    unsupported = [
+        finding
+        for finding in findings
+        if finding.get("evidence_support") != "strong"
+        and finding.get("status") != "rejected"
+    ]
+    boundaries = answer_key.get("acceptable_false_positive_boundaries", [])
+    boundary_violations = [
+        finding
+        for finding in unmatched_findings
+        if _matches_false_positive_boundary(finding, boundaries)
+    ]
+    blocking_gold = [
+        error for error in errors if error.get("should_block_auto_clear", False)
+    ]
+    auto_clear_false_negative_count = (
+        len(blocking_gold) if getattr(risk_decision, "auto_clear_allowed", False) else 0
+    )
+    return {
+        "must_detect_recall": round(len(matched) / len(errors), 4) if errors else 1.0,
+        "duplicate_finding_count": duplicate_count,
+        "duplicate_finding_rate": round(duplicate_count / len(matched), 4)
+        if matched
+        else 0.0,
+        "unsupported_finding_rate": round(len(unsupported) / len(findings), 4)
+        if findings
+        else 0.0,
+        "unsupported_high_critical_published_count": sum(
+            finding.get("severity") in {"high", "critical"} for finding in unsupported
+        ),
+        "false_positive_boundary_violation_count": len(boundary_violations),
+        "severity_exact_count": exact,
+        "severity_undercall_count": under,
+        "severity_overcall_count": over,
+        "high_or_critical_undercall_count": high_or_critical_under,
+        "auto_clear_false_negative_count": auto_clear_false_negative_count,
+    }
+
+
+def _severity_rank_name(severity: Any) -> int:
+    return {"informational": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}.get(
+        str(severity), -1
+    )
+
+
+def _matches_false_positive_boundary(
+    finding: dict[str, Any], boundaries: list[str],
+) -> bool:
+    finding_text = " ".join(_finding_texts(finding))
+    normalized_finding = _normalize(finding_text)
+    return any(
+        (normalized_boundary := _normalize(boundary))
+        and normalized_boundary in normalized_finding
+        for boundary in boundaries
+    )
 
 
 def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
@@ -362,6 +550,19 @@ def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
     total_decoy_hits = sum(len(case["decoy_false_alarms"]) for case in case_results)
     total_findings = sum(case["finding_count"] for case in case_results)
     total_verified = sum(case["citation_verified_finding_count"] for case in case_results)
+    quality_metric_keys = [
+        "must_detect_recall",
+        "duplicate_finding_count",
+        "duplicate_finding_rate",
+        "unsupported_finding_rate",
+        "unsupported_high_critical_published_count",
+        "false_positive_boundary_violation_count",
+        "severity_exact_count",
+        "severity_undercall_count",
+        "severity_overcall_count",
+        "high_or_critical_undercall_count",
+        "auto_clear_false_negative_count",
+    ]
     tokens: dict[str, dict[str, int]] = {}
     for case in case_results:
         for provider, usage in (case.get("tokens_by_provider") or {}).items():
@@ -390,6 +591,13 @@ def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
             "total_findings": total_findings,
             "rate": round(total_verified / total_findings, 3) if total_findings else None,
         },
+        "quality_metrics": {
+            key: round(
+                sum((case.get("quality_metrics") or {}).get(key, 0) for case in case_results),
+                4,
+            )
+            for key in quality_metric_keys
+        },
     }
 
 
@@ -417,6 +625,32 @@ def _render_markdown(
         f"- **Sensitivität:** {sens['found']} von {sens['total']} versteckten Fehlern gefunden"
         + (f" ({sens['rate']:.0%})" if sens["rate"] is not None else "")
     )
+    quality = aggregate.get("quality_metrics") or {}
+    if quality:
+        lines.extend(
+            [
+                "",
+                "## Qualitätsmetriken",
+                "",
+                f"- Must-detect Recall: `{quality['must_detect_recall']}`",
+                f"- Duplikate: `{quality['duplicate_finding_count']}`",
+                f"- Unsupported Findings: `{quality['unsupported_finding_rate']}`",
+                (
+                    "- False-positive-Grenzverletzungen: "
+                    f"`{quality['false_positive_boundary_violation_count']}`"
+                ),
+                (
+                    "- Severity exact/under/over: "
+                    f"`{quality['severity_exact_count']}/"
+                    f"{quality['severity_undercall_count']}/"
+                    f"{quality['severity_overcall_count']}`"
+                ),
+                (
+                    "- Auto-clear mit blockierendem Gold: "
+                    f"`{quality['auto_clear_false_negative_count']}`"
+                ),
+            ]
+        )
     lines.append(
         f"- **Spezifität (Decoys):** {spec['passed']} von {spec['total']} Decoys korrekt"
         " nicht beanstandet"
@@ -494,7 +728,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--cases", nargs="*", help="Subset of case dir names, e.g. case_01")
     parser.add_argument("--cases-dir", default=str(DEFAULT_CASES_DIR))
+    parser.add_argument(
+        "--package-dir",
+        help="Run one package directory with source documents and a post-run GOLD_STANDARD.json.",
+    )
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
+    parser.add_argument("--pipeline-timeout-seconds", type=float, default=300.0)
     parser.add_argument("--anthropic-model", default="claude-sonnet-4-6")
     parser.add_argument("--openai-model", default="gpt-5.4")
     parser.add_argument("--mistral-model", default="mistral-large-latest")
@@ -521,11 +760,15 @@ def main(argv: list[str] | None = None) -> int:
     client = TestClient(app)
 
     cases_dir = Path(args.cases_dir)
-    case_dirs = sorted(
-        path
-        for path in cases_dir.iterdir()
-        if path.is_dir() and path.name.startswith("case_")
-        and (not args.cases or path.name in args.cases)
+    case_dirs = (
+        [Path(args.package_dir)]
+        if args.package_dir
+        else sorted(
+            path
+            for path in cases_dir.iterdir()
+            if path.is_dir() and path.name.startswith("case_")
+            and (not args.cases or path.name in args.cases)
+        )
     )
     if not case_dirs:
         print(f"No case directories found in {cases_dir}", file=sys.stderr)
@@ -551,7 +794,12 @@ def main(argv: list[str] | None = None) -> int:
             time.sleep(30)
         print(f"[{datetime.now(UTC).strftime('%H:%M:%S')}] running {case_dir.name} ...", flush=True)
         try:
-            result = run_case(client, repository, case_dir)
+            result = run_case(
+                client,
+                repository,
+                case_dir,
+                pipeline_timeout_seconds=args.pipeline_timeout_seconds,
+            )
         except Exception as exc:  # noqa: BLE001 - report per-case failure, keep going
             result = {
                 "case_id": case_dir.name.upper(),
@@ -570,6 +818,7 @@ def main(argv: list[str] | None = None) -> int:
                 "decoy_false_alarms": [],
                 "decoys_passed": [],
                 "unmatched_findings": [],
+                "quality_metrics": {},
             }
         case_results.append(result)
         print(
