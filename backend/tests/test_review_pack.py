@@ -119,6 +119,46 @@ def test_review_pack_publishes_one_root_risk_with_supporting_model_signals() -> 
     assert "QA-Prüfung erforderlich" in pack.decision_summary
 
 
+def test_review_pack_shows_source_matched_partial_finding_when_no_canonical_root_is_published(
+) -> None:
+    partial_finding = _finding().model_copy(
+        update={
+            "finding_id": "finding_pack_source_matched_partial",
+            "evidence_support": "partial",
+            "missing_information": ["current validation addendum"],
+            "verification_result": FindingVerificationResult(
+                finding_id="finding_pack_source_matched_partial",
+                evidence_support="partial",
+                quote_exists=True,
+                quote_matches_chunk=True,
+                requirement_applicable=True,
+                unsupported_claims=["The full risk statement needs QA assessment."],
+                missing_evidence=["current validation addendum"],
+                verifier_rationale="The source quote is valid but only partly supports the claim.",
+                verifier_model_run_id=None,
+                deterministic_checks_passed=False,
+            ),
+        }
+    )
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[partial_finding],
+    )
+
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert [risk.finding_id for risk in pack.top_risks] == [
+        "finding_pack_source_matched_partial"
+    ]
+    assert pack.top_risks[0].verifier_status == "partial"
+    assert "QA-Prüfung erforderlich" in pack.decision_summary
+
+
 def test_review_pack_includes_reviewer_actions_and_audit_references() -> None:
     RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
         "ds_review_pack_demo"

@@ -64,6 +64,8 @@ class ReviewPackService:
 
         raw_findings = _findings_for_pack(self.repository, document_set_id)
         findings = _published_findings_for_pack(raw_findings, decision.published_finding_ids)
+        if not findings:
+            findings = _source_matched_reviewable_findings(raw_findings)
         review_decisions_by_finding = {
             finding.finding_id: self.repository.list_review_decisions(finding.finding_id)
             for finding in findings
@@ -241,6 +243,25 @@ def _published_findings_for_pack(
             if finding_id in findings_by_id
         ]
     return []
+
+
+def _source_matched_reviewable_findings(
+    findings: Sequence[RiskFinding],
+) -> list[RiskFinding]:
+    """Keep QA-visible signals when a strict canonical publication gate yields none.
+
+    These findings are not auto-clear evidence: the verifier label and missing
+    information stay visible, while an exact source quote and requirement match
+    prevent unsupported model prose from appearing as a QA item.
+    """
+    return [
+        finding
+        for finding in findings
+        if finding.evidence_support in {"strong", "partial"}
+        and finding.verification_result is not None
+        and finding.verification_result.quote_matches_chunk
+        and finding.verification_result.requirement_applicable
+    ]
 
 
 def _supporting_findings_by_root(
@@ -544,6 +565,16 @@ def _summary(
 
 def _decision_summary(*, decision: RiskDecision, findings: Sequence[RiskFinding]) -> str:
     decision_class = str(decision.decision)
+    if decision_class == "blocked_due_to_model_failure" and findings:
+        return (
+            f"QA-Prüfung erforderlich: {len(findings)} quellenverknüpfte Prüfhinweise "
+            "sind sichtbar. Die technische Abdeckung ist unvollständig."
+        )
+    if findings and decision_class != "auto_clear_candidate":
+        return (
+            f"QA-Prüfung erforderlich: {len(findings)} quellenverknüpfte Prüfhinweise "
+            "vor einer Freigabe bewerten."
+        )
     if decision_class == "human_review_required":
         return (
             f"QA-Prüfung erforderlich: {len(findings)} Kernrisiko"
