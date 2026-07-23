@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from datetime import UTC, datetime
+from hashlib import sha256
 from typing import Any
 
 import pytest
@@ -185,6 +186,76 @@ def test_transient_structured_output_error_is_retried() -> None:
     assert result.findings
 
 
+def test_invalid_requirement_references_are_pruned_without_failing_reviewer() -> None:
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id="agent_invalid_requirement",
+                role="DeviationReviewer",
+                prompt_version="invalid-requirement-v0.1",
+                applicable_risk_categories=["deviation_management"],
+                provider=InvalidRequirementReferenceProvider(),
+            )
+        ],
+    )
+
+    result = orchestrator.run_primary_review("ds_review_demo")
+
+    assert not result.failed_model_runs
+    assert result.model_runs[0].status == "succeeded"
+    assert result.findings[0].requirement_references == [
+        "req_deviation_documented_impact_assessment"
+    ]
+
+
+def test_contradiction_hunter_loads_pattern_knowledge_packs_from_matching_requirements() -> None:
+    repository.create_requirement_set(_contradiction_requirement_set())
+    repository.create_document_set(
+        _document_set().model_copy(
+            update={
+                "document_set_id": "ds_contradiction_review_demo",
+                "requirement_set_id": "rset_contradiction_review_2026",
+                "declared_document_type": "change_control",
+            }
+        )
+    )
+    repository.replace_claim_ledger(
+        document_set_id="ds_contradiction_review_demo",
+        claims=[
+            _claim(
+                "claim_pending_validation",
+                "missing_or_unclear",
+                "validation",
+                "pending approval",
+                "Validation evidence is old and QA approval is pending.",
+            )
+        ],
+    )
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id="agent_contradiction",
+                role="ContradictionHunter",
+                prompt_version="contradiction-v0.1",
+                applicable_risk_categories=["contradiction"],
+                provider=MockModelProvider(),
+            )
+        ],
+    )
+
+    result = orchestrator.run_primary_review("ds_contradiction_review_demo")
+
+    assert result.model_runs[0].status == "succeeded"
+    assert "contradiction_patterns" in result.model_runs[0].knowledge_pack_ids
+    assert "old_evidence_patterns" in result.model_runs[0].knowledge_pack_ids
+    assert "pending_approval_patterns" in result.model_runs[0].knowledge_pack_ids
+    assert result.model_runs[0].missing_knowledge_pack_ids == []
+
+
 def test_no_findings_requires_coverage_summary() -> None:
     agents = [
         ReviewerAgent(
@@ -286,6 +357,60 @@ class FlakyStructuredOutputProvider:
         return output
 
 
+class InvalidRequirementReferenceProvider:
+    provider_name = "mock"
+    model_name = "invalid-requirement-model"
+    model_version = "0.1.0"
+    configured_model_id = "invalid-requirement-model-v0.1"
+    last_run_metadata = None
+
+    def run_structured(
+        self,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[Any],
+    ) -> dict[str, Any]:
+        quote = "Deviation DEV-2026-014 for Batch BATCH-001."
+        return {
+            "findings": [
+                {
+                    "finding_id": "finding_invalid_requirement",
+                    "document_set_id": "ds_review_demo",
+                    "risk_category": "deviation_management",
+                    "severity": "high",
+                    "likelihood": 3,
+                    "detectability": 3,
+                    "risk_statement": "The deviation impact assessment needs QA review.",
+                    "evidence_items": [
+                        {
+                            "document_id": "doc_review_deviation",
+                            "chunk_id": "chunk_review_deviation",
+                            "page": 1,
+                            "quote": quote,
+                            "quote_hash": sha256(quote.encode()).hexdigest(),
+                            "support_type": "supports",
+                            "verifier_score": 0.9,
+                        }
+                    ],
+                    "requirement_references": [
+                        "req_deviation_documented_impact_assessment",
+                        "req_not_in_agent_scope",
+                    ],
+                    "missing_information": [],
+                    "model_provider": "mock",
+                    "model_name": "invalid-requirement-model",
+                    "model_version": "0.1.0",
+                    "prompt_version": "invalid-requirement-v0.1",
+                    "evidence_support": "strong",
+                    "recommended_action": "QA should review the impact assessment.",
+                    "auto_close_allowed": False,
+                    "status": "needs_human_review",
+                }
+            ],
+            "coverage_summary": "Reviewer found a deviation impact issue.",
+        }
+
+
 def _document_set() -> DocumentSet:
     return DocumentSet(
         document_set_id="ds_review_demo",
@@ -342,6 +467,39 @@ def _requirement_set() -> RequirementSet:
                 "effective_from": "2026-01-01T00:00:00Z",
                 "effective_to": None,
             },
+        ],
+    )
+
+
+def _contradiction_requirement_set() -> RequirementSet:
+    return RequirementSet(
+        requirement_set_id="rset_contradiction_review_2026",
+        tenant_id="tenant_demo_pharma",
+        name="Contradiction Requirements",
+        version="2026.1",
+        imported_at=datetime.now(UTC),
+        imported_by="user_quality_admin",
+        active=True,
+        requirements=[
+            {
+                "requirement_id": "req_contradiction_consistency",
+                "source_type": "checklist",
+                "source_name": "Cross-document contradiction checklist",
+                "source_version": "1.0",
+                "section": "2.1",
+                "requirement_text": (
+                    "Status, validation evidence and QA approval claims must be "
+                    "consistent across the change package. Old validation evidence "
+                    "and pending approval must be challenged before release."
+                ),
+                "applies_to_document_types": ["change_control"],
+                "applies_to_process_areas": ["aseptic_filling"],
+                "criticality": "high",
+                "required_evidence": ["current validation evidence", "QA approval status"],
+                "auto_close_allowed": False,
+                "effective_from": "2026-01-01T00:00:00Z",
+                "effective_to": None,
+            }
         ],
     )
 

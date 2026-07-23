@@ -112,15 +112,38 @@ describe("review pack exports", () => {
 
     expect(content).toContain("Prüfmappe");
     expect(content).toContain("QA-Entscheidung");
-    expect(content).toContain("Kanonische Risikobefunde");
-    expect(content).toContain("QA-Hinweise mit unvollständiger Evidenz");
-    expect(content).toContain("NICHT KANONISCH");
+    expect(content).toContain("Kernbefunde");
+    expect(content).toContain("Hinweise zur QA-Prüfung");
+    expect(content).not.toContain("NICHT KANONISCH");
     expect(content).toContain("Evidenzanhang");
     expect(content).toContain("QA muss die Chargenauswirkung vor der Freigabe bewerten.");
     expect(content).toContain("Technische Hinweise");
     expect(content).toContain("Verifier-Status: verified");
     expect(content.split("Die Chargenbewertung ist nicht belegt.")).toHaveLength(2);
     expect(content).toContain("Unterstützendes Teilsignal zur Chargenbewertung.");
+  });
+
+  it("exports German text with PDF font encoding and hides raw machine phrasing", async () => {
+    const pdf = createReviewPackPdf({
+      ...pack,
+      decision_summary: "QA-Prüfung erforderlich: Spezifikation, Geräteäquivalenz und Schulung prüfen.",
+      top_risks: [
+        {
+          ...pack.top_risks[0],
+          verifier_status: "partial",
+          risk_statement: "Geräteäquivalenz, Präzision und Rückstellmuster müssen geprüft werden.",
+          human_review_reason: "single high/critical finding is sufficient for human review"
+        }
+      ],
+      evidence_table: []
+    });
+    const content = String.fromCharCode(...new Uint8Array(await pdf.arrayBuffer()));
+
+    expect(content).toContain("/Encoding /WinAnsiEncoding");
+    expect(content).toContain("QA-Prüfung erforderlich");
+    expect(content).toContain("Geräteäquivalenz, Präzision und Rückstellmuster");
+    expect(content).not.toContain("single high/critical finding");
+    expect(content).not.toContain("NICHT KANONISCH");
   });
 
   it("uses a safe, case-specific filename", () => {

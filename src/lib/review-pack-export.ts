@@ -25,9 +25,9 @@ export function deriveReviewPackPublication(verifierStatus: string | null | unde
   state: ReviewPackPublicationState;
   label: string;
 } {
-  return verifierStatus?.trim().toLowerCase() === "strong"
+  return ["strong", "verified"].includes(verifierStatus?.trim().toLowerCase() ?? "")
     ? { state: "canonical", label: "Kanonischer Risikobefund" }
-    : { state: "qa_hint_partial", label: "Nicht-kanonischer QA-Hinweis" };
+    : { state: "qa_hint_partial", label: "QA-Hinweis" };
 }
 
 export function reviewPackExportFileName(pack: ReviewPack, format: ExportFormat): string {
@@ -84,26 +84,26 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
   const qaHints = pack.top_risks.filter(
     (risk) => deriveReviewPackPublication(risk.verifier_status).state === "qa_hint_partial"
   );
-  pages.heading("Kanonische Risikobefunde", 13);
-  if (canonicalRisks.length === 0) pages.text("Keine kanonischen Risikobefunde vorhanden.");
+  pages.heading("Kernbefunde", 13);
+  if (canonicalRisks.length === 0) pages.text("Keine vollständig verifizierten Kernbefunde vorhanden.");
   for (const [index, risk] of canonicalRisks.entries()) {
     pages.subheading(
       `${index + 1}. ${displayReviewValue(risk.severity)} – ${displayReviewValue(risk.risk_category ?? "risk")}`
     );
     pages.paragraph(displayRiskStatement(risk.risk_statement));
     pages.text(`Verifier-Status: ${risk.verifier_status}`);
-    pages.text(`Für die QA-Prüfung: ${risk.human_review_reason || "Menschliche Prüfung erforderlich."}`);
+    pages.text(`QA-Schritt: ${displayHumanReviewReason(risk.human_review_reason)}`);
     pages.spacer(4);
   }
 
-  pages.heading("QA-Hinweise mit unvollständiger Evidenz", 13);
-  pages.paragraph("NICHT KANONISCH - Diese Hinweise sind keine bestätigten Risikobefunde und benötigen eine qualifizierte QA-Prüfung.");
+  pages.heading("Hinweise zur QA-Prüfung", 13);
+  pages.paragraph("Diese Hinweise sind quellenbezogen, aber noch nicht vollständig verifiziert. QA bewertet sie vor einer Freigabe.");
   if (qaHints.length === 0) pages.text("Keine nicht-kanonischen QA-Hinweise vorhanden.");
   for (const [index, risk] of qaHints.entries()) {
-    pages.subheading(`${index + 1}. NICHT KANONISCH – ${displayReviewValue(risk.severity)}`);
+    pages.subheading(`${index + 1}. Hinweis – ${displayReviewValue(risk.severity)}`);
     pages.paragraph(displayRiskStatement(risk.risk_statement));
     pages.text(`Verifier-Status: ${risk.verifier_status}`);
-    pages.text(`Für die QA-Prüfung: ${risk.human_review_reason || "Menschliche Prüfung erforderlich."}`);
+    pages.text(`QA-Schritt: ${displayHumanReviewReason(risk.human_review_reason)}`);
     pages.spacer(4);
   }
 
@@ -154,6 +154,11 @@ function unique(values: string[]): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
 }
 
+function displayHumanReviewReason(reason: string | null | undefined): string {
+  if (!reason) return "Menschliche Prüfung erforderlich.";
+  return displayReviewReason(reason);
+}
+
 type PdfLine = { text: string; fontSize: number; indent: number; gapAfter: number };
 
 class PdfPageBuilder {
@@ -198,7 +203,7 @@ class PdfPageBuilder {
 }
 
 function wrapPdfText(text: string, fontSize: number, indent: number): string[] {
-  const maxCharacters = Math.max(30, Math.floor((82 - indent / 7) * (10 / fontSize)));
+  const maxCharacters = Math.max(28, Math.floor((68 - indent / 8) * (10 / fontSize)));
   const words = pdfText(text).split(/\s+/).filter(Boolean);
   const lines: string[] = [];
   let current = "";
@@ -229,14 +234,14 @@ function buildPdf(pages: PdfLine[][]): Uint8Array {
   const objects: string[] = [];
   objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
   objects[2] = `<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageCount} >>`;
-  objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+  objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
 
   pages.forEach((page, index) => {
     const pageObjectId = pageObjectIds[index];
     const contentObjectId = contentObjectIds[index];
     let y = 800;
     const commands = page.map((line) => {
-      const command = `BT /F1 ${line.fontSize} Tf ${42 + line.indent} ${y} Td (${escapePdfText(line.text)}) Tj ET`;
+      const command = `BT /F1 ${line.fontSize} Tf ${54 + line.indent} ${y} Td (${escapePdfText(line.text)}) Tj ET`;
       y -= line.fontSize + 4 + line.gapAfter;
       return command;
     });

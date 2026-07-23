@@ -191,6 +191,40 @@ def test_reviewable_finding_keeps_human_review_decision_when_model_coverage_fail
     assert decision.model_coverage_status == "incomplete"
 
 
+def test_source_matched_partial_finding_routes_to_human_review_despite_model_failure() -> None:
+    _setup_document_context()
+    repository.replace_risk_findings(
+        document_set_id="ds_fusion_demo",
+        findings=[
+            _finding(
+                "finding_partial_source_matched",
+                severity="high",
+                evidence_support="partial",
+                verification_result=_verification(
+                    finding_id="finding_partial_source_matched",
+                    evidence_support="partial",
+                    deterministic_checks_passed=False,
+                    quote_matches_chunk=True,
+                    requirement_applicable=True,
+                ),
+            )
+        ],
+    )
+    repository.add_model_run(
+        document_set_id="ds_fusion_demo",
+        model_run=_model_run(status="failed"),
+    )
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    assert decision.decision == "human_review_required"
+    assert decision.published_finding_ids == []
+    assert "failed model run affects review coverage" in decision.operational_blockers
+    assert decision.model_coverage_status == "incomplete"
+
+
 def test_successful_rerun_replaces_a_prior_failure_for_the_same_reviewer_coverage() -> None:
     _setup_document_context()
     failed_run = _model_run(status="failed")
@@ -558,13 +592,20 @@ def _verification(
     finding_id: str,
     evidence_support: str,
     deterministic_checks_passed: bool,
+    quote_matches_chunk: bool | None = None,
+    requirement_applicable: bool = True,
 ) -> FindingVerificationResult:
+    quote_matches = (
+        deterministic_checks_passed
+        if quote_matches_chunk is None
+        else quote_matches_chunk
+    )
     return FindingVerificationResult(
         finding_id=finding_id,
         evidence_support=evidence_support,
         quote_exists=True,
-        quote_matches_chunk=deterministic_checks_passed,
-        requirement_applicable=True,
+        quote_matches_chunk=quote_matches,
+        requirement_applicable=requirement_applicable,
         unsupported_claims=[] if deterministic_checks_passed else ["quote mismatch"],
         missing_evidence=[] if deterministic_checks_passed else ["verified source support"],
         verifier_rationale="Deterministic test verification result.",

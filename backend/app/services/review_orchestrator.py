@@ -417,7 +417,7 @@ class PrimaryReviewOrchestrator:
                     calibration_prompt_block=calibration_pack.prompt_block,
                     calibration_pack_hash=calibration_pack_hash,
                 )
-                _validate_agent_requirement_references(
+                _normalise_agent_requirement_references(
                     output=candidate_output,
                     allowed_requirement_ids=set(requirement_ids),
                 )
@@ -1297,6 +1297,24 @@ def _requirement_pack_candidates(requirement: Requirement) -> list[str]:
         "impact_assessment": ("impact", "auswirkung"),
         "material_traceability": ("traceability", "genealogy", "material", "supplier"),
         "method_validation": ("method", "methode"),
+        "old_evidence_patterns": (
+            "old validation",
+            "current validation",
+            "validation evidence",
+            "validierung",
+            "veraltet",
+            "uebertragbare evidenz",
+            "addendum",
+        ),
+        "pending_approval_patterns": (
+            "pending",
+            "planned",
+            "approval",
+            "qa approval",
+            "freigabe",
+            "genehmigung",
+            "vorliegen",
+        ),
         "red_flag_patterns": ("red flag", "pending", "no impact"),
         "regulatory_consistency": ("sop", "regulatory", "requirement"),
         "root_cause_analysis": ("root cause", "ursache"),
@@ -1329,25 +1347,21 @@ def _dedupe_strings(values: Sequence[str]) -> list[str]:
     return deduped
 
 
-def _validate_agent_requirement_references(
+def _normalise_agent_requirement_references(
     *,
     output: ReviewerAgentOutput,
     allowed_requirement_ids: set[str],
 ) -> None:
     for finding in output.findings:
-        if not finding.requirement_references:
-            raise ValueError(
-                f"Finding {finding.finding_id} has no requirement reference"
-            )
-        unknown_ids = [
+        known_requirement_references = [
             requirement_id
             for requirement_id in finding.requirement_references
-            if requirement_id not in allowed_requirement_ids
+            if requirement_id in allowed_requirement_ids
         ]
-        if unknown_ids:
+        finding.requirement_references = known_requirement_references
+        if not known_requirement_references:
             raise ValueError(
-                f"Finding {finding.finding_id} references requirements not supplied "
-                f"to the agent: {', '.join(unknown_ids)}"
+                f"Finding {finding.finding_id} has no requirement reference"
             )
 
 

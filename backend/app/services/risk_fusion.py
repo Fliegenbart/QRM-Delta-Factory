@@ -398,10 +398,29 @@ def _reviewable_findings_exist(
     published_finding_ids: Sequence[str],
 ) -> bool:
     findings_by_id = {finding.finding_id: finding for finding in findings}
-    return any(
+    published_reviewable_exists = any(
         not findings_by_id[finding_id].auto_close_allowed
         for finding_id in published_finding_ids
         if finding_id in findings_by_id
+    )
+    if published_reviewable_exists:
+        return True
+    return any(_is_source_matched_reviewable_hint(finding) for finding in findings)
+
+
+def _is_source_matched_reviewable_hint(finding: RiskFinding) -> bool:
+    if finding.auto_close_allowed:
+        return False
+    if finding.evidence_support not in {EvidenceSupport.STRONG, EvidenceSupport.PARTIAL}:
+        return False
+    verification = finding.verification_result
+    if verification is None:
+        return False
+    return (
+        verification.quote_matches_chunk
+        and verification.requirement_applicable
+        and verification.evidence_support
+        in {EvidenceSupport.STRONG, EvidenceSupport.PARTIAL}
     )
 
 
