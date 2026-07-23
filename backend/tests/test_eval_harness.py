@@ -6,10 +6,32 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from app.evals import run_goldstandard
 from app.main import app
 from app.schemas.evals import EvalDataset
 from app.schemas.risk import RiskDecision
 from app.services.eval_runner import EvalRunner
+
+
+def test_goldstandard_harness_falls_back_to_backend_packaged_requirement_library(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(run_goldstandard, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(run_goldstandard, "BACKEND_DIR", tmp_path / "packaged-backend")
+    library_path = (
+        run_goldstandard.BACKEND_DIR
+        / "src"
+        / "data"
+        / "gmp-general-requirement-library.json"
+    )
+    library_path.parent.mkdir(parents=True)
+    library_path.write_text('{"requirements": [{"requirement_id": "req_packaged"}]}')
+
+    requirement_set = run_goldstandard._requirement_set()
+
+    assert requirement_set["requirement_set_id"] == run_goldstandard.REQUIREMENT_SET_ID
+    assert requirement_set["requirements"]
 
 
 def test_metrics_calculation_counts_recall_precision_and_false_positives() -> None:

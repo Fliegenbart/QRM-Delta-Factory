@@ -106,7 +106,13 @@ def _requirement_set() -> dict[str, Any]:
     (src/data/gmp-general-requirement-library.json); only the set id and
     tenant are overridden so the harness stays self-contained.
     """
-    library_path = REPO_ROOT / "src" / "data" / "gmp-general-requirement-library.json"
+    library_candidates = [
+        REPO_ROOT / "src" / "data" / "gmp-general-requirement-library.json",
+        BACKEND_DIR / "src" / "data" / "gmp-general-requirement-library.json",
+    ]
+    library_path = next((path for path in library_candidates if path.exists()), None)
+    if library_path is None:
+        raise FileNotFoundError("Canonical GMP requirement library is not packaged")
     library: dict[str, Any] = json.loads(library_path.read_text(encoding="utf-8"))
     library["requirement_set_id"] = REQUIREMENT_SET_ID
     library["tenant_id"] = TENANT_ID

@@ -32,7 +32,7 @@ services:
 
   app:
     build:
-      context: ./backend
+      context: .
     restart: unless-stopped
     environment:
       QRM_APP_NAME: "Pharma AI Risk Orchestration Backend"

@@ -5,8 +5,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml ./
-COPY app ./app
+COPY backend/pyproject.toml ./pyproject.toml
+COPY backend/app ./app
+COPY src/data/gmp-general-requirement-library.json ./src/data/gmp-general-requirement-library.json
 RUN pip install --no-cache-dir .
 
 EXPOSE 8000

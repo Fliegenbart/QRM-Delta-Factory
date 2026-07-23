@@ -27,7 +27,7 @@ services:
 
   app:
     build:
-      context: ./backend
+      context: .
     environment:
       QRM_APP_NAME: "Pharma AI Risk Orchestration Backend"
       QRM_APP_VERSION: "0.1.0"
