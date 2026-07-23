@@ -34,6 +34,15 @@ def test_goldstandard_harness_falls_back_to_backend_packaged_requirement_library
     assert requirement_set["requirements"]
 
 
+def test_goldstandard_harness_adds_configured_tenant_auth_header() -> None:
+    headers = run_goldstandard._tenant_auth_headers(
+        {"test-key": run_goldstandard.TENANT_ID},
+        run_goldstandard.TENANT_ID,
+    )
+
+    assert headers == {"X-API-Key": "test-key"}
+
+
 def test_metrics_calculation_counts_recall_precision_and_false_positives() -> None:
     dataset = _dataset()
     matching_finding = _finding(

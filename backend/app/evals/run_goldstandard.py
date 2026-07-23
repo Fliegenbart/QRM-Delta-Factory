@@ -262,6 +262,23 @@ def _load_post_run_oracle(path: Path) -> dict[str, Any]:
     }
 
 
+def _tenant_auth_headers(api_key_to_tenant_id: dict[str, str], tenant_id: str) -> dict[str, str]:
+    """Give the in-process harness the same tenant credential required in production."""
+    if not api_key_to_tenant_id:
+        return {}
+    api_key = next(
+        (
+            key
+            for key, mapped_tenant_id in api_key_to_tenant_id.items()
+            if mapped_tenant_id == tenant_id
+        ),
+        None,
+    )
+    if api_key is None:
+        raise RuntimeError(f"No API key configured for goldstandard tenant {tenant_id}")
+    return {"X-API-Key": api_key}
+
+
 def _wait_for_pipeline_completion(
     client: Any,
     initial_payload: dict[str, Any],
@@ -763,7 +780,10 @@ def main(argv: list[str] | None = None) -> int:
     audit_log.clear()
 
     repository.create_requirement_set(RequirementSet.model_validate(_requirement_set()))
-    client = TestClient(app)
+    client = TestClient(
+        app,
+        headers=_tenant_auth_headers(get_settings().api_key_to_tenant_id(), TENANT_ID),
+    )
 
     cases_dir = Path(args.cases_dir)
     case_dirs = (
