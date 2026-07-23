@@ -37,9 +37,6 @@ def create_pipeline_run(
     )
     try:
         pipeline_service = get_pipeline_service()
-        active_pipeline_run = pipeline_service.get_active_pipeline_run(document_set_id)
-        if active_pipeline_run is not None:
-            return active_pipeline_run
         pipeline_run = pipeline_service.start_pipeline(document_set_id)
         background_tasks.add_task(
             pipeline_service.execute_pipeline,

@@ -42,10 +42,6 @@ def test_pipeline_endpoint_starts_analysis_in_background(monkeypatch: pytest.Mon
     execution_calls: list[tuple[str, str]] = []
 
     class BackgroundPipelineService:
-        def get_active_pipeline_run(self, document_set_id: str) -> PipelineRun | None:
-            assert document_set_id == "ds_pipeline_background"
-            return None
-
         def start_pipeline(self, document_set_id: str) -> PipelineRun:
             assert document_set_id == "ds_pipeline_background"
             return pipeline_run
@@ -65,39 +61,6 @@ def test_pipeline_endpoint_starts_analysis_in_background(monkeypatch: pytest.Mon
     assert response.status_code == 202
     assert response.json()["status"] == "running"
     assert execution_calls == [("ds_pipeline_background", "prun_pipeline_background")]
-
-
-def test_pipeline_endpoint_reuses_active_run(monkeypatch: pytest.MonkeyPatch) -> None:
-    repository.create_document_set(_document_set(document_set_id="ds_pipeline_active"))
-    active_run = PipelineRun(
-        pipeline_run_id="prun_pipeline_active",
-        document_set_id="ds_pipeline_active",
-        status=PipelineRunStatus.RUNNING,
-        started_at=datetime.now(UTC),
-        config_version="pipeline-config-test",
-    )
-
-    class ActivePipelineService:
-        def get_active_pipeline_run(self, document_set_id: str) -> PipelineRun | None:
-            assert document_set_id == "ds_pipeline_active"
-            return active_run
-
-        def start_pipeline(self, document_set_id: str) -> PipelineRun:
-            raise AssertionError("An active pipeline must not be started twice")
-
-        def execute_pipeline(self, document_set_id: str, run: PipelineRun) -> PipelineRun:
-            raise AssertionError("An active pipeline must not be scheduled twice")
-
-    monkeypatch.setattr(
-        pipeline_runs_api,
-        "get_pipeline_service",
-        lambda: ActivePipelineService(),
-    )
-
-    response = TestClient(app).post("/document-sets/ds_pipeline_active/pipeline-runs")
-
-    assert response.status_code == 202
-    assert response.json()["pipeline_run_id"] == "prun_pipeline_active"
 
 
 def test_pipeline_service_runs_end_to_end_after_document_upload() -> None:
