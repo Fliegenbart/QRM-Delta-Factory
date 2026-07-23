@@ -404,22 +404,32 @@ class PrimaryReviewOrchestrator:
         failure_class: str | None = None
         agent.provider.last_run_metadata = None
         try:
-            output = agent.run(
-                agent_claims,
-                agent_requirements,
-                document_set_id=document_set_id,
-                case_signals=case_signals,
-                knowledge_pack_ids=knowledge_pack_ids,
-                missing_knowledge_pack_ids=missing_knowledge_pack_ids,
-                requirement_package_hash=requirement_package_hash,
-                calibration_examples=calibration_pack.examples,
-                calibration_prompt_block=calibration_pack.prompt_block,
-                calibration_pack_hash=calibration_pack_hash,
-            )
-            _validate_agent_requirement_references(
-                output=output,
-                allowed_requirement_ids=set(requirement_ids),
-            )
+            def run_reviewer() -> ReviewerAgentOutput:
+                candidate_output = agent.run(
+                    agent_claims,
+                    agent_requirements,
+                    document_set_id=document_set_id,
+                    case_signals=case_signals,
+                    knowledge_pack_ids=knowledge_pack_ids,
+                    missing_knowledge_pack_ids=missing_knowledge_pack_ids,
+                    requirement_package_hash=requirement_package_hash,
+                    calibration_examples=calibration_pack.examples,
+                    calibration_prompt_block=calibration_pack.prompt_block,
+                    calibration_pack_hash=calibration_pack_hash,
+                )
+                _validate_agent_requirement_references(
+                    output=candidate_output,
+                    allowed_requirement_ids=set(requirement_ids),
+                )
+                return candidate_output
+
+            try:
+                output = run_reviewer()
+            except ValueError:
+                # A syntactically structured answer can still violate a strict
+                # evidence or requirement-reference constraint. Retry once with
+                # the same bounded context before recording a coverage failure.
+                output = run_reviewer()
             raw_output_text = output.model_dump_json()
         except Exception as exc:
             raw_output_text = json.dumps({"error": str(exc)}, sort_keys=True)
