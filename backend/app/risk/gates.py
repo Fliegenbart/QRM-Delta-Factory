@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any
 
 from app.audit.events import InMemoryAuditLog
 from app.core.config import Settings, get_settings
@@ -11,6 +12,7 @@ from app.schemas.domain import (
     Criticality,
     Document,
     DocumentSet,
+    ModelRunStatus,
     Requirement,
     Severity,
 )
@@ -70,6 +72,7 @@ class OODService:
             process_area=document_set.declared_process_area,
         )
         failed_roles = _failed_roles_for_document_set(
+            repository=self.repository,
             audit_log=self.audit_log,
             document_set_id=document_set_id,
             required_roles=required_roles,
@@ -179,6 +182,7 @@ class CoverageService:
             document_set_id=document_set_id,
         )
         failed_roles = _failed_roles_for_document_set(
+            repository=self.repository,
             audit_log=self.audit_log,
             document_set_id=document_set_id,
             required_roles=required_roles,
@@ -327,6 +331,19 @@ def _completed_roles_for_document_set(
     audit_log: InMemoryAuditLog,
     document_set_id: str,
 ) -> list[str]:
+    latest_model_runs = _latest_model_runs_by_agent(
+        repository.list_model_runs(document_set_id)
+    )
+    if latest_model_runs:
+        return _dedupe_text(
+            [
+                model_run.agent_role
+                for model_run in latest_model_runs
+                if model_run.status == ModelRunStatus.SUCCEEDED
+            ]
+        )
+
+    # Compatibility path for records created before durable ModelRun persistence.
     roles = [summary.role for summary in repository.list_coverage_summaries(document_set_id)]
     for event in audit_log.list_events():
         if (
@@ -341,10 +358,26 @@ def _completed_roles_for_document_set(
 
 def _failed_roles_for_document_set(
     *,
+    repository: InMemoryDocumentRepository,
     audit_log: InMemoryAuditLog,
     document_set_id: str,
     required_roles: Sequence[str],
 ) -> list[str]:
+    latest_model_runs = _latest_model_runs_by_agent(
+        repository.list_model_runs(document_set_id)
+    )
+    if latest_model_runs:
+        required_role_set = set(required_roles)
+        return _dedupe_text(
+            [
+                model_run.agent_role
+                for model_run in latest_model_runs
+                if model_run.status == ModelRunStatus.FAILED
+                and model_run.agent_role in required_role_set
+            ]
+        )
+
+    # Compatibility path for records created before durable ModelRun persistence.
     failed_roles: list[str] = []
     required_role_set = set(required_roles)
     for event in audit_log.list_events():
@@ -356,6 +389,21 @@ def _failed_roles_for_document_set(
             if isinstance(role, str) and role in required_role_set:
                 failed_roles.append(role)
     return _dedupe_text(failed_roles)
+
+
+def _latest_model_runs_by_agent(model_runs: Sequence[Any]) -> list[Any]:
+    latest_by_agent: dict[str, Any] = {}
+    for model_run in model_runs:
+        previous = latest_by_agent.get(model_run.agent_id)
+        if previous is None or (
+            model_run.completed_at,
+            model_run.started_at,
+        ) >= (
+            previous.completed_at,
+            previous.started_at,
+        ):
+            latest_by_agent[model_run.agent_id] = model_run
+    return list(latest_by_agent.values())
 
 
 def _dedupe_text(items: Sequence[str]) -> list[str]:

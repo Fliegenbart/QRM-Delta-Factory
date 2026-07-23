@@ -16,7 +16,10 @@ from app.agents.providers import (
     MistralProvider,
     MockProvider,
     OpenAIProvider,
+    ProviderCallError,
+    ProviderCircuitOpenError,
     ProviderRuntimeOptions,
+    ProviderStructuredOutputError,
 )
 from app.audit.events import InMemoryAuditLog
 from app.core.config import Settings, get_settings
@@ -398,6 +401,7 @@ class PrimaryReviewOrchestrator:
         output: ReviewerAgentOutput | None = None
         raw_output_text = ""
         status = ModelRunStatus.SUCCEEDED
+        failure_class: str | None = None
         agent.provider.last_run_metadata = None
         try:
             output = agent.run(
@@ -420,6 +424,7 @@ class PrimaryReviewOrchestrator:
         except Exception as exc:
             raw_output_text = json.dumps({"error": str(exc)}, sort_keys=True)
             status = ModelRunStatus.FAILED
+            failure_class = _failure_class(exc)
 
         completed_at = datetime.now(UTC)
         latency_ms = int((time.perf_counter() - started_perf) * 1000)
@@ -492,6 +497,7 @@ class PrimaryReviewOrchestrator:
                 "calibration_pack_hash": model_run.calibration_pack_hash,
                 "input_hash": input_hash,
                 "output_hash": output_hash,
+                "failure_class": failure_class,
             },
         )
         if output is not None:
@@ -1035,6 +1041,24 @@ def _requirements_for_agent(
         )
     ]
     return role_matches or scoped
+
+
+def _failure_class(exc: Exception) -> str:
+    """Classify a failed model call without retaining document or provider payloads."""
+    if isinstance(exc, ProviderCircuitOpenError):
+        return "provider_circuit_open"
+    if isinstance(exc, ProviderStructuredOutputError):
+        return "structured_output_invalid"
+    if isinstance(exc, ProviderCallError):
+        message = str(exc).lower()
+        if "timed out" in message:
+            return "provider_timeout"
+        if "http" in message:
+            return "provider_http_error"
+        return "provider_call_failed"
+    if "validation" in type(exc).__name__.lower():
+        return "structured_output_invalid"
+    return "review_execution_failed"
 
 
 def _requirement_matches_document_set(

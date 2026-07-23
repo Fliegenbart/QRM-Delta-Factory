@@ -150,6 +150,14 @@ def test_invalid_model_output_is_caught_as_failed_model_run() -> None:
     event_types = [event.event_type for event in audit_log.list_events()]
     assert "model_run_failed" in event_types
     assert "failed_model_run" in event_types
+    assert any(
+        event.event_type == "model_run_failed"
+        and event.payload["failure_class"] in {
+            "review_execution_failed",
+            "structured_output_invalid",
+        }
+        for event in audit_log.list_events()
+    )
 
 
 def test_no_findings_requires_coverage_summary() -> None:
