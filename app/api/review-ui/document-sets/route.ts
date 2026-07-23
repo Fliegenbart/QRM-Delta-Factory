@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { createDocumentSet, ReviewApiError } from "@/src/lib/review-api";
-import { resolveReviewActor } from "@/utils/supabase/actor";
+import { authorizeReviewApiRequest } from "@/utils/supabase/actor";
 
 export async function POST(request: Request) {
+  const authorization = await authorizeReviewApiRequest("create-document-set");
+  if ("response" in authorization) return authorization.response;
   const body = await request.json().catch(() => ({}));
   const declaredDocumentType = String(body.declaredDocumentType || "").trim();
   const declaredProcessArea = String(body.declaredProcessArea || "").trim();
-  const uploadedBy = await resolveReviewActor(String(body.uploadedBy || "qrm_author").trim());
 
   if (!declaredDocumentType || !declaredProcessArea) {
     return NextResponse.json(
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
     const documentSet = await createDocumentSet({
       declaredDocumentType,
       declaredProcessArea,
-      uploadedBy
+      uploadedBy: authorization.actor.userId
     });
     return NextResponse.json({ documentSet }, { status: 201 });
   } catch (error) {

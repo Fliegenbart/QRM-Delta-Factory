@@ -1,23 +1,58 @@
+import { NextResponse } from "next/server";
+import { isConfiguredReviewTenant } from "@/src/lib/review-runtime-config";
+import {
+  authorizeReviewOperation,
+  getLocalReviewFallbackActor,
+  resolveReviewActorFromClaims,
+  type ReviewActor,
+  type ReviewOperation
+} from "@/utils/supabase/authorization";
 import { hasSupabaseMiddlewareConfig } from "@/utils/supabase/config";
 import { createClient } from "@/utils/supabase/server";
 
-/**
- * Resolves the acting person for audit-relevant writes.
- *
- * When a Supabase session exists, the authenticated identity wins —
- * client-supplied names must not be able to spoof the audit trail.
- * Without Supabase (local demo mode) the provided fallback is used.
- */
-export async function resolveReviewActor(fallback: string): Promise<string> {
-  if (!hasSupabaseMiddlewareConfig()) return fallback;
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) return user.id;
-  } catch {
-    // No session available (e.g. unauthenticated demo route) — keep fallback.
+export async function authorizeReviewApiRequest(
+  operation: ReviewOperation
+): Promise<{ actor: ReviewActor } | { response: NextResponse }> {
+  if (!hasSupabaseMiddlewareConfig()) {
+    const localActor = getLocalReviewFallbackActor();
+    if (!localActor) {
+      return { response: authorizationFailure("Review authentication is not configured.", 503) };
+    }
+    return authorizeActor(localActor, operation);
   }
-  return fallback;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error
+  } = await supabase.auth.getUser();
+  if (error || !user) {
+    return { response: authorizationFailure("Authentication required.", 401) };
+  }
+
+  const actor = resolveReviewActorFromClaims(user);
+  if (!actor) {
+    return { response: authorizationFailure("Valid review role and tenant claims are required.", 403) };
+  }
+  if (!isConfiguredReviewTenant(actor.tenantId)) {
+    return { response: authorizationFailure("Actor tenant is not authorized for this backend.", 403) };
+  }
+  return authorizeActor(actor, operation);
+}
+
+function authorizeActor(
+  actor: ReviewActor,
+  operation: ReviewOperation
+): { actor: ReviewActor } | { response: NextResponse } {
+  const authorization = authorizeReviewOperation(actor, operation);
+  return authorization.allowed
+    ? { actor }
+    : { response: authorizationFailure(authorization.reason, 403) };
+}
+
+function authorizationFailure(message: string, status: 401 | 403 | 503): NextResponse {
+  return NextResponse.json(
+    { error: message },
+    { status, headers: { "cache-control": "no-store" } }
+  );
 }

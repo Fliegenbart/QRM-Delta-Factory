@@ -85,7 +85,7 @@ describe("review pack exports", () => {
     expect(content).toContain("Chargenbewertung");
   });
 
-  it("uses German QA headings, shows each root risk once, and keeps evidence in an appendix", async () => {
+  it("separates canonical risks from non-canonical QA hints and keeps evidence in an appendix", async () => {
     const pdf = createReviewPackPdf({
       ...pack,
       decision: {
@@ -112,13 +112,15 @@ describe("review pack exports", () => {
 
     expect(content).toContain("Prüfmappe");
     expect(content).toContain("QA-Entscheidung");
-    expect(content).toContain("Kernrisiken");
+    expect(content).toContain("Kanonische Risikobefunde");
+    expect(content).toContain("QA-Hinweise mit unvollständiger Evidenz");
+    expect(content).toContain("NICHT KANONISCH");
     expect(content).toContain("Evidenzanhang");
     expect(content).toContain("QA muss die Chargenauswirkung vor der Freigabe bewerten.");
     expect(content).toContain("Technische Hinweise");
-    expect(content).toContain("1 unterstützendes Signal");
+    expect(content).toContain("Verifier-Status: verified");
     expect(content.split("Die Chargenbewertung ist nicht belegt.")).toHaveLength(2);
-    expect(content).not.toContain("Unterstützendes Teilsignal zur Chargenbewertung.");
+    expect(content).toContain("Unterstützendes Teilsignal zur Chargenbewertung.");
   });
 
   it("uses a safe, case-specific filename", () => {

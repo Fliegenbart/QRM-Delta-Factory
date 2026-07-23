@@ -154,6 +154,7 @@ class ReviewPackService:
             actor_type="service",
             entity_type="ReviewPack",
             entity_id=review_pack.review_pack_id,
+            tenant_id=document_set.tenant_id,
             payload={
                 "document_set_id": document_set_id,
                 "risk_decision": decision.decision,
@@ -178,6 +179,11 @@ class ReviewPackService:
         finding = self.repository.find_risk_finding(finding_id)
         if finding is None:
             raise ReviewDecisionFindingNotFoundError(f"Finding {finding_id} not found")
+        document_set = self.repository.get_document_set(finding.document_set_id)
+        if document_set is None:
+            raise ReviewDecisionFindingNotFoundError(
+                f"DocumentSet for finding {finding_id} not found"
+            )
         created_at = datetime.now(UTC)
         review_decision = ReviewDecision(
             review_id=_review_decision_id(
@@ -210,6 +216,7 @@ class ReviewPackService:
             actor_type="user",
             entity_type="RiskFinding",
             entity_id=finding.finding_id,
+            tenant_id=document_set.tenant_id,
             payload=audit_payload,
         )
         self.audit_log.append(
@@ -217,6 +224,7 @@ class ReviewPackService:
             actor_id=reviewer_id,
             entity_type="RiskFinding",
             entity_id=finding.finding_id,
+            tenant_id=document_set.tenant_id,
             payload=audit_payload,
         )
         return review_decision

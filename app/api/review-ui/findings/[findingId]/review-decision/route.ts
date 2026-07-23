@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { submitReviewDecision } from "@/src/lib/review-api";
-import { resolveReviewActor } from "@/utils/supabase/actor";
+import { authorizeReviewApiRequest } from "@/utils/supabase/actor";
 import { decisionOptions, type ReviewDecisionValue } from "@/src/lib/review-ui";
 
 type RouteContext = {
@@ -9,6 +9,8 @@ type RouteContext = {
 
 export async function POST(request: Request, context: RouteContext) {
   const { findingId } = await context.params;
+  const authorization = await authorizeReviewApiRequest("submit-review");
+  if ("response" in authorization) return authorization.response;
   const body = await request.json().catch(() => ({}));
   const allowedDecisions = new Set(decisionOptions.map((option) => option.value));
 
@@ -23,7 +25,7 @@ export async function POST(request: Request, context: RouteContext) {
   try {
     const result = await submitReviewDecision({
       findingId,
-      reviewerId: await resolveReviewActor(String(body.reviewerId || "reviewer_qa_1")),
+      reviewerId: authorization.actor.userId,
       decision: body.decision as ReviewDecisionValue,
       rationale: String(body.rationale)
     });

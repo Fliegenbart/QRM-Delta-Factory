@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 import { getReviewPack } from "@/src/lib/review-api";
+import { deriveReviewPackPublication } from "@/src/lib/review-pack-export";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import { ReviewPackExportActions } from "@/src/components/review-ui/review-pack-export-actions";
 import {
@@ -93,7 +94,7 @@ export default async function ReviewPackPage({ params }: PageProps) {
             </div>
           </ReviewPanel>
 
-          <ReviewPanel title="Kernrisiken">
+          <ReviewPanel title="Kanonische Risikobefunde und QA-Hinweise mit unvollständiger Evidenz">
             {presentation.rootRisks.length === 0 ? (
               <EmptyState message={consultantReviewCopy.pack.emptyFindings} />
             ) : (
@@ -108,6 +109,9 @@ export default async function ReviewPackPage({ params }: PageProps) {
                           </StatusBadge>
                           <StatusBadge>{displayReviewValue(risk.risk_category ?? "risk")}</StatusBadge>
                           <StatusBadge>{displayReviewValue(risk.verifier_status)}</StatusBadge>
+                          <StatusBadge tone={deriveReviewPackPublication(risk.verifier_status).state === "canonical" ? "green" : "amber"}>
+                            {deriveReviewPackPublication(risk.verifier_status).label}
+                          </StatusBadge>
                           {risk.review_status === "reviewed" ? (
                             <StatusBadge tone="green">
                               {displayReviewValue(risk.latest_review_decision ?? "reviewed")}
@@ -115,6 +119,11 @@ export default async function ReviewPackPage({ params }: PageProps) {
                           ) : null}
                         </div>
                         <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--text-primary)]">{displayRiskStatement(risk.risk_statement)}</h3>
+                        {deriveReviewPackPublication(risk.verifier_status).state === "qa_hint_partial" ? (
+                          <p className="mt-2 text-sm font-medium text-amber-700 dark:text-amber-300">
+                            QA-Hinweis mit unvollständiger Evidenz — kein kanonischer Risikobefund.
+                          </p>
+                        ) : null}
                         <div className="mt-3 text-xs text-[var(--text-tertiary)]">
                           {consultantReviewCopy.pack.requirement}: {risk.requirement_references.join(", ") || consultantReviewCopy.pack.notLinked}
                         </div>

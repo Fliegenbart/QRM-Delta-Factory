@@ -7,6 +7,7 @@ import {
 } from "@/src/lib/review-ui";
 
 type ExportFormat = "pdf" | "csv";
+export type ReviewPackPublicationState = "canonical" | "qa_hint_partial";
 
 const csvHeaders = [
   "Prüfpunkt-ID",
@@ -16,8 +17,18 @@ const csvHeaders = [
   "Chunk",
   "Zitat",
   "Anforderungen",
-  "Verifikationsstatus"
+  "Verifikationsstatus",
+  "Publikationsstatus"
 ];
+
+export function deriveReviewPackPublication(verifierStatus: string | null | undefined): {
+  state: ReviewPackPublicationState;
+  label: string;
+} {
+  return verifierStatus?.trim().toLowerCase() === "strong"
+    ? { state: "canonical", label: "Kanonischer Risikobefund" }
+    : { state: "qa_hint_partial", label: "Nicht-kanonischer QA-Hinweis" };
+}
 
 export function reviewPackExportFileName(pack: ReviewPack, format: ExportFormat): string {
   const caseId = safeFilePart(pack.document_set_id);
@@ -35,8 +46,24 @@ export function buildReviewPackCsv(pack: ReviewPack): string {
     row.chunk_id,
     row.quote,
     row.requirement_references.join(", "),
-    row.verifier_status
+    row.verifier_status,
+    deriveReviewPackPublication(row.verifier_status).state
   ]);
+  const findingsWithEvidence = new Set(pack.evidence_table.map((row) => row.finding_id));
+  for (const risk of pack.top_risks) {
+    if (findingsWithEvidence.has(risk.finding_id)) continue;
+    rows.push([
+      risk.finding_id,
+      risk.risk_statement,
+      "",
+      "",
+      "",
+      "",
+      risk.requirement_references.join(", "),
+      risk.verifier_status,
+      deriveReviewPackPublication(risk.verifier_status).state
+    ]);
+  }
 
   return `\ufeff${[csvHeaders, ...rows].map((row) => row.map(csvCell).join(";")).join("\r\n")}\r\n`;
 }
@@ -51,21 +78,31 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
   pages.heading("QA-Entscheidung", 13);
   pages.paragraph(presentation.summary || pack.summary || "Keine Zusammenfassung vorhanden.");
 
-  pages.heading("Kernrisiken", 13);
-  if (presentation.rootRisks.length === 0) {
-    pages.text("Keine Kernrisiken vorhanden.");
-  }
-  for (const [index, risk] of presentation.rootRisks.entries()) {
+  const canonicalRisks = pack.top_risks.filter(
+    (risk) => deriveReviewPackPublication(risk.verifier_status).state === "canonical"
+  );
+  const qaHints = pack.top_risks.filter(
+    (risk) => deriveReviewPackPublication(risk.verifier_status).state === "qa_hint_partial"
+  );
+  pages.heading("Kanonische Risikobefunde", 13);
+  if (canonicalRisks.length === 0) pages.text("Keine kanonischen Risikobefunde vorhanden.");
+  for (const [index, risk] of canonicalRisks.entries()) {
     pages.subheading(
       `${index + 1}. ${displayReviewValue(risk.severity)} – ${displayReviewValue(risk.risk_category ?? "risk")}`
     );
     pages.paragraph(displayRiskStatement(risk.risk_statement));
-    const supportingCount = risk.supporting_finding_count ?? risk.supporting_finding_ids?.length ?? 0;
-    if (supportingCount > 0) {
-      pages.text(
-        `${supportingCount} unterstützendes Signal${supportingCount === 1 ? "" : "e"} zugeordnet.`
-      );
-    }
+    pages.text(`Verifier-Status: ${risk.verifier_status}`);
+    pages.text(`Für die QA-Prüfung: ${risk.human_review_reason || "Menschliche Prüfung erforderlich."}`);
+    pages.spacer(4);
+  }
+
+  pages.heading("QA-Hinweise mit unvollständiger Evidenz", 13);
+  pages.paragraph("NICHT KANONISCH - Diese Hinweise sind keine bestätigten Risikobefunde und benötigen eine qualifizierte QA-Prüfung.");
+  if (qaHints.length === 0) pages.text("Keine nicht-kanonischen QA-Hinweise vorhanden.");
+  for (const [index, risk] of qaHints.entries()) {
+    pages.subheading(`${index + 1}. NICHT KANONISCH – ${displayReviewValue(risk.severity)}`);
+    pages.paragraph(displayRiskStatement(risk.risk_statement));
+    pages.text(`Verifier-Status: ${risk.verifier_status}`);
     pages.text(`Für die QA-Prüfung: ${risk.human_review_reason || "Menschliche Prüfung erforderlich."}`);
     pages.spacer(4);
   }

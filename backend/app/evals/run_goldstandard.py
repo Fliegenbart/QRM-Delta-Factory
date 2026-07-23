@@ -23,6 +23,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -39,6 +40,64 @@ TENANT_ID = "tenant_goldstandard_pharmaqrm"
 REQUIREMENT_SET_ID = "rset_goldstandard_gmp_2026_1"
 _TERMINAL_PIPELINE_STATUSES = {"completed", "failed", "needs_human_review"}
 _ORACLE_FILENAMES = {"gold_standard.json", "hidden_errors_answer_key.json"}
+GOLDSTANDARD_STORAGE_PARENT = Path("/tmp/qrm-goldstandard-documents")
+
+
+def _validate_isolated_harness_environment(
+    *,
+    persistence_enabled: bool,
+    storage_root: Path,
+) -> None:
+    """Fail closed before a harness can reset any repository state."""
+    if persistence_enabled:
+        raise ValueError("Goldstandard runner refuses persistent storage")
+    root = storage_root.resolve()
+    parent = GOLDSTANDARD_STORAGE_PARENT.resolve()
+    try:
+        root.relative_to(parent)
+    except ValueError as exc:
+        raise ValueError(
+            "Goldstandard runner requires an isolated temporary storage root"
+        ) from exc
+    if root == parent:
+        raise ValueError("Goldstandard runner requires a dedicated temporary storage root")
+
+
+def _install_isolated_route_bindings() -> tuple[Any, Any, callable]:
+    """Bind the harness routes to fresh in-memory state and return a restore hook.
+
+    A caller may have imported the production app before this module. Environment
+    changes cannot replace that already-created global repository, so the harness
+    explicitly swaps only the route dependencies it invokes and restores them when
+    it finishes.
+    """
+    import app.api.document_sets as document_sets_api
+    import app.api.pipeline_runs as pipeline_runs_api
+    from app.audit.events import AuditService
+    from app.db.in_memory import InMemoryDocumentRepository
+
+    isolated_repository = InMemoryDocumentRepository()
+    isolated_audit_log = AuditService()
+    originals = (
+        document_sets_api.repository,
+        document_sets_api.audit_log,
+        pipeline_runs_api.repository,
+        pipeline_runs_api.audit_log,
+    )
+    document_sets_api.repository = isolated_repository
+    document_sets_api.audit_log = isolated_audit_log
+    pipeline_runs_api.repository = isolated_repository
+    pipeline_runs_api.audit_log = isolated_audit_log
+
+    def restore() -> None:
+        (
+            document_sets_api.repository,
+            document_sets_api.audit_log,
+            pipeline_runs_api.repository,
+            pipeline_runs_api.audit_log,
+        ) = originals
+
+    return isolated_repository, isolated_audit_log, restore
 
 
 def _load_dotenv_keys() -> None:
@@ -775,13 +834,22 @@ def main(argv: list[str] | None = None) -> int:
     # Imports happen after env setup because get_settings() is lru_cached.
     from fastapi.testclient import TestClient
 
-    from app.audit.events import audit_log
     from app.core.config import get_settings
-    from app.db.in_memory import repository
     from app.main import app
     from app.schemas.domain import RequirementSet
 
+    GOLDSTANDARD_STORAGE_PARENT.mkdir(parents=True, exist_ok=True)
+    isolated_storage_root = Path(
+        tempfile.mkdtemp(prefix="run-", dir=GOLDSTANDARD_STORAGE_PARENT)
+    )
+    os.environ["QRM_LOCAL_STORAGE_ROOT"] = str(isolated_storage_root)
     get_settings.cache_clear()
+    settings = get_settings()
+    _validate_isolated_harness_environment(
+        persistence_enabled=settings.persistence_enabled,
+        storage_root=Path(settings.local_storage_root),
+    )
+    repository, audit_log, restore_route_bindings = _install_isolated_route_bindings()
     repository.reset()
     audit_log.clear()
 
@@ -803,6 +871,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     if not case_dirs:
+        restore_route_bindings()
         print(f"No case directories found in {cases_dir}", file=sys.stderr)
         return 1
 
@@ -877,6 +946,7 @@ def main(argv: list[str] | None = None) -> int:
     print()
     print(markdown)
     print(f"\nReports written to {output_dir}")
+    restore_route_bindings()
     return 0
 
 

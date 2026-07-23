@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 from reportlab.pdfgen import canvas
 
-from app.audit.events import AuditService, audit_log
+from app.audit.events import AuditService, PersistentAuditService, audit_log
 from app.db.in_memory import repository
 from app.main import app
 from app.schemas.domain import RequirementSet
@@ -56,6 +56,31 @@ def test_audit_service_appends_hash_chain_and_detects_tampering() -> None:
     first.metadata["document_id"] = "doc_tampered"
 
     assert service.verify_hash_chain() is False
+
+
+def test_persistent_audit_service_restores_hash_chain_after_restart(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    database_url = f"sqlite:///{tmp_path / 'qrm_audit.db'}"
+    first = PersistentAuditService(database_url=database_url)
+    first.append(
+        event_type="document_uploaded",
+        actor_id="user_qrm_author",
+        entity_type="Document",
+        entity_id="doc_persisted_audit",
+        tenant_id="tenant_demo_pharma",
+    )
+
+    restored = PersistentAuditService(database_url=database_url)
+
+    assert len(restored.list_events()) == 1
+    assert restored.verify_hash_chain() is True
+    second = restored.append(
+        event_type="document_parsed",
+        actor_id="service_parser",
+        entity_type="Document",
+        entity_id="doc_persisted_audit",
+        tenant_id="tenant_demo_pharma",
+    )
+    assert second.previous_event_hash == first.list_events()[0].event_hash
 
 
 def test_pipeline_writes_required_audit_events_with_verifiable_chain() -> None:
@@ -135,6 +160,12 @@ def test_pipeline_writes_required_audit_events_with_verifiable_chain() -> None:
     }.issubset(event_types)
     assert audit_log.verify_hash_chain() is True
     assert all("document_text" not in event.metadata for event in audit_log.list_events())
+    tenant_bound_event_types = {"review_pack_created", "human_review_decision_created"}
+    assert all(
+        event.tenant_id == "tenant_demo_pharma"
+        for event in audit_log.list_events()
+        if event.event_type in tenant_bound_event_types
+    )
 
 
 def _requirement_set() -> RequirementSet:

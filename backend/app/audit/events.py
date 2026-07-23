@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import sha256
+from threading import RLock
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 
+from app.core.config import get_settings
 from app.core.redaction import redact_log_metadata
+from app.db.in_memory import _engine_options_for_database_url, _normalize_database_url
 
 SHA256_EMPTY = sha256(b"").hexdigest()
 
@@ -168,6 +174,99 @@ class AuditService:
         self._events.clear()
 
 
+class PersistentAuditService(AuditService):
+    """Append-only audit log that survives application restarts.
+
+    The in-memory parent remains useful for deterministic unit tests. Production uses
+    this implementation whenever repository persistence is enabled.
+    """
+
+    def __init__(self, *, database_url: str) -> None:
+        super().__init__()
+        normalized_database_url = _normalize_database_url(database_url)
+        self._engine: Engine = create_engine(
+            normalized_database_url,
+            future=True,
+            **_engine_options_for_database_url(normalized_database_url),
+        )
+        self._lock = RLock()
+        self._create_table()
+        self._refresh()
+
+    def append_event(
+        self,
+        *,
+        tenant_id: str,
+        actor_type: ActorType | str,
+        actor_id: str,
+        event_type: str,
+        entity_type: str,
+        entity_id: str,
+        input_hash: str | None = None,
+        output_hash: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> AuditEvent:
+        with self._lock:
+            self._refresh()
+            event = super().append_event(
+                tenant_id=tenant_id,
+                actor_type=actor_type,
+                actor_id=actor_id,
+                event_type=event_type,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                input_hash=input_hash,
+                output_hash=output_hash,
+                metadata=metadata,
+            )
+            try:
+                with self._engine.begin() as connection:
+                    connection.execute(
+                        text(
+                            """
+                            INSERT INTO qrm_audit_events (event_order, audit_event_id, payload)
+                            VALUES (:event_order, :audit_event_id, :payload)
+                            """
+                        ),
+                        {
+                            "event_order": len(self._events),
+                            "audit_event_id": event.audit_event_id,
+                            "payload": event.model_dump_json(),
+                        },
+                    )
+            except Exception:
+                self._refresh()
+                raise
+            return event
+
+    def clear(self) -> None:
+        with self._lock:
+            with self._engine.begin() as connection:
+                connection.execute(text("DELETE FROM qrm_audit_events"))
+            self._events.clear()
+
+    def _create_table(self) -> None:
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    CREATE TABLE IF NOT EXISTS qrm_audit_events (
+                        event_order INTEGER PRIMARY KEY,
+                        audit_event_id VARCHAR(128) NOT NULL UNIQUE,
+                        payload TEXT NOT NULL
+                    )
+                    """
+                )
+            )
+
+    def _refresh(self) -> None:
+        with self._engine.begin() as connection:
+            rows = connection.execute(
+                text("SELECT payload FROM qrm_audit_events ORDER BY event_order ASC")
+            ).all()
+        self._events = [AuditEvent.model_validate(json.loads(str(row.payload))) for row in rows]
+
+
 InMemoryAuditLog = AuditService
 
 
@@ -246,4 +345,11 @@ def _event_hash_payload(
     }
 
 
-audit_log = AuditService()
+def _build_audit_log() -> AuditService:
+    settings = get_settings()
+    if settings.audit_log_enabled and settings.persistence_enabled:
+        return PersistentAuditService(database_url=settings.database_url)
+    return AuditService()
+
+
+audit_log = _build_audit_log()

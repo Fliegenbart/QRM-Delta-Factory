@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.evals import run_goldstandard
@@ -62,6 +63,47 @@ def test_goldstandard_harness_isolates_storage_and_auth_from_production(monkeypa
         run_goldstandard.os.environ["QRM_LOCAL_STORAGE_ROOT"]
         == "/tmp/qrm-goldstandard-documents"
     )
+
+
+def test_goldstandard_harness_rejects_persistence_or_non_dedicated_storage() -> None:
+    with pytest.raises(ValueError, match="persistent storage"):
+        run_goldstandard._validate_isolated_harness_environment(
+            persistence_enabled=True,
+            storage_root=Path("/tmp/qrm-goldstandard-documents/run-1"),
+        )
+    with pytest.raises(ValueError, match="dedicated temporary storage root"):
+        run_goldstandard._validate_isolated_harness_environment(
+            persistence_enabled=False,
+            storage_root=Path("/tmp/qrm-goldstandard-documents"),
+        )
+
+
+def test_goldstandard_route_bindings_do_not_reset_preimported_repository(
+    monkeypatch, tmp_path
+) -> None:  # type: ignore[no-untyped-def]
+    from app.api import document_sets, pipeline_runs
+    from app.db.in_memory import PersistentSnapshotRepository
+    from app.schemas.domain import RequirementSet
+
+    persistent_repository = PersistentSnapshotRepository(
+        database_url=f"sqlite:///{tmp_path / 'persistent.db'}"
+    )
+    persistent_repository.create_requirement_set(
+        RequirementSet.model_validate(run_goldstandard._requirement_set())
+    )
+    monkeypatch.setattr(document_sets, "repository", persistent_repository)
+    monkeypatch.setattr(pipeline_runs, "repository", persistent_repository)
+
+    isolated_repository, _, restore = run_goldstandard._install_isolated_route_bindings()
+    try:
+        isolated_repository.reset()
+        assert isolated_repository.get_requirement_set(run_goldstandard.REQUIREMENT_SET_ID) is None
+        assert (
+            persistent_repository.get_requirement_set(run_goldstandard.REQUIREMENT_SET_ID)
+            is not None
+        )
+    finally:
+        restore()
 
 
 def test_metrics_calculation_counts_recall_precision_and_false_positives() -> None:

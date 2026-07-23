@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/utils/supabase/actor", () => ({
-  resolveReviewActor: vi.fn(async () => "user_qrm_author")
+  authorizeReviewApiRequest: vi.fn(async () => ({
+    actor: { userId: "user_qrm_author", role: "reviewer", tenantId: "tenant_example_pharma", source: "supabase" }
+  }))
 }));
 
 vi.mock("@/src/lib/review-api", () => {

@@ -11,6 +11,9 @@ class StorageBackend(Protocol):
     def read_object(self, *, uri: str) -> bytes:
         ...
 
+    def delete_object(self, *, uri: str) -> None:
+        ...
+
 
 class LocalFilesystemStorage:
     """S3-like local storage used for tests and local development."""
@@ -26,11 +29,18 @@ class LocalFilesystemStorage:
         return f"local://{clean_key}"
 
     def read_object(self, *, uri: str) -> bytes:
+        _, path = self._path_for_uri(uri)
+        return path.read_bytes()
+
+    def delete_object(self, *, uri: str) -> None:
+        _, path = self._path_for_uri(uri)
+        path.unlink(missing_ok=True)
+
+    def _path_for_uri(self, uri: str) -> tuple[str, Path]:
         if not uri.startswith("local://"):
             raise ValueError("LocalFilesystemStorage only supports local:// URIs")
         key = uri.removeprefix("local://")
-        _, path = self._safe_path(key)
-        return path.read_bytes()
+        return self._safe_path(key)
 
     def _safe_path(self, key: str) -> tuple[str, Path]:
         clean_key = key.lstrip("/")

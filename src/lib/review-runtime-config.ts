@@ -22,3 +22,10 @@ export function getReviewBackendConfig(
       DEFAULT_REQUIREMENT_SET_ID
   };
 }
+
+export function isConfiguredReviewTenant(
+  tenantId: string,
+  env: Record<string, string | undefined> = process.env
+): boolean {
+  return tenantId === getReviewBackendConfig(env).tenantId;
+}

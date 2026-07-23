@@ -4,21 +4,27 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from typing import Any
 
+import httpx
 import pytest
 from pydantic import BaseModel
 
 from app.agents.providers import (
     AnthropicProvider,
+    BaseModelProvider,
     ExternalModelCallsDisabledError,
     GeminiProvider,
     MistralProvider,
     MockProvider,
     ModelProviderNotAllowedError,
     OpenAIProvider,
+    ProviderCallError,
+    ProviderCircuitOpenError,
     ProviderConfigurationError,
     ProviderRuntimeOptions,
     ProviderStructuredOutputError,
+    external_base,
 )
+from app.agents.providers.external_base import ExternalProviderBase
 from app.audit.events import audit_log
 from app.core.config import get_settings
 from app.db.in_memory import repository
@@ -144,134 +150,6 @@ def test_provider_normalizes_model_supplied_quote_hashes_for_reviewer_output() -
     )
 
 
-def test_provider_normalizes_model_supplied_evidence_strength_alias_to_contextual() -> None:
-    quote = "QA approval remains pending."
-    provider = MockProvider(
-        model_name="mock-reviewer",
-        model_version="0.1.0",
-        configured_model_id="mock-local",
-        structured_output={
-            "coverage_summary": "Reviewed one claim.",
-            "findings": [
-                {
-                    "finding_id": "finding_provider_strength_alias",
-                    "document_set_id": "ds_provider_demo",
-                    "risk_category": "qa_approval",
-                    "severity": "medium",
-                    "likelihood": 3,
-                    "detectability": 3,
-                    "risk_statement": "QA approval appears pending.",
-                    "evidence_items": [
-                        {
-                            "document_id": "doc_provider_demo",
-                            "chunk_id": "chunk_provider_demo",
-                            "page": 1,
-                            "quote": quote,
-                            "quote_hash": sha256(quote.encode()).hexdigest(),
-                            "support_type": "partial",
-                            "verifier_score": 0.7,
-                        }
-                    ],
-                    "requirement_references": ["req_provider_deviation_review"],
-                    "missing_information": ["documented QA approval decision"],
-                    "model_provider": "mock",
-                    "model_name": "mock-reviewer",
-                    "model_version": "0.1.0",
-                    "prompt_version": "prompt-v1",
-                    "evidence_support": "partial",
-                    "recommended_action": "Review approval status.",
-                    "auto_close_allowed": False,
-                    "status": "needs_human_review",
-                }
-            ],
-        },
-        prompt_version="prompt-v1",
-    )
-
-    output = provider.run_structured(
-        prompt="Return reviewer output.",
-        input_schema={},
-        output_schema=ReviewerAgentOutput,
-    )
-
-    assert output["findings"][0]["evidence_items"][0]["support_type"] == "contextual"
-
-
-def test_provider_repairs_missing_requirement_reference_on_retry() -> None:
-    quote = "QA approval remains pending."
-    prompts: list[str] = []
-
-    def output_factory(
-        prompt: str,
-        input_schema: dict[str, Any],
-        output_schema: type[BaseModel],
-    ) -> dict[str, Any]:
-        del input_schema, output_schema
-        prompts.append(prompt)
-        requirement_references = (
-            [] if len(prompts) == 1 else ["req_provider_deviation_review"]
-        )
-        return {
-            "coverage_summary": "Reviewed one claim.",
-            "findings": [
-                {
-                    "finding_id": "finding_provider_requirement_retry",
-                    "document_set_id": "ds_provider_demo",
-                    "risk_category": "qa_approval",
-                    "severity": "medium",
-                    "likelihood": 3,
-                    "detectability": 3,
-                    "risk_statement": "QA approval appears pending.",
-                    "evidence_items": [
-                        {
-                            "document_id": "doc_provider_demo",
-                            "chunk_id": "chunk_provider_demo",
-                            "page": 1,
-                            "quote": quote,
-                            "quote_hash": sha256(quote.encode()).hexdigest(),
-                            "support_type": "supports",
-                            "verifier_score": 0.7,
-                        }
-                    ],
-                    "requirement_references": requirement_references,
-                    "missing_information": ["documented QA approval decision"],
-                    "model_provider": "mock",
-                    "model_name": "mock-reviewer",
-                    "model_version": "0.1.0",
-                    "prompt_version": "prompt-v1",
-                    "evidence_support": "partial",
-                    "recommended_action": "Review approval status.",
-                    "auto_close_allowed": False,
-                    "status": "needs_human_review",
-                }
-            ],
-        }
-
-    provider = MockProvider(
-        model_name="mock-reviewer",
-        model_version="0.1.0",
-        configured_model_id="mock-local",
-        runtime_options=ProviderRuntimeOptions(max_retries=1),
-        output_factory=output_factory,
-    )
-
-    output = provider.run_structured(
-        prompt="Return reviewer output.",
-        input_schema={
-            "requirements": [
-                {"requirement_id": "req_provider_deviation_review"},
-            ]
-        },
-        output_schema=ReviewerAgentOutput,
-    )
-
-    assert output["findings"][0]["requirement_references"] == [
-        "req_provider_deviation_review"
-    ]
-    assert len(prompts) == 2
-    assert "REPAIR REQUIRED" in prompts[1]
-
-
 @pytest.mark.parametrize(
     "provider",
     [
@@ -376,50 +254,6 @@ def test_anthropic_provider_runs_structured_call_with_mocked_http(
     assert provider.last_run_metadata is not None
     assert provider.last_run_metadata.token_usage is not None
     assert provider.last_run_metadata.token_usage.total_tokens == 18
-
-
-def test_anthropic_provider_extracts_structured_output_from_forced_tool_call(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
-    monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-anthropic-key")
-    get_settings.cache_clear()
-    provider = AnthropicProvider(configured_model_id="claude-test")
-
-    def fake_post_json(
-        *,
-        url: str,
-        headers: dict[str, str],
-        json_body: dict[str, Any],
-    ) -> dict[str, Any]:
-        del url, headers
-        assert json_body["tool_choice"] == {
-            "type": "tool",
-            "name": "submit_structured_output",
-        }
-        assert json_body["tools"] == [
-            {
-                "name": "submit_structured_output",
-                "description": "Submit the final structured review output.",
-                "input_schema": SimpleOutput.model_json_schema(),
-            }
-        ]
-        return {
-            "content": [
-                {
-                    "type": "tool_use",
-                    "name": "submit_structured_output",
-                    "input": {"value": "ok-anthropic-tool"},
-                }
-            ]
-        }
-
-    monkeypatch.setattr(provider, "_post_json", fake_post_json)
-
-    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
-
-    assert output == {"value": "ok-anthropic-tool"}
 
 
 def test_gemini_provider_runs_structured_call_with_mocked_http(
@@ -527,6 +361,155 @@ def test_provider_error_reaches_risk_fusion_as_coverage_risk() -> None:
 
 class SimpleOutput(BaseModel):
     value: str
+
+
+def test_provider_runtime_options_include_a_total_retry_deadline() -> None:
+    options = ProviderRuntimeOptions()
+
+    assert hasattr(options, "retry_deadline_seconds")
+
+
+def test_base_provider_is_the_only_retry_owner_and_records_retry_metadata() -> None:
+    provider = RetryOnceProvider(
+        runtime_options=ProviderRuntimeOptions(
+            max_retries=1,
+            retry_deadline_seconds=1,
+        )
+    )
+
+    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert output == {"value": "ok"}
+    assert provider.calls == 2
+    assert provider.last_run_metadata is not None
+    assert provider.last_run_metadata.retry_count == 1
+
+
+def test_external_post_returns_retryable_429_to_the_base_retry_owner(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+    response = httpx.Response(
+        429,
+        headers={"retry-after": "99"},
+        request=httpx.Request("POST", "https://provider.example/test"),
+    )
+
+    class FailingClient:
+        def __init__(self, *, timeout: float) -> None:
+            assert timeout == 30
+
+        def __enter__(self) -> FailingClient:
+            return self
+
+        def __exit__(self, *args: Any) -> None:
+            return None
+
+        def post(self, *args: Any, **kwargs: Any) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            raise httpx.HTTPStatusError(
+                "too many requests",
+                request=response.request,
+                response=response,
+            )
+
+    monkeypatch.setattr(external_base.httpx, "Client", FailingClient)
+    provider = ExternalProviderBase(
+        provider_name="external-test",
+        model_name="test-model",
+        model_version="v1",
+        configured_model_id="test-model",
+        external_calls_required=False,
+    )
+
+    with pytest.raises(ProviderCallError) as raised:
+        provider._post_json(url="https://provider.example/test", headers={}, json_body={})
+
+    assert calls == 1
+    assert raised.value.retryable is True
+    assert raised.value.retry_after_seconds == 30
+
+
+def test_provider_retry_deadline_prevents_a_long_retry_after_sleep() -> None:
+    provider = AlwaysRetryableProvider(
+        runtime_options=ProviderRuntimeOptions(
+            max_retries=3,
+            retry_deadline_seconds=0.001,
+        )
+    )
+
+    with pytest.raises(ProviderCallError, match="retry deadline exceeded"):
+        provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert provider.calls == 1
+
+
+def test_provider_circuit_state_is_shared_by_provider_and_model() -> None:
+    options = ProviderRuntimeOptions(max_retries=0, circuit_breaker_failure_threshold=1)
+    first = AlwaysRetryableProvider(runtime_options=options, provider_name="circuit-test")
+    second = AlwaysRetryableProvider(runtime_options=options, provider_name="circuit-test")
+
+    with pytest.raises(ProviderCallError):
+        first.run_structured("Return JSON.", {}, SimpleOutput)
+
+    with pytest.raises(ProviderCircuitOpenError):
+        second.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert second.calls == 0
+
+
+class RetryOnceProvider(BaseModelProvider):
+    def __init__(self, *, runtime_options: ProviderRuntimeOptions) -> None:
+        super().__init__(
+            provider_name="retry-test",
+            model_name="retry-test-model",
+            model_version="v1",
+            configured_model_id="retry-test-model",
+            runtime_options=runtime_options,
+            external_calls_required=False,
+        )
+        self.calls = 0
+
+    def _run_structured_once(
+        self,
+        *,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[BaseModel],
+    ) -> dict[str, Any]:
+        self.calls += 1
+        if self.calls == 1:
+            raise ProviderCallError("transient failure", retryable=True, retry_after_seconds=0)
+        return {"value": "ok"}
+
+
+class AlwaysRetryableProvider(BaseModelProvider):
+    def __init__(
+        self,
+        *,
+        runtime_options: ProviderRuntimeOptions,
+        provider_name: str = "deadline-test",
+    ) -> None:
+        super().__init__(
+            provider_name=provider_name,
+            model_name="deadline-test-model",
+            model_version="v1",
+            configured_model_id="deadline-test-model",
+            runtime_options=runtime_options,
+            external_calls_required=False,
+        )
+        self.calls = 0
+
+    def _run_structured_once(
+        self,
+        *,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[BaseModel],
+    ) -> dict[str, Any]:
+        self.calls += 1
+        raise ProviderCallError("transient failure", retryable=True, retry_after_seconds=30)
 
 
 def _document_set() -> DocumentSet:

@@ -3,12 +3,14 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Mapping, Sequence
 from datetime import UTC, datetime
+from hashlib import sha256
 from threading import RLock
 from typing import TypeVar
 
 from pydantic import BaseModel
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import IntegrityError
 
 from app.core.config import get_settings
 from app.schemas.calibration import (
@@ -37,7 +39,8 @@ from app.schemas.risk import RiskDecision
 
 OperationT = TypeVar("OperationT")
 
-LEGACY_DEMO_DOCUMENT_SET_IDS = {"ds_demo_avi_threshold"}
+class SnapshotConflictError(RuntimeError):
+    """A different process committed a newer repository snapshot."""
 
 
 class InMemoryDocumentRepository:
@@ -473,6 +476,7 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
         )
         self._is_loading = False
         self._lock = RLock()
+        self._snapshot_revision = 0
         super().__init__()
         self._create_table()
         self._load_snapshot()
@@ -481,7 +485,11 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
         with self._lock:
             super().reset()
             if hasattr(self, "_engine"):
-                self._save_snapshot()
+                try:
+                    self._save_snapshot()
+                except Exception:
+                    self._load_snapshot()
+                    raise
 
     def create_document_set(self, document_set: DocumentSet) -> DocumentSet:
         return self._persist_after(
@@ -673,7 +681,11 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
         with self._lock:
             result = operation()
             if not self._is_loading:
-                self._save_snapshot()
+                try:
+                    self._save_snapshot()
+                except Exception:
+                    self._load_snapshot()
+                    raise
             return result
 
     def _create_table(self) -> None:
@@ -684,27 +696,51 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
                     CREATE TABLE IF NOT EXISTS qrm_repository_snapshots (
                         snapshot_id VARCHAR(64) PRIMARY KEY,
                         payload TEXT NOT NULL,
-                        updated_at VARCHAR(64) NOT NULL
+                        updated_at VARCHAR(64) NOT NULL,
+                        revision INTEGER NOT NULL DEFAULT 0,
+                        payload_hash VARCHAR(64) NOT NULL DEFAULT ''
                     )
                     """
                 )
             )
+        columns = {
+            column["name"]
+            for column in inspect(self._engine).get_columns("qrm_repository_snapshots")
+        }
+        if "revision" not in columns:
+            with self._engine.begin() as connection:
+                connection.execute(
+                    text(
+                        "ALTER TABLE qrm_repository_snapshots "
+                        "ADD COLUMN revision INTEGER NOT NULL DEFAULT 0"
+                    )
+                )
+        if "payload_hash" not in columns:
+            with self._engine.begin() as connection:
+                connection.execute(
+                    text(
+                        "ALTER TABLE qrm_repository_snapshots "
+                        "ADD COLUMN payload_hash VARCHAR(64) NOT NULL DEFAULT ''"
+                    )
+                )
 
     def _load_snapshot(self) -> None:
         with self._engine.begin() as connection:
             row = connection.execute(
                 text(
                     """
-                    SELECT payload FROM qrm_repository_snapshots
+                    SELECT payload, revision FROM qrm_repository_snapshots
                     WHERE snapshot_id = :snapshot_id
                     """
                 ),
                 {"snapshot_id": "default"},
             ).first()
         if row is None:
+            self._snapshot_revision = 0
             return
 
         payload = json.loads(str(row.payload))
+        self._snapshot_revision = int(row.revision)
         self._is_loading = True
         try:
             self.document_sets = _model_dict(payload, "document_sets", DocumentSet)
@@ -779,31 +815,60 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
         finally:
             self._is_loading = False
 
-        for document_set_id in LEGACY_DEMO_DOCUMENT_SET_IDS:
-            self.delete_document_set(document_set_id)
-
     def _save_snapshot(self) -> None:
         with self._lock:
             payload = json.dumps(self._snapshot(), sort_keys=True)
             updated_at = datetime.now(UTC).isoformat()
+            payload_hash = sha256(payload.encode()).hexdigest()
+            expected_revision = self._snapshot_revision
         with self._engine.begin() as connection:
-            connection.execute(
+            updated = connection.execute(
                 text(
                     """
-                    INSERT INTO qrm_repository_snapshots
-                    (snapshot_id, payload, updated_at)
-                    VALUES (:snapshot_id, :payload, :updated_at)
-                    ON CONFLICT (snapshot_id) DO UPDATE SET
-                        payload = EXCLUDED.payload,
-                        updated_at = EXCLUDED.updated_at
+                    UPDATE qrm_repository_snapshots
+                    SET payload = :payload,
+                        updated_at = :updated_at,
+                        payload_hash = :payload_hash,
+                        revision = revision + 1
+                    WHERE snapshot_id = :snapshot_id AND revision = :expected_revision
                     """
                 ),
                 {
                     "snapshot_id": "default",
                     "payload": payload,
                     "updated_at": updated_at,
+                    "payload_hash": payload_hash,
+                    "expected_revision": expected_revision,
                 },
             )
+            if updated.rowcount == 1:
+                self._snapshot_revision = expected_revision + 1
+                return
+            if expected_revision != 0:
+                raise SnapshotConflictError(
+                    "Repository snapshot changed in another process; refusing stale overwrite"
+                )
+            try:
+                connection.execute(
+                    text(
+                        """
+                        INSERT INTO qrm_repository_snapshots
+                        (snapshot_id, payload, updated_at, revision, payload_hash)
+                        VALUES (:snapshot_id, :payload, :updated_at, 1, :payload_hash)
+                        """
+                    ),
+                    {
+                        "snapshot_id": "default",
+                        "payload": payload,
+                        "updated_at": updated_at,
+                        "payload_hash": payload_hash,
+                    },
+                )
+            except IntegrityError as exc:
+                raise SnapshotConflictError(
+                    "Repository snapshot was created in another process; refusing overwrite"
+                ) from exc
+            self._snapshot_revision = 1
 
     def _snapshot(self) -> dict[str, object]:
         return {

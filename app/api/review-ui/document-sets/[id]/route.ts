@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { deleteDocumentSet } from "@/src/lib/review-api";
+import { authorizeReviewApiRequest } from "@/utils/supabase/actor";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -7,6 +8,8 @@ type RouteContext = {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   const { id } = await context.params;
+  const authorization = await authorizeReviewApiRequest("delete-document-set");
+  if ("response" in authorization) return authorization.response;
 
   try {
     await deleteDocumentSet(id);

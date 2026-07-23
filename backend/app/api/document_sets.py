@@ -27,11 +27,15 @@ from app.storage.local import LocalFilesystemStorage
 router = APIRouter(prefix="/document-sets", tags=["document-sets"])
 
 
+def get_storage() -> LocalFilesystemStorage:
+    return LocalFilesystemStorage(Path(get_settings().local_storage_root))
+
+
 def get_ingestion_service() -> DocumentIngestionService:
     settings = get_settings()
     return DocumentIngestionService(
         repository=repository,
-        storage=LocalFilesystemStorage(Path(settings.local_storage_root)),
+        storage=get_storage(),
         parser_registry=ParserRegistry(),
         audit_log=audit_log,
         quality_threshold=settings.parsing_quality_threshold,
@@ -49,11 +53,22 @@ def get_document_set(document_set_id: str, http_request: Request) -> DocumentSet
 
 @router.delete("/{document_set_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_document_set(document_set_id: str, http_request: Request) -> Response:
-    require_document_set_for_tenant(
+    document_set = require_document_set_for_tenant(
         repository=repository,
         document_set_id=document_set_id,
         request=http_request,
     )
+    try:
+        storage = get_storage()
+        for document_id in document_set.document_ids:
+            document = repository.get_document(document_id)
+            if document is not None:
+                storage.delete_object(uri=document.storage_uri)
+    except (OSError, ValueError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete document storage object",
+        ) from exc
     repository.delete_document_set(document_set_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

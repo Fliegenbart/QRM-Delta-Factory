@@ -46,20 +46,21 @@ services:
       QRM_ALLOW_MODEL_LIVE_INTERNET: "false"
       # Mandanten-Auth: "tenant_id=api-key" (kommagetrennt), siehe .env
       QRM_API_KEYS: ${QRM_API_KEYS:?QRM_API_KEYS fehlt in .env}
-      # Hybrid-Stack: Mistral als Hauptpruefer, Claude als unabhaengiger Kritiker.
-      # OpenAI is kept out of the live critical path until its 429 capacity issue is resolved.
+      # Mistral als Hauptpruefer; externe Kritiker bleiben in Produktion deaktiviert.
       QRM_EXTERNAL_MODEL_CALLS_ENABLED: "true"
-      QRM_ALLOWED_MODEL_PROVIDERS: "mistral,anthropic,openai,mock"
+      QRM_ALLOWED_MODEL_PROVIDERS: "mistral,anthropic,mock"
       QRM_REVIEWER_PROVIDER_OVERRIDE: "mistral"
-      QRM_CRITIC_PROVIDERS: "anthropic"
+      QRM_CRITIC_PROVIDERS: ""
       QRM_MISTRAL_MODEL_ID: "mistral-large-latest"
       QRM_ANTHROPIC_MODEL_ID: "claude-sonnet-4-6"
-      QRM_OPENAI_MODEL_ID: "gpt-5.4"
       QRM_MODEL_PROVIDER_TIMEOUT_SECONDS: "240"
-      QRM_MODEL_PROVIDER_MAX_RETRIES: "2"
+      QRM_MODEL_PROVIDER_MAX_RETRIES: "1"
+      QRM_MODEL_PROVIDER_RETRY_DEADLINE_SECONDS: "300"
+      QRM_MODEL_PROVIDER_MAX_CONCURRENCY: "2"
+      QRM_PIPELINE_RUN_LEASE_SECONDS: "1800"
+      QRM_RETAIN_RAW_MODEL_OUTPUTS: "false"
       QRM_MISTRAL_API_KEY: ${MISTRAL_API_KEY:?MISTRAL_API_KEY fehlt in .env}
       QRM_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY fehlt in .env}
-      QRM_OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY fehlt in .env}
     ports:
       # Nur fuer den zentralen Reverse-Proxy (voxdrop-nginx-1) erreichbar,
       # nicht oeffentlich. 8000/8080 sind auf dem Host bereits belegt.

@@ -28,7 +28,6 @@ from app.schemas.domain import (
     EvidenceItem,
     ModelRun,
     ModelRunStatus,
-    RawModelOutputRecord,
     Requirement,
     RiskFinding,
     SupportType,
@@ -208,11 +207,17 @@ class PrimaryReviewOrchestrator:
         audit_log: InMemoryAuditLog,
         agents: Sequence[ReviewerAgent] | None = None,
         encrypt_raw_outputs: bool = False,
+        retain_raw_outputs: bool | None = None,
     ) -> None:
         self.repository = repository
         self.audit_log = audit_log
         self.agents = list(agents) if agents is not None else default_reviewer_agents()
         self.encrypt_raw_outputs = encrypt_raw_outputs
+        self.retain_raw_outputs = (
+            retain_raw_outputs
+            if retain_raw_outputs is not None
+            else get_settings().retain_raw_model_outputs
+        )
 
     def run_primary_review(self, document_set_id: str) -> PrimaryReviewResponse:
         document_set = self.repository.get_document_set(document_set_id)
@@ -442,14 +447,18 @@ class PrimaryReviewOrchestrator:
             status=status,
         )
         self.repository.add_model_run(document_set_id=document_set_id, model_run=model_run)
-        self.repository.store_raw_model_output(
-            RawModelOutputRecord(
-                model_run_id=model_run.model_run_id,
-                output_hash=output_hash,
-                raw_output=raw_output_text,
-                encrypted=self.encrypt_raw_outputs,
+        # Full raw outputs may contain regulated document text. Retention remains
+        # disabled until an authenticated-encryption store is implemented.
+        if self.retain_raw_outputs and self.encrypt_raw_outputs:
+            self.audit_log.append(
+                event_type="raw_model_output_retention_skipped",
+                actor_id="service_review_orchestrator",
+                actor_type="service",
+                entity_type="ModelRun",
+                entity_id=model_run.model_run_id,
+                tenant_id=self._tenant_id_for_document_set(document_set_id),
+                payload={"reason": "authenticated_encryption_not_configured"},
             )
-        )
         completed_event_type = (
             "model_run_completed" if status == ModelRunStatus.SUCCEEDED else "model_run_failed"
         )
@@ -1217,6 +1226,8 @@ def _runtime_options_from_settings(settings: Settings) -> ProviderRuntimeOptions
     return ProviderRuntimeOptions(
         timeout_seconds=settings.model_provider_timeout_seconds,
         max_retries=settings.model_provider_max_retries,
+        retry_deadline_seconds=settings.model_provider_retry_deadline_seconds,
+        max_concurrent_calls=settings.model_provider_max_concurrency,
         circuit_breaker_failure_threshold=settings.model_provider_circuit_breaker_threshold,
     )
 

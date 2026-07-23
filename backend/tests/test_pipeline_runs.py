@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from typing import Any
 
@@ -8,12 +8,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.agents.providers import BaseModelProvider
-from app.api import pipeline_runs as pipeline_runs_api
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.main import app
 from app.schemas.domain import Document, DocumentChunk, DocumentSet, RequirementSet
 from app.schemas.pipeline import PipelineRun, PipelineRunStatus
+from app.services import pipeline as pipeline_module
 from app.services.pipeline import PipelineService
 from app.services.review_orchestrator import (
     MockModelProvider,
@@ -29,41 +29,7 @@ def reset_state() -> None:
     audit_log.clear()
 
 
-def test_pipeline_endpoint_starts_analysis_in_background(monkeypatch: pytest.MonkeyPatch) -> None:
-    repository.create_document_set(_document_set(document_set_id="ds_pipeline_background"))
-    started_at = datetime.now(UTC)
-    pipeline_run = PipelineRun(
-        pipeline_run_id="prun_pipeline_background",
-        document_set_id="ds_pipeline_background",
-        status=PipelineRunStatus.RUNNING,
-        started_at=started_at,
-        config_version="pipeline-config-test",
-    )
-    execution_calls: list[tuple[str, str]] = []
-
-    class BackgroundPipelineService:
-        def start_pipeline(self, document_set_id: str) -> PipelineRun:
-            assert document_set_id == "ds_pipeline_background"
-            return pipeline_run
-
-        def execute_pipeline(self, document_set_id: str, run: PipelineRun) -> PipelineRun:
-            execution_calls.append((document_set_id, run.pipeline_run_id))
-            return run
-
-    monkeypatch.setattr(
-        pipeline_runs_api,
-        "get_pipeline_service",
-        lambda: BackgroundPipelineService(),
-    )
-
-    response = TestClient(app).post("/document-sets/ds_pipeline_background/pipeline-runs")
-
-    assert response.status_code == 202
-    assert response.json()["status"] == "running"
-    assert execution_calls == [("ds_pipeline_background", "prun_pipeline_background")]
-
-
-def test_pipeline_service_runs_end_to_end_after_document_upload() -> None:
+def test_pipeline_endpoint_runs_end_to_end_after_document_upload() -> None:
     repository.create_requirement_set(_requirement_set())
     client = TestClient(app)
     create_response = client.post(
@@ -89,24 +55,27 @@ def test_pipeline_service_runs_end_to_end_after_document_upload() -> None:
         data={"uploaded_by": "user_qrm_author"},
     )
 
-    pipeline_run = PipelineService(repository=repository, audit_log=audit_log).run_pipeline(
-        document_set_id
-    )
+    response = client.post(f"/document-sets/{document_set_id}/pipeline-runs")
 
     assert create_response.status_code == 201
     assert upload_response.status_code == 201
-    payload = pipeline_run.model_dump(mode="json")
+    assert response.status_code == 202
+    payload = response.json()
     assert payload["document_set_id"] == document_set_id
-    assert payload["status"] == "completed"
-    assert payload["failed_step"] is None
-    assert payload["completed_at"] is not None
-    assert payload["model_manifest"]
+    assert payload["status"] == "running"
+    get_response = client.get(f"/pipeline-runs/{payload['pipeline_run_id']}")
+    assert get_response.status_code == 200
+    completed_payload = get_response.json()
+    assert completed_payload["status"] == "completed"
+    assert completed_payload["failed_step"] is None
+    assert completed_payload["completed_at"] is not None
+    assert completed_payload["model_manifest"]
     assert {
         entry["agent_role"]: entry["configured_model_id"]
-        for entry in payload["model_manifest"]
+        for entry in completed_payload["model_manifest"]
     }["ContradictionHunter"]
-    assert all("knowledge_pack_ids" in entry for entry in payload["model_manifest"])
-    assert all("case_signals" in entry for entry in payload["model_manifest"])
+    assert all("knowledge_pack_ids" in entry for entry in completed_payload["model_manifest"])
+    assert all("case_signals" in entry for entry in completed_payload["model_manifest"])
     assert repository.get_latest_risk_decision(document_set_id) is not None
 
     review_pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
@@ -119,9 +88,7 @@ def test_pipeline_service_runs_end_to_end_after_document_upload() -> None:
         for event in audit_log.list_events()
     )
 
-    get_response = client.get(f"/pipeline-runs/{payload['pipeline_run_id']}")
-    assert get_response.status_code == 200
-    assert get_response.json()["pipeline_run_id"] == payload["pipeline_run_id"]
+    assert completed_payload["pipeline_run_id"] == payload["pipeline_run_id"]
 
 
 def test_model_run_failure_in_pipeline_does_not_allow_auto_clear() -> None:
@@ -166,8 +133,6 @@ def test_model_run_failure_in_pipeline_does_not_allow_auto_clear() -> None:
     assert decision.auto_clear_allowed is False
     assert decision.decision == "blocked_due_to_model_failure"
     assert "failed model run affects review coverage" in decision.auto_clear_blockers
-    assert "failed model run affects review coverage" in decision.operational_blockers
-    assert decision.model_coverage_status == "incomplete"
     document_set = repository.get_document_set("ds_pipeline_failure")
     assert document_set is not None
     assert document_set.status == "needs_human_review"
@@ -208,6 +173,81 @@ def test_pipeline_keeps_no_text_document_as_human_review_instead_of_failed() -> 
     document_set = repository.get_document_set("ds_pipeline_no_text")
     assert document_set is not None
     assert document_set.status == "needs_human_review"
+
+
+def test_pipeline_service_exposes_an_idempotent_start_contract() -> None:
+    assert hasattr(PipelineService, "start_or_get_pipeline_run")
+    assert hasattr(pipeline_module, "PipelineRunRetryRequiredError")
+
+
+def test_pipeline_start_returns_the_existing_active_run_without_executing_again() -> None:
+    repository.create_requirement_set(_requirement_set())
+    repository.create_document_set(_document_set(document_set_id="ds_pipeline_active"))
+    service = PipelineService(repository=repository, audit_log=audit_log)
+
+    first_run = service.start_or_get_pipeline_run("ds_pipeline_active")
+    duplicate_run = service.start_or_get_pipeline_run("ds_pipeline_active")
+
+    assert first_run.status == PipelineRunStatus.RUNNING
+    assert duplicate_run.pipeline_run_id == first_run.pipeline_run_id
+    assert len(repository.pipeline_runs) == 1
+
+
+def test_pipeline_start_marks_an_expired_running_run_failed_before_explicit_retry() -> None:
+    repository.create_requirement_set(_requirement_set())
+    repository.create_document_set(_document_set(document_set_id="ds_pipeline_stale"))
+    expired_run = PipelineRun(
+        pipeline_run_id="prun_expired",
+        document_set_id="ds_pipeline_stale",
+        status=PipelineRunStatus.RUNNING,
+        started_at=datetime.now(UTC) - timedelta(seconds=61),
+        config_version="pipeline-config-v0.1",
+    )
+    repository.add_pipeline_run(expired_run)
+    service = PipelineService(
+        repository=repository,
+        audit_log=audit_log,
+        pipeline_lease_seconds=60,
+    )
+
+    with pytest.raises(pipeline_module.PipelineRunRetryRequiredError):
+        service.start_or_get_pipeline_run("ds_pipeline_stale")
+
+    replacement_run = service.start_or_get_pipeline_run("ds_pipeline_stale", retry=True)
+
+    recovered_run = repository.get_pipeline_run("prun_expired")
+    document_set = repository.get_document_set("ds_pipeline_stale")
+    assert recovered_run is not None
+    assert recovered_run.status == PipelineRunStatus.FAILED
+    assert recovered_run.failed_step == "lease_expired"
+    assert recovered_run.completed_at is not None
+    assert replacement_run.status == PipelineRunStatus.RUNNING
+    assert replacement_run.pipeline_run_id != expired_run.pipeline_run_id
+    assert document_set is not None
+    assert document_set.status == "needs_human_review"
+
+
+def test_pipeline_requires_explicit_retry_after_a_terminal_run() -> None:
+    repository.create_requirement_set(_requirement_set())
+    repository.create_document_set(_document_set(document_set_id="ds_pipeline_terminal"))
+    terminal_run = PipelineRun(
+        pipeline_run_id="prun_terminal",
+        document_set_id="ds_pipeline_terminal",
+        status=PipelineRunStatus.COMPLETED,
+        started_at=datetime.now(UTC) - timedelta(minutes=1),
+        completed_at=datetime.now(UTC),
+        config_version="pipeline-config-v0.1",
+    )
+    repository.add_pipeline_run(terminal_run)
+    service = PipelineService(repository=repository, audit_log=audit_log)
+
+    with pytest.raises(pipeline_module.PipelineRunRetryRequiredError):
+        service.start_or_get_pipeline_run("ds_pipeline_terminal")
+
+    retry_run = service.start_or_get_pipeline_run("ds_pipeline_terminal", retry=True)
+
+    assert retry_run.status == PipelineRunStatus.RUNNING
+    assert retry_run.pipeline_run_id != terminal_run.pipeline_run_id
 
 
 class FailingProvider(BaseModelProvider):

@@ -3,8 +3,10 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
+import pytest
+
 from app.db.in_memory import _engine_options_for_database_url
-from app.db.persistent import PersistentSnapshotRepository
+from app.db.persistent import PersistentSnapshotRepository, SnapshotConflictError
 from app.schemas.domain import DocumentSet, RequirementSet
 
 
@@ -30,7 +32,7 @@ def test_persistent_repository_restores_snapshot_from_sqlite(tmp_path) -> None: 
     assert second.list_document_sets()[0].document_set_id == "ds_persist_demo"
 
 
-def test_persistent_repository_removes_retired_public_demo_case(tmp_path) -> None:  # type: ignore[no-untyped-def]
+def test_persistent_repository_load_does_not_mutate_legacy_case(tmp_path) -> None:  # type: ignore[no-untyped-def]
     database_url = f"sqlite:///{tmp_path / 'qrm_legacy_demo_state.db'}"
     first = PersistentSnapshotRepository(database_url=database_url)
     first.create_requirement_set(_requirement_set())
@@ -38,8 +40,28 @@ def test_persistent_repository_removes_retired_public_demo_case(tmp_path) -> Non
 
     second = PersistentSnapshotRepository(database_url=database_url)
 
-    assert second.get_document_set("ds_demo_avi_threshold") is None
-    assert second.list_document_sets() == []
+    assert second.get_document_set("ds_demo_avi_threshold") is not None
+    assert [item.document_set_id for item in second.list_document_sets()] == [
+        "ds_demo_avi_threshold"
+    ]
+
+
+def test_persistent_repository_rejects_stale_writer_without_overwriting_snapshot(
+    tmp_path,
+) -> None:  # type: ignore[no-untyped-def]
+    database_url = f"sqlite:///{tmp_path / 'qrm_conflict_state.db'}"
+    first = PersistentSnapshotRepository(database_url=database_url)
+    first.create_requirement_set(_requirement_set())
+    stale = PersistentSnapshotRepository(database_url=database_url)
+
+    first.create_document_set(_document_set(document_set_id="ds_persist_first"))
+
+    with pytest.raises(SnapshotConflictError):
+        stale.create_document_set(_document_set(document_set_id="ds_persist_stale"))
+
+    restored = PersistentSnapshotRepository(database_url=database_url)
+    assert restored.get_document_set("ds_persist_first") is not None
+    assert restored.get_document_set("ds_persist_stale") is None
 
 
 def test_persistent_repository_handles_parallel_snapshot_writes(tmp_path) -> None:  # type: ignore[no-untyped-def]

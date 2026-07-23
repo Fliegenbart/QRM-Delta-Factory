@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { hasSupabaseMiddlewareConfig } from "@/utils/supabase/config";
+import { resolveReviewActorFromClaims } from "@/utils/supabase/authorization";
 import {
   isProtectedReviewApiPath,
   isProtectedReviewPath,
@@ -48,26 +49,27 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const hasSupabaseSessionCookie = request.cookies
-    .getAll()
-    .some((cookie) => cookie.name.startsWith("sb-"));
-  if (!hasSupabaseSessionCookie && mustProtectReviewRoute) {
-    return reviewAuthFailureResponse(request, "Authentication required.", 401);
-  }
-
-  if (hasSupabaseSessionCookie) {
+  if (mustProtectReviewRoute) {
     const {
-      data: { user }
+      data: { user },
+      error
     } = await supabase.auth.getUser();
-    if (mustProtectReviewRoute && !user) {
+    if (error || !user) {
       return reviewAuthFailureResponse(request, "Authentication required.", 401);
+    }
+    if (!resolveReviewActorFromClaims(user)) {
+      return reviewAuthFailureResponse(
+        request,
+        "Valid review role and tenant claims are required.",
+        403
+      );
     }
   }
 
   return supabaseResponse;
 }
 
-function reviewAuthFailureResponse(request: NextRequest, message: string, status: 401 | 503) {
+function reviewAuthFailureResponse(request: NextRequest, message: string, status: 401 | 403 | 503) {
   const headers = { "cache-control": "no-store" };
   if (isProtectedReviewApiPath(request.nextUrl.pathname)) {
     return NextResponse.json({ error: message }, { status, headers });

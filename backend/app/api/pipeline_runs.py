@@ -9,6 +9,7 @@ from app.schemas.pipeline import PipelineRun
 from app.services.pipeline import (
     PipelineDocumentSetNotFoundError,
     PipelineRunNotFoundError,
+    PipelineRunRetryRequiredError,
     PipelineService,
 )
 
@@ -36,13 +37,45 @@ def create_pipeline_run(
         request=request,
     )
     try:
-        pipeline_service = get_pipeline_service()
-        pipeline_run = pipeline_service.start_pipeline(document_set_id)
-        background_tasks.add_task(
-            pipeline_service.execute_pipeline,
-            document_set_id,
-            pipeline_run,
-        )
+        service = get_pipeline_service()
+        pipeline_run, created = service.enqueue_pipeline_run(document_set_id)
+        if created:
+            background_tasks.add_task(
+                service.execute_pipeline,
+                document_set_id,
+                pipeline_run,
+            )
+        return pipeline_run
+    except PipelineDocumentSetNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except PipelineRunRetryRequiredError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@document_set_router.post(
+    "/{document_set_id}/pipeline-runs/retry",
+    response_model=PipelineRun,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def retry_pipeline_run(
+    document_set_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+) -> PipelineRun:
+    require_document_set_for_tenant(
+        repository=repository,
+        document_set_id=document_set_id,
+        request=request,
+    )
+    try:
+        service = get_pipeline_service()
+        pipeline_run, created = service.enqueue_pipeline_run(document_set_id, retry=True)
+        if created:
+            background_tasks.add_task(
+                service.execute_pipeline,
+                document_set_id,
+                pipeline_run,
+            )
         return pipeline_run
     except PipelineDocumentSetNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

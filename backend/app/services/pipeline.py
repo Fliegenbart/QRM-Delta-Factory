@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import UTC, datetime
 from hashlib import sha256
+from threading import RLock
 from typing import Any, Protocol
 
 from app.audit.events import InMemoryAuditLog
@@ -29,11 +30,18 @@ class PipelineRunNotFoundError(Exception):
     pass
 
 
+class PipelineRunRetryRequiredError(Exception):
+    pass
+
+
 class PipelineJobQueue(Protocol):
     """Future async boundary for Celery/RQ-backed dispatch."""
 
     def enqueue(self, document_set_id: str) -> PipelineRun:
         ...
+
+
+_pipeline_run_lock = RLock()
 
 
 class PipelineService:
@@ -49,6 +57,7 @@ class PipelineService:
         risk_fusion_service: RiskFusionService | None = None,
         review_pack_service: ReviewPackService | None = None,
         config_version: str = PIPELINE_CONFIG_VERSION,
+        pipeline_lease_seconds: int | None = None,
     ) -> None:
         self.repository = repository
         self.audit_log = audit_log
@@ -78,34 +87,36 @@ class PipelineService:
             audit_log=audit_log,
         )
         self.config_version = config_version
-
-    def start_pipeline(self, document_set_id: str) -> PipelineRun:
-        document_set = self.repository.get_document_set(document_set_id)
-        if document_set is None:
-            raise PipelineDocumentSetNotFoundError(f"DocumentSet {document_set_id} not found")
-
-        started_at = datetime.now(UTC)
-        pipeline_run = PipelineRun(
-            pipeline_run_id=_pipeline_run_id(document_set_id, started_at),
-            document_set_id=document_set_id,
-            status=PipelineRunStatus.RUNNING,
-            started_at=started_at,
-            completed_at=None,
-            failed_step=None,
-            error_summary=None,
-            config_version=self.config_version,
+        self.pipeline_lease_seconds = (
+            pipeline_lease_seconds
+            if pipeline_lease_seconds is not None
+            else get_settings().pipeline_run_lease_seconds
         )
-        self.repository.add_pipeline_run(pipeline_run)
-        self._audit(
-            event_type="pipeline_run_started",
-            pipeline_run=pipeline_run,
-            document_set=document_set,
-            payload={"config_version": self.config_version},
-        )
+        if self.pipeline_lease_seconds <= 0:
+            raise ValueError("pipeline_lease_seconds must be greater than 0")
+
+    def start_or_get_pipeline_run(
+        self,
+        document_set_id: str,
+        *,
+        retry: bool = False,
+    ) -> PipelineRun:
+        pipeline_run, _created = self._acquire_pipeline_run(document_set_id, retry=retry)
         return pipeline_run
 
-    def run_pipeline(self, document_set_id: str) -> PipelineRun:
-        pipeline_run = self.start_pipeline(document_set_id)
+    def enqueue_pipeline_run(
+        self,
+        document_set_id: str,
+        *,
+        retry: bool = False,
+    ) -> tuple[PipelineRun, bool]:
+        """Acquire a durable run record; caller dispatches only when newly acquired."""
+        return self._acquire_pipeline_run(document_set_id, retry=retry)
+
+    def run_pipeline(self, document_set_id: str, *, retry: bool = False) -> PipelineRun:
+        pipeline_run, created = self._acquire_pipeline_run(document_set_id, retry=retry)
+        if not created:
+            return pipeline_run
         return self.execute_pipeline(document_set_id, pipeline_run)
 
     def execute_pipeline(
@@ -113,7 +124,9 @@ class PipelineService:
         document_set_id: str,
         pipeline_run: PipelineRun,
     ) -> PipelineRun:
-        document_set = self._document_set(document_set_id)
+        document_set = self.repository.get_document_set(document_set_id)
+        if document_set is None:
+            raise PipelineDocumentSetNotFoundError(f"DocumentSet {document_set_id} not found")
 
         current_step: str | None = None
         risk_decision: RiskDecision | None = None
@@ -196,11 +209,120 @@ class PipelineService:
             )
             return failed_run
 
+    def _acquire_pipeline_run(
+        self,
+        document_set_id: str,
+        *,
+        retry: bool,
+    ) -> tuple[PipelineRun, bool]:
+        document_set = self.repository.get_document_set(document_set_id)
+        if document_set is None:
+            raise PipelineDocumentSetNotFoundError(f"DocumentSet {document_set_id} not found")
+
+        with _pipeline_run_lock:
+            self._recover_expired_pipeline_runs(document_set_id=document_set_id)
+            active_run = self._active_pipeline_run(document_set_id)
+            if active_run is not None:
+                self._audit(
+                    event_type="pipeline_run_reused",
+                    pipeline_run=active_run,
+                    document_set=document_set,
+                    payload={"reason": "active_run_exists"},
+                )
+                return active_run, False
+
+            if self._has_terminal_pipeline_run(document_set_id) and not retry:
+                raise PipelineRunRetryRequiredError(
+                    "A previous pipeline run is terminal; use the explicit retry endpoint"
+                )
+
+            started_at = datetime.now(UTC)
+            pipeline_run = PipelineRun(
+                pipeline_run_id=_pipeline_run_id(document_set_id, started_at),
+                document_set_id=document_set_id,
+                status=PipelineRunStatus.RUNNING,
+                started_at=started_at,
+                completed_at=None,
+                failed_step=None,
+                error_summary=None,
+                config_version=self.config_version,
+            )
+            self.repository.add_pipeline_run(pipeline_run)
+            self._audit(
+                event_type="pipeline_run_started",
+                pipeline_run=pipeline_run,
+                document_set=document_set,
+                payload={
+                    "config_version": self.config_version,
+                    "retry": retry,
+                    "lease_seconds": self.pipeline_lease_seconds,
+                },
+            )
+            return pipeline_run, True
+
+    def _recover_expired_pipeline_runs(self, *, document_set_id: str) -> None:
+        now = datetime.now(UTC)
+        cutoff = now.timestamp() - self.pipeline_lease_seconds
+        document_set = self._document_set(document_set_id)
+        for pipeline_run in self._pipeline_runs_for_document_set(document_set_id):
+            if (
+                pipeline_run.status != PipelineRunStatus.RUNNING
+                or pipeline_run.started_at.timestamp() > cutoff
+            ):
+                continue
+            expired_run = pipeline_run.model_copy(
+                update={
+                    "status": PipelineRunStatus.FAILED,
+                    "completed_at": now,
+                    "failed_step": "lease_expired",
+                    "error_summary": (
+                        "Pipeline lease expired; the previous process did not complete "
+                        "and the run was failed for safe explicit retry."
+                    ),
+                }
+            )
+            self.repository.update_pipeline_run(expired_run)
+            self._mark_document_set_for_human_review(document_set)
+            self._audit(
+                event_type="pipeline_run_lease_expired",
+                pipeline_run=expired_run,
+                document_set=document_set,
+                payload={"lease_seconds": self.pipeline_lease_seconds},
+            )
+
+    def _active_pipeline_run(self, document_set_id: str) -> PipelineRun | None:
+        active_runs = [
+            pipeline_run
+            for pipeline_run in self._pipeline_runs_for_document_set(document_set_id)
+            if pipeline_run.status == PipelineRunStatus.RUNNING
+        ]
+        if not active_runs:
+            return None
+        return max(active_runs, key=lambda pipeline_run: pipeline_run.started_at)
+
+    def _has_terminal_pipeline_run(self, document_set_id: str) -> bool:
+        return any(
+            pipeline_run.status != PipelineRunStatus.RUNNING
+            for pipeline_run in self._pipeline_runs_for_document_set(document_set_id)
+        )
+
+    def _pipeline_runs_for_document_set(self, document_set_id: str) -> list[PipelineRun]:
+        runs = getattr(self.repository, "pipeline_runs", {})
+        return [
+            pipeline_run
+            for pipeline_run in runs.values()
+            if pipeline_run.document_set_id == document_set_id
+        ]
+
     def get_pipeline_run(self, pipeline_run_id: str) -> PipelineRun:
         pipeline_run = self.repository.get_pipeline_run(pipeline_run_id)
         if pipeline_run is None:
             raise PipelineRunNotFoundError(f"PipelineRun {pipeline_run_id} not found")
-        return pipeline_run
+        self._recover_expired_pipeline_runs(document_set_id=pipeline_run.document_set_id)
+        recovered_run = self.repository.get_pipeline_run(pipeline_run_id)
+        if recovered_run is None:
+            raise PipelineRunNotFoundError(f"PipelineRun {pipeline_run_id} not found")
+        return recovered_run
 
     def _parse_document_set(self, document_set_id: str) -> dict[str, Any]:
         document_set = self._document_set(document_set_id)

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import random
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from hashlib import sha256
+from threading import Lock, Semaphore
 from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError
@@ -33,13 +35,24 @@ class ProviderStructuredOutputError(Exception):
 
 
 class ProviderCallError(Exception):
-    pass
+    def __init__(
+        self,
+        message: str,
+        *,
+        retryable: bool = False,
+        retry_after_seconds: float | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.retryable = retryable
+        self.retry_after_seconds = retry_after_seconds
 
 
 @dataclass(frozen=True)
 class ProviderRuntimeOptions:
     timeout_seconds: float = 30.0
     max_retries: int = 0
+    retry_deadline_seconds: float = 120.0
+    max_concurrent_calls: int = 2
     circuit_breaker_failure_threshold: int = 3
 
     def __post_init__(self) -> None:
@@ -47,6 +60,10 @@ class ProviderRuntimeOptions:
             raise ValueError("timeout_seconds must be greater than 0")
         if self.max_retries < 0:
             raise ValueError("max_retries must be greater than or equal to 0")
+        if self.retry_deadline_seconds <= 0:
+            raise ValueError("retry_deadline_seconds must be greater than 0")
+        if self.max_concurrent_calls <= 0:
+            raise ValueError("max_concurrent_calls must be greater than 0")
         if self.circuit_breaker_failure_threshold <= 0:
             raise ValueError("circuit_breaker_failure_threshold must be greater than 0")
 
@@ -66,6 +83,8 @@ class ProviderRunMetadata(BaseModel):
     request_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
     response_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
     latency_ms: int = Field(ge=0)
+    retry_count: int = Field(default=0, ge=0)
+    retry_delay_ms: int = Field(default=0, ge=0)
     token_usage: ProviderTokenUsage | None = None
 
 
@@ -76,6 +95,10 @@ class BaseModelProvider(ABC):
     configured_model_id: str
     prompt_version: str
     external_calls_required: bool
+    _circuit_lock = Lock()
+    _provider_failure_counts: dict[tuple[str, str], int] = {}
+    _concurrency_lock = Lock()
+    _provider_semaphores: dict[tuple[str, str, int], Semaphore] = {}
 
     def __init__(
         self,
@@ -98,7 +121,6 @@ class BaseModelProvider(ABC):
         self.runtime_options = runtime_options or ProviderRuntimeOptions()
         self.external_calls_required = external_calls_required
         self.last_run_metadata: ProviderRunMetadata | None = None
-        self._failure_count = 0
 
     def run_structured(
         self,
@@ -120,57 +142,72 @@ class BaseModelProvider(ABC):
             }
         )
         started = time.perf_counter()
+        deadline = time.monotonic() + self.runtime_options.retry_deadline_seconds
         last_error: Exception | None = None
-        attempt_prompt = prompt
-        for attempt in range(self.runtime_options.max_retries + 1):
-            try:
-                raw_output = self._run_structured_once(
-                    prompt=attempt_prompt,
-                    input_schema=input_schema,
-                    output_schema=output_schema,
-                )
-                token_usage = self._extract_token_usage(raw_output)
-                validation_payload = dict(raw_output)
-                validation_payload.pop("token_usage", None)
-                validation_payload = _normalize_structured_payload(
-                    validation_payload,
-                    output_schema=output_schema,
-                )
-                _validate_reviewer_requirement_references(
-                    validation_payload,
-                    input_schema=input_schema,
-                    output_schema=output_schema,
-                )
-                parsed = output_schema.model_validate(validation_payload)
-                structured_output = parsed.model_dump(mode="json")
-                response_hash = _hash_json(structured_output)
-                self.last_run_metadata = ProviderRunMetadata(
-                    provider=self.provider_name,
-                    model_name=self.model_name,
-                    model_version=self.model_version,
-                    configured_model_id=self.configured_model_id,
-                    prompt_version=self.prompt_version,
-                    request_hash=request_hash,
-                    response_hash=response_hash,
-                    latency_ms=int((time.perf_counter() - started) * 1000),
-                    token_usage=token_usage,
-                )
-                self._failure_count = 0
-                return structured_output
-            except (ValidationError, ProviderStructuredOutputError) as exc:
-                self._record_failure()
-                if attempt < self.runtime_options.max_retries:
-                    last_error = ProviderStructuredOutputError(str(exc))
-                    attempt_prompt = _repair_prompt_for_structured_output(
-                        prompt=prompt,
-                        validation_error=str(exc),
+        retry_count = 0
+        retry_delay_ms = 0
+        with self._provider_semaphore():
+            for attempt in range(self.runtime_options.max_retries + 1):
+                if time.monotonic() >= deadline:
+                    last_error = ProviderCallError(
+                        f"Provider retry deadline exceeded for {self.provider_name}"
                     )
-                    continue
-                raise ProviderStructuredOutputError(str(exc)) from exc
-            except Exception as exc:
-                last_error = exc
-                self._record_failure()
-                if self._failure_count >= self.runtime_options.circuit_breaker_failure_threshold:
+                    break
+                try:
+                    raw_output = self._run_structured_once(
+                        prompt=prompt,
+                        input_schema=input_schema,
+                        output_schema=output_schema,
+                    )
+                    token_usage = self._extract_token_usage(raw_output)
+                    validation_payload = dict(raw_output)
+                    validation_payload.pop("token_usage", None)
+                    validation_payload = _normalize_structured_payload(
+                        validation_payload,
+                        output_schema=output_schema,
+                    )
+                    parsed = output_schema.model_validate(validation_payload)
+                    structured_output = parsed.model_dump(mode="json")
+                    response_hash = _hash_json(structured_output)
+                    self.last_run_metadata = ProviderRunMetadata(
+                        provider=self.provider_name,
+                        model_name=self.model_name,
+                        model_version=self.model_version,
+                        configured_model_id=self.configured_model_id,
+                        prompt_version=self.prompt_version,
+                        request_hash=request_hash,
+                        response_hash=response_hash,
+                        latency_ms=int((time.perf_counter() - started) * 1000),
+                        retry_count=retry_count,
+                        retry_delay_ms=retry_delay_ms,
+                        token_usage=token_usage,
+                    )
+                    self._clear_failures()
+                    return structured_output
+                except ValidationError as exc:
+                    self._record_failure()
+                    raise ProviderStructuredOutputError(str(exc)) from exc
+                except ProviderCallError as exc:
+                    last_error = exc
+                    self._record_failure()
+                    if (
+                        not exc.retryable
+                        or attempt >= self.runtime_options.max_retries
+                        or self._circuit_is_open()
+                    ):
+                        break
+                    delay = self._retry_delay_seconds(exc, attempt=attempt, deadline=deadline)
+                    if delay is None:
+                        last_error = ProviderCallError(
+                            f"Provider retry deadline exceeded for {self.provider_name}"
+                        )
+                        break
+                    time.sleep(delay)
+                    retry_count += 1
+                    retry_delay_ms += int(delay * 1000)
+                except Exception as exc:
+                    last_error = exc
+                    self._record_failure()
                     break
         if last_error is not None:
             raise last_error
@@ -215,11 +252,52 @@ class BaseModelProvider(ABC):
             )
 
     def _ensure_circuit_closed(self) -> None:
-        if self._failure_count >= self.runtime_options.circuit_breaker_failure_threshold:
+        if self._circuit_is_open():
             raise ProviderCircuitOpenError(f"Circuit breaker is open for {self.provider_name}")
 
     def _record_failure(self) -> None:
-        self._failure_count += 1
+        with self._circuit_lock:
+            key = self._provider_key()
+            self._provider_failure_counts[key] = self._provider_failure_counts.get(key, 0) + 1
+
+    def _clear_failures(self) -> None:
+        with self._circuit_lock:
+            self._provider_failure_counts.pop(self._provider_key(), None)
+
+    def _circuit_is_open(self) -> bool:
+        with self._circuit_lock:
+            return (
+                self._provider_failure_counts.get(self._provider_key(), 0)
+                >= self.runtime_options.circuit_breaker_failure_threshold
+            )
+
+    def _provider_key(self) -> tuple[str, str]:
+        return self.provider_name, self.configured_model_id
+
+    def _provider_semaphore(self) -> Semaphore:
+        key = (*self._provider_key(), self.runtime_options.max_concurrent_calls)
+        with self._concurrency_lock:
+            semaphore = self._provider_semaphores.get(key)
+            if semaphore is None:
+                semaphore = Semaphore(self.runtime_options.max_concurrent_calls)
+                self._provider_semaphores[key] = semaphore
+            return semaphore
+
+    def _retry_delay_seconds(
+        self,
+        error: ProviderCallError,
+        *,
+        attempt: int,
+        deadline: float,
+    ) -> float | None:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return None
+        retry_after = error.retry_after_seconds
+        capped_retry_after = min(retry_after, 30.0) if retry_after is not None else None
+        base_delay = capped_retry_after if capped_retry_after is not None else min(2**attempt, 10.0)
+        delay = random.uniform(0, base_delay) if base_delay > 0 else 0.0
+        return delay if delay < remaining else None
 
 
 def _hash_json(payload: dict[str, Any]) -> str:
@@ -266,72 +344,7 @@ def _normalize_evidence_item(item: Any) -> Any:
     quote = normalized.get("quote")
     if isinstance(quote, str) and not _is_sha256_hash(quote_hash):
         normalized["quote_hash"] = sha256(quote.encode()).hexdigest()
-    support_type = normalized.get("support_type")
-    if isinstance(support_type, str) and support_type.strip().lower() in {
-        "strong",
-        "partial",
-        "weak",
-    }:
-        normalized["support_type"] = "contextual"
     return normalized
-
-
-def _validate_reviewer_requirement_references(
-    payload: dict[str, Any],
-    *,
-    input_schema: dict[str, Any],
-    output_schema: type[BaseModel],
-) -> None:
-    if output_schema.__name__ != "ReviewerAgentOutput":
-        return
-
-    supplied_requirements = input_schema.get("requirements")
-    if not isinstance(supplied_requirements, list):
-        return
-    allowed_requirement_ids = {
-        requirement.get("requirement_id")
-        for requirement in supplied_requirements
-        if isinstance(requirement, dict)
-        and isinstance(requirement.get("requirement_id"), str)
-    }
-    if not allowed_requirement_ids:
-        return
-
-    findings = payload.get("findings")
-    if not isinstance(findings, list):
-        return
-    for index, finding in enumerate(findings):
-        if not isinstance(finding, dict):
-            continue
-        references = finding.get("requirement_references")
-        if not isinstance(references, list) or not references:
-            raise ProviderStructuredOutputError(
-                f"findings.{index}.requirement_references must contain at least one "
-                "requirement_id copied exactly from the supplied requirements"
-            )
-        unknown_references = [
-            reference
-            for reference in references
-            if not isinstance(reference, str) or reference not in allowed_requirement_ids
-        ]
-        if unknown_references:
-            raise ProviderStructuredOutputError(
-                f"findings.{index}.requirement_references contains unknown IDs: "
-                f"{', '.join(map(str, unknown_references))}"
-            )
-
-
-def _repair_prompt_for_structured_output(*, prompt: str, validation_error: str) -> str:
-    return (
-        f"{prompt}\n\n"
-        "REPAIR REQUIRED: Your previous JSON failed schema validation. Return a new "
-        "complete JSON object only. For every finding, copy at least one "
-        "requirement_id exactly from the supplied requirements. Every finding must "
-        "contain at least one evidence_item with a document quote. Each evidence_item "
-        "support_type must be exactly one of: supports, contradicts, contextual. "
-        "Use strong, partial, weak, or none only for evidence_support, never for "
-        f"evidence_item.support_type. Validation error: {validation_error}"
-    )
 
 
 def _is_sha256_hash(value: Any) -> bool:

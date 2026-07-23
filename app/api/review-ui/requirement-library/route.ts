@@ -3,8 +3,11 @@ import {
   getRequirementLibraryOverview,
   importRequirementLibrary
 } from "@/src/lib/review-api";
+import { authorizeReviewApiRequest } from "@/utils/supabase/actor";
 
 export async function GET() {
+  const authorization = await authorizeReviewApiRequest("read");
+  if ("response" in authorization) return authorization.response;
   try {
     const overview = await getRequirementLibraryOverview();
     return NextResponse.json({ overview });
@@ -15,10 +18,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authorization = await authorizeReviewApiRequest("import-requirements");
+  if ("response" in authorization) return authorization.response;
   try {
     const formData = await request.formData();
     const file = formData.get("file");
-    const importedBy = String(formData.get("importedBy") ?? "quality_admin");
+    const importedBy = authorization.actor.userId;
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Bitte eine JSON- oder YAML-Datei auswählen." }, { status: 400 });

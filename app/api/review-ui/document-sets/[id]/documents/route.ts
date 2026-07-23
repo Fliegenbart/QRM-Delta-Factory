@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ReviewApiError, uploadDocumentToDocumentSet } from "@/src/lib/review-api";
-import { resolveReviewActor } from "@/utils/supabase/actor";
+import { authorizeReviewApiRequest } from "@/utils/supabase/actor";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -8,8 +8,9 @@ type RouteContext = {
 
 export async function POST(request: Request, context: RouteContext) {
   const { id } = await context.params;
+  const authorization = await authorizeReviewApiRequest("upload-document");
+  if ("response" in authorization) return authorization.response;
   const formData = await request.formData();
-  const uploadedBy = await resolveReviewActor(String(formData.get("uploadedBy") || "qrm_author").trim());
   const file = formData.get("file");
 
   if (!(file instanceof File)) {
@@ -19,7 +20,7 @@ export async function POST(request: Request, context: RouteContext) {
   try {
     const upload = await uploadDocumentToDocumentSet({
       documentSetId: id,
-      uploadedBy,
+      uploadedBy: authorization.actor.userId,
       file
     });
     return NextResponse.json({ upload }, { status: 201 });

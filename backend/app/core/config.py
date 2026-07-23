@@ -68,7 +68,11 @@ class Settings(BaseSettings):
     )
     model_provider_timeout_seconds: float = Field(default=30.0, gt=0)
     model_provider_max_retries: int = Field(default=0, ge=0)
+    model_provider_retry_deadline_seconds: float = Field(default=120.0, gt=0)
+    model_provider_max_concurrency: int = Field(default=2, gt=0)
     model_provider_circuit_breaker_threshold: int = Field(default=3, gt=0)
+    pipeline_run_lease_seconds: int = Field(default=900, gt=0)
+    retain_raw_model_outputs: bool = Field(default=False)
     max_upload_bytes: int = Field(default=20 * 1024 * 1024, gt=0)
 
     def api_key_to_tenant_id(self) -> dict[str, str]:
