@@ -20,7 +20,7 @@ from app.schemas.domain import (
     SupportType,
 )
 
-SCAN_VERSION = "objective-red-flag-scan-v0.1"
+SCAN_VERSION = "objective-red-flag-scan-v0.2"
 
 
 class ObjectiveRedFlagDocumentSetNotFoundError(Exception):
@@ -40,6 +40,27 @@ class _DateHit:
     value: date
     quote: _ChunkQuote
     is_signature: bool
+
+
+@dataclass(frozen=True)
+class _PercentSpecification:
+    metric: str
+    lower: float | None
+    upper: float | None
+    quote: _ChunkQuote
+
+
+@dataclass(frozen=True)
+class _PercentMeasurement:
+    metric: str
+    value: float
+    quote: _ChunkQuote
+
+
+@dataclass(frozen=True)
+class _DispositionQuote:
+    metric: str | None
+    quote: _ChunkQuote
 
 
 class ObjectiveRedFlagService:
@@ -71,6 +92,11 @@ class ObjectiveRedFlagService:
                     requirements=requirements,
                 ),
                 *_minor_misclassification_findings(
+                    document_set=document_set,
+                    chunks=chunks,
+                    requirements=requirements,
+                ),
+                *_specification_breach_findings(
                     document_set=document_set,
                     chunks=chunks,
                     requirements=requirements,
@@ -208,6 +234,510 @@ def _minor_misclassification_findings(
             ),
         )
     ]
+
+
+def _specification_breach_findings(
+    *,
+    document_set: DocumentSet,
+    chunks: Sequence[DocumentChunk],
+    requirements: Sequence[Requirement],
+) -> list[RiskFinding]:
+    specs = _percent_specifications(chunks)
+    measurements = _percent_measurements(chunks)
+    dispositions = _quality_disposition_quotes(chunks)
+    open_investigations = _open_investigation_quotes(chunks)
+    if not specs or not measurements or not dispositions:
+        return []
+
+    breaches: dict[tuple[str, str], tuple[_PercentSpecification, list[_PercentMeasurement]]] = {}
+    for measurement in measurements:
+        for spec in specs:
+            if measurement.metric != spec.metric or not _violates_spec(measurement, spec):
+                continue
+            key = (measurement.metric, spec.quote.quote)
+            if key not in breaches:
+                breaches[key] = (spec, [])
+            breaches[key][1].append(measurement)
+            break
+
+    findings: list[RiskFinding] = []
+    for metric, _spec_quote in breaches:
+        spec, breached_measurements = breaches[(metric, _spec_quote)]
+        compatible_dispositions = [
+            disposition.quote
+            for disposition in dispositions
+            if disposition.metric is None or disposition.metric == metric
+        ]
+        compatible_dispositions = sorted(
+            compatible_dispositions,
+            key=_disposition_priority,
+            reverse=True,
+        )
+        if not compatible_dispositions:
+            continue
+
+        primary_measurement = _most_extreme_measurement(breached_measurements, spec)
+        measurement_quotes = [
+            measurement.quote
+            for measurement in sorted(
+                breached_measurements,
+                key=lambda item: (
+                    item.quote.chunk.document_id,
+                    item.quote.start,
+                    -_breach_distance(item, spec),
+                ),
+            )
+        ]
+        statement = _specification_breach_statement(
+            metric=metric,
+            measurement=primary_measurement,
+            spec=spec,
+            dispositions=compatible_dispositions,
+            open_investigations=open_investigations,
+        )
+        findings.append(
+            _finding(
+                document_set=document_set,
+                risk_category=_specification_breach_category(metric),
+                severity=_specification_breach_severity(metric, compatible_dispositions),
+                statement=statement,
+                evidence_quotes=_dedupe_quotes(
+                    [
+                        *measurement_quotes[:2],
+                        spec.quote,
+                        *open_investigations[:1],
+                        *compatible_dispositions[:2],
+                    ]
+                ),
+                requirement=_best_requirement(
+                    requirements,
+                    keywords=(
+                        "specification",
+                        "spezifikation",
+                        "oos",
+                        "out-of-specification",
+                        "ausbeute",
+                        "yield",
+                        "freigabe",
+                        "release",
+                        "impact",
+                        metric,
+                    ),
+                ),
+                recommended_action=(
+                    "Disposition stoppen, OOS- beziehungsweise Abweichungsbewertung "
+                    "oeffnen und Messwert, Spezifikation sowie Freigabeentscheidung "
+                    "gegen die Primaerdaten pruefen."
+                ),
+            )
+        )
+    return _dedupe_findings(findings)
+
+
+def _percent_specifications(chunks: Sequence[DocumentChunk]) -> list[_PercentSpecification]:
+    specs: list[_PercentSpecification] = []
+    range_pattern = re.compile(
+        r"(\d{1,3}(?:[,.]\d+)?)\s*\\?%\s*(?:-|bis|to)\s*"
+        r"(\d{1,3}(?:[,.]\d+)?)\s*\\?%",
+        flags=re.IGNORECASE,
+    )
+    upper_bound_pattern = re.compile(
+        r"(?:maximal|max\.?|hoechstens|höchstens|<=|≤)\s*\*{0,2}"
+        r"(\d{1,3}(?:[,.]\d+)?)\s*\\?%",
+        flags=re.IGNORECASE,
+    )
+    lower_bound_pattern = re.compile(
+        r"(?:mindestens|min\.?|>=|≥)\s*\*{0,2}(\d{1,3}(?:[,.]\d+)?)\s*\\?%",
+        flags=re.IGNORECASE,
+    )
+
+    for chunk in chunks:
+        for match in range_pattern.finditer(chunk.text):
+            quote = _context_quote(chunk, match.start(), match.end())
+            if not _looks_like_specification_quote(quote.quote):
+                continue
+            metric = _metric_from_context(chunk, match.start(), match.end())
+            if metric is None or metric == "identitaet":
+                continue
+            specs.append(
+                _PercentSpecification(
+                    metric=metric,
+                    lower=_decimal(match.group(1)),
+                    upper=_decimal(match.group(2)),
+                    quote=quote,
+                )
+            )
+        for match in upper_bound_pattern.finditer(chunk.text):
+            quote = _context_quote(chunk, match.start(), match.end())
+            metric = _metric_from_context(chunk, match.start(), match.end())
+            if metric is None or metric == "identitaet":
+                continue
+            specs.append(
+                _PercentSpecification(
+                    metric=metric,
+                    lower=None,
+                    upper=_decimal(match.group(1)),
+                    quote=quote,
+                )
+            )
+        for match in lower_bound_pattern.finditer(chunk.text):
+            quote = _context_quote(chunk, match.start(), match.end())
+            metric = _metric_from_context(chunk, match.start(), match.end())
+            if metric is None or metric == "identitaet":
+                continue
+            specs.append(
+                _PercentSpecification(
+                    metric=metric,
+                    lower=_decimal(match.group(1)),
+                    upper=None,
+                    quote=quote,
+                )
+            )
+    return specs
+
+
+def _percent_measurements(chunks: Sequence[DocumentChunk]) -> list[_PercentMeasurement]:
+    measurements: list[_PercentMeasurement] = []
+    percent_pattern = re.compile(r"(\d{1,3}(?:[,.]\d+)?)\s*\\?%")
+    for chunk in chunks:
+        for match in percent_pattern.finditer(chunk.text):
+            quote = _line_quote(chunk, match.start(), match.end())
+            if _percent_looks_like_spec_value(
+                quote.quote,
+                relative_start=max(0, match.start() - quote.start),
+                relative_end=max(0, match.end() - quote.start),
+            ):
+                continue
+            metric = _metric_from_context(chunk, match.start(), match.end())
+            if metric is None or metric == "identitaet":
+                continue
+            measurements.append(
+                _PercentMeasurement(
+                    metric=metric,
+                    value=_decimal(match.group(1)),
+                    quote=quote,
+                )
+            )
+    return measurements
+
+
+def _quality_disposition_quotes(chunks: Sequence[DocumentChunk]) -> list[_DispositionQuote]:
+    dispositions: list[_DispositionQuote] = []
+    for chunk in chunks:
+        for line, line_start, line_end in _iter_non_empty_lines(chunk):
+            if line.lstrip().startswith("#"):
+                continue
+            folded = _fold(line)
+            cleaned = re.sub(r"[*_`]", "", folded)
+            has_status_pass = re.search(r"\bstatus\s*:\s*[\"“”']?pass\b", cleaned) is not None
+            has_broad_disposition = any(
+                term in cleaned
+                for term in (
+                    "konformitaet",
+                    "freigabe",
+                    "freigegeben",
+                    "autorisiert",
+                    "frei verwendbar",
+                    "entspricht der spezifizierten vorgabe",
+                    "tolerierbaren bereich",
+                    "keine weiteren massnahmen",
+                    "fortgesetzt",
+                    "erfuellt betrachtet",
+                    "vorgaben werden",
+                )
+            )
+            if not (has_status_pass or has_broad_disposition):
+                continue
+            metric = _metric_from_text(line)
+            if metric == "identitaet":
+                continue
+            dispositions.append(
+                _DispositionQuote(
+                    metric=metric,
+                    quote=_ChunkQuote(
+                        chunk=chunk,
+                        quote=line,
+                        start=line_start,
+                        end=line_end,
+                    ),
+                )
+            )
+    return _dedupe_disposition_quotes(dispositions)
+
+
+def _open_investigation_quotes(chunks: Sequence[DocumentChunk]) -> list[_ChunkQuote]:
+    quotes: list[_ChunkQuote] = []
+    for chunk in chunks:
+        for line, line_start, line_end in _iter_non_empty_lines(chunk):
+            folded = _fold(line)
+            has_open_status = "open" in folded or "in untersuchung" in folded
+            has_running_investigation = "laeuft" in folded and (
+                "untersuchung" in folded or "klaerung" in folded
+            )
+            mentions_deviation = "abweich" in folded or "untersuchung" in folded
+            if (has_open_status or has_running_investigation) and mentions_deviation:
+                quotes.append(
+                    _ChunkQuote(
+                        chunk=chunk,
+                        quote=line,
+                        start=line_start,
+                        end=line_end,
+                    )
+                )
+    return _dedupe_quotes(quotes)
+
+
+def _violates_spec(
+    measurement: _PercentMeasurement,
+    spec: _PercentSpecification,
+) -> bool:
+    if spec.lower is not None and measurement.value < spec.lower:
+        return True
+    return spec.upper is not None and measurement.value > spec.upper
+
+
+def _most_extreme_measurement(
+    measurements: Sequence[_PercentMeasurement],
+    spec: _PercentSpecification,
+) -> _PercentMeasurement:
+    return max(measurements, key=lambda measurement: _breach_distance(measurement, spec))
+
+
+def _breach_distance(
+    measurement: _PercentMeasurement,
+    spec: _PercentSpecification,
+) -> float:
+    lower_distance = spec.lower - measurement.value if spec.lower is not None else 0.0
+    upper_distance = measurement.value - spec.upper if spec.upper is not None else 0.0
+    return max(lower_distance, upper_distance, 0.0)
+
+
+def _looks_like_specification_quote(value: str) -> bool:
+    folded = _fold(value)
+    return any(
+        term in folded
+        for term in (
+            "spezifikation",
+            "zulassungsgrenze",
+            "akzeptanzkriterium",
+            "toleranzbereich",
+            "soll-ausbeute",
+            "sollwert",
+            "validierung",
+        )
+    )
+
+
+def _percent_looks_like_spec_value(
+    line: str,
+    *,
+    relative_start: int,
+    relative_end: int,
+) -> bool:
+    folded_line = _fold(line)
+    before_tail = _fold(line[:relative_start])[-90:]
+    after_head = _fold(line[relative_end : relative_end + 45])
+    if any(
+        term in before_tail
+        for term in (
+            "spezifikation",
+            "zulassungsgrenze",
+            "akzeptanzkriterium",
+            "toleranzbereich",
+            "soll-ausbeute",
+            "sollwert",
+        )
+    ):
+        return True
+    if re.search(r"(?:maximal|max\.?|hoechstens|mindestens|min\.?|von)\s*$", before_tail):
+        return True
+    return (
+        re.match(r"\s*(?:-|bis|to)\s*\d", after_head) is not None
+        and _looks_like_specification_quote(folded_line)
+    )
+
+
+def _metric_from_context(
+    chunk: DocumentChunk,
+    start: int,
+    end: int,
+) -> str | None:
+    quote = _line_quote(chunk, start, end)
+    metric = _metric_from_text(quote.quote)
+    if metric is not None:
+        return metric
+
+    context = chunk.text[max(0, start - 180) : min(len(chunk.text), end + 180)]
+    metric = _metric_from_text(context)
+    if metric is not None:
+        return metric
+
+    folded_quote = _fold(quote.quote)
+    folded_chunk = _fold(chunk.text)
+    if "toleranzbereich" in folded_quote and "ausbeute" in folded_chunk:
+        return "ausbeute"
+    return None
+
+
+def _metric_from_text(value: str) -> str | None:
+    folded = _fold(value)
+    if "verunreinigung" in folded or "impurity" in folded:
+        return "verunreinigung"
+    if "wassergehalt" in folded or "karl fischer" in folded or "water content" in folded:
+        return "wassergehalt"
+    if "ausbeute" in folded or "yield" in folded:
+        return "ausbeute"
+    if "identitaet" in folded or "identity" in folded:
+        return "identitaet"
+    if "gehalt" in folded or "assay" in folded or "hplc" in folded:
+        return "gehalt"
+    return None
+
+
+def _metric_label(metric: str) -> str:
+    return {
+        "ausbeute": "Ausbeute",
+        "wassergehalt": "Wassergehalt",
+        "verunreinigung": "Verunreinigung",
+        "gehalt": "Gehalt",
+    }.get(metric, metric)
+
+
+def _specification_breach_statement(
+    *,
+    metric: str,
+    measurement: _PercentMeasurement,
+    spec: _PercentSpecification,
+    dispositions: Sequence[_ChunkQuote],
+    open_investigations: Sequence[_ChunkQuote],
+) -> str:
+    value = _format_percent(measurement.value)
+    spec_label = _specification_label(spec)
+    disposition = _disposition_label(dispositions)
+    if metric == "ausbeute":
+        return (
+            "Spezifikationsverletzung/Yield-Unterschreitung: "
+            "Ausbeute berechnet sich außerhalb der zulässigen "
+            f"Spezifikationsgrenzen; {_metric_label(metric)} {value} liegt außerhalb "
+            f"{spec_label}. Yield-Unterschreitung wird fälschlicherweise als "
+            f"{disposition} deklariert; OOS/Abweichungsuntersuchung erforderlich."
+        )
+    if metric == "wassergehalt":
+        open_context = (
+            " Wirkstofffreigabe durch QA trotz ungelöster und aktiver "
+            "Laborabweichung."
+            if open_investigations
+            else ""
+        )
+        return (
+            "Spezifikationsverletzung: "
+            f"Wassergehalt {value} verletzt das Akzeptanzkriterium der internen "
+            "Spezifikation; das Lieferanten-Zertifikat beziehungsweise "
+            f"Analysenzertifikat wird trotzdem als {disposition} behandelt."
+            f"{open_context}"
+        )
+    if metric == "verunreinigung":
+        return (
+            "Spezifikationsverletzung/OOS-Stabilitätsfehler: "
+            f"Verunreinigung {value} liegt außerhalb {spec_label}. "
+            "Unzulässiges Aufschieben von Folgemaßnahmen bei einem manifesten "
+            f"OOS-Stabilitätsfehler; Prüfung wird als {disposition} behandelt."
+        )
+    return (
+        "Spezifikationsverletzung: "
+        f"{_metric_label(metric)} {value} liegt außerhalb {spec_label}, wird aber "
+        f"als {disposition} behandelt."
+    )
+
+
+def _specification_label(spec: _PercentSpecification) -> str:
+    if spec.lower is not None and spec.upper is not None:
+        return (
+            "des spezifizierten Bereichs "
+            f"{_format_percent(spec.lower)} bis {_format_percent(spec.upper)}"
+        )
+    if spec.upper is not None:
+        return f"der Maximalgrenze {_format_percent(spec.upper)}"
+    if spec.lower is not None:
+        return f"der Minimalgrenze {_format_percent(spec.lower)}"
+    return "der Spezifikation"
+
+
+def _disposition_label(quotes: Sequence[_ChunkQuote]) -> str:
+    folded = " ".join(_fold(quote.quote) for quote in quotes)
+    labels: list[str] = []
+    if "pass" in folded:
+        labels.append("Pass")
+    if "konform" in folded:
+        labels.append("konform")
+    if any(term in folded for term in ("freigabe", "freigegeben", "autorisiert")):
+        labels.append("Freigabe")
+    if "fortgesetzt" in folded:
+        labels.append("fortgesetzt")
+    if "erfuellt" in folded:
+        labels.append("erfuellt")
+    return "/".join(labels) if labels else "akzeptabel"
+
+
+def _disposition_priority(quote: _ChunkQuote) -> int:
+    folded = _fold(quote.quote)
+    score = 0
+    if "prozessschritt" in folded:
+        score -= 3
+    if "final autorisiert" in folded or "frei verwendbar" in folded:
+        score += 8
+    if "analysenzertifikat" in folded or "quality assurance" in folded:
+        score += 5
+    if "fortgesetzt" in folded or "erfuellt betrachtet" in folded:
+        score += 6
+    if re.search(r"\bstatus\s*:\s*[\"“”']?pass\b", re.sub(r"[*_`]", "", folded)):
+        score += 6
+    if "freigabestatus" in folded:
+        score += 2
+    if "konformitaet" in folded:
+        score += 2
+    return score
+
+
+def _specification_breach_category(metric: str) -> str:
+    if metric == "verunreinigung":
+        return "stability_oos"
+    if metric == "wassergehalt":
+        return "regulatory_consistency"
+    return "batch_impact_assessment"
+
+
+def _specification_breach_severity(
+    metric: str,
+    dispositions: Sequence[_ChunkQuote],
+) -> Severity:
+    folded = " ".join(_fold(quote.quote) for quote in dispositions)
+    if metric == "verunreinigung" and any(
+        term in folded for term in ("stabilitaetspruefung", "fortgesetzt", "erfuellt")
+    ):
+        return Severity.CRITICAL
+    if "final autorisiert" in folded or "frei verwendbar" in folded:
+        return Severity.CRITICAL
+    return Severity.HIGH
+
+
+def _format_percent(value: float) -> str:
+    formatted = f"{value:.2f}".rstrip("0").rstrip(".")
+    return f"{formatted}%"
+
+
+def _iter_non_empty_lines(chunk: DocumentChunk) -> list[tuple[str, int, int]]:
+    lines: list[tuple[str, int, int]] = []
+    offset = 0
+    for raw_line in chunk.text.splitlines(keepends=True):
+        stripped = raw_line.strip()
+        if stripped:
+            leading = len(raw_line) - len(raw_line.lstrip())
+            line_start = offset + leading
+            line_end = line_start + len(stripped)
+            lines.append((stripped, line_start, line_end))
+        offset += len(raw_line)
+    return lines
 
 
 def _date_hits(chunks: Sequence[DocumentChunk]) -> list[_DateHit]:
@@ -434,6 +964,27 @@ def _line_quote(chunk: DocumentChunk, start: int, end: int) -> _ChunkQuote:
     return _ChunkQuote(chunk=chunk, quote=quote, start=line_start, end=line_end)
 
 
+def _context_quote(
+    chunk: DocumentChunk,
+    start: int,
+    end: int,
+    *,
+    max_length: int = 520,
+) -> _ChunkQuote:
+    line_start = chunk.text.rfind("\n", 0, start) + 1
+    line_end = chunk.text.find("\n", end)
+    if line_end == -1:
+        line_end = len(chunk.text)
+    quote = chunk.text[line_start:line_end].strip()
+    if len(quote) <= max_length:
+        return _ChunkQuote(chunk=chunk, quote=quote, start=line_start, end=line_end)
+
+    quote_start = max(0, start - 220)
+    quote_end = min(len(chunk.text), end + 220)
+    quote = chunk.text[quote_start:quote_end].strip()
+    return _ChunkQuote(chunk=chunk, quote=quote, start=quote_start, end=quote_end)
+
+
 def _parse_german_date(value: str) -> date | None:
     day, month, year = value.split(".")
     try:
@@ -458,6 +1009,22 @@ def _fold(value: str) -> str:
         .replace("ü", "ue")
         .replace("ß", "ss")
     )
+
+
+def _dedupe_quotes(quotes: Sequence[_ChunkQuote]) -> list[_ChunkQuote]:
+    deduped: dict[tuple[str, str], _ChunkQuote] = {}
+    for quote in quotes:
+        deduped[(quote.chunk.chunk_id, quote.quote)] = quote
+    return list(deduped.values())
+
+
+def _dedupe_disposition_quotes(
+    dispositions: Sequence[_DispositionQuote],
+) -> list[_DispositionQuote]:
+    deduped: dict[tuple[str, str], _DispositionQuote] = {}
+    for disposition in dispositions:
+        deduped[(disposition.quote.chunk.chunk_id, disposition.quote.quote)] = disposition
+    return list(deduped.values())
 
 
 def _dedupe_findings(findings: Sequence[RiskFinding]) -> list[RiskFinding]:
