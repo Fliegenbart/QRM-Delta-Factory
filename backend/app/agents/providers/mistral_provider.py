@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from pydantic import BaseModel
@@ -60,10 +61,21 @@ class MistralProvider(ExternalProviderBase):
                 },
                 {
                     "role": "user",
-                    "content": self._json_user_content(
-                        prompt=prompt,
-                        input_schema=input_schema,
-                        output_schema=output_schema,
+                    # The output schema is already supplied through Mistral's
+                    # json_schema response format. Sending it again here adds a
+                    # large duplicate payload without improving enforcement.
+                    "content": json.dumps(
+                        {
+                            "instructions": prompt,
+                            "inputs": input_schema,
+                            "hard_output_rule": (
+                                "Return exactly one JSON object that follows the "
+                                "provided response schema. Do not return markdown, "
+                                "prose, or keys outside the schema."
+                            ),
+                        },
+                        sort_keys=True,
+                        default=str,
                     ),
                 },
             ],

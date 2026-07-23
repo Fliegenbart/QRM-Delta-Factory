@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from hashlib import sha256
+from threading import Thread
+from time import sleep
 from typing import Any
 
 import httpx
@@ -445,6 +447,29 @@ def test_provider_retry_deadline_prevents_a_long_retry_after_sleep() -> None:
     assert provider.calls == 1
 
 
+def test_provider_retry_deadline_starts_after_shared_queue_wait() -> None:
+    provider = ImmediateProvider(
+        runtime_options=ProviderRuntimeOptions(
+            retry_deadline_seconds=0.01,
+            max_concurrent_calls=1,
+        )
+    )
+    semaphore = provider._provider_semaphore()
+    assert semaphore.acquire(blocking=False)
+    result: list[dict[str, Any]] = []
+
+    worker = Thread(
+        target=lambda: result.append(provider.run_structured("Return JSON.", {}, SimpleOutput))
+    )
+    worker.start()
+    sleep(0.03)
+    semaphore.release()
+    worker.join(timeout=1)
+
+    assert not worker.is_alive()
+    assert result == [{"value": "ok"}]
+
+
 def test_provider_circuit_state_is_shared_by_provider_and_model() -> None:
     options = ProviderRuntimeOptions(max_retries=0, circuit_breaker_failure_threshold=1)
     first = AlwaysRetryableProvider(runtime_options=options, provider_name="circuit-test")
@@ -512,6 +537,27 @@ class AlwaysRetryableProvider(BaseModelProvider):
         raise ProviderCallError("transient failure", retryable=True, retry_after_seconds=30)
 
 
+class ImmediateProvider(BaseModelProvider):
+    def __init__(self, *, runtime_options: ProviderRuntimeOptions) -> None:
+        super().__init__(
+            provider_name="queue-test",
+            model_name="queue-test-model",
+            model_version="v1",
+            configured_model_id="queue-test-model",
+            runtime_options=runtime_options,
+            external_calls_required=False,
+        )
+
+    def _run_structured_once(
+        self,
+        *,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[BaseModel],
+    ) -> dict[str, Any]:
+        return {"value": "ok"}
+
+
 def _document_set() -> DocumentSet:
     return DocumentSet(
         document_set_id="ds_provider_demo",
@@ -577,6 +623,7 @@ def test_mistral_provider_runs_structured_call_with_mocked_http(
         assert json_body["response_format"]["type"] == "json_schema"
         assert json_body["response_format"]["json_schema"]["name"] == "simpleoutput"
         assert json_body["response_format"]["json_schema"]["schema"]["type"] == "object"
+        assert "output_schema" not in json_body["messages"][1]["content"]
         return {
             "choices": [{"message": {"content": '{"value": "ok-mistral"}'}}],
             "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},

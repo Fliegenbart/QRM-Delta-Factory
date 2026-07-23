@@ -80,7 +80,7 @@ class Settings(BaseSettings):
     model_provider_max_concurrency: int = Field(default=2, gt=0)
     model_provider_max_output_tokens: int = Field(default=1600, ge=256, le=8192)
     model_provider_circuit_breaker_threshold: int = Field(default=3, gt=0)
-    reviewer_max_claims_per_agent: int = Field(default=32, ge=8, le=200)
+    reviewer_max_claims_per_agent: int = Field(default=20, ge=8, le=200)
     pipeline_run_lease_seconds: int = Field(default=900, gt=0)
     retain_raw_model_outputs: bool = Field(default=False)
     max_upload_bytes: int = Field(default=20 * 1024 * 1024, gt=0)

@@ -141,12 +141,15 @@ class BaseModelProvider(ABC):
                 "output_schema": output_schema.__name__,
             }
         )
-        started = time.perf_counter()
-        deadline = time.monotonic() + self.runtime_options.retry_deadline_seconds
         last_error: Exception | None = None
         retry_count = 0
         retry_delay_ms = 0
         with self._provider_semaphore():
+            # Queue time is controlled by the shared semaphore. The retry deadline
+            # applies to the active provider call, not to waiting behind other
+            # reviewers that use the same provider and model.
+            started = time.perf_counter()
+            deadline = time.monotonic() + self.runtime_options.retry_deadline_seconds
             for attempt in range(self.runtime_options.max_retries + 1):
                 if time.monotonic() >= deadline:
                     last_error = ProviderCallError(

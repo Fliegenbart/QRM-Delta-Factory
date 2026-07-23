@@ -13,7 +13,7 @@ class CoverageSummary(StrictSchema):
 
 
 class ReviewerAgentOutput(StrictSchema):
-    findings: list[RiskFinding] = Field(default_factory=list)
+    findings: list[RiskFinding] = Field(default_factory=list, max_length=5)
     coverage_summary: str = Field(min_length=1)
 
     @model_validator(mode="after")
