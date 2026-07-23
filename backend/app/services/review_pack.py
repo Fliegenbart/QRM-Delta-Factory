@@ -9,6 +9,7 @@ from app.db.in_memory import InMemoryDocumentRepository
 from app.schemas.domain import (
     AdversarialChallenge,
     EvidenceItem,
+    EvidenceSupport,
     ReviewDecision,
     ReviewDecisionValue,
     ReviewerId,
@@ -261,6 +262,8 @@ def _source_matched_reviewable_findings(
         and finding.verification_result is not None
         and finding.verification_result.quote_matches_chunk
         and finding.verification_result.requirement_applicable
+        and finding.verification_result.evidence_support
+        in {EvidenceSupport.STRONG, EvidenceSupport.PARTIAL}
     ]
 
 

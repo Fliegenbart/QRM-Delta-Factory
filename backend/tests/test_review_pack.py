@@ -159,6 +159,39 @@ def test_review_pack_shows_source_matched_partial_finding_when_no_canonical_root
     assert "QA-Prüfung erforderlich" in pack.decision_summary
 
 
+def test_review_pack_hides_source_matched_finding_when_verifier_has_no_evidence() -> None:
+    unsupported_finding = _finding().model_copy(
+        update={
+            "finding_id": "finding_pack_source_matched_unsupported",
+            "verification_result": FindingVerificationResult(
+                finding_id="finding_pack_source_matched_unsupported",
+                evidence_support="none",
+                quote_exists=True,
+                quote_matches_chunk=True,
+                requirement_applicable=True,
+                unsupported_claims=["The cited text does not support the risk statement."],
+                missing_evidence=["source support for the stated risk"],
+                verifier_rationale="Source reference exists but does not substantiate the claim.",
+                verifier_model_run_id=None,
+                deterministic_checks_passed=False,
+            ),
+        }
+    )
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[unsupported_finding],
+    )
+
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert pack.top_risks == []
+
+
 def test_review_pack_includes_reviewer_actions_and_audit_references() -> None:
     RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
         "ds_review_pack_demo"
