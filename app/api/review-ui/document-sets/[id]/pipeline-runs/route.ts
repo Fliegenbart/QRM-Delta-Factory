@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runPipeline } from "@/src/lib/review-api";
+import { ReviewApiError, runPipeline } from "@/src/lib/review-api";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -10,9 +10,10 @@ export async function POST(_request: Request, context: RouteContext) {
 
   try {
     const pipelineRun = await runPipeline(id);
-    return NextResponse.json({ pipelineRun }, { status: 201 });
+    return NextResponse.json({ pipelineRun }, { status: 202 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Analyse konnte nicht gestartet werden.";
-    return NextResponse.json({ error: message }, { status: 502 });
+    const responseStatus = error instanceof ReviewApiError && error.status ? error.status : 502;
+    return NextResponse.json({ error: message }, { status: responseStatus });
   }
 }

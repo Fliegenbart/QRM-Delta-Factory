@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 
 from app.audit.events import audit_log
 from app.core.security import require_document_set_for_tenant
@@ -23,16 +23,30 @@ def get_pipeline_service() -> PipelineService:
 @document_set_router.post(
     "/{document_set_id}/pipeline-runs",
     response_model=PipelineRun,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_202_ACCEPTED,
 )
-def create_pipeline_run(document_set_id: str, request: Request) -> PipelineRun:
+def create_pipeline_run(
+    document_set_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+) -> PipelineRun:
     require_document_set_for_tenant(
         repository=repository,
         document_set_id=document_set_id,
         request=request,
     )
     try:
-        return get_pipeline_service().run_pipeline(document_set_id)
+        pipeline_service = get_pipeline_service()
+        active_pipeline_run = pipeline_service.get_active_pipeline_run(document_set_id)
+        if active_pipeline_run is not None:
+            return active_pipeline_run
+        pipeline_run = pipeline_service.start_pipeline(document_set_id)
+        background_tasks.add_task(
+            pipeline_service.execute_pipeline,
+            document_set_id,
+            pipeline_run,
+        )
+        return pipeline_run
     except PipelineDocumentSetNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 

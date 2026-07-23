@@ -71,7 +71,18 @@ function resultCopy(status?: string, failedStep?: string | null) {
         failedStep
           ? `Die Prüffälle zeigen Ihre hochgeladenen Unterlagen. Die Analyse ist beim Schritt "${failedStep}" stehen geblieben.`
           : "Die Prüffälle zeigen Ihre hochgeladenen Unterlagen. Die Prüfmappe zeigt erst dann Prüfpunkte und fehlende Nachweise, wenn die Analyse erfolgreich durchgelaufen ist.",
-      tone: "warning" as const
+      tone: "warning" as const,
+      reviewPackReady: false
+    };
+  }
+
+  if (status === "running") {
+    return {
+      title: "Analyse läuft im Hintergrund.",
+      description:
+        "Der Prüffall ist angelegt. Sie können ihn jetzt öffnen; die Prüfmappe wird nach Abschluss der Analyse ergänzt.",
+      tone: "success" as const,
+      reviewPackReady: false
     };
   }
 
@@ -79,7 +90,8 @@ function resultCopy(status?: string, failedStep?: string | null) {
     title: "Die Prüfmappe wird vorbereitet.",
     description:
       "Die Prüffälle zeigen die hochgeladenen Unterlagen. Die Prüfmappe zeigt die daraus erstellten Prüfpunkte, Quellen und fehlenden Nachweise.",
-    tone: "success" as const
+    tone: "success" as const,
+    reviewPackReady: true
   };
 }
 
@@ -360,7 +372,7 @@ export function IntakeUploader() {
                 <Link className="rounded-md bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-white" href={`/review-ui/document-sets/${result.documentSetId}`}>
                   Prüffälle öffnen
                 </Link>
-                {resultState.tone === "success" ? (
+                {resultState.tone === "success" && resultState.reviewPackReady ? (
                   <Link className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4 py-2 text-sm font-semibold text-[var(--text-primary)]" href={`/review-ui/document-sets/${result.documentSetId}/review-pack`}>
                     Prüfmappe öffnen
                   </Link>

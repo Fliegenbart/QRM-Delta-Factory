@@ -8,10 +8,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.agents.providers import BaseModelProvider
+from app.api import pipeline_runs as pipeline_runs_api
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.main import app
 from app.schemas.domain import Document, DocumentChunk, DocumentSet, RequirementSet
+from app.schemas.pipeline import PipelineRun, PipelineRunStatus
 from app.services.pipeline import PipelineService
 from app.services.review_orchestrator import (
     MockModelProvider,
@@ -27,7 +29,78 @@ def reset_state() -> None:
     audit_log.clear()
 
 
-def test_pipeline_endpoint_runs_end_to_end_after_document_upload() -> None:
+def test_pipeline_endpoint_starts_analysis_in_background(monkeypatch: pytest.MonkeyPatch) -> None:
+    repository.create_document_set(_document_set(document_set_id="ds_pipeline_background"))
+    started_at = datetime.now(UTC)
+    pipeline_run = PipelineRun(
+        pipeline_run_id="prun_pipeline_background",
+        document_set_id="ds_pipeline_background",
+        status=PipelineRunStatus.RUNNING,
+        started_at=started_at,
+        config_version="pipeline-config-test",
+    )
+    execution_calls: list[tuple[str, str]] = []
+
+    class BackgroundPipelineService:
+        def get_active_pipeline_run(self, document_set_id: str) -> PipelineRun | None:
+            assert document_set_id == "ds_pipeline_background"
+            return None
+
+        def start_pipeline(self, document_set_id: str) -> PipelineRun:
+            assert document_set_id == "ds_pipeline_background"
+            return pipeline_run
+
+        def execute_pipeline(self, document_set_id: str, run: PipelineRun) -> PipelineRun:
+            execution_calls.append((document_set_id, run.pipeline_run_id))
+            return run
+
+    monkeypatch.setattr(
+        pipeline_runs_api,
+        "get_pipeline_service",
+        lambda: BackgroundPipelineService(),
+    )
+
+    response = TestClient(app).post("/document-sets/ds_pipeline_background/pipeline-runs")
+
+    assert response.status_code == 202
+    assert response.json()["status"] == "running"
+    assert execution_calls == [("ds_pipeline_background", "prun_pipeline_background")]
+
+
+def test_pipeline_endpoint_reuses_active_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    repository.create_document_set(_document_set(document_set_id="ds_pipeline_active"))
+    active_run = PipelineRun(
+        pipeline_run_id="prun_pipeline_active",
+        document_set_id="ds_pipeline_active",
+        status=PipelineRunStatus.RUNNING,
+        started_at=datetime.now(UTC),
+        config_version="pipeline-config-test",
+    )
+
+    class ActivePipelineService:
+        def get_active_pipeline_run(self, document_set_id: str) -> PipelineRun | None:
+            assert document_set_id == "ds_pipeline_active"
+            return active_run
+
+        def start_pipeline(self, document_set_id: str) -> PipelineRun:
+            raise AssertionError("An active pipeline must not be started twice")
+
+        def execute_pipeline(self, document_set_id: str, run: PipelineRun) -> PipelineRun:
+            raise AssertionError("An active pipeline must not be scheduled twice")
+
+    monkeypatch.setattr(
+        pipeline_runs_api,
+        "get_pipeline_service",
+        lambda: ActivePipelineService(),
+    )
+
+    response = TestClient(app).post("/document-sets/ds_pipeline_active/pipeline-runs")
+
+    assert response.status_code == 202
+    assert response.json()["pipeline_run_id"] == "prun_pipeline_active"
+
+
+def test_pipeline_service_runs_end_to_end_after_document_upload() -> None:
     repository.create_requirement_set(_requirement_set())
     client = TestClient(app)
     create_response = client.post(
@@ -53,12 +126,13 @@ def test_pipeline_endpoint_runs_end_to_end_after_document_upload() -> None:
         data={"uploaded_by": "user_qrm_author"},
     )
 
-    response = client.post(f"/document-sets/{document_set_id}/pipeline-runs")
+    pipeline_run = PipelineService(repository=repository, audit_log=audit_log).run_pipeline(
+        document_set_id
+    )
 
     assert create_response.status_code == 201
     assert upload_response.status_code == 201
-    assert response.status_code == 201
-    payload = response.json()
+    payload = pipeline_run.model_dump(mode="json")
     assert payload["document_set_id"] == document_set_id
     assert payload["status"] == "completed"
     assert payload["failed_step"] is None

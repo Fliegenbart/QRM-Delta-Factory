@@ -79,7 +79,18 @@ class PipelineService:
         )
         self.config_version = config_version
 
-    def run_pipeline(self, document_set_id: str) -> PipelineRun:
+    def get_active_pipeline_run(self, document_set_id: str) -> PipelineRun | None:
+        return next(
+            (
+                pipeline_run
+                for pipeline_run in self.repository.pipeline_runs.values()
+                if pipeline_run.document_set_id == document_set_id
+                and pipeline_run.status == PipelineRunStatus.RUNNING
+            ),
+            None,
+        )
+
+    def start_pipeline(self, document_set_id: str) -> PipelineRun:
         document_set = self.repository.get_document_set(document_set_id)
         if document_set is None:
             raise PipelineDocumentSetNotFoundError(f"DocumentSet {document_set_id} not found")
@@ -102,6 +113,18 @@ class PipelineService:
             document_set=document_set,
             payload={"config_version": self.config_version},
         )
+        return pipeline_run
+
+    def run_pipeline(self, document_set_id: str) -> PipelineRun:
+        pipeline_run = self.start_pipeline(document_set_id)
+        return self.execute_pipeline(document_set_id, pipeline_run)
+
+    def execute_pipeline(
+        self,
+        document_set_id: str,
+        pipeline_run: PipelineRun,
+    ) -> PipelineRun:
+        document_set = self._document_set(document_set_id)
 
         current_step: str | None = None
         risk_decision: RiskDecision | None = None
