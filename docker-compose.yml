@@ -28,6 +28,7 @@ services:
   app:
     build:
       context: .
+      dockerfile: backend/Dockerfile
     environment:
       QRM_APP_NAME: "Pharma AI Risk Orchestration Backend"
       QRM_APP_VERSION: "0.1.0"
