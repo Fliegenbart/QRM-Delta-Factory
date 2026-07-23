@@ -51,7 +51,9 @@ services:
       # OpenAI project quota/billing returns healthy; otherwise each review
       # records a failed OpenAI model run and becomes operationally incomplete.
       QRM_EXTERNAL_MODEL_CALLS_ENABLED: "true"
-      QRM_LLM_CLAIM_EXTRACTION_ENABLED: "true"
+      # Keep source indexing deterministic for demo reliability; the primary
+      # review and critic layers below still use live model providers.
+      QRM_LLM_CLAIM_EXTRACTION_ENABLED: "false"
       QRM_ALLOWED_MODEL_PROVIDERS: "mistral,anthropic,mock"
       QRM_REVIEWER_PROVIDER_OVERRIDE: "mistral"
       QRM_CRITIC_PROVIDERS: "anthropic"
