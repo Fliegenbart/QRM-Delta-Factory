@@ -324,6 +324,16 @@ class PipelineService:
             raise PipelineRunNotFoundError(f"PipelineRun {pipeline_run_id} not found")
         return recovered_run
 
+    def get_latest_pipeline_run(self, document_set_id: str) -> PipelineRun:
+        self._document_set(document_set_id)
+        self._recover_expired_pipeline_runs(document_set_id=document_set_id)
+        pipeline_runs = self._pipeline_runs_for_document_set(document_set_id)
+        if not pipeline_runs:
+            raise PipelineRunNotFoundError(
+                f"No PipelineRun found for DocumentSet {document_set_id}"
+            )
+        return max(pipeline_runs, key=lambda pipeline_run: pipeline_run.started_at)
+
     def _parse_document_set(self, document_set_id: str) -> dict[str, Any]:
         document_set = self._document_set(document_set_id)
         if not document_set.document_ids:

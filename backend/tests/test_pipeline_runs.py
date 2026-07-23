@@ -90,6 +90,12 @@ def test_pipeline_endpoint_runs_end_to_end_after_document_upload() -> None:
 
     assert completed_payload["pipeline_run_id"] == payload["pipeline_run_id"]
 
+    latest_response = client.get(
+        f"/document-sets/{document_set_id}/pipeline-runs/latest"
+    )
+    assert latest_response.status_code == 200
+    assert latest_response.json()["pipeline_run_id"] == payload["pipeline_run_id"]
+
 
 def test_model_run_failure_in_pipeline_does_not_allow_auto_clear() -> None:
     _setup_document_set_for_model_failure()

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, FileText } from "lucide-react";
-import { getDocumentSet } from "@/src/lib/review-api";
+import { PipelineRunStatus } from "@/src/components/review-ui/pipeline-run-status";
+import { getDocumentSet, getLatestPipelineRun, ReviewApiError } from "@/src/lib/review-api";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import {
   consultantReviewCopy,
@@ -27,14 +28,21 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
   }
 
   try {
-    const documentSet = await getDocumentSet(id);
+    const [documentSet, pipelineRun] = await Promise.all([
+      getDocumentSet(id),
+      getLatestPipelineRun(id).catch((error) => {
+        if (error instanceof ReviewApiError && error.status === 404) return null;
+        throw error;
+      })
+    ]);
+    const reviewPackReady = !pipelineRun || ["completed", "needs_human_review"].includes(pipelineRun.status);
 
     return (
       <ReviewShell>
         <div className="grid gap-5 lg:grid-cols-[0.8fr_0.4fr]">
           <ReviewPanel
             title={consultantReviewCopy.detail.title}
-            action={
+            action={reviewPackReady ? (
               <Link
                 className="inline-flex h-9 items-center gap-2 rounded-md bg-[var(--brand)] px-3 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
                 href={`/review-ui/document-sets/${id}/review-pack`}
@@ -42,17 +50,21 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
                 {consultantReviewCopy.detail.openReviewPack}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
-            }
+            ) : undefined}
           >
-            <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-4 py-3">
-              <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-                Kurzstatus
+            {pipelineRun ? (
+              <PipelineRunStatus documentSetId={id} initialPipelineRun={pipelineRun} />
+            ) : (
+              <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-4 py-3">
+                <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                  Kurzstatus
+                </div>
+                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                  Der Prüffall ist angelegt. Öffne die Prüfmappe, um Prüfpunkte, Quellen,
+                  fehlende Nachweise und die QA-Entscheidung zu bearbeiten.
+                </p>
               </div>
-              <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
-                Der Prüffall ist angelegt. Öffne die Prüfmappe, um Prüfpunkte, Quellen,
-                fehlende Nachweise und die QA-Entscheidung zu bearbeiten.
-              </p>
-            </div>
+            )}
 
             <dl className="mt-5 grid gap-4 md:grid-cols-2">
               <Detail label={consultantReviewCopy.detail.labels.documentType} value={displayReviewValue(documentSet.declared_document_type)} />

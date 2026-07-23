@@ -81,6 +81,24 @@ def retry_pipeline_run(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
+@document_set_router.get(
+    "/{document_set_id}/pipeline-runs/latest",
+    response_model=PipelineRun,
+)
+def get_latest_pipeline_run(document_set_id: str, request: Request) -> PipelineRun:
+    require_document_set_for_tenant(
+        repository=repository,
+        document_set_id=document_set_id,
+        request=request,
+    )
+    try:
+        return get_pipeline_service().get_latest_pipeline_run(document_set_id)
+    except PipelineDocumentSetNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except PipelineRunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
 @pipeline_run_router.get("/{pipeline_run_id}", response_model=PipelineRun)
 def get_pipeline_run(pipeline_run_id: str, request: Request) -> PipelineRun:
     try:

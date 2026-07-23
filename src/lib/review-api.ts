@@ -88,6 +88,12 @@ export async function runPipeline(documentSetId: string): Promise<PipelineRun> {
   );
 }
 
+export async function getLatestPipelineRun(documentSetId: string): Promise<PipelineRun> {
+  return backendFetch<PipelineRun>(
+    `/document-sets/${encodeURIComponent(documentSetId)}/pipeline-runs/latest`
+  );
+}
+
 export async function getReviewPack(documentSetId: string): Promise<ReviewPack> {
   return backendFetch<ReviewPack>(
     `/document-sets/${encodeURIComponent(documentSetId)}/review-pack`
