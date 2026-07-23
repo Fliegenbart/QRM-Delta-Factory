@@ -49,6 +49,14 @@ class Settings(BaseSettings):
     )
     persistence_enabled: bool = Field(default=False)
     external_model_calls_enabled: bool = Field(default=False)
+    llm_claim_extraction_enabled: bool = Field(
+        default=False,
+        description=(
+            "Use a model for preliminary claim extraction. Keep this disabled in "
+            "production so source indexing remains deterministic and bounded; the "
+            "primary review can still use the configured model provider."
+        ),
+    )
     allowed_model_providers: str = Field(default="mock")
     allowed_network_domains: str = Field(default="")
     openai_model_id: str = Field(default="")

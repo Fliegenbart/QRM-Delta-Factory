@@ -334,7 +334,14 @@ def _safe_claim_type(value: str) -> ClaimType:
 
 def default_claim_extractor() -> ClaimExtractor:
     settings = get_settings()
-    if not settings.external_model_calls_enabled:
+    # Claim extraction is a preparatory source-indexing step. It must remain
+    # bounded even if a model call is slow or a provider is degraded. The
+    # primary reviewer below still receives the full source chunks and remains
+    # model-backed when external calls are enabled.
+    if not (
+        settings.external_model_calls_enabled
+        and settings.llm_claim_extraction_enabled
+    ):
         return MockClaimExtractor()
     runtime_options = ProviderRuntimeOptions(
         timeout_seconds=settings.model_provider_timeout_seconds,
