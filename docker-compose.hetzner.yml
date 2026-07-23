@@ -46,11 +46,12 @@ services:
       QRM_ALLOW_MODEL_LIVE_INTERNET: "false"
       # Mandanten-Auth: "tenant_id=api-key" (kommagetrennt), siehe .env
       QRM_API_KEYS: ${QRM_API_KEYS:?QRM_API_KEYS fehlt in .env}
-      # Hybrid-Stack: Mistral als Hauptpruefer, Claude/GPT als Kritiker
+      # Hybrid-Stack: Mistral als Hauptpruefer, Claude als unabhaengiger Kritiker.
+      # OpenAI is kept out of the live critical path until its 429 capacity issue is resolved.
       QRM_EXTERNAL_MODEL_CALLS_ENABLED: "true"
       QRM_ALLOWED_MODEL_PROVIDERS: "mistral,anthropic,openai,mock"
       QRM_REVIEWER_PROVIDER_OVERRIDE: "mistral"
-      QRM_CRITIC_PROVIDERS: "anthropic,openai"
+      QRM_CRITIC_PROVIDERS: "anthropic"
       QRM_MISTRAL_MODEL_ID: "mistral-large-latest"
       QRM_ANTHROPIC_MODEL_ID: "claude-sonnet-4-6"
       QRM_OPENAI_MODEL_ID: "gpt-5.4"
