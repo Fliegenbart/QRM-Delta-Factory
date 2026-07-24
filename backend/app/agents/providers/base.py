@@ -356,7 +356,7 @@ def _parse_reviewer_findings(value: str) -> list[dict[str, Any]]:
     return _normalize_reviewer_findings(parsed)
 
 
-_RISK_FINDING_SHAPE_KEYS = frozenset(
+_RISK_FINDING_CORE_KEYS = frozenset(
     {
         "finding_id",
         "document_set_id",
@@ -367,7 +367,6 @@ _RISK_FINDING_SHAPE_KEYS = frozenset(
         "risk_statement",
         "evidence_items",
         "requirement_references",
-        "missing_information",
         "model_provider",
         "model_name",
         "model_version",
@@ -388,22 +387,24 @@ def _normalize_reviewer_findings(value: Any) -> list[dict[str, Any]]:
             raise _StructuredPayloadNormalizationError("findings entries must be objects")
         return [dict(finding) for finding in value]
     if isinstance(value, dict):
-        if _is_risk_finding_shaped(value):
+        if _has_risk_finding_core_shape(value):
             return [dict(value)]
         nested_findings = value.get("findings")
         if (
             set(value) == {"findings"}
             and isinstance(nested_findings, list)
-            and all(_is_risk_finding_shaped(finding) for finding in nested_findings)
+            and all(_has_risk_finding_core_shape(finding) for finding in nested_findings)
         ):
             return [dict(finding) for finding in nested_findings]
+        if value and all(_has_risk_finding_core_shape(candidate) for candidate in value.values()):
+            return [dict(candidate) for candidate in value.values()]
     raise _StructuredPayloadNormalizationError("findings must be a list")
 
 
-def _is_risk_finding_shaped(value: Any) -> bool:
+def _has_risk_finding_core_shape(value: Any) -> bool:
     return (
         isinstance(value, dict)
-        and value.keys() >= _RISK_FINDING_SHAPE_KEYS
+        and value.keys() >= _RISK_FINDING_CORE_KEYS
         and isinstance(value["risk_statement"], str)
         and isinstance(value["evidence_items"], list)
         and isinstance(value["requirement_references"], list)

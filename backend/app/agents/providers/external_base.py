@@ -126,6 +126,20 @@ class ExternalProviderBase(BaseModelProvider):
             retryable=True,
         )
 
+    def _truncated_output_error(self) -> ProviderCallError:
+        return ProviderCallError(
+            f"{self.provider_name} provider output was truncated",
+            retryable=True,
+        )
+
+    def _bounded_max_output_tokens(
+        self,
+        configured_max_tokens: int,
+        *,
+        provider_max_tokens: int,
+    ) -> int:
+        return min(configured_max_tokens, provider_max_tokens)
+
     def _run_structured_once(
         self,
         *,

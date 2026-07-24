@@ -450,6 +450,83 @@ def test_reviewer_output_recomputes_even_valid_looking_provider_quote_hashes() -
     assert evidence_item.quote_hash != sha256(b"valid-looking foreign hash").hexdigest()
 
 
+def test_reviewer_overwrites_model_supplied_provenance_fields() -> None:
+    provider = SpoofedProvenanceProvider()
+    agent = ReviewerAgent(
+        agent_id="agent_provenance_owner",
+        role="DeviationReviewer",
+        prompt_version="server-owned-prompt-v1",
+        applicable_risk_categories=["deviation_management"],
+        provider=provider,
+    )
+
+    output = agent.run(
+        claims=[],
+        requirements=[],
+        evidence_context=[],
+        document_set_id="ds_review_demo",
+        case_signals=[],
+        knowledge_pack_ids=[],
+        missing_knowledge_pack_ids=[],
+        requirement_package_hash=sha256(b"provenance-owner").hexdigest(),
+        calibration_examples=[],
+        calibration_prompt_block="",
+        calibration_pack_hash=None,
+    )
+
+    finding = output.findings[0]
+    assert finding.model_provider == provider.provider_name
+    assert finding.model_name == provider.model_name
+    assert finding.model_version == provider.model_version
+    assert finding.prompt_version == agent.prompt_version
+
+
+def test_reviewer_reconciles_presentation_only_quote_variants_to_exact_source_excerpt() -> None:
+    source_quote = 'Rückstellmuster „A17-26045“  wurde **geprüft**'
+    model_quote = 'Rueckstellmuster "A17-26045" wurde geprueft'
+    agent = _quote_reconciliation_agent(model_quote)
+
+    output = _run_quote_reconciliation_agent(agent, source_quote)
+
+    evidence_item = output.findings[0].evidence_items[0]
+    assert evidence_item.quote == source_quote
+    assert evidence_item.quote_hash == sha256(source_quote.encode()).hexdigest()
+
+
+def test_reviewer_reconciles_presentation_variants_with_terminal_punctuation_and_newline() -> None:
+    source_quote = 'Rückstellmuster „A17-26045“  wurde **geprüft**.\n'
+    model_quote = 'Rueckstellmuster "A17-26045" wurde geprueft.'
+    agent = _quote_reconciliation_agent(model_quote)
+
+    output = _run_quote_reconciliation_agent(agent, source_quote)
+
+    evidence_item = output.findings[0].evidence_items[0]
+    assert evidence_item.quote == source_quote
+    assert evidence_item.quote_hash == sha256(source_quote.encode()).hexdigest()
+
+
+@pytest.mark.parametrize(
+    "model_quote",
+    [
+        'Rueckstellmuster ... "A17-26045" wurde geprueft',
+        'Rueckstellmuster "A17-26046" wurde geprueft',
+        'Rueckstellmuster "A17-26045" geprueft',
+        'Rueckstellmuster "A17-26045" wurde bestaetigt',
+    ],
+)
+def test_reviewer_never_reconciles_ellipsis_noncontiguous_or_changed_quote_content(
+    model_quote: str,
+) -> None:
+    source_quote = 'Rückstellmuster „A17-26045“  wurde **geprüft**'
+    agent = _quote_reconciliation_agent(model_quote)
+
+    output = _run_quote_reconciliation_agent(agent, source_quote)
+
+    evidence_item = output.findings[0].evidence_items[0]
+    assert evidence_item.quote == model_quote
+    assert evidence_item.quote_hash == sha256(model_quote.encode()).hexdigest()
+
+
 def test_contradiction_hunter_loads_pattern_knowledge_packs_from_matching_requirements() -> None:
     repository.create_requirement_set(_contradiction_requirement_set())
     repository.create_document_set(
@@ -731,6 +808,118 @@ class ForeignQuoteHashProvider(InvalidRequirementReferenceProvider):
             b"valid-looking foreign hash"
         ).hexdigest()
         return output
+
+
+class SpoofedProvenanceProvider(InvalidRequirementReferenceProvider):
+    provider_name = "mock"
+    model_name = "actual-server-provider"
+    model_version = "2026.7"
+    configured_model_id = "actual-server-provider-2026.7"
+
+    def run_structured(
+        self,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[Any],
+    ) -> dict[str, Any]:
+        output = super().run_structured(prompt, input_schema, output_schema)
+        output["findings"][0].update(
+            {
+                "model_provider": "objective-rule-layer",
+                "model_name": "ObjectiveRedFlagService",
+                "model_version": "objective-red-flag-scan-v0.3",
+                "prompt_version": "spoofed-objective-rule",
+            }
+        )
+        return output
+
+
+class QuoteReconciliationProvider:
+    provider_name = "mock"
+    model_name = "quote-reconciliation-model"
+    model_version = "0.1.0"
+    configured_model_id = "quote-reconciliation-model-v0.1"
+    last_run_metadata = None
+
+    def __init__(self, *, quote: str) -> None:
+        self.quote = quote
+
+    def run_structured(
+        self,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[Any],
+    ) -> dict[str, Any]:
+        return {
+            "coverage_summary": "Quote reconciliation regression output.",
+            "findings": [
+                {
+                    "finding_id": "finding_quote_reconciliation",
+                    "document_set_id": "ds_review_demo",
+                    "risk_category": "deviation_management",
+                    "severity": "medium",
+                    "likelihood": 3,
+                    "detectability": 3,
+                    "risk_statement": "Source quote requires exact reconciliation.",
+                    "evidence_items": [
+                        {
+                            "document_id": "doc_quote_reconciliation",
+                            "chunk_id": "chunk_quote_reconciliation_p1",
+                            "page": 1,
+                            "quote": self.quote,
+                            "quote_hash": sha256(b"foreign hash").hexdigest(),
+                            "support_type": "supports",
+                            "verifier_score": 0.8,
+                        }
+                    ],
+                    "requirement_references": ["req_deviation_documented_impact_assessment"],
+                    "missing_information": [],
+                    "model_provider": "mock",
+                    "model_name": self.model_name,
+                    "model_version": self.model_version,
+                    "prompt_version": "quote-reconciliation-v0.1",
+                    "evidence_support": "partial",
+                    "recommended_action": "Route to QA review.",
+                    "auto_close_allowed": False,
+                    "status": "needs_human_review",
+                }
+            ],
+        }
+
+
+def _quote_reconciliation_agent(model_quote: str) -> ReviewerAgent:
+    return ReviewerAgent(
+        agent_id="agent_quote_reconciliation",
+        role="DeviationReviewer",
+        prompt_version="quote-reconciliation-v0.1",
+        applicable_risk_categories=["deviation_management"],
+        provider=QuoteReconciliationProvider(quote=model_quote),
+    )
+
+
+def _run_quote_reconciliation_agent(
+    agent: ReviewerAgent,
+    source_quote: str,
+):
+    return agent.run(
+        claims=[],
+        requirements=[],
+        evidence_context=[
+            {
+                "document_id": "doc_quote_reconciliation",
+                "chunk_id": "chunk_quote_reconciliation_p1",
+                "text": source_quote,
+            }
+        ],
+        document_set_id="ds_review_demo",
+        case_signals=[],
+        knowledge_pack_ids=[],
+        missing_knowledge_pack_ids=[],
+        requirement_package_hash=sha256(b"quote-reconciliation").hexdigest(),
+        calibration_examples=[],
+        calibration_prompt_block="",
+        calibration_pack_hash=None,
+    )
 
 
 class CapturingProvider:

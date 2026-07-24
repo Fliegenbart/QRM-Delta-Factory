@@ -5,9 +5,11 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from app.agents.providers.base import ProviderRuntimeOptions
+from app.agents.providers.base import ProviderCallError, ProviderRuntimeOptions
 from app.agents.providers.external_base import ExternalProviderBase
 from app.core.config import get_settings
+
+_MISTRAL_STRUCTURED_OUTPUT_TOKEN_LIMIT = 8192
 
 
 class MistralProvider(ExternalProviderBase):
@@ -43,7 +45,10 @@ class MistralProvider(ExternalProviderBase):
         payload = {
             "model": self.configured_model_id,
             "temperature": 0,
-            "max_tokens": get_settings().model_provider_max_output_tokens,
+            "max_tokens": self._bounded_max_output_tokens(
+                get_settings().model_provider_max_output_tokens,
+                provider_max_tokens=_MISTRAL_STRUCTURED_OUTPUT_TOKEN_LIMIT,
+            ),
             "response_format": {
                 "type": "json_schema",
                 "json_schema": {
@@ -88,8 +93,19 @@ class MistralProvider(ExternalProviderBase):
             },
             json_body=payload,
         )
-        content = response["choices"][0]["message"]["content"]
-        output = self._parse_json_object_from_text(str(content))
+        choices = response.get("choices")
+        if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
+            raise ProviderCallError("mistral provider returned invalid completion payload")
+        choice = choices[0]
+        if choice.get("finish_reason") in {"length", "max_tokens"}:
+            raise self._truncated_output_error()
+        message = choice.get("message")
+        if not isinstance(message, dict):
+            raise ProviderCallError("mistral provider returned invalid completion payload")
+        content = message.get("content")
+        if not isinstance(content, str):
+            raise ProviderCallError("mistral provider returned invalid completion payload")
+        output = self._parse_json_object_from_text(content)
         usage = response.get("usage")
         if isinstance(usage, dict):
             output["token_usage"] = {

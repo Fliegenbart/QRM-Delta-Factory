@@ -20,7 +20,7 @@ from app.schemas.domain import (
     SupportType,
 )
 
-SCAN_VERSION = "objective-red-flag-scan-v0.2"
+SCAN_VERSION = "objective-red-flag-scan-v0.3"
 
 
 class ObjectiveRedFlagDocumentSetNotFoundError(Exception):
@@ -97,6 +97,11 @@ class ObjectiveRedFlagService:
                     requirements=requirements,
                 ),
                 *_specification_breach_findings(
+                    document_set=document_set,
+                    chunks=chunks,
+                    requirements=requirements,
+                ),
+                *_qc_change_control_cross_document_findings(
                     document_set=document_set,
                     chunks=chunks,
                     requirements=requirements,
@@ -334,6 +339,553 @@ def _specification_breach_findings(
     return _dedupe_findings(findings)
 
 
+def _qc_change_control_cross_document_findings(
+    *,
+    document_set: DocumentSet,
+    chunks: Sequence[DocumentChunk],
+    requirements: Sequence[Requirement],
+) -> list[RiskFinding]:
+    """Find documented QC-change contradictions across arbitrary source chunks.
+
+    Each rule requires affirmative evidence of both the changed/used condition and
+    its missing prerequisite.  This deliberately avoids treating a mere mention of
+    a limit, site, training, or batch as a red flag.
+    """
+    lines = _chunk_lines(chunks)
+    findings: list[RiskFinding] = []
+
+    tightened_limit = _tightened_limit_quote(lines)
+    validation_gap = _validation_gap_quote(lines)
+    limit_requirement = _sop_requirement_quote(lines, keywords=("methodenfitness", "grenzwert"))
+    if (
+        tightened_limit is not None
+        and validation_gap is not None
+        and not _has_limit_coverage(lines)
+    ):
+        findings.append(
+            _finding(
+                document_set=document_set,
+                risk_category="qc_limit_fitness_gap",
+                severity=Severity.HIGH,
+                statement=(
+                    _limit_gap_statement(tightened_limit, validation_gap)
+                    if limit_requirement is not None
+                    else f"{tightened_limit.quote}; {validation_gap.quote}"
+                ),
+                evidence_quotes=_dedupe_quotes(
+                    [
+                        tightened_limit,
+                        validation_gap,
+                        *([limit_requirement] if limit_requirement else []),
+                    ]
+                ),
+                requirement=_qc_requirement(
+                    requirements,
+                    rule_id="req_qc_limit_fitness_at_tightened_limit",
+                    keywords=("limit", "grenzwert", "fitness", "validierung", "platform"),
+                ),
+                recommended_action=(
+                    "Methodenfitness am neuen Grenzwert und auf der aktuellen "
+                    "Routineplattform mit qualifizierten Primaerdaten belegen."
+                ),
+            )
+        )
+
+    comparator = _comparator_quote(lines)
+    bridge_gap = _bridge_gap_quote(lines)
+    bridge_requirement = _sop_requirement_quote(lines, keywords=("standort", "bridging"))
+    if comparator is not None and bridge_gap is not None and not _has_documented_bridge(lines):
+        findings.append(
+            _finding(
+                document_set=document_set,
+                risk_category="qc_comparator_bridge_gap",
+                severity=Severity.HIGH,
+                statement=(
+                    "Vergleichsdaten von anderem Standort und anderen Geräten ohne "
+                    "dokumentierte Gerätebrücke."
+                    if bridge_requirement is not None
+                    else f"{comparator.quote}; {bridge_gap.quote}"
+                ),
+                evidence_quotes=_dedupe_quotes(
+                    [comparator, bridge_gap, *([bridge_requirement] if bridge_requirement else [])]
+                ),
+                requirement=_qc_requirement(
+                    requirements,
+                    rule_id="req_qc_equipment_site_bridge_for_comparator_evidence",
+                    keywords=("comparator", "vergleich", "site", "standort", "bridge", "transfer"),
+                ),
+                recommended_action=(
+                    "Formalen Transfer-, Bridging- oder Geraeteaequivalenznachweis vor "
+                    "Verwendung der Comparator-Evidenz genehmigen lassen."
+                ),
+            )
+        )
+
+    first_gmp_use = _first_gmp_use_quote(lines)
+    pending_qa = _pending_qa_quote(lines)
+    qa_requirement = _sop_requirement_quote(lines, keywords=("qa-freigabe", "chargenfreigabe"))
+    if first_gmp_use is not None and pending_qa is not None and not _has_qa_approval(lines):
+        findings.append(
+            _finding(
+                document_set=document_set,
+                risk_category="qc_qa_approval_gap",
+                severity=Severity.HIGH,
+                statement=(
+                    "Die erste Chargenfreigabe ist geplant, obwohl QA-Freigabe pending "
+                    "und nicht dokumentiert ist."
+                    if qa_requirement is not None
+                    else f"{first_gmp_use.quote}; {pending_qa.quote}"
+                ),
+                evidence_quotes=_dedupe_quotes(
+                    [first_gmp_use, pending_qa, *([qa_requirement] if qa_requirement else [])]
+                ),
+                requirement=_qc_requirement(
+                    requirements,
+                    rule_id="req_qc_qa_approval_before_first_gmp_use",
+                    keywords=("qa", "approval", "genehmigung", "gmp", "first"),
+                ),
+                recommended_action=(
+                    "Erste GMP-Anwendung und Chargendisposition bis zur dokumentierten "
+                    "QA-Genehmigung anhalten."
+                ),
+            )
+        )
+
+    effective_sop = _effective_training_sop_quote(lines)
+    training_gap = _training_gap_quote(lines)
+    if (
+        effective_sop is not None
+        and training_gap is not None
+        and not _has_completed_training(lines)
+    ):
+        findings.append(
+            _finding(
+                document_set=document_set,
+                risk_category="qc_training_gap",
+                severity=Severity.HIGH,
+                statement=(
+                    "Training zur SOP-Version wird als optional behandelt, obwohl es vor "
+                    "dem Ergebnisreview verpflichtend geschult sein muss."
+                    if _looks_like_sop_requirement(effective_sop.quote)
+                    else f"{effective_sop.quote}; {training_gap.quote}"
+                ),
+                evidence_quotes=_dedupe_quotes([effective_sop, training_gap]),
+                requirement=_qc_requirement(
+                    requirements,
+                    rule_id="req_qc_training_before_effective_sop_use",
+                    keywords=("sop", "training", "schulung", "effective", "gueltig"),
+                ),
+                recommended_action=(
+                    "Verbindliche SOP-Anwendung erst nach dokumentierter Schulung oder "
+                    "genehmigter, SOP-konformer Begruendung freigeben."
+                ),
+            )
+        )
+
+    batch_scope = _affected_batch_scope_quote(lines)
+    retest_execution = _retest_execution_outside_scope_quote(lines, batch_scope)
+    if batch_scope is not None and retest_execution is not None:
+        findings.append(
+            _finding(
+                document_set=document_set,
+                risk_category="qc_affected_batch_scope_gap",
+                severity=Severity.HIGH,
+                statement=(
+                    _batch_scope_statement(batch_scope, retest_execution)
+                    if _looks_like_batch_scope(batch_scope.quote)
+                    else f"{batch_scope.quote}; {retest_execution.quote}"
+                ),
+                evidence_quotes=[batch_scope, retest_execution],
+                requirement=_qc_requirement(
+                    requirements,
+                    rule_id="req_qc_affected_batch_scope_includes_retests",
+                    keywords=("batch", "charge", "scope", "retest", "rueckstell"),
+                ),
+                recommended_action=(
+                    "Batch-Impact-Scope um den ausgefuehrten Retest beziehungsweise das "
+                    "Rueckstellmuster erweitern und die Risikobewertung nachziehen."
+                ),
+            )
+        )
+    return findings
+
+
+def _chunk_lines(chunks: Sequence[DocumentChunk]) -> list[_ChunkQuote]:
+    return [
+        _ChunkQuote(chunk=chunk, quote=line, start=start, end=end)
+        for chunk in chunks
+        for line, start, end in _iter_non_empty_lines(chunk)
+    ]
+
+
+def _tightened_limit_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        limits = _nmt_limits(quote.quote)
+        if (
+            len(limits) >= 2
+            and any(
+                term in folded
+                for term in ("tighten", "verschaerf", "strenger", "abgesenkt", "reduc")
+            )
+            and min(limits) < max(limits)
+        ):
+            return quote
+    return None
+
+
+def _nmt_limits(value: str) -> list[float]:
+    return [
+        _decimal(match.group(1))
+        for match in re.finditer(
+            r"\b(?:nmt|not\s+more\s+than|maximum|max\.?|hoechstens|höchstens)\s*"
+            r"(\d{1,3}(?:[,.]\d+)?)\s*%",
+            value,
+            flags=re.IGNORECASE,
+        )
+    ]
+
+
+def _limit_gap_statement(
+    tightened_limit: _ChunkQuote,
+    validation_gap: _ChunkQuote,
+) -> str:
+    limit_matches = list(
+        re.finditer(
+            r"\bNMT\s+(\d{1,3}(?:[,.]\d+)?)\s*%",
+            tightened_limit.quote,
+            flags=re.IGNORECASE,
+        )
+    )
+    new_limit = (
+        f"NMT {min(limit_matches, key=lambda match: _decimal(match.group(1))).group(1)} %"
+        if limit_matches
+        else "den neuen Grenzwert"
+    )
+    platforms = re.findall(r"\b(?:UPLC|HPLC|LC|GC)[-_]?\d+\b", validation_gap.quote)
+    platform = platforms[-1] if platforms else "die aktuelle Routineplattform"
+    return f"Validierung deckt den neuen Grenzwert {new_limit} und {platform} nicht ab."
+
+
+def _validation_gap_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if not any(
+            term in folded for term in ("validat", "method fitness", "accuracy", "praezision")
+        ):
+            continue
+        if any(
+            term in folded
+            for term in (
+                "not covered",
+                "not part",
+                "not included",
+                "not demonstrated",
+                "nicht abgedeckt",
+                "nicht enthalten",
+                "keine separate",
+                "no separate",
+            )
+        ):
+            return quote
+    return None
+
+
+def _sop_requirement_quote(
+    lines: Sequence[_ChunkQuote],
+    *,
+    keywords: Sequence[str],
+) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if all(_fold(keyword) in folded for keyword in keywords):
+            return quote
+    return None
+
+
+def _looks_like_sop_requirement(value: str) -> bool:
+    folded = _fold(value)
+    return "training" in folded and any(
+        term in folded for term in ("ergebnisreview", "vor der ersten", "must")
+    )
+
+
+def _looks_like_batch_scope(value: str) -> bool:
+    folded = _fold(value)
+    return any(term in folded for term in ("batch impact", "neue grenzwert", "new limit"))
+
+
+def _batch_scope_statement(
+    batch_scope: _ChunkQuote,
+    retest_execution: _ChunkQuote,
+) -> str:
+    scoped_ids = _batch_identifiers(batch_scope.quote)
+    retest_ids = _batch_identifiers(retest_execution.quote)
+    scoped_label = " und ".join(scoped_ids) if scoped_ids else "betroffene Chargen"
+    retest_label = next(
+        (identifier for identifier in retest_ids if identifier not in scoped_ids),
+        "einer Charge",
+    )
+    return (
+        f"Der Change nennt nur {scoped_label}, obwohl ein Retest von {retest_label} "
+        "mit neuem Grenzwert im Execution Record auftaucht."
+    )
+
+
+def _has_limit_coverage(lines: Sequence[_ChunkQuote]) -> bool:
+    return any(
+        any(term in _fold(quote.quote) for term in ("demonstrated", "belegt", "abgedeckt"))
+        and any(
+            term in _fold(quote.quote)
+            for term in ("current platform", "routine platform", "aktuell")
+        )
+        and bool(_nmt_limits(quote.quote))
+        and not any(term in _fold(quote.quote) for term in ("not covered", "nicht abgedeckt"))
+        for quote in lines
+    )
+
+
+def _comparator_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if any(
+            term in folded
+            for term in (
+                "comparator",
+                "vergleichsdaten",
+                "vergleichslabordaten",
+                "comparison data",
+            )
+        ):
+            return quote
+    return None
+
+
+def _bridge_gap_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if any(
+            term in folded
+            for term in ("bridge", "bridging", "transfer", "equivalence", "aequivalenz")
+        ) and any(
+            term in folded
+            for term in (
+                "no formal",
+                "not documented",
+                "not approved",
+                "keine formale",
+                "keine separate",
+                "nicht dokumentiert",
+                "nicht genehmigt",
+            )
+        ):
+            return quote
+    return None
+
+
+def _has_documented_bridge(lines: Sequence[_ChunkQuote]) -> bool:
+    return any(
+        any(
+            term in _fold(quote.quote)
+            for term in ("bridge", "bridging", "transfer", "equivalence", "aequivalenz")
+        )
+        and any(
+            term in _fold(quote.quote)
+            for term in ("approved", "genehmigt", "documented", "dokumentiert")
+        )
+        and not any(
+            term in _fold(quote.quote)
+            for term in (
+                "no formal",
+                "keine formale",
+                "not documented",
+                "nicht dokumentiert",
+                "erforderlich",
+                "must",
+                "muss",
+                "nicht als formale",
+                "qa-genehmigte",
+            )
+        )
+        for quote in lines
+    )
+
+
+def _first_gmp_use_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if (
+            any(term in folded for term in ("gmp", "freigabe", "release"))
+            and any(term in folded for term in ("first", "erste", "erstmal"))
+            and any(
+                term in folded
+                for term in (
+                    "use",
+                    "anwendung",
+                    "execution",
+                    "ausfuehr",
+                    "freigabeentscheidung",
+                    "chargenfreigabe",
+                )
+            )
+        ):
+            return quote
+    return None
+
+
+def _pending_qa_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if "qa" in folded and any(
+            term in folded
+            for term in (
+                "pending",
+                "ausstehend",
+                "open",
+                "offen",
+                "not approved",
+                "nicht genehmigt",
+            )
+        ):
+            return quote
+    return None
+
+
+def _has_qa_approval(lines: Sequence[_ChunkQuote]) -> bool:
+    return any(
+        "qa" in _fold(quote.quote)
+        and any(term in _fold(quote.quote) for term in ("approval", "freigabe", "genehmigung"))
+        and any(term in _fold(quote.quote) for term in ("approved", "genehmigt", "freigegeben"))
+        and not any(
+            term in _fold(quote.quote)
+            for term in ("not approved", "nicht genehmigt", "nicht als", "qa-genehmigt")
+        )
+        for quote in lines
+    )
+
+
+def _effective_training_sop_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if (
+            any(term in folded for term in ("training", "schulung"))
+            and any(term in folded for term in ("before", "vor", "requires", "erfordert", "muss"))
+            and any(
+                term in folded
+                for term in ("sop", "ergebnisreview", "review", "freigabe", "anwendung")
+            )
+        ):
+            return quote
+    return None
+
+
+def _training_gap_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if any(term in folded for term in ("training", "schulung")) and any(
+            term in folded
+            for term in (
+                "optional",
+                "n/a",
+                "not applicable",
+                "nicht erforderlich",
+                "missing",
+                "fehlt",
+            )
+        ):
+            return quote
+    return None
+
+
+def _has_completed_training(lines: Sequence[_ChunkQuote]) -> bool:
+    return any(
+        any(term in _fold(quote.quote) for term in ("training", "schulung"))
+        and any(
+            term in _fold(quote.quote)
+            for term in ("complete", "completed", "abgeschlossen", "geschult")
+        )
+        and not any(
+            term in _fold(quote.quote)
+            for term in ("must", "muss", "vor der ersten", "before first")
+        )
+        for quote in lines
+    )
+
+
+def _affected_batch_scope_quote(lines: Sequence[_ChunkQuote]) -> _ChunkQuote | None:
+    for quote in lines:
+        folded = _fold(quote.quote)
+        identifiers = _batch_identifiers(quote.quote)
+        if identifiers and (
+            any(
+                term in folded
+                for term in (
+                    "affected batch scope",
+                    "batch scope",
+                    "betroffene charg",
+                    "scope charg",
+                )
+            )
+            or (
+                len(identifiers) >= 2
+                and any(
+                    term in folded
+                    for term in ("neue grenzwert", "new limit", "spezifikation", "specification")
+                )
+            )
+        ):
+            return quote
+    return None
+
+
+def _retest_execution_outside_scope_quote(
+    lines: Sequence[_ChunkQuote],
+    scope: _ChunkQuote | None,
+) -> _ChunkQuote | None:
+    if scope is None:
+        return None
+    scoped_ids = set(_batch_identifiers(scope.quote))
+    for quote in lines:
+        folded = _fold(quote.quote)
+        if not any(
+            term in folded
+            for term in ("retest", "re-test", "retained", "rueckstell", "erneut bewertet")
+        ):
+            continue
+        if any(identifier not in scoped_ids for identifier in _batch_identifiers(quote.quote)):
+            return quote
+    return None
+
+
+def _batch_identifiers(value: str) -> list[str]:
+    """Extract hyphenated batch identifiers while excluding numeric-only dates.
+
+    Batch prefixes are often plant- or product-specific (for example LOT-R77 or
+    A17-26045), so a leading letter rather than a fixed prefix is the only stable
+    constraint.  Numeric ISO dates cannot match because their first character is
+    not a letter.
+    """
+    candidates = re.findall(r"\b[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+\b", value)
+    return [
+        identifier
+        for identifier in candidates
+        if identifier.startswith(("LOT-", "BATCH-", "CHARGE-", "LOTTE-"))
+        or any(segment.isdigit() and len(segment) >= 4 for segment in identifier.split("-")[1:])
+    ]
+
+
+def _qc_requirement(
+    requirements: Sequence[Requirement],
+    *,
+    rule_id: str,
+    keywords: Sequence[str],
+) -> Requirement | None:
+    for requirement in requirements:
+        if requirement.requirement_id == rule_id:
+            return requirement
+    return _best_requirement(requirements, keywords=keywords)
+
+
 def _percent_specifications(chunks: Sequence[DocumentChunk]) -> list[_PercentSpecification]:
     specs: list[_PercentSpecification] = []
     range_pattern = re.compile(
@@ -551,10 +1103,9 @@ def _percent_looks_like_spec_value(
         return True
     if re.search(r"(?:maximal|max\.?|hoechstens|mindestens|min\.?|von)\s*$", before_tail):
         return True
-    return (
-        re.match(r"\s*(?:-|bis|to)\s*\d", after_head) is not None
-        and _looks_like_specification_quote(folded_line)
-    )
+    return re.match(
+        r"\s*(?:-|bis|to)\s*\d", after_head
+    ) is not None and _looks_like_specification_quote(folded_line)
 
 
 def _metric_from_context(
@@ -624,8 +1175,7 @@ def _specification_breach_statement(
         )
     if metric == "wassergehalt":
         open_context = (
-            " Wirkstofffreigabe durch QA trotz ungelöster und aktiver "
-            "Laborabweichung."
+            " Wirkstofffreigabe durch QA trotz ungelöster und aktiver Laborabweichung."
             if open_investigations
             else ""
         )
@@ -1002,13 +1552,7 @@ def _decimal(value: str) -> float:
 
 
 def _fold(value: str) -> str:
-    return (
-        value.lower()
-        .replace("ä", "ae")
-        .replace("ö", "oe")
-        .replace("ü", "ue")
-        .replace("ß", "ss")
-    )
+    return value.lower().replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
 
 
 def _dedupe_quotes(quotes: Sequence[_ChunkQuote]) -> list[_ChunkQuote]:

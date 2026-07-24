@@ -9,6 +9,7 @@ from app.agents.providers.external_base import ExternalProviderBase
 from app.core.config import get_settings
 
 STRUCTURED_OUTPUT_TOOL_NAME = "submit_structured_output"
+_ANTHROPIC_STRUCTURED_OUTPUT_TOKEN_LIMIT = 8192
 
 
 class AnthropicProvider(ExternalProviderBase):
@@ -43,7 +44,10 @@ class AnthropicProvider(ExternalProviderBase):
     ) -> dict[str, Any]:
         payload = {
             "model": self.configured_model_id,
-            "max_tokens": get_settings().model_provider_max_output_tokens,
+            "max_tokens": self._bounded_max_output_tokens(
+                get_settings().model_provider_max_output_tokens,
+                provider_max_tokens=_ANTHROPIC_STRUCTURED_OUTPUT_TOKEN_LIMIT,
+            ),
             "temperature": 0,
             "system": (
                 "You are a conservative GMP review model. Use only the provided inputs. "
@@ -80,6 +84,8 @@ class AnthropicProvider(ExternalProviderBase):
             },
             json_body=payload,
         )
+        if response.get("stop_reason") in {"max_tokens", "length"}:
+            raise self._truncated_output_error()
         output = _anthropic_tool_input(response) or self._parse_json_object_from_text(
             _anthropic_text(response)
         )

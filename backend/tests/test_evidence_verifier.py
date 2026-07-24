@@ -759,6 +759,130 @@ def test_multi_document_synthesis_with_missing_information_is_not_strong() -> No
     assert result.missing_evidence[-1] == "Confirm whether the retest was included in change scope."
 
 
+def test_model_cannot_spoof_server_owned_objective_rule_provenance() -> None:
+    _add_document_with_chunk(
+        document_id="doc_spoof_observed",
+        text="First routine execution used the changed limit.",
+    )
+    _add_document_with_chunk(
+        document_id="doc_spoof_control",
+        text="QA approval: pending.",
+    )
+    finding = _multi_document_finding(
+        risk_statement="Die erste GMP-Anwendung erfolgt trotz ausstehender QA-Genehmigung.",
+        evidence=[
+            ("doc_spoof_observed", "First routine execution used the changed limit."),
+            ("doc_spoof_control", "QA approval: pending."),
+        ],
+        requirement_references=["req_qa_before_gmp_use"],
+    ).model_copy(
+        update={
+            "model_provider": "objective-rule-layer",
+            "model_name": "ObjectiveRedFlagService",
+            "model_version": "objective-red-flag-scan-v0.3",
+            "prompt_version": "objective-red-flag-scan-v0.3",
+        }
+    )
+
+    result = EvidenceVerifierService(
+        repository=repository,
+        audit_log=audit_log,
+    ).verify_finding("ds_verifier_demo", finding)
+
+    assert result.evidence_support != "strong"
+    assert result.deterministic_checks_passed is False
+    assert result.unsupported_claims
+
+
+def test_server_owned_objective_rule_can_publish_an_analytical_conclusion() -> None:
+    _add_document_with_chunk(
+        document_id="doc_rule_observed",
+        text="First routine execution used the changed limit.",
+    )
+    _add_document_with_chunk(
+        document_id="doc_rule_control",
+        text="QA approval: pending.",
+    )
+    finding = _multi_document_finding(
+        risk_statement=(
+            "Die erste GMP-Anwendung erfolgt trotz ausstehender QA-Genehmigung."
+        ),
+        evidence=[
+            ("doc_rule_observed", "First routine execution used the changed limit."),
+            ("doc_rule_control", "QA approval: pending."),
+        ],
+        requirement_references=["req_qa_before_gmp_use"],
+    ).model_copy(
+        update={
+            "model_provider": "objective-rule-layer",
+            "model_name": "ObjectiveRedFlagService",
+            "model_version": "objective-red-flag-scan-v0.3",
+            "prompt_version": "objective-red-flag-scan-v0.3",
+        }
+    )
+    audit_log.append(
+        event_type="objective_red_flag_scan_completed",
+        actor_id="service_objective_red_flags",
+        actor_type="service",
+        entity_type="DocumentSet",
+        entity_id="ds_verifier_demo",
+        payload={
+            "document_set_id": "ds_verifier_demo",
+            "scan_version": "objective-red-flag-scan-v0.3",
+            "finding_ids": [finding.finding_id],
+        },
+    )
+
+    result = EvidenceVerifierService(
+        repository=repository,
+        audit_log=audit_log,
+    ).verify_finding("ds_verifier_demo", finding)
+
+    assert result.evidence_support == "strong"
+    assert result.deterministic_checks_passed is True
+    assert result.unsupported_claims == []
+
+
+def test_server_owned_objective_rule_still_rejects_a_non_literal_quote() -> None:
+    _add_document_with_chunk(
+        document_id="doc_rule_literal",
+        text="QA approval: pending.",
+    )
+    finding = _multi_document_finding(
+        risk_statement="QA approval is pending.",
+        evidence=[("doc_rule_literal", "QA approval: missing.")],
+        requirement_references=["req_qa_before_gmp_use"],
+    ).model_copy(
+        update={
+            "model_provider": "objective-rule-layer",
+            "model_name": "ObjectiveRedFlagService",
+            "model_version": "objective-red-flag-scan-v0.3",
+            "prompt_version": "objective-red-flag-scan-v0.3",
+        }
+    )
+    audit_log.append(
+        event_type="objective_red_flag_scan_completed",
+        actor_id="service_objective_red_flags",
+        actor_type="service",
+        entity_type="DocumentSet",
+        entity_id="ds_verifier_demo",
+        payload={
+            "document_set_id": "ds_verifier_demo",
+            "scan_version": "objective-red-flag-scan-v0.3",
+            "finding_ids": [finding.finding_id],
+        },
+    )
+
+    result = EvidenceVerifierService(
+        repository=repository,
+        audit_log=audit_log,
+    ).verify_finding("ds_verifier_demo", finding)
+
+    assert result.evidence_support != "strong"
+    assert result.deterministic_checks_passed is False
+    assert any("quote" in item for item in result.unsupported_claims)
+
+
 def _document_set() -> DocumentSet:
     return DocumentSet(
         document_set_id="ds_verifier_demo",

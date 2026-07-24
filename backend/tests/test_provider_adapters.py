@@ -535,6 +535,154 @@ def test_anthropic_provider_runs_structured_call_with_mocked_http(
     assert provider.last_run_metadata.token_usage.total_tokens == 18
 
 
+@pytest.mark.parametrize(
+    "findings",
+    [
+        _reviewer_finding("finding_anthropic_single_candidate"),
+        {
+            "candidate_validation": _reviewer_finding("finding_anthropic_candidate_one"),
+            "candidate_qa": _reviewer_finding("finding_anthropic_candidate_two"),
+        },
+    ],
+)
+def test_anthropic_tool_input_normalizes_safe_finding_dict_shapes(
+    monkeypatch: pytest.MonkeyPatch,
+    findings: dict[str, Any],
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
+    monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-anthropic-key")
+    get_settings.cache_clear()
+    provider = AnthropicProvider(configured_model_id="claude-tool-input-test")
+    monkeypatch.setattr(
+        provider,
+        "_post_json",
+        lambda **_: {
+            "content": [
+                {
+                    "type": "tool_use",
+                    "name": "submit_structured_output",
+                    "input": {
+                        "coverage_summary": "Anthropic returned candidate findings.",
+                        "findings": findings,
+                    },
+                }
+            ]
+        },
+    )
+
+    output = provider.run_structured("Return JSON.", {}, ReviewerAgentOutput)
+
+    assert isinstance(output["findings"], list)
+    assert len(output["findings"]) == (1 if "finding_id" in findings else 2)
+
+
+def test_anthropic_tool_input_rejects_arbitrary_findings_dict(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
+    monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-anthropic-key")
+    get_settings.cache_clear()
+    provider = AnthropicProvider(configured_model_id="claude-tool-input-reject-test")
+    monkeypatch.setattr(
+        provider,
+        "_post_json",
+        lambda **_: {
+            "content": [
+                {
+                    "type": "tool_use",
+                    "name": "submit_structured_output",
+                    "input": {
+                        "coverage_summary": "Unsafe candidate shape.",
+                        "findings": {"candidate": {"risk_statement": "unsupported"}},
+                    },
+                }
+            ]
+        },
+    )
+
+    with pytest.raises(ProviderStructuredOutputError, match="findings must be a list"):
+        provider.run_structured("Return JSON.", {}, ReviewerAgentOutput)
+
+
+@pytest.mark.parametrize(
+    ("provider_name", "response"),
+    [
+        (
+            "anthropic",
+            {
+                "stop_reason": "max_tokens",
+                "content": [{"type": "text", "text": '{"value": "complete-looking"}'}],
+            },
+        ),
+        (
+            "mistral",
+            {
+                "choices": [
+                    {
+                        "finish_reason": "length",
+                        "message": {"content": '{"value": "complete-looking"}'},
+                    }
+                ]
+            },
+        ),
+    ],
+)
+def test_provider_truncation_is_sanitized_and_retryable(
+    monkeypatch: pytest.MonkeyPatch,
+    provider_name: str,
+    response: dict[str, Any],
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", provider_name)
+    monkeypatch.setenv(f"QRM_{provider_name.upper()}_API_KEY", "test-provider-key")
+    get_settings.cache_clear()
+    provider = (
+        AnthropicProvider(configured_model_id="claude-truncation-test")
+        if provider_name == "anthropic"
+        else MistralProvider(configured_model_id="mistral-truncation-test")
+    )
+    monkeypatch.setattr(provider, "_post_json", lambda **_: response)
+
+    with pytest.raises(ProviderCallError) as raised:
+        provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert raised.value.retryable is True
+    assert "complete-looking" not in str(raised.value)
+
+
+@pytest.mark.parametrize(
+    "provider",
+    [
+        AnthropicProvider(configured_model_id="claude-output-cap-test"),
+        MistralProvider(configured_model_id="mistral-output-cap-test"),
+    ],
+)
+def test_structured_provider_output_tokens_are_capped(
+    monkeypatch: pytest.MonkeyPatch,
+    provider: Any,
+) -> None:
+    provider_name = provider.provider_name
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", provider_name)
+    monkeypatch.setenv(f"QRM_{provider_name.upper()}_API_KEY", "test-provider-key")
+    monkeypatch.setenv("QRM_MODEL_PROVIDER_MAX_OUTPUT_TOKENS", "8192")
+    get_settings.cache_clear()
+    captured: dict[str, Any] = {}
+
+    def fake_post_json(*, json_body: dict[str, Any], **_: Any) -> dict[str, Any]:
+        captured.update(json_body)
+        if provider_name == "anthropic":
+            return {"content": [{"type": "text", "text": '{"value": "ok"}'}]}
+        return {"choices": [{"finish_reason": "stop", "message": {"content": '{"value": "ok"}'}}]}
+
+    monkeypatch.setattr(provider, "_post_json", fake_post_json)
+
+    assert provider.run_structured("Return JSON.", {}, SimpleOutput) == {"value": "ok"}
+    assert captured["max_tokens"] == 8192
+
+
 def test_gemini_provider_runs_structured_call_with_mocked_http(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -796,7 +944,7 @@ def test_malformed_provider_json_is_retried_then_succeeds_without_payload_leak(
     get_settings.cache_clear()
     provider = MistralProvider(
         configured_model_id="mistral-json-retry-test",
-        runtime_options=ProviderRuntimeOptions(max_retries=1, retry_deadline_seconds=1),
+        runtime_options=ProviderRuntimeOptions(max_retries=1, retry_deadline_seconds=5),
     )
     responses = iter(
         [

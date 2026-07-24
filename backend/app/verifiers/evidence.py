@@ -359,31 +359,44 @@ class EvidenceVerifierService:
             finding,
             requirement_texts=requirement_result.applicable_requirement_texts,
         )
+        trusted_objective_rule = _is_registered_objective_rule_finding(
+            finding,
+            audit_log=self.audit_log,
+            document_set_id=document_set_id,
+        )
         missing_evidence = [
             *citation_result.missing_evidence,
             *requirement_result.missing_evidence,
             *finding.missing_information,
         ]
-        claim_support_is_sufficient = citation_result.claim_support == EvidenceSupport.STRONG or (
-            len(finding.evidence_items) >= 2
-            and citation_result.multi_document_synthesis_valid
-            and citation_result.multi_document_semantic_support
+        claim_support_is_sufficient = (
+            trusted_objective_rule
+            or citation_result.claim_support == EvidenceSupport.STRONG
+            or (
+                len(finding.evidence_items) >= 2
+                and citation_result.multi_document_synthesis_valid
+                and citation_result.multi_document_semantic_support
+            )
         )
         deterministic_checks_passed = (
             citation_result.quote_exists
             and citation_result.quote_matches_chunk
             and citation_result.page_plausible
             and claim_support_is_sufficient
-            and citation_result.multi_document_synthesis_valid
+            and (trusted_objective_rule or citation_result.multi_document_synthesis_valid)
             and requirement_result.requirement_applicable
             and requirement_result.auto_close_allowed_considered
             and not missing_evidence
         )
-        evidence_support = _classify_support(
-            citation_result=citation_result,
-            requirement_result=requirement_result,
-            finding=finding,
-            missing_evidence=missing_evidence,
+        evidence_support = (
+            EvidenceSupport.STRONG
+            if trusted_objective_rule and deterministic_checks_passed
+            else _classify_support(
+                citation_result=citation_result,
+                requirement_result=requirement_result,
+                finding=finding,
+                missing_evidence=missing_evidence,
+            )
         )
         rationale = _rationale(
             evidence_support=evidence_support,
@@ -396,7 +409,11 @@ class EvidenceVerifierService:
             quote_exists=citation_result.quote_exists,
             quote_matches_chunk=citation_result.quote_matches_chunk,
             requirement_applicable=requirement_result.requirement_applicable,
-            unsupported_claims=citation_result.unsupported_claims,
+            unsupported_claims=(
+                []
+                if trusted_objective_rule and deterministic_checks_passed
+                else citation_result.unsupported_claims
+            ),
             missing_evidence=missing_evidence,
             verifier_rationale=rationale,
             verifier_model_run_id=None,
@@ -712,6 +729,42 @@ def _requirement_applies(requirement: Requirement, document_set: DocumentSet) ->
         document_type in requirement.applies_to_document_types
         and process_area in requirement.applies_to_process_areas
     )
+
+
+def _is_registered_objective_rule_finding(
+    finding: RiskFinding,
+    *,
+    audit_log: InMemoryAuditLog,
+    document_set_id: str,
+) -> bool:
+    """Trust only findings registered by the server-owned objective scan."""
+    if (
+        finding.model_provider != "objective-rule-layer"
+        or finding.model_name != "ObjectiveRedFlagService"
+        or not finding.model_version.startswith("objective-red-flag-scan-v")
+        or finding.prompt_version != finding.model_version
+        or finding.auto_close_allowed
+        or any(item.support_type.value != "supports" for item in finding.evidence_items)
+    ):
+        return False
+    registered = any(
+        event.event_type == "objective_red_flag_scan_completed"
+        and event.actor_id == "service_objective_red_flags"
+        and event.actor_type == "service"
+        and event.entity_type == "DocumentSet"
+        and event.entity_id == document_set_id
+        and event.payload.get("document_set_id") == document_set_id
+        and event.payload.get("scan_version") == finding.model_version
+        and finding.finding_id in event.payload.get("finding_ids", [])
+        for event in audit_log.list_events()
+    )
+    if not registered:
+        return False
+    if len(finding.evidence_items) < 2:
+        return True
+    document_ids = {item.document_id for item in finding.evidence_items}
+    exact_quotes = {_normalize_strict_quote(item.quote) for item in finding.evidence_items}
+    return len(document_ids) >= 2 and len(exact_quotes) >= 2
 
 
 def _classify_support(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections.abc import Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -212,7 +213,211 @@ class ReviewerAgent:
             },
             output_schema=ReviewerAgentOutput,
         )
-        return ReviewerAgentOutput.model_validate(_recompute_reviewer_quote_hashes(raw_output))
+        reconciled_output = _reconcile_reviewer_quotes(
+            raw_output,
+            evidence_context=evidence_context,
+        )
+        provenance_owned_output = _apply_server_owned_reviewer_provenance(
+            reconciled_output,
+            provider=self.provider,
+            prompt_version=self.prompt_version,
+            document_set_id=document_set_id,
+        )
+        normalized_output = _recompute_reviewer_quote_hashes(provenance_owned_output)
+        return ReviewerAgentOutput.model_validate(normalized_output)
+
+
+def _apply_server_owned_reviewer_provenance(
+    raw_output: dict[str, Any],
+    *,
+    provider: BaseModelProvider,
+    prompt_version: str,
+    document_set_id: str,
+) -> dict[str, Any]:
+    """Prevent model output from impersonating a trusted rule or another run."""
+    normalized_output = dict(raw_output)
+    findings = normalized_output.get("findings")
+    if not isinstance(findings, list):
+        return normalized_output
+    normalized_findings: list[Any] = []
+    for finding in findings:
+        if not isinstance(finding, dict):
+            normalized_findings.append(finding)
+            continue
+        normalized_finding = dict(finding)
+        normalized_finding.update(
+            {
+                "document_set_id": document_set_id,
+                "model_provider": provider.provider_name,
+                "model_name": provider.model_name,
+                "model_version": provider.model_version,
+                "prompt_version": prompt_version,
+            }
+        )
+        normalized_findings.append(normalized_finding)
+    normalized_output["findings"] = normalized_findings
+    return normalized_output
+
+
+_RECONCILIATION_TOKEN_RE = re.compile(
+    r"[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ0-9]*(?:-[A-Za-zÀ-ÖØ-öø-ÿ0-9]+)+"
+    r"|\d+(?:[.,]\d+)?|[A-Za-zÀ-ÖØ-öø-ÿ]+"
+)
+_ELLIPSIS_MARKERS = ("...", "…")
+_PRESENTATION_PAIRS = (
+    ("**", "**"),
+    ("__", "__"),
+    ("`", "`"),
+    ('"', '"'),
+    ("“", "”"),
+    ("„", "“"),
+    ("‘", "’"),
+    ("‚", "‘"),
+)
+
+
+def _reconcile_reviewer_quotes(
+    raw_output: dict[str, Any],
+    *,
+    evidence_context: Sequence[dict[str, Any]],
+) -> dict[str, Any]:
+    """Replace presentation-only model quote variants with exact supplied excerpts."""
+    source_by_key = {
+        (item.get("document_id"), item.get("chunk_id")): item["text"]
+        for item in evidence_context
+        if isinstance(item.get("document_id"), str)
+        and isinstance(item.get("chunk_id"), str)
+        and isinstance(item.get("text"), str)
+    }
+    normalized_output = dict(raw_output)
+    findings = normalized_output.get("findings")
+    if not isinstance(findings, list):
+        return normalized_output
+
+    normalized_findings: list[Any] = []
+    for finding in findings:
+        if not isinstance(finding, dict):
+            normalized_findings.append(finding)
+            continue
+        normalized_finding = dict(finding)
+        evidence_items = normalized_finding.get("evidence_items")
+        if isinstance(evidence_items, list):
+            normalized_evidence_items: list[Any] = []
+            for evidence_item in evidence_items:
+                normalized_evidence_items.append(
+                    _reconcile_evidence_item_quote(evidence_item, source_by_key)
+                )
+            normalized_finding["evidence_items"] = normalized_evidence_items
+        normalized_findings.append(normalized_finding)
+    normalized_output["findings"] = normalized_findings
+    return normalized_output
+
+
+def _reconcile_evidence_item_quote(
+    evidence_item: Any,
+    source_by_key: dict[tuple[Any, Any], str],
+) -> Any:
+    if not isinstance(evidence_item, dict):
+        return evidence_item
+    normalized_item = dict(evidence_item)
+    quote = normalized_item.get("quote")
+    source_text = source_by_key.get(
+        (normalized_item.get("document_id"), normalized_item.get("chunk_id"))
+    )
+    if not isinstance(quote, str) or not isinstance(source_text, str):
+        return normalized_item
+    exact_source_quote = _matching_source_quote(quote, source_text)
+    if exact_source_quote is not None:
+        normalized_item["quote"] = exact_source_quote
+    return normalized_item
+
+
+def _matching_source_quote(model_quote: str, source_text: str) -> str | None:
+    if any(marker in model_quote for marker in _ELLIPSIS_MARKERS):
+        return None
+    model_tokens = _reconciliation_tokens(model_quote)
+    source_tokens = _reconciliation_token_spans(source_text)
+    if not model_tokens or len(model_tokens) > len(source_tokens):
+        return None
+
+    for index in range(len(source_tokens) - len(model_tokens) + 1):
+        candidate_tokens = [
+            token for token, _, _ in source_tokens[index : index + len(model_tokens)]
+        ]
+        if candidate_tokens != model_tokens:
+            continue
+        start = source_tokens[index][1]
+        end = source_tokens[index + len(model_tokens) - 1][2]
+        start, end = _expand_presentation_boundaries(source_text, start=start, end=end)
+        end = _extend_to_next_token_boundary(source_text, end=end)
+        candidate = source_text[start:end]
+        if _canonicalize_quote_presentation(candidate) == _canonicalize_quote_presentation(
+            model_quote
+        ):
+            return candidate
+    return None
+
+
+def _reconciliation_token_spans(value: str) -> list[tuple[str, int, int]]:
+    return [
+        (_canonicalize_reconciliation_token(match.group()), match.start(), match.end())
+        for match in _RECONCILIATION_TOKEN_RE.finditer(value)
+    ]
+
+
+def _reconciliation_tokens(value: str) -> list[str]:
+    return [token for token, _, _ in _reconciliation_token_spans(value)]
+
+
+def _canonicalize_reconciliation_token(value: str) -> str:
+    return (
+        value.replace("Ä", "Ae")
+        .replace("Ö", "Oe")
+        .replace("Ü", "Ue")
+        .replace("ä", "ae")
+        .replace("ö", "oe")
+        .replace("ü", "ue")
+        .replace("ß", "ss")
+    )
+
+
+def _canonicalize_quote_presentation(value: str) -> str:
+    normalized = value
+    for marker in ("**", "__", "`"):
+        normalized = normalized.replace(marker, "")
+    return " ".join(
+        _canonicalize_reconciliation_token(normalized)
+        .replace("“", '"')
+        .replace("”", '"')
+        .replace("„", '"')
+        .replace("‟", '"')
+        .replace("‘", "'")
+        .replace("’", "'")
+        .replace("‚", "'")
+        .replace("‛", "'")
+        .split()
+    )
+
+
+def _expand_presentation_boundaries(source_text: str, *, start: int, end: int) -> tuple[int, int]:
+    expanded = True
+    while expanded:
+        expanded = False
+        for opener, closer in _PRESENTATION_PAIRS:
+            if source_text[:start].endswith(opener) and source_text[end:].startswith(closer):
+                start -= len(opener)
+                end += len(closer)
+                expanded = True
+        for marker in ("**", "__", "`"):
+            if source_text[start:end].count(marker) % 2 and source_text[end:].startswith(marker):
+                end += len(marker)
+                expanded = True
+    return start, end
+
+
+def _extend_to_next_token_boundary(source_text: str, *, end: int) -> int:
+    next_token = _RECONCILIATION_TOKEN_RE.search(source_text, pos=end)
+    return next_token.start() if next_token is not None else len(source_text)
 
 
 def _recompute_reviewer_quote_hashes(raw_output: dict[str, Any]) -> dict[str, Any]:
