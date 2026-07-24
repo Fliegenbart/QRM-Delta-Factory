@@ -72,62 +72,79 @@ export function buildReviewPackCsv(pack: ReviewPack): string {
 export function createReviewPackPdf(pack: ReviewPack): Blob {
   const pages = new PdfPageBuilder();
   const presentation = reviewPackRiskPresentation(pack);
-  pages.heading("Prüfmappe");
-  pages.text(`Fall: ${pack.document_set_id}`);
-  pages.text(`Erstellt: ${new Date().toLocaleDateString("de-DE")}`);
-  pages.spacer();
-  pages.heading("QA-Entscheidung", 13);
-  pages.paragraph(presentation.summary || pack.summary || "Keine Zusammenfassung vorhanden.");
-
   const canonicalRisks = pack.top_risks.filter(
     (risk) => deriveReviewPackPublication(risk.verifier_status).state === "canonical"
   );
   const qaHints = pack.top_risks.filter(
     (risk) => deriveReviewPackPublication(risk.verifier_status).state === "qa_hint_partial"
   );
-  pages.heading("Kernbefunde", 13);
-  if (canonicalRisks.length === 0) pages.text("Keine vollständig verifizierten Kernbefunde vorhanden.");
-  for (const [index, risk] of canonicalRisks.entries()) {
-    pages.subheading(
-      `${index + 1}. ${displayReviewValue(risk.severity)} – ${displayReviewValue(risk.risk_category ?? "risk")}`
-    );
-    pages.paragraph(displayRiskStatement(risk.risk_statement));
-    pages.text(`Verifier-Status: ${risk.verifier_status}`);
-    addQaStep(pages, risk.human_review_reason);
-    pages.spacer(4);
-  }
-
-  pages.heading("Hinweise zur QA-Prüfung", 13);
-  pages.paragraph("Diese Hinweise sind quellenbezogen, aber noch nicht vollständig verifiziert. QA bewertet sie vor einer Freigabe.");
-  if (qaHints.length === 0) pages.text("Keine nicht-kanonischen QA-Hinweise vorhanden.");
-  for (const [index, risk] of qaHints.entries()) {
-    pages.subheading(`${index + 1}. Hinweis – ${displayReviewValue(risk.severity)}`);
-    pages.paragraph(displayRiskStatement(risk.risk_statement));
-    pages.text(`Verifier-Status: ${risk.verifier_status}`);
-    addQaStep(pages, risk.human_review_reason);
-    pages.spacer(4);
-  }
-
-  if (presentation.operationalWarnings.length > 0 || presentation.modelCoverageStatus) {
-    pages.heading("Technische Hinweise", 13);
-    if (presentation.modelCoverageStatus) {
-      pages.paragraph(`Technische Abdeckung: ${presentation.modelCoverageStatus}`);
-    }
-    presentation.operationalWarnings.forEach((warning) => pages.paragraph(`- ${warning}`));
-  }
-
+  const evidenceByFinding = groupEvidenceByFinding(pack.evidence_table);
   const reasons = unique([
     ...(pack.decision.required_human_review_reasons ?? []),
     ...pack.ood_reasons,
     ...pack.coverage_gap_reasons,
     ...pack.missing_information
   ]);
+
+  pages.kicker("QA REVIEW PACK");
+  pages.heading("Prüfmappe");
+  pages.rule();
+  pages.labelValue("Fall", pack.document_set_id);
+  pages.labelValue("Erstellt", new Date().toLocaleDateString("de-DE"));
+  pages.labelValue("Entscheidung", displayReviewValue(pack.decision.decision));
+  pages.labelValue("Höchste Einstufung", displayReviewValue(pack.decision.max_severity ?? "nicht angegeben"));
+  pages.spacer();
+  pages.sectionHeading("QA-Entscheidung");
+  pages.paragraph(presentation.summary || pack.summary || "Keine Zusammenfassung vorhanden.");
+  pages.spacer();
+  pages.sectionHeading("Prüfumfang");
+  pages.labelValue("Kernbefunde", `${canonicalRisks.length}`);
+  pages.labelValue("QA-Hinweise", `${qaHints.length}`);
+  pages.labelValue("Quellenstellen", `${pack.evidence_table.length}`);
+  if (presentation.supportingFindingCount > 0) {
+    pages.labelValue("Zusätzliche Signale", `${presentation.supportingFindingCount}`);
+  }
+  pages.spacer();
+
+  pages.sectionHeading("Kernbefunde");
+  if (canonicalRisks.length === 0) pages.text("Keine vollständig verifizierten Kernbefunde vorhanden.");
+  for (const [index, risk] of canonicalRisks.entries()) {
+    pages.findingTitle(`${index + 1}. ${pdfFindingTitle(risk)}`);
+    pages.text(`${displayReviewValue(risk.severity)} · ${displayReviewValue(risk.verifier_status)}`, 9);
+    pages.paragraph(displayRiskStatement(risk.risk_statement));
+    pages.text(`Verifier-Status: ${risk.verifier_status}`, 9);
+    addEvidencePreview(pages, evidenceByFinding.get(risk.finding_id) ?? risk.evidence_quotes);
+    addQaStep(pages, risk.human_review_reason);
+    pages.spacer(6);
+  }
+
+  pages.sectionHeading("Hinweise zur QA-Prüfung");
+  pages.paragraph("Quellenbezogene Hinweise mit unvollständiger Evidenz. QA bewertet sie vor einer Freigabe.");
+  if (qaHints.length === 0) pages.text("Keine nicht-kanonischen QA-Hinweise vorhanden.");
+  for (const [index, risk] of qaHints.entries()) {
+    pages.findingTitle(`${index + 1}. ${pdfFindingTitle(risk)}`);
+    pages.text(`Hinweis · ${displayReviewValue(risk.severity)} · ${displayReviewValue(risk.verifier_status)}`, 9);
+    pages.paragraph(displayRiskStatement(risk.risk_statement));
+    pages.text(`Verifier-Status: ${risk.verifier_status}`, 9);
+    addEvidencePreview(pages, evidenceByFinding.get(risk.finding_id) ?? risk.evidence_quotes, 1);
+    addQaStep(pages, risk.human_review_reason);
+    pages.spacer(5);
+  }
+
+  if (presentation.operationalWarnings.length > 0 || presentation.modelCoverageStatus) {
+    pages.sectionHeading("Technische Hinweise");
+    if (presentation.modelCoverageStatus) {
+      pages.paragraph(`Technische Abdeckung: ${presentation.modelCoverageStatus}`);
+    }
+    presentation.operationalWarnings.forEach((warning) => pages.paragraph(`- ${displayOperationalWarning(warning)}`));
+  }
+
   if (reasons.length > 0) {
-    pages.heading("Offene Punkte", 13);
+    pages.sectionHeading("Offene Punkte");
     reasons.forEach((reason) => pages.paragraph(`- ${displayReviewReason(reason)}`));
   }
 
-  pages.heading("Evidenzanhang", 13);
+  pages.sectionHeading("Evidenzanhang");
   if (pack.evidence_table.length === 0) {
     pages.text("Keine Evidenzstellen vorhanden.");
   }
@@ -142,7 +159,55 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
   return new Blob([new Uint8Array(buildPdf(pages.finish()))], { type: "application/pdf" });
 }
 
-function sourceName(evidence: ReviewPack["evidence_table"][number]): string {
+type ExportEvidencePreview =
+  | ReviewPack["evidence_table"][number]
+  | (ReviewPack["top_risks"][number]["evidence_quotes"][number] & { document_name?: string | null });
+
+function groupEvidenceByFinding(rows: ReviewPack["evidence_table"]): Map<string, ReviewPack["evidence_table"]> {
+  const grouped = new Map<string, ReviewPack["evidence_table"]>();
+  for (const row of rows) {
+    grouped.set(row.finding_id, [...(grouped.get(row.finding_id) ?? []), row]);
+  }
+  return grouped;
+}
+
+function addEvidencePreview(pages: PdfPageBuilder, evidenceRows: ExportEvidencePreview[], maxRows = 2) {
+  const rows = evidenceRows.slice(0, maxRows);
+  if (rows.length === 0) return;
+  pages.text("Beleg", 9);
+  rows.forEach((row) => {
+    pages.paragraph(`Quelle ${sourceName(row)}, Seite ${row.page}: ${cleanPdfSnippet(row.quote)}`, 8, 8);
+  });
+}
+
+function pdfFindingTitle(risk: ReviewPack["top_risks"][number]): string {
+  const source = `${risk.risk_category ?? ""} ${risk.risk_statement}`.toLowerCase();
+  if (source.includes("qa") && (source.includes("approval") || source.includes("freigabe") || source.includes("genehmigung"))) {
+    return "QA-Freigabe vor GMP-Anwendung";
+  }
+  if (source.includes("affected batch") || source.includes("chargenumfang") || source.includes("retest") || source.includes("a17-26044")) {
+    return "Chargenumfang und Retest";
+  }
+  if (source.includes("comparator") || source.includes("bridge") || source.includes("gerätebrücke") || source.includes("equipment")) {
+    return "Übertragbarkeit der Vergleichsdaten";
+  }
+  if (source.includes("limit") || source.includes("grenzwert") || source.includes("methodenfitness") || source.includes("validierung")) {
+    return "Methodenfitness am neuen Grenzwert";
+  }
+  if (source.includes("training") || source.includes("schulung") || source.includes("sop")) {
+    return "SOP-Schulung vor Anwendung";
+  }
+  return displayReviewValue(risk.risk_category ?? "Risikobefund");
+}
+
+function displayOperationalWarning(warning: string): string {
+  if (warning === "failed model run affects review coverage") {
+    return "Ein Modelllauf konnte nicht vollständig ausgewertet werden; die übrigen Prüfschritte bleiben sichtbar.";
+  }
+  return displayReviewReason(warning);
+}
+
+function sourceName(evidence: { document_name?: string | null; document_id: string }): string {
   return evidence.document_name?.trim() || evidence.document_id;
 }
 
@@ -179,27 +244,51 @@ function cleanPdfSnippet(value: string): string {
     .trim();
 }
 
-type PdfLine = { text: string; fontSize: number; indent: number; gapAfter: number };
+type PdfLine =
+  | { kind: "text"; text: string; fontSize: number; indent: number; gapAfter: number; font: "regular" | "bold" }
+  | { kind: "rule"; gapAfter: number };
 
 class PdfPageBuilder {
   private readonly pages: PdfLine[][] = [[]];
   private y = 800;
 
+  kicker(text: string) {
+    this.add(text, 8, 0, 4, "bold");
+  }
+
   heading(text: string, fontSize = 18) {
-    this.add(text, fontSize, 0, 8);
+    this.add(text, fontSize, 0, 8, "bold");
+  }
+
+  sectionHeading(text: string) {
+    this.ensureSpace(50);
+    this.add(text, 13, 0, 6, "bold");
   }
 
   subheading(text: string) {
-    this.add(text, 11, 0, 3);
+    this.add(text, 11, 0, 3, "bold");
+  }
+
+  findingTitle(text: string) {
+    this.ensureSpace(64);
+    this.add(text, 11, 0, 3, "bold");
+  }
+
+  labelValue(label: string, value: string) {
+    this.add(`${label}: ${value}`, 10, 0, 2, "regular");
+  }
+
+  rule() {
+    this.addRule(9);
   }
 
   text(text: string, fontSize = 10, indent = 0) {
-    this.add(text, fontSize, indent, 2);
+    this.add(text, fontSize, indent, 2, "regular");
   }
 
   paragraph(text: string, fontSize = 10, indent = 0) {
     wrapPdfText(text, fontSize, indent).forEach((line, index, lines) => {
-      this.add(line, fontSize, indent, index === lines.length - 1 ? 4 : 0);
+      this.add(line, fontSize, indent, index === lines.length - 1 ? 4 : 0, "regular");
     });
   }
 
@@ -211,14 +300,24 @@ class PdfPageBuilder {
     return this.pages;
   }
 
-  private add(text: string, fontSize: number, indent: number, gapAfter: number) {
+  private add(text: string, fontSize: number, indent: number, gapAfter: number, font: "regular" | "bold") {
     const lineHeight = fontSize + 4 + gapAfter;
-    if (this.y - lineHeight < 44) {
+    this.ensureSpace(lineHeight);
+    this.pages.at(-1)?.push({ kind: "text", text: pdfText(text), fontSize, indent, gapAfter, font });
+    this.y -= lineHeight;
+  }
+
+  private addRule(gapAfter: number) {
+    this.ensureSpace(14 + gapAfter);
+    this.pages.at(-1)?.push({ kind: "rule", gapAfter });
+    this.y -= 14 + gapAfter;
+  }
+
+  private ensureSpace(requiredHeight: number) {
+    if (this.y - requiredHeight < 44) {
       this.pages.push([]);
       this.y = 800;
     }
-    this.pages.at(-1)?.push({ text: pdfText(text), fontSize, indent, gapAfter });
-    this.y -= lineHeight;
   }
 }
 
@@ -249,24 +348,31 @@ function pdfText(value: string): string {
 
 function buildPdf(pages: PdfLine[][]): Uint8Array {
   const pageCount = Math.max(1, pages.length);
-  const pageObjectIds = Array.from({ length: pageCount }, (_, index) => 4 + index * 2);
+  const pageObjectIds = Array.from({ length: pageCount }, (_, index) => 5 + index * 2);
   const contentObjectIds = pageObjectIds.map((id) => id + 1);
   const objects: string[] = [];
   objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
   objects[2] = `<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageCount} >>`;
   objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+  objects[4] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
 
   pages.forEach((page, index) => {
     const pageObjectId = pageObjectIds[index];
     const contentObjectId = contentObjectIds[index];
     let y = 800;
     const commands = page.map((line) => {
-      const command = `BT /F1 ${line.fontSize} Tf ${54 + line.indent} ${y} Td (${escapePdfText(line.text)}) Tj ET`;
+      if (line.kind === "rule") {
+        const command = `0.78 G 54 ${y - 3} m 541 ${y - 3} l S`;
+        y -= 14 + line.gapAfter;
+        return command;
+      }
+      const font = line.font === "bold" ? "F2" : "F1";
+      const command = `BT /${font} ${line.fontSize} Tf ${54 + line.indent} ${y} Td (${escapePdfText(line.text)}) Tj ET`;
       y -= line.fontSize + 4 + line.gapAfter;
       return command;
     });
     const stream = commands.join("\n");
-    objects[pageObjectId] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentObjectId} 0 R >>`;
+    objects[pageObjectId] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentObjectId} 0 R >>`;
     objects[contentObjectId] = `<< /Length ${byteLength(stream)} >>\nstream\n${stream}\nendstream`;
   });
 
