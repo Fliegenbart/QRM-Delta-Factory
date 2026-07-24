@@ -193,8 +193,12 @@ class BaseModelProvider(ABC):
                     self._clear_failures()
                     return structured_output
                 except (ValidationError, _StructuredPayloadNormalizationError) as exc:
-                    self._record_failure()
                     raise ProviderStructuredOutputError(str(exc)) from exc
+                except ProviderStructuredOutputError:
+                    # Schema/model-output failures are not provider transport failures.
+                    # The review orchestrator owns their bounded retry policy, while the
+                    # shared circuit remains reserved for provider availability faults.
+                    raise
                 except ProviderCallError as exc:
                     last_error = exc
                     self._record_failure()
@@ -321,14 +325,7 @@ def _normalize_structured_payload(
         return payload
 
     normalized = dict(payload)
-    findings = normalized.get("findings")
-    if isinstance(findings, str):
-        findings = _parse_reviewer_findings(findings)
-        normalized["findings"] = findings
-    if not isinstance(findings, list):
-        raise _StructuredPayloadNormalizationError("findings must be a list")
-    if not all(isinstance(finding, dict) for finding in findings):
-        raise _StructuredPayloadNormalizationError("findings entries must be objects")
+    findings = _normalize_reviewer_findings(normalized.get("findings"))
 
     normalized_findings: list[dict[str, Any]] = []
     for finding in findings:
@@ -356,11 +353,61 @@ def _parse_reviewer_findings(value: str) -> list[dict[str, Any]]:
                 "findings must be a valid list of objects"
             ) from exc
 
-    if not isinstance(parsed, list):
-        raise _StructuredPayloadNormalizationError("findings must be a list")
-    if not all(isinstance(finding, dict) for finding in parsed):
-        raise _StructuredPayloadNormalizationError("findings entries must be objects")
-    return parsed
+    return _normalize_reviewer_findings(parsed)
+
+
+_RISK_FINDING_SHAPE_KEYS = frozenset(
+    {
+        "finding_id",
+        "document_set_id",
+        "risk_category",
+        "severity",
+        "likelihood",
+        "detectability",
+        "risk_statement",
+        "evidence_items",
+        "requirement_references",
+        "missing_information",
+        "model_provider",
+        "model_name",
+        "model_version",
+        "prompt_version",
+        "evidence_support",
+        "recommended_action",
+        "auto_close_allowed",
+        "status",
+    }
+)
+
+
+def _normalize_reviewer_findings(value: Any) -> list[dict[str, Any]]:
+    if isinstance(value, str):
+        return _parse_reviewer_findings(value)
+    if isinstance(value, list):
+        if not all(isinstance(finding, dict) for finding in value):
+            raise _StructuredPayloadNormalizationError("findings entries must be objects")
+        return [dict(finding) for finding in value]
+    if isinstance(value, dict):
+        if _is_risk_finding_shaped(value):
+            return [dict(value)]
+        nested_findings = value.get("findings")
+        if (
+            set(value) == {"findings"}
+            and isinstance(nested_findings, list)
+            and all(_is_risk_finding_shaped(finding) for finding in nested_findings)
+        ):
+            return [dict(finding) for finding in nested_findings]
+    raise _StructuredPayloadNormalizationError("findings must be a list")
+
+
+def _is_risk_finding_shaped(value: Any) -> bool:
+    return (
+        isinstance(value, dict)
+        and value.keys() >= _RISK_FINDING_SHAPE_KEYS
+        and isinstance(value["risk_statement"], str)
+        and isinstance(value["evidence_items"], list)
+        and isinstance(value["requirement_references"], list)
+    )
 
 
 def _unwrap_pure_json_fence(value: str) -> str:

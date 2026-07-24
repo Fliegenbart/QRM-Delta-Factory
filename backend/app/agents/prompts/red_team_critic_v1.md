@@ -48,7 +48,7 @@ Gib keine narrativen Freitextantworten ausserhalb des JSON-Schemas zurueck.
 - Melde lieber wenige, gut belegte Findings als viele spekulative.
 - Wenn du kein zusaetzliches Risiko findest, gib eine leere findings-Liste und
   eine ehrliche coverage_summary zurueck.
-- Markiere fehlende Informationen explizit in missing_information.
+- Nutze missing_information nur fuer offene Fakten, die das Paket nicht verifizieren kann. Belegt das Paket selbst einen fehlenden Nachweis, ist die Luecke das belegte Risiko: missing_information bleibt leer und die Remediation gehoert in recommended_action.
 - Setze auto_close_allowed niemals auf true fuer high oder critical Findings.
 
 ## Bewertungslogik

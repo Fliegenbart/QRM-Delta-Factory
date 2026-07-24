@@ -92,6 +92,10 @@ class ExternalProviderBase(BaseModelProvider):
         try:
             payload = json.loads(stripped)
         except json.JSONDecodeError:
+            direct_json_parse_failed = True
+        else:
+            direct_json_parse_failed = False
+        if direct_json_parse_failed:
             payload = self._parse_json_from_markdown_or_substring(stripped)
         if not isinstance(payload, dict):
             raise ProviderCallError(
@@ -102,14 +106,25 @@ class ExternalProviderBase(BaseModelProvider):
     def _parse_json_from_markdown_or_substring(self, text: str) -> Any:
         fenced_match = re.search(r"```(?:json)?\s*(.*?)\s*```", text, flags=re.DOTALL)
         if fenced_match:
-            return json.loads(fenced_match.group(1))
-        first_brace = text.find("{")
-        last_brace = text.rfind("}")
-        if first_brace == -1 or last_brace == -1 or first_brace >= last_brace:
-            raise ProviderCallError(
-                f"{self.provider_name} provider did not return parseable JSON"
-            )
-        return json.loads(text[first_brace : last_brace + 1])
+            candidate = fenced_match.group(1)
+        else:
+            first_brace = text.find("{")
+            last_brace = text.rfind("}")
+            if first_brace == -1 or last_brace == -1 or first_brace >= last_brace:
+                raise self._invalid_json_text_error()
+            candidate = text[first_brace : last_brace + 1]
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            # Provider text is untrusted. Never surface the decoder exception because
+            # it retains the complete raw provider payload in its ``doc`` attribute.
+            raise self._invalid_json_text_error() from None
+
+    def _invalid_json_text_error(self) -> ProviderCallError:
+        return ProviderCallError(
+            f"{self.provider_name} provider returned invalid JSON",
+            retryable=True,
+        )
 
     def _run_structured_once(
         self,

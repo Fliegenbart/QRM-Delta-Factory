@@ -53,7 +53,7 @@ def test_each_reviewer_prompt_uses_specialized_pharma_risk_reviewer_contract() -
         "spezialisierter pharmazeutischer Risk Reviewer",
         "Verwende ausschliesslich die bereitgestellten Claims, Chunks und Requirements.",
         "Jedes Finding braucht mindestens ein EvidenceItem",
-        "Wenn Evidenz fehlt, setze missing_information. Erfinde keine Evidenz.",
+        "Setze missing_information nur fuer offene Fakten, die im Paket nicht verifizierbar sind.",
         "No issue",
         "Schlechte Dokumentqualitaet, fehlende Anhaenge oder fehlende Requirements",
         "Gib keine narrativen Freitextantworten ausserhalb des JSON-Schemas zurueck.",
@@ -75,6 +75,20 @@ def test_primary_review_contract_marks_model_output_as_candidates_for_determinis
     assert "evidence or requirement support is missing" in REVIEWER_OUTPUT_CONTRACT.lower()
 
 
+def test_primary_review_contract_requires_precise_evidence_and_missingness_semantics() -> None:
+    contract = REVIEWER_OUTPUT_CONTRACT.lower()
+
+    assert "relation of that quote to the risk statement" in contract
+    assert "document-to-document discrepancy" in contract
+    assert "distinct source documents" in contract
+    assert "non-duplicate exact excerpts" in contract
+    assert "identifier, version, or numeric anchor" in contract
+    assert "must occur verbatim in at least one attached quote" in contract
+    assert "missing_information=[]" in REVIEWER_OUTPUT_CONTRACT
+    assert "recommended_action" in REVIEWER_OUTPUT_CONTRACT
+    assert "cross-document reviewers must cite the source pair" in contract
+
+
 def test_missing_prompt_template_fails_cleanly(tmp_path: Path) -> None:
     loader = PromptTemplateLoader(prompts_dir=tmp_path)
 
@@ -85,7 +99,7 @@ def test_missing_prompt_template_fails_cleanly(tmp_path: Path) -> None:
 def test_default_agents_load_prompt_versions_from_template_files() -> None:
     agents = default_reviewer_agents()
 
-    assert [agent.prompt_version for agent in agents] == [
+    expected_template_versions = [
         "gmp_data_integrity_reviewer_v1",
         "deviation_reviewer_v1",
         "capa_reviewer_v1",
@@ -94,6 +108,13 @@ def test_default_agents_load_prompt_versions_from_template_files() -> None:
         "regulatory_consistency_reviewer_v1",
         "contradiction_hunter_v1",
     ]
+    assert [
+        agent.prompt_version.split("+sha256:", maxsplit=1)[0] for agent in agents
+    ] == expected_template_versions
+    assert all(
+        len(agent.prompt_version.split("+sha256:", maxsplit=1)[1]) == 64
+        for agent in agents
+    )
     assert all(agent.prompt_template is not None for agent in agents)
 
 
@@ -108,8 +129,10 @@ def test_prompt_version_is_persisted_in_model_run_and_audit() -> None:
         agents=[default_reviewer_agents()[1]],
     ).run_primary_review("ds_review_demo")
 
-    assert result.model_runs[0].prompt_version == "deviation_reviewer_v1"
+    prompt_version = result.model_runs[0].prompt_version
+    assert prompt_version.startswith("deviation_reviewer_v1+sha256:")
+    assert len(prompt_version.removeprefix("deviation_reviewer_v1+sha256:")) == 64
     model_run_audit = [
         event for event in audit_log.list_events() if event.event_type == "model_run_recorded"
     ][0]
-    assert model_run_audit.payload["prompt_version"] == "deviation_reviewer_v1"
+    assert model_run_audit.payload["prompt_version"] == prompt_version

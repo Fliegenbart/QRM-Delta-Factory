@@ -7,10 +7,18 @@ from pathlib import Path
 
 import pytest
 
+from app.agents.providers.mock_provider import MockProvider
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.schemas.domain import Document, DocumentChunk, DocumentSet, RequirementSet, RiskFinding
-from app.verifiers.evidence import EvidenceVerifierService
+from app.schemas.review import ReviewerAgentOutput
+from app.services.review_orchestrator import ReviewerAgent
+from app.services.risk_fusion import RiskFusionService
+from app.verifiers.evidence import (
+    EvidenceVerifierService,
+    _factual_anchors,
+    _synthesis_concepts,
+)
 
 LIMIT_RISK_STATEMENT = (
     "MV-VAL-221: Für 0,10 % keine separate Genauigkeits- oder Präzisionsstufe; "
@@ -262,6 +270,150 @@ def test_pkg001_gold_risk_statements_are_strong_only_with_exact_multi_document_s
     assert result.missing_evidence == []
 
 
+def test_pkg001_live_shaped_candidates_normalize_verify_and_publish_all_five_themes() -> None:
+    fixture_references: list[object] = []
+    candidates: list[dict[str, object]] = []
+    categories = [
+        "method_validation",
+        "equipment_bridge",
+        "qa_approval",
+        "training_control",
+        "batch_scope",
+    ]
+    deliberately_wrong_hash = "0" * 64
+
+    for index, gold_finding in enumerate(PKG001_GOLD, start=1):
+        finding_id = str(gold_finding["finding_id"])
+        expected_evidence_refs = gold_finding["expected_evidence_refs"]
+        assert isinstance(expected_evidence_refs, list)
+        evidence_refs = [
+            *expected_evidence_refs,
+            *PKG001_ADDITIONAL_EVIDENCE.get(finding_id, []),
+        ]
+        fixture_references.extend(evidence_refs)
+        candidates.append(
+            {
+                "finding_id": f"finding_pkg001_live_{index}",
+                "document_set_id": "ds_verifier_demo",
+                "risk_category": categories[index - 1],
+                "severity": gold_finding["severity"],
+                "likelihood": 3,
+                "detectability": 3,
+                "risk_statement": gold_finding["risk_statement"],
+                "evidence_items": [
+                    {
+                        "document_id": _gold_document_id(str(reference["document_id"])),
+                        "chunk_id": (
+                            "chunk_"
+                            f"{_gold_document_id(str(reference['document_id'])).removeprefix('doc_')}"
+                            "_p1"
+                        ),
+                        "page": 1,
+                        "quote": str(reference["quote"]),
+                        "quote_hash": deliberately_wrong_hash,
+                        "support_type": "supports",
+                        "verifier_score": 0.95,
+                    }
+                    for reference in evidence_refs
+                ],
+                "requirement_references": [PKG001_REQUIREMENTS[finding_id]],
+                "missing_information": [],
+                "model_provider": "mock",
+                "model_name": "mock-live-shaped-reviewer",
+                "model_version": "0.1.0",
+                "prompt_version": "pkg001-live-shaped-v1",
+                "evidence_support": "partial",
+                "recommended_action": "Route to QA/SME for review.",
+                "auto_close_allowed": False,
+                "status": "needs_human_review",
+            }
+        )
+
+    _add_gold_fixture_documents(fixture_references)
+    provider = MockProvider(
+        model_name="mock-live-shaped-reviewer",
+        model_version="0.1.0",
+        configured_model_id="mock-live-shaped-pkg001",
+        prompt_version="pkg001-live-shaped-v1",
+        structured_output={
+            "coverage_summary": "Five live-shaped candidates from PKG001.",
+            "findings": candidates,
+        },
+    )
+    raw_provider_output = provider.run_structured(
+        prompt="Return live-shaped reviewer output.",
+        input_schema={"document_set_id": "ds_verifier_demo"},
+        output_schema=ReviewerAgentOutput,
+    )
+    raw_candidates = ReviewerAgentOutput.model_validate(raw_provider_output)
+    assert {
+        evidence.quote_hash
+        for finding in raw_candidates.findings
+        for evidence in finding.evidence_items
+    } == {deliberately_wrong_hash}
+
+    requirement_set = repository.get_requirement_set("rset_verifier_demo_2026")
+    assert requirement_set is not None
+    relevant_requirements = [
+        requirement
+        for requirement in requirement_set.requirements
+        if requirement.requirement_id in set(PKG001_REQUIREMENTS.values())
+    ]
+    agent = ReviewerAgent(
+        agent_id="reviewer_pkg001_live_shape",
+        role="live-shaped regression reviewer",
+        prompt_version="pkg001-live-shaped-v1",
+        applicable_risk_categories=categories,
+        provider=provider,
+    )
+
+    normalized_candidates = agent.run(
+        claims=[],
+        requirements=relevant_requirements,
+        evidence_context=[],
+        document_set_id="ds_verifier_demo",
+        case_signals=[],
+        knowledge_pack_ids=[],
+        missing_knowledge_pack_ids=[],
+        requirement_package_hash=sha256(b"pkg001-live-shaped").hexdigest(),
+        calibration_examples=[],
+        calibration_prompt_block="",
+        calibration_pack_hash=None,
+    ).findings
+
+    assert all(
+        evidence.quote_hash == sha256(evidence.quote.encode()).hexdigest()
+        for finding in normalized_candidates
+        for evidence in finding.evidence_items
+    )
+    verified_findings = EvidenceVerifierService(
+        repository=repository,
+        audit_log=audit_log,
+    ).verify_findings("ds_verifier_demo", normalized_candidates)
+    persisted_findings = repository.list_risk_findings("ds_verifier_demo")
+    decision = RiskFusionService(
+        repository=repository,
+        audit_log=audit_log,
+    ).run_risk_fusion("ds_verifier_demo")
+
+    assert len(verified_findings) == len(PKG001_GOLD) == len(persisted_findings)
+    assert all(
+        finding.verification_result is not None
+        and finding.verification_result.deterministic_checks_passed
+        for finding in persisted_findings
+    )
+    assert {
+        (finding.risk_category, finding.requirement_references[0])
+        for finding in persisted_findings
+    } == set(zip(categories, PKG001_REQUIREMENTS.values(), strict=True))
+    assert {cluster.root_finding_id for cluster in decision.finding_clusters} == {
+        finding.finding_id for finding in persisted_findings
+    }
+    assert set(decision.published_finding_ids) == {
+        finding.finding_id for finding in persisted_findings
+    }
+
+
 def test_multi_document_synthesis_rejects_fuzzy_quote_substitution() -> None:
     _add_multi_document_sources()
     altered_quote = (
@@ -441,6 +593,54 @@ def test_multi_document_synthesis_rejects_markdown_only_duplicate_quotes() -> No
     assert result.evidence_support != "strong"
     assert result.deterministic_checks_passed is False
     assert any("non-duplicate" in item for item in result.missing_evidence)
+
+
+def test_multi_document_synthesis_covers_anchor_inside_markdown_presentation_markers() -> None:
+    emphasized_quote = "**A17-26045** QA-Freigabe pending"
+    _add_document_with_chunk(document_id="doc_markdown_anchor", text=emphasized_quote)
+    _add_document_with_chunk(
+        document_id="doc_markdown_requirement",
+        text="QA-Freigabe erforderlich",
+    )
+    finding = _multi_document_finding(
+        risk_statement="A17-26045 QA-Freigabe pending.",
+        evidence=[
+            ("doc_markdown_anchor", emphasized_quote),
+            ("doc_markdown_requirement", "QA-Freigabe erforderlich"),
+        ],
+        requirement_references=["req_qa_before_gmp_use"],
+    )
+    service = EvidenceVerifierService(repository=repository, audit_log=audit_log)
+
+    result = service.verify_finding("ds_verifier_demo", finding)
+
+    assert result.evidence_support == "strong"
+    assert result.deterministic_checks_passed is True
+    assert not any("factual anchor" in item for item in result.unsupported_claims)
+
+
+def test_synthesis_concepts_equates_ascii_german_transliterations_with_umlauts() -> None:
+    source_concepts = _synthesis_concepts("Rückstellmuster geändert")
+    model_concepts = _synthesis_concepts("Rueckstellmuster geaendert")
+
+    assert model_concepts == source_concepts
+
+
+def test_synthesis_concepts_does_not_accept_unrelated_terms() -> None:
+    source_concepts = _synthesis_concepts("Rückstellmuster wurde erneut bewertet")
+    unrelated_concepts = _synthesis_concepts("Fremdwort wurde erneut bewertet")
+
+    assert "fremdwort" not in source_concepts
+    assert source_concepts != unrelated_concepts
+
+
+def test_factual_anchors_capture_complete_hyphenated_identifiers_without_fragments() -> None:
+    anchors = _factual_anchors(
+        "CC-SYN-001 follows SOP-QC-AN-014 for A17-26045 at v4.0 and 0,10 %."
+    )
+
+    assert {"CC-SYN-001", "SOP-QC-AN-014", "A17-26045", "v4.0", "0,10 %"} <= anchors
+    assert {"CC-SYN", "SYN-001", "SOP-QC", "QC-AN", "AN-014"}.isdisjoint(anchors)
 
 
 def test_multi_document_synthesis_with_only_one_source_is_not_strong() -> None:

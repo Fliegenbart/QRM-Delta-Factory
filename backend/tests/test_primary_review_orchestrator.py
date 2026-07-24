@@ -428,6 +428,28 @@ def test_invalid_requirement_references_are_pruned_without_failing_reviewer() ->
     ]
 
 
+def test_reviewer_output_recomputes_even_valid_looking_provider_quote_hashes() -> None:
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id="agent_foreign_quote_hash",
+                role="DeviationReviewer",
+                prompt_version="foreign-quote-hash-v0.1",
+                applicable_risk_categories=["deviation_management"],
+                provider=ForeignQuoteHashProvider(),
+            )
+        ],
+    )
+
+    result = orchestrator.run_primary_review("ds_review_demo")
+
+    evidence_item = result.findings[0].evidence_items[0]
+    assert evidence_item.quote_hash == sha256(evidence_item.quote.encode()).hexdigest()
+    assert evidence_item.quote_hash != sha256(b"valid-looking foreign hash").hexdigest()
+
+
 def test_contradiction_hunter_loads_pattern_knowledge_packs_from_matching_requirements() -> None:
     repository.create_requirement_set(_contradiction_requirement_set())
     repository.create_document_set(
@@ -693,6 +715,22 @@ class InvalidRequirementReferenceProvider:
             ],
             "coverage_summary": "Reviewer found a deviation impact issue.",
         }
+
+
+class ForeignQuoteHashProvider(InvalidRequirementReferenceProvider):
+    configured_model_id = "foreign-quote-hash-model-v0.1"
+
+    def run_structured(
+        self,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[Any],
+    ) -> dict[str, Any]:
+        output = super().run_structured(prompt, input_schema, output_schema)
+        output["findings"][0]["evidence_items"][0]["quote_hash"] = sha256(
+            b"valid-looking foreign hash"
+        ).hexdigest()
+        return output
 
 
 class CapturingProvider:

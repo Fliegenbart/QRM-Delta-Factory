@@ -287,7 +287,14 @@ def test_reviewer_findings_string_normalization_rejects_invalid_shapes(
         )
 
 
-@pytest.mark.parametrize("findings", [None, {"finding_id": "finding_object"}])
+@pytest.mark.parametrize(
+    "findings",
+    [
+        None,
+        {"finding_id": "finding_object"},
+        {"findings": [{"finding_id": "arbitrary_nested_object"}]},
+    ],
+)
 def test_reviewer_findings_normalization_rejects_non_string_invalid_values(
     findings: Any,
 ) -> None:
@@ -382,6 +389,42 @@ def _reviewer_finding(finding_id: str) -> dict[str, Any]:
         "auto_close_allowed": False,
         "status": "needs_human_review",
     }
+
+
+@pytest.mark.parametrize(
+    "findings",
+    [
+        _reviewer_finding("finding_single_object"),
+        {"findings": [_reviewer_finding("finding_wrapper_object")]},
+    ],
+)
+def test_reviewer_findings_normalize_safe_object_shapes_to_a_list(findings: Any) -> None:
+    provider = _reviewer_output_provider(findings=findings)
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={},
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert isinstance(output["findings"], list)
+    assert len(output["findings"]) == 1
+
+
+def test_reviewer_findings_reject_wrapper_with_extra_keys() -> None:
+    provider = _reviewer_output_provider(
+        findings={
+            "findings": [_reviewer_finding("finding_extra_wrapper_key")],
+            "unexpected": "wrapper keys are strict",
+        }
+    )
+
+    with pytest.raises(ProviderStructuredOutputError, match="findings must be a list"):
+        provider.run_structured(
+            prompt="Return reviewer output.",
+            input_schema={},
+            output_schema=ReviewerAgentOutput,
+        )
 
 
 @pytest.mark.parametrize(
@@ -717,6 +760,109 @@ def test_external_post_returns_retryable_429_to_the_base_retry_owner(
     assert calls == 1
     assert raised.value.retryable is True
     assert raised.value.retry_after_seconds == 30
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        '{"value": "RAW-PROVIDER-PAYLOAD-SECRET",}',
+        '```json\n{"value": "RAW-PROVIDER-PAYLOAD-SECRET",}\n```',
+        'Model preamble {"value": "RAW-PROVIDER-PAYLOAD-SECRET",} trailing prose',
+    ],
+)
+def test_invalid_provider_text_json_is_sanitized_and_retryable(text: str) -> None:
+    provider = ExternalProviderBase(
+        provider_name="external-json-test",
+        model_name="test-model",
+        model_version="v1",
+        configured_model_id="test-model",
+        external_calls_required=False,
+    )
+
+    with pytest.raises(ProviderCallError) as raised:
+        provider._parse_json_object_from_text(text)
+
+    assert raised.value.retryable is True
+    assert "RAW-PROVIDER-PAYLOAD-SECRET" not in str(raised.value)
+    assert raised.value.__cause__ is None
+
+
+def test_malformed_provider_json_is_retried_then_succeeds_without_payload_leak(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral")
+    monkeypatch.setenv("QRM_MISTRAL_API_KEY", "test-mistral-key")
+    get_settings.cache_clear()
+    provider = MistralProvider(
+        configured_model_id="mistral-json-retry-test",
+        runtime_options=ProviderRuntimeOptions(max_retries=1, retry_deadline_seconds=1),
+    )
+    responses = iter(
+        [
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "content": (
+                                "Preamble {\"value\": "
+                                "\"RAW-PROVIDER-PAYLOAD-SECRET\",} postscript"
+                            )
+                        }
+                    }
+                ]
+            },
+            {"choices": [{"message": {"content": '{"value": "recovered"}'}}]},
+        ]
+    )
+
+    monkeypatch.setattr(provider, "_post_json", lambda **_: next(responses))
+
+    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert output == {"value": "recovered"}
+    assert provider.last_run_metadata is not None
+    assert provider.last_run_metadata.retry_count == 1
+
+
+def test_anthropic_schema_failures_do_not_open_the_shared_transport_circuit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
+    monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-anthropic-key")
+    get_settings.cache_clear()
+    options = ProviderRuntimeOptions(max_retries=0, circuit_breaker_failure_threshold=3)
+    failing_role = AnthropicProvider(
+        configured_model_id="claude-schema-isolation-test",
+        runtime_options=options,
+    )
+    succeeding_role = AnthropicProvider(
+        configured_model_id="claude-schema-isolation-test",
+        runtime_options=options,
+    )
+    responses = iter(
+        [
+            {"content": [{"type": "text", "text": '{"unexpected": "shape"}'}]},
+            {"content": [{"type": "text", "text": '{"unexpected": "shape"}'}]},
+            {"content": [{"type": "text", "text": '{"unexpected": "shape"}'}]},
+            {"content": [{"type": "text", "text": '{"value": "valid-next-role"}'}]},
+        ]
+    )
+
+    def fake_post_json(**_: Any) -> dict[str, Any]:
+        return next(responses)
+
+    monkeypatch.setattr(failing_role, "_post_json", fake_post_json)
+    monkeypatch.setattr(succeeding_role, "_post_json", fake_post_json)
+
+    for _ in range(3):
+        with pytest.raises(ProviderStructuredOutputError):
+            failing_role.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert succeeding_role.run_structured("Return JSON.", {}, SimpleOutput) == {
+        "value": "valid-next-role"
+    }
 
 
 def test_provider_retry_deadline_prevents_a_long_retry_after_sleep() -> None:

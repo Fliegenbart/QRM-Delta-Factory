@@ -30,7 +30,7 @@ Gib keine narrativen Freitextantworten ausserhalb des JSON-Schemas zurueck.
   den Requirements enthalten.
 - Jedes Finding braucht mindestens ein EvidenceItem mit document_id, chunk_id,
   page und quote.
-- Wenn Evidenz fehlt, setze missing_information. Erfinde keine Evidenz.
+- Setze missing_information nur fuer offene Fakten, die im Paket nicht verifizierbar sind. Belegt das Paket selbst einen fehlenden Nachweis, ist die Luecke das belegte Risiko: missing_information bleibt leer und die Remediation gehoert in recommended_action. Erfinde keine Evidenz.
 - Wenn ein moegliches High/Critical Risiko nicht vollstaendig widerlegt ist,
   gib es als Finding zurueck.
 - No issue ist nur erlaubt, wenn du den geprueften Scope explizit abdeckst und

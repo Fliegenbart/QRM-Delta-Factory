@@ -124,13 +124,23 @@ REVIEWER_OUTPUT_CONTRACT = (
     "Every finding must contain at least one evidence_item with a document quote. "
     "Each evidence_item support_type must be exactly one of: supports, "
     "contradicts, contextual. Use strong, partial, weak, or none only for "
-    "evidence_support, never for evidence_item support_type. If evidence or requirement "
+    "evidence_support, never for evidence_item support_type. support_type describes "
+    "the relation of that quote to the risk statement, not the relation between "
+    "documents. A document-to-document discrepancy is itself evidence that supports "
+    "the risk statement, so cite both sides with support_type=supports. If a candidate "
+    "uses two or more evidence items, cite distinct source documents and non-duplicate "
+    "exact excerpts. Every identifier, version, or numeric anchor in risk_statement "
+    "must occur verbatim in at least one attached quote. If evidence or requirement "
     "support is missing, do not create a finding; explain the scope in "
-    "coverage_summary. CROSS-DOCUMENT CITATION REQUIREMENT: When a finding "
-    "depends on multiple documents, cite verbatim evidence from every supplied "
-    "source excerpt needed to establish the applicable requirement, observed state, "
-    "and contradiction or gap. Do not infer a cross-document relationship from a "
-    "single source. Return at most five concise candidate findings."
+    "coverage_summary. When the supplied package itself proves that a required record "
+    "or attachment is absent, the absence is a supported risk: set "
+    "missing_information=[] and put the remediation in recommended_action. Use "
+    "missing_information only for an open fact that the package cannot verify; it "
+    "remains blocking. CROSS-DOCUMENT CITATION REQUIREMENT: Cross-document reviewers "
+    "must cite the source pair with verbatim evidence items from each supplied source "
+    "excerpt needed to establish the applicable requirement, observed state, and "
+    "contradiction or gap. Do not infer a cross-document relationship from a single "
+    "source. Return at most five concise candidate findings."
 )
 
 
@@ -202,7 +212,38 @@ class ReviewerAgent:
             },
             output_schema=ReviewerAgentOutput,
         )
-        return ReviewerAgentOutput.model_validate(raw_output)
+        return ReviewerAgentOutput.model_validate(_recompute_reviewer_quote_hashes(raw_output))
+
+
+def _recompute_reviewer_quote_hashes(raw_output: dict[str, Any]) -> dict[str, Any]:
+    """Make quote provenance server-owned before validating reviewer output."""
+    normalized_output = dict(raw_output)
+    findings = normalized_output.get("findings")
+    if not isinstance(findings, list):
+        return normalized_output
+
+    normalized_findings: list[Any] = []
+    for finding in findings:
+        if not isinstance(finding, dict):
+            normalized_findings.append(finding)
+            continue
+        normalized_finding = dict(finding)
+        evidence_items = normalized_finding.get("evidence_items")
+        if isinstance(evidence_items, list):
+            normalized_evidence_items: list[Any] = []
+            for evidence_item in evidence_items:
+                if not isinstance(evidence_item, dict):
+                    normalized_evidence_items.append(evidence_item)
+                    continue
+                normalized_evidence_item = dict(evidence_item)
+                quote = normalized_evidence_item.get("quote")
+                if isinstance(quote, str):
+                    normalized_evidence_item["quote_hash"] = sha256(quote.encode()).hexdigest()
+                normalized_evidence_items.append(normalized_evidence_item)
+            normalized_finding["evidence_items"] = normalized_evidence_items
+        normalized_findings.append(normalized_finding)
+    normalized_output["findings"] = normalized_findings
+    return normalized_output
 
 
 class PrimaryReviewOrchestrator:
@@ -764,11 +805,25 @@ def _agent_from_template(
     return ReviewerAgent(
         agent_id=agent_id,
         role=role,
-        prompt_version=template.prompt_version,
+        prompt_version=_reviewer_prompt_identity(template),
         applicable_risk_categories=applicable_risk_categories,
         provider=_provider_for_role(role),
         prompt_template=template,
     )
+
+
+def _reviewer_prompt_identity(template: PromptTemplate) -> str:
+    """Identify the exact template plus shared directives used for a model run."""
+    content_hash = sha256(
+        "\n\n".join(
+            [
+                template.content,
+                OUTPUT_LANGUAGE_DIRECTIVE,
+                REVIEWER_OUTPUT_CONTRACT,
+            ]
+        ).encode()
+    ).hexdigest()
+    return f"{template.prompt_version}+sha256:{content_hash}"
 
 
 def _provider_for_role(role: str) -> BaseModelProvider:

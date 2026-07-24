@@ -279,7 +279,22 @@ class EvidenceVerifierService:
     ) -> list[RiskFinding]:
         results = [self.verify_finding(document_set_id, finding) for finding in findings]
         verified_findings = [
-            finding.model_copy(update={"verification_result": result})
+            finding.model_copy(
+                update={
+                    "verification_result": result,
+                    # The deterministic verifier, not the model's self-rating, owns
+                    # the publishable support state consumed by risk fusion. Findings
+                    # always carry citations, so the domain schema represents a failed
+                    # verification as partial while the detailed result retains
+                    # weak/none and the exact failure reasons.
+                    "evidence_support": (
+                        EvidenceSupport.STRONG
+                        if result.evidence_support == EvidenceSupport.STRONG
+                        and result.deterministic_checks_passed
+                        else EvidenceSupport.PARTIAL
+                    ),
+                }
+            )
             for finding, result in zip(findings, results, strict=True)
         ]
         self.repository.replace_verification_results(
@@ -491,11 +506,11 @@ def _multi_document_synthesis_is_valid(
         )
         valid = False
 
-    exact_quote_text = _normalize(" ".join(evidence_quotes))
+    exact_quote_text = _normalize_strict_quote(" ".join(evidence_quotes))
     uncovered_anchors = [
         anchor
         for anchor in _factual_anchors(finding.risk_statement)
-        if _normalize(anchor) not in exact_quote_text
+        if _normalize_strict_quote(anchor) not in exact_quote_text
     ]
     if uncovered_anchors:
         unsupported_claims.extend(
@@ -551,7 +566,11 @@ def _multi_document_claim_is_semantically_supported(
     anchor_sources = {
         document_id
         for document_id, quotes in exact_quotes_by_document.items()
-        if any(_normalize(anchor) in _normalize(" ".join(quotes)) for anchor in anchors)
+        if any(
+            _normalize_strict_quote(anchor)
+            in _normalize_strict_quote(" ".join(quotes))
+            for anchor in anchors
+        )
     }
     supporting_documents = {
         document_id
@@ -611,17 +630,30 @@ def _synthesis_concepts(value: str) -> set[str]:
 
     value = value.replace("N/A", " optional ").replace("n/a", " optional ")
     tokens = {
-        token
+        canonical_token
         for token in re.findall(r"[^\W_]+", value.lower(), flags=re.UNICODE)
-        if len(token) >= 3 and token not in _SYNTHESIS_STOPWORDS
+        if len(token) >= 3
+        and (canonical_token := _canonicalize_synthesis_token(token))
+        not in _CANONICAL_SYNTHESIS_STOPWORDS
     }
     return {
-        _SYNTHESIS_SYNONYMS.get(
+        _CANONICAL_SYNTHESIS_SYNONYMS.get(
             _TOKEN_SYNONYMS.get(token, token),
             _TOKEN_SYNONYMS.get(token, token),
         )
         for token in tokens
     }
+
+
+def _canonicalize_synthesis_token(token: str) -> str:
+    """Align German umlauts with common ASCII transliterations for concepts only."""
+    return (
+        token.casefold()
+        .replace("ä", "ae")
+        .replace("ö", "oe")
+        .replace("ü", "ue")
+        .replace("ß", "ss")
+    )
 
 
 def _factual_anchors(risk_statement: str) -> set[str]:
@@ -632,10 +664,10 @@ def _factual_anchors(risk_statement: str) -> set[str]:
     """
     import re
 
-    identifier_anchors = [
-        *re.findall(r"\b[A-Za-z][A-Za-z0-9]*-\d+(?:[.,]\d+)?", risk_statement),
-        *re.findall(r"\b[A-Z]{2,}-[A-Z]{2,}\b", risk_statement),
-    ]
+    identifier_anchors = re.findall(
+        r"\b[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)*-\d+(?:[.,]\d+)?\b",
+        risk_statement,
+    )
     numerical_anchors = re.findall(
         r"(?<![A-Za-z0-9])(?:v(?:ersion)?\.?\s*)?\d+(?:[.,]\d+)+(?:\s*%)?",
         risk_statement,
@@ -903,4 +935,12 @@ _SYNTHESIS_SYNONYMS = {
     "verpflichtend": "required",
     "vorliegt": "documented",
     "änderung": "record",
+}
+
+_CANONICAL_SYNTHESIS_STOPWORDS = {
+    _canonicalize_synthesis_token(token) for token in _SYNTHESIS_STOPWORDS
+}
+_CANONICAL_SYNTHESIS_SYNONYMS = {
+    _canonicalize_synthesis_token(token): concept
+    for token, concept in _SYNTHESIS_SYNONYMS.items()
 }

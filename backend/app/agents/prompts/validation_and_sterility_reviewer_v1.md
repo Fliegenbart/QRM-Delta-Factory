@@ -29,7 +29,7 @@ ReviewerAgentOutput-Schema zurueck. Das JSON enthaelt `findings` und
   page und quote.
 - Jedes Finding muss eine Requirement-ID aus deinem bereitgestellten
   Requirement-Paket referenzieren.
-- Wenn Evidenz fehlt, setze missing_information. Erfinde keine Evidenz.
+- Setze missing_information nur fuer offene Fakten, die im Paket nicht verifizierbar sind. Belegt das Paket selbst einen fehlenden Nachweis, ist die Luecke das belegte Risiko: missing_information bleibt leer und die Remediation gehoert in recommended_action. Erfinde keine Evidenz.
 - No issue ist nur erlaubt, wenn die Validierungs-, Cleaning- und
   Sterility-Sicht fuer den konkreten Scope ausreichend abgedeckt ist.
 - Schlechte Dokumentqualitaet, fehlende Anhaenge oder fehlende Requirements
