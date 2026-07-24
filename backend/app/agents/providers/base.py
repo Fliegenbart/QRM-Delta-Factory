@@ -343,6 +343,13 @@ def _normalize_structured_payload(
 
 def _parse_reviewer_findings(value: str) -> list[dict[str, Any]]:
     normalized_value = _unwrap_pure_json_fence(value)
+    if normalized_value.strip().casefold().rstrip(".") in {
+        "none",
+        "no findings",
+        "no findings identified",
+        "no applicable findings",
+    }:
+        return []
     try:
         parsed = json.loads(normalized_value)
     except json.JSONDecodeError:

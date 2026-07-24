@@ -285,6 +285,11 @@ def _findings_visible_in_pack(
 ) -> list[RiskFinding]:
     published_findings = _published_findings_for_pack(findings, published_finding_ids)
     published_ids = {finding.finding_id for finding in published_findings}
+    published_requirement_ids = {
+        requirement_id
+        for finding in published_findings
+        for requirement_id in finding.requirement_references
+    }
     supporting_ids = _supporting_finding_ids_for_published_roots(
         finding_clusters=finding_clusters,
         published_finding_ids=published_ids,
@@ -293,6 +298,11 @@ def _findings_visible_in_pack(
         finding
         for finding in _source_matched_reviewable_findings(findings)
         if finding.finding_id not in published_ids and finding.finding_id not in supporting_ids
+        and not (
+            finding.evidence_support == EvidenceSupport.PARTIAL
+            and bool(finding.requirement_references)
+            and set(finding.requirement_references).issubset(published_requirement_ids)
+        )
     ]
     return [*published_findings, *reviewable_hints]
 

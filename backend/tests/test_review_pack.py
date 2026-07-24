@@ -241,6 +241,127 @@ def test_review_pack_keeps_source_matched_partial_hints_alongside_canonical_root
     assert pack.top_risks[1].verifier_status == "partial"
 
 
+def test_review_pack_hides_partial_hint_when_published_root_covers_same_requirement() -> None:
+    partial_hint = _finding().model_copy(
+        update={
+            "finding_id": "finding_pack_duplicate_partial",
+            "risk_category": "model_wording_variant",
+            "risk_statement": "A differently worded model hint for the same QA requirement.",
+            "evidence_support": "partial",
+            "missing_information": ["additional model context"],
+            "verification_result": FindingVerificationResult(
+                finding_id="finding_pack_duplicate_partial",
+                evidence_support="partial",
+                quote_exists=True,
+                quote_matches_chunk=True,
+                requirement_applicable=True,
+                unsupported_claims=["The broader model wording needs QA assessment."],
+                missing_evidence=["additional model context"],
+                verifier_rationale="The source is valid but the model statement is broader.",
+                verifier_model_run_id=None,
+                deterministic_checks_passed=False,
+            ),
+        }
+    )
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[_finding(), partial_hint],
+    )
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert [risk.finding_id for risk in pack.top_risks] == ["finding_pack_high"]
+
+
+def test_review_pack_keeps_strong_nonpublished_hint_for_same_requirement() -> None:
+    strong_hint = _finding().model_copy(
+        update={
+            "finding_id": "finding_pack_strong_open_question",
+            "risk_category": "independent_control_gap",
+            "risk_statement": (
+                "A separate strong signal still requires one missing decision record."
+            ),
+            "missing_information": ["final documented disposition"],
+            "verification_result": FindingVerificationResult(
+                finding_id="finding_pack_strong_open_question",
+                evidence_support="strong",
+                quote_exists=True,
+                quote_matches_chunk=True,
+                requirement_applicable=True,
+                unsupported_claims=[],
+                missing_evidence=[],
+                verifier_rationale="The cited control gap is strongly supported.",
+                verifier_model_run_id=None,
+                deterministic_checks_passed=True,
+            ),
+        }
+    )
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[_finding(), strong_hint],
+    )
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert [risk.finding_id for risk in pack.top_risks] == [
+        "finding_pack_high",
+        "finding_pack_strong_open_question",
+    ]
+
+
+def test_review_pack_keeps_partial_hint_with_additional_uncovered_requirement() -> None:
+    partial_hint = _finding().model_copy(
+        update={
+            "finding_id": "finding_pack_partial_additional_requirement",
+            "risk_category": "linked_training_gap",
+            "requirement_references": [
+                "req_pack_threshold_validation",
+                "req_training_before_use",
+            ],
+            "evidence_support": "partial",
+            "missing_information": ["training completion matrix"],
+            "verification_result": FindingVerificationResult(
+                finding_id="finding_pack_partial_additional_requirement",
+                evidence_support="partial",
+                quote_exists=True,
+                quote_matches_chunk=True,
+                requirement_applicable=True,
+                unsupported_claims=["Training status requires QA assessment."],
+                missing_evidence=["training completion matrix"],
+                verifier_rationale="One linked requirement is not covered by the root.",
+                verifier_model_run_id=None,
+                deterministic_checks_passed=False,
+            ),
+        }
+    )
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[_finding(), partial_hint],
+    )
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert [risk.finding_id for risk in pack.top_risks] == [
+        "finding_pack_high",
+        "finding_pack_partial_additional_requirement",
+    ]
+
+
 def test_review_pack_hides_source_matched_finding_when_verifier_has_no_evidence() -> None:
     unsupported_finding = _finding().model_copy(
         update={

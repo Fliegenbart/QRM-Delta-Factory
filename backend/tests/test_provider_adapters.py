@@ -411,6 +411,22 @@ def test_reviewer_findings_normalize_safe_object_shapes_to_a_list(findings: Any)
     assert len(output["findings"]) == 1
 
 
+@pytest.mark.parametrize(
+    "findings",
+    ["none", "No findings.", "No findings identified", "No applicable findings"],
+)
+def test_reviewer_findings_normalize_explicit_no_finding_markers(findings: str) -> None:
+    provider = _reviewer_output_provider(findings=findings)
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={},
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert output["findings"] == []
+
+
 def test_reviewer_findings_reject_wrapper_with_extra_keys() -> None:
     provider = _reviewer_output_provider(
         findings={
