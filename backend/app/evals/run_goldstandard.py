@@ -279,6 +279,52 @@ def _match_decoy(decoy: dict[str, Any], findings: list[dict[str, Any]]) -> dict[
     return None
 
 
+def _review_pack_risks_as_findings(risks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Convert rendered ReviewPack top-risk cards into finding-like scorer input."""
+    scoreable: list[dict[str, Any]] = []
+    for risk in risks:
+        scoreable.append(
+            {
+                "finding_id": risk.get("finding_id"),
+                "risk_statement": risk.get("risk_statement", ""),
+                "severity": risk.get("severity"),
+                "recommended_action": risk.get("human_review_reason", ""),
+                "missing_information": [],
+                "requirement_references": risk.get("requirement_references", []),
+                "evidence_items": [
+                    {
+                        "document_id": quote.get("document_id"),
+                        "chunk_id": quote.get("chunk_id"),
+                        "page": quote.get("page"),
+                        "quote": quote.get("quote", ""),
+                        "support_type": quote.get("support_type"),
+                    }
+                    for quote in risk.get("evidence_quotes", []) or []
+                ],
+            }
+        )
+    return scoreable
+
+
+def _score_errors(
+    answer_key: dict[str, Any],
+    findings: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    matched: list[dict[str, Any]] = []
+    missed: list[dict[str, Any]] = []
+    for gold in answer_key.get("errors", []):
+        match = _match_error(gold, findings)
+        record = {
+            "error_id": gold["error_id"],
+            "severity": gold.get("severity"),
+            "error_type": gold.get("error_type"),
+            "expected_reviewer_finding": gold.get("expected_reviewer_finding"),
+            "match": match,
+        }
+        (matched if match else missed).append(record)
+    return matched, missed
+
+
 def _package_document_paths(package_dir: Path) -> list[Path]:
     """Return source documents only; evaluation oracles are never pipeline inputs."""
     return [
@@ -374,6 +420,7 @@ def _wait_for_pipeline_completion(
 def run_case(
     client: Any,
     repository: Any,
+    audit_log: Any,
     case_dir: Path,
     *,
     pipeline_timeout_seconds: float = 300.0,
@@ -427,18 +474,29 @@ def run_case(
     answer_key = _load_post_run_oracle(oracle_path)
     case_id = answer_key["case_id"]
 
-    matched: list[dict[str, Any]] = []
-    missed: list[dict[str, Any]] = []
-    for gold in answer_key.get("errors", []):
-        match = _match_error(gold, findings)
-        record = {
-            "error_id": gold["error_id"],
-            "severity": gold.get("severity"),
-            "error_type": gold.get("error_type"),
-            "expected_reviewer_finding": gold.get("expected_reviewer_finding"),
-            "match": match,
-        }
-        (matched if match else missed).append(record)
+    matched, missed = _score_errors(answer_key, findings)
+
+    review_pack_findings: list[dict[str, Any]] = []
+    try:
+        from app.services.review_pack import ReviewPackService
+
+        review_pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+            document_set_id
+        )
+        review_pack_findings = _review_pack_risks_as_findings(
+            [
+                risk.model_dump(mode="json")
+                for risk in review_pack.top_risks
+            ]
+        )
+        review_pack_matched, review_pack_missed = _score_errors(
+            answer_key,
+            review_pack_findings,
+        )
+        review_pack_error: str | None = None
+    except Exception as exc:  # noqa: BLE001 - pack visibility must not mask pipeline score
+        review_pack_matched, review_pack_missed = _score_errors(answer_key, [])
+        review_pack_error = str(exc)
 
     decoy_hits: list[dict[str, Any]] = []
     decoys_passed: list[dict[str, Any]] = []
@@ -520,12 +578,16 @@ def run_case(
         ),
         "claim_count": len(claims),
         "finding_count": len(findings),
+        "review_pack_finding_count": len(review_pack_findings),
         "citation_verified_finding_count": len(verified),
         "risk_decision": getattr(decision, "decision", None),
         "auto_clear_allowed": getattr(decision, "auto_clear_allowed", None),
         "gold_error_count": len(answer_key.get("errors", [])),
         "matched_errors": matched,
         "missed_errors": missed,
+        "review_pack_matched_errors": review_pack_matched,
+        "review_pack_missed_errors": review_pack_missed,
+        "review_pack_error": review_pack_error,
         "decoy_count": len(answer_key.get("non_error_decoys", [])),
         "decoy_false_alarms": decoy_hits,
         "decoys_passed": decoys_passed,
@@ -634,6 +696,9 @@ def _matches_false_positive_boundary(
 def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
     total_errors = sum(case["gold_error_count"] for case in case_results)
     total_matched = sum(len(case["matched_errors"]) for case in case_results)
+    total_review_pack_matched = sum(
+        len(case.get("review_pack_matched_errors") or []) for case in case_results
+    )
     total_decoys = sum(case["decoy_count"] for case in case_results)
     total_decoy_hits = sum(len(case["decoy_false_alarms"]) for case in case_results)
     total_findings = sum(case["finding_count"] for case in case_results)
@@ -666,6 +731,13 @@ def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
             "found": total_matched,
             "total": total_errors,
             "rate": round(total_matched / total_errors, 3) if total_errors else None,
+        },
+        "review_pack_sensitivity": {
+            "found": total_review_pack_matched,
+            "total": total_errors,
+            "rate": round(total_review_pack_matched / total_errors, 3)
+            if total_errors
+            else None,
         },
         "specificity_decoys": {
             "passed": total_decoys - total_decoy_hits,
@@ -707,11 +779,17 @@ def _render_markdown(
         "",
     ]
     sens = aggregate["sensitivity"]
+    pack_sens = aggregate["review_pack_sensitivity"]
     spec = aggregate["specificity_decoys"]
     cite = aggregate["citation_precision"]
     lines.append(
         f"- **Sensitivität:** {sens['found']} von {sens['total']} versteckten Fehlern gefunden"
         + (f" ({sens['rate']:.0%})" if sens["rate"] is not None else "")
+    )
+    lines.append(
+        f"- **In Prüfmappe sichtbar:** {pack_sens['found']} von {pack_sens['total']}"
+        " versteckten Fehlern"
+        + (f" ({pack_sens['rate']:.0%})" if pack_sens["rate"] is not None else "")
     )
     quality = aggregate.get("quality_metrics") or {}
     if quality:
@@ -764,13 +842,14 @@ def _render_markdown(
     lines.append("## Fälle")
     lines.append("")
     lines.append(
-        "| Fall | Status | Claims | Findings | Fehler gefunden | Decoy-Fehlalarme | Entscheidung |"
+        "| Fall | Status | Claims | Findings | Fehler gefunden | In Prüfmappe | Decoy-Fehlalarme | Entscheidung |"
     )
-    lines.append("|---|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|")
     for case in case_results:
         lines.append(
             f"| {case['case_id']} | {case['pipeline_status']} | {case['claim_count']} "
             f"| {case['finding_count']} | {len(case['matched_errors'])}/{case['gold_error_count']} "
+            f"| {len(case.get('review_pack_matched_errors') or [])}/{case['gold_error_count']} "
             f"| {len(case['decoy_false_alarms'])}/{case['decoy_count']} "
             f"| {case['risk_decision'] or '-'} |"
         )
@@ -898,6 +977,7 @@ def main(argv: list[str] | None = None) -> int:
             result = run_case(
                 client,
                 repository,
+                audit_log,
                 case_dir,
                 pipeline_timeout_seconds=args.pipeline_timeout_seconds,
             )
@@ -909,12 +989,16 @@ def main(argv: list[str] | None = None) -> int:
                 "error": str(exc),
                 "claim_count": 0,
                 "finding_count": 0,
+                "review_pack_finding_count": 0,
                 "citation_verified_finding_count": 0,
                 "risk_decision": None,
                 "auto_clear_allowed": None,
                 "gold_error_count": 0,
                 "matched_errors": [],
                 "missed_errors": [],
+                "review_pack_matched_errors": [],
+                "review_pack_missed_errors": [],
+                "review_pack_error": str(exc),
                 "decoy_count": 0,
                 "decoy_false_alarms": [],
                 "decoys_passed": [],

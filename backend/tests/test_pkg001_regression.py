@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from app.evals.run_goldstandard import _package_document_paths, _wait_for_pipeline_completion
+from app.evals.run_goldstandard import (
+    _match_error,
+    _package_document_paths,
+    _review_pack_risks_as_findings,
+    _wait_for_pipeline_completion,
+)
 
 
 def test_pkg001_upload_manifest_excludes_oracle_and_answer_keys(tmp_path: Path) -> None:
@@ -42,6 +47,43 @@ def test_harness_polls_202_pipeline_run_until_terminal() -> None:
         "/pipeline-runs/prun_pkg001",
         "/pipeline-runs/prun_pkg001",
     ]
+
+
+def test_review_pack_risks_are_scoreable_against_pkg001_oracle() -> None:
+    risks = [
+        {
+            "finding_id": "risk_training_gap",
+            "risk_statement": "SOP v4 was effective before training completion was evidenced.",
+            "severity": "medium",
+            "requirement_references": ["req_qc_training_before_effective_sop_use"],
+            "evidence_quotes": [
+                {
+                    "document_id": "doc_training",
+                    "chunk_id": "chunk_training_1",
+                    "page": 3,
+                    "quote": "Training matrix lists SOP v4 as not completed before effective use.",
+                    "support_type": "supports",
+                }
+            ],
+        }
+    ]
+
+    scoreable = _review_pack_risks_as_findings(risks)
+
+    assert _match_error(
+        {
+            "error_id": "PKG001-TRAINING",
+            "severity": "medium",
+            "expected_reviewer_finding": (
+                "Training for SOP v4 was not completed before effective use."
+            ),
+            "why_it_is_a_problem": "Training must precede GMP use.",
+            "exact_evidence_text": (
+                "Training matrix lists SOP v4 as not completed before effective use."
+            ),
+        },
+        scoreable,
+    )
 
 
 class _PipelineResponse:

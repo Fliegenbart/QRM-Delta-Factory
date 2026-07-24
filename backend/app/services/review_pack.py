@@ -26,7 +26,7 @@ from app.schemas.review_pack import (
     ReviewPackSupportingSignal,
     ReviewPackTopRisk,
 )
-from app.schemas.risk import RiskDecision
+from app.schemas.risk import FindingCluster, RiskDecision
 from app.services.review_calibration import ReviewCalibrationService
 
 
@@ -64,9 +64,11 @@ class ReviewPackService:
             )
 
         raw_findings = _findings_for_pack(self.repository, document_set_id)
-        findings = _published_findings_for_pack(raw_findings, decision.published_finding_ids)
-        if not findings:
-            findings = _source_matched_reviewable_findings(raw_findings)
+        findings = _findings_visible_in_pack(
+            raw_findings,
+            published_finding_ids=decision.published_finding_ids,
+            finding_clusters=decision.finding_clusters,
+        )
         review_decisions_by_finding = {
             finding.finding_id: self.repository.list_review_decisions(finding.finding_id)
             for finding in findings
@@ -273,6 +275,43 @@ def _source_matched_reviewable_findings(
         and finding.verification_result.evidence_support
         in {EvidenceSupport.STRONG, EvidenceSupport.PARTIAL}
     ]
+
+
+def _findings_visible_in_pack(
+    findings: Sequence[RiskFinding],
+    *,
+    published_finding_ids: Sequence[str],
+    finding_clusters: Sequence[FindingCluster],
+) -> list[RiskFinding]:
+    published_findings = _published_findings_for_pack(findings, published_finding_ids)
+    published_ids = {finding.finding_id for finding in published_findings}
+    supporting_ids = _supporting_finding_ids_for_published_roots(
+        finding_clusters=finding_clusters,
+        published_finding_ids=published_ids,
+    )
+    reviewable_hints = [
+        finding
+        for finding in _source_matched_reviewable_findings(findings)
+        if finding.finding_id not in published_ids and finding.finding_id not in supporting_ids
+    ]
+    return [*published_findings, *reviewable_hints]
+
+
+def _supporting_finding_ids_for_published_roots(
+    *,
+    finding_clusters: Sequence[FindingCluster],
+    published_finding_ids: set[str],
+) -> set[str]:
+    supporting_ids: set[str] = set()
+    for cluster in finding_clusters:
+        if cluster.published_finding_id not in published_finding_ids:
+            continue
+        supporting_ids.update(
+            finding_id
+            for finding_id in cluster.finding_ids
+            if finding_id != cluster.published_finding_id
+        )
+    return supporting_ids
 
 
 def _supporting_findings_by_root(

@@ -146,6 +146,37 @@ describe("review pack exports", () => {
     expect(content).not.toContain("NICHT KANONISCH");
   });
 
+  it("wraps combined QA-step reasons and cleans evidence markdown artifacts", async () => {
+    const pdf = createReviewPackPdf({
+      ...pack,
+      top_risks: [
+        {
+          ...pack.top_risks[0],
+          verifier_status: "partial",
+          human_review_reason:
+            "single high/critical finding is sufficient for human review; adversarial challenge involves possible high/critical risk; required knowledge pack not retrieved: contradiction_patterns; verifier did not pass all deterministic checks"
+        }
+      ],
+      evidence_table: [
+        {
+          ...pack.evidence_table[0],
+          quote: "?**Datum:** 2026-03-21 ?**Dokumenttyp:** Batch Record mit **A17-26044** Retest."
+        }
+      ]
+    });
+    const content = String.fromCharCode(...new Uint8Array(await pdf.arrayBuffer()));
+    const qaStepLines = content.split("\n").filter((line) => line.includes("QA-Schritt:"));
+
+    expect(content).not.toContain("single high/critical finding");
+    expect(content).not.toContain("adversarial challenge involves");
+    expect(content).not.toContain("?**");
+    expect(content).not.toContain("**A17-26044**");
+    expect(content).toContain("Datum: 2026-03-21");
+    expect(content).toContain("A17-26044 Retest");
+    expect(qaStepLines.length).toBeGreaterThan(0);
+    expect(Math.max(...qaStepLines.map((line) => line.length))).toBeLessThan(150);
+  });
+
   it("uses a safe, case-specific filename", () => {
     expect(reviewPackExportFileName(pack, "pdf")).toBe("pruefmappe-ds_case_42.pdf");
     expect(reviewPackExportFileName(pack, "csv")).toBe("pruefmappe-ds_case_42-evidenz.csv");

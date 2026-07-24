@@ -386,6 +386,8 @@ class ModelRun(StrictSchema):
     latency_ms: int | None = Field(default=None, ge=0)
     token_usage: TokenUsage
     status: ModelRunStatus
+    error_type: str | None = Field(default=None)
+    error_summary: str | None = Field(default=None)
 
     @model_validator(mode="after")
     def completed_at_must_be_after_started_at(self) -> ModelRun:

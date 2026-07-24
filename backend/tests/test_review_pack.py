@@ -159,6 +159,49 @@ def test_review_pack_shows_source_matched_partial_finding_when_no_canonical_root
     assert "QA-Prüfung erforderlich" in pack.decision_summary
 
 
+def test_review_pack_keeps_source_matched_partial_hints_alongside_canonical_roots() -> None:
+    partial_hint = _finding().model_copy(
+        update={
+            "finding_id": "finding_pack_training_partial",
+            "risk_category": "training",
+            "severity": "medium",
+            "risk_statement": "Training completion before SOP use needs QA confirmation.",
+            "requirement_references": ["req_training_before_use"],
+            "evidence_support": "partial",
+            "missing_information": ["completed training matrix before effective SOP use"],
+            "verification_result": FindingVerificationResult(
+                finding_id="finding_pack_training_partial",
+                evidence_support="partial",
+                quote_exists=True,
+                quote_matches_chunk=True,
+                requirement_applicable=True,
+                unsupported_claims=["The cited source does not fully prove completion."],
+                missing_evidence=["completed training matrix before effective SOP use"],
+                verifier_rationale="The source quote is present but needs QA confirmation.",
+                verifier_model_run_id=None,
+                deterministic_checks_passed=False,
+            ),
+        }
+    )
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[_finding(), partial_hint],
+    )
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert [risk.finding_id for risk in pack.top_risks] == [
+        "finding_pack_high",
+        "finding_pack_training_partial",
+    ]
+    assert pack.top_risks[1].verifier_status == "partial"
+
+
 def test_review_pack_hides_source_matched_finding_when_verifier_has_no_evidence() -> None:
     unsupported_finding = _finding().model_copy(
         update={

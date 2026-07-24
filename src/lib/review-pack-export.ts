@@ -1,5 +1,6 @@
 import {
   displayReviewReason,
+  displayReviewReasons,
   displayReviewValue,
   displayRiskStatement,
   reviewPackRiskPresentation,
@@ -92,7 +93,7 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
     );
     pages.paragraph(displayRiskStatement(risk.risk_statement));
     pages.text(`Verifier-Status: ${risk.verifier_status}`);
-    pages.text(`QA-Schritt: ${displayHumanReviewReason(risk.human_review_reason)}`);
+    addQaStep(pages, risk.human_review_reason);
     pages.spacer(4);
   }
 
@@ -103,7 +104,7 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
     pages.subheading(`${index + 1}. Hinweis – ${displayReviewValue(risk.severity)}`);
     pages.paragraph(displayRiskStatement(risk.risk_statement));
     pages.text(`Verifier-Status: ${risk.verifier_status}`);
-    pages.text(`QA-Schritt: ${displayHumanReviewReason(risk.human_review_reason)}`);
+    addQaStep(pages, risk.human_review_reason);
     pages.spacer(4);
   }
 
@@ -132,7 +133,7 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
   }
   for (const evidence of pack.evidence_table) {
     pages.paragraph(
-      `Quelle ${evidence.document_id}, Seite ${evidence.page}: ${evidence.quote}`,
+      `Quelle ${evidence.document_id}, Seite ${evidence.page}: ${cleanPdfSnippet(evidence.quote)}`,
       9,
       0
     );
@@ -154,9 +155,24 @@ function unique(values: string[]): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
 }
 
-function displayHumanReviewReason(reason: string | null | undefined): string {
-  if (!reason) return "Menschliche Prüfung erforderlich.";
-  return displayReviewReason(reason);
+function addQaStep(pages: PdfPageBuilder, reason: string | null | undefined) {
+  const reasons = displayHumanReviewReasons(reason);
+  const [firstReason, ...additionalReasons] = reasons;
+  pages.paragraph(`QA-Schritt: ${firstReason}`, 10, 0);
+  additionalReasons.forEach((additionalReason) => pages.paragraph(`- ${additionalReason}`, 10, 8));
+}
+
+function displayHumanReviewReasons(reason: string | null | undefined): string[] {
+  if (!reason) return ["Menschliche Prüfung erforderlich."];
+  return displayReviewReasons(reason);
+}
+
+function cleanPdfSnippet(value: string): string {
+  return value
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\?+\s*(Datum|Dokumenttyp|Prozessbereich|Seiten-\/Abschnittsplatzhalter|Status):/g, "$1:")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 type PdfLine = { text: string; fontSize: number; indent: number; gapAfter: number };

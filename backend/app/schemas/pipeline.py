@@ -32,6 +32,8 @@ class PipelineModelManifestItem(StrictSchema):
     calibration_pack_hash: str | None = None
     status: str
     model_run_id: str | None = None
+    error_type: str | None = None
+    error_summary: str | None = None
 
 
 class PipelineRun(StrictSchema):

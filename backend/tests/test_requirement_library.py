@@ -11,6 +11,7 @@ from app.db.in_memory import repository
 from app.main import app
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[1] / "examples" / "requirements"
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 @pytest.fixture(autouse=True)
@@ -129,6 +130,32 @@ def test_search_filters_active_requirements() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert [item["requirement_id"] for item in payload] == ["req_change_control_impact_assessment"]
+
+
+def test_default_gmp_library_contains_pkg001_qc_change_rule_family() -> None:
+    library_path = REPO_ROOT / "src" / "data" / "gmp-general-requirement-library.json"
+    library = json.loads(library_path.read_text(encoding="utf-8"))
+
+    requirements = {
+        requirement["requirement_id"]: requirement
+        for requirement in library["requirements"]
+    }
+
+    expected_ids = {
+        "req_qc_limit_fitness_at_tightened_limit",
+        "req_qc_equipment_site_bridge_for_comparator_evidence",
+        "req_qc_qa_approval_before_first_gmp_use",
+        "req_qc_training_before_effective_sop_use",
+        "req_qc_affected_batch_scope_includes_retests",
+    }
+    assert expected_ids <= set(requirements)
+    for requirement_id in expected_ids:
+        requirement = requirements[requirement_id]
+        assert "change_control_package" in requirement["applies_to_document_types"]
+        assert "qc_lab" in requirement["applies_to_process_areas"]
+        assert "change_control" in requirement["knowledge_packs"]
+        assert "qc_lab" in requirement["knowledge_packs"]
+        assert "contradiction_patterns" in requirement["knowledge_packs"]
 
 
 def test_import_rejects_duplicate_requirement_ids() -> None:

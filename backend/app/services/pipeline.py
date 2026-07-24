@@ -447,6 +447,8 @@ class PipelineService:
                 calibration_pack_hash=model_run.calibration_pack_hash,
                 status=str(model_run.status),
                 model_run_id=model_run.model_run_id,
+                error_type=model_run.error_type,
+                error_summary=model_run.error_summary,
             )
             for model_run in _latest_model_runs_by_agent(
                 self.repository.list_model_runs(document_set_id)

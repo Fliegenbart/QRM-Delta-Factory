@@ -162,6 +162,34 @@ def test_invalid_model_output_is_caught_as_failed_model_run() -> None:
     )
 
 
+def test_failed_model_run_records_safe_error_metadata() -> None:
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id="agent_structured_failure",
+                role="DeviationReviewer",
+                prompt_version="structured-failure-v0.1",
+                applicable_risk_categories=["deviation_management"],
+                provider=StructuredFailureProvider(),
+            )
+        ],
+    )
+
+    result = orchestrator.run_primary_review("ds_review_demo")
+
+    assert len(result.failed_model_runs) == 1
+    failed_run = result.failed_model_runs[0]
+    assert failed_run.error_type == "ProviderStructuredOutputError"
+    assert failed_run.error_summary == "findings must be a JSON array"
+    failed_event = next(
+        event for event in audit_log.list_events() if event.event_type == "model_run_failed"
+    )
+    assert failed_event.payload["error_type"] == "ProviderStructuredOutputError"
+    assert failed_event.payload["error_summary"] == "findings must be a JSON array"
+
+
 def test_transient_structured_output_error_is_retried() -> None:
     provider = FlakyStructuredOutputProvider()
     orchestrator = PrimaryReviewOrchestrator(
@@ -253,6 +281,55 @@ def test_contradiction_hunter_loads_pattern_knowledge_packs_from_matching_requir
     assert "contradiction_patterns" in result.model_runs[0].knowledge_pack_ids
     assert "old_evidence_patterns" in result.model_runs[0].knowledge_pack_ids
     assert "pending_approval_patterns" in result.model_runs[0].knowledge_pack_ids
+    assert result.model_runs[0].missing_knowledge_pack_ids == []
+
+
+def test_contradiction_hunter_loads_contradiction_patterns_for_qc_change_package_requirements() -> None:
+    repository.create_requirement_set(_qc_change_cross_document_requirement_set())
+    repository.create_document_set(
+        _document_set().model_copy(
+            update={
+                "document_set_id": "ds_qc_change_contradiction_demo",
+                "requirement_set_id": "rset_qc_change_cross_document_2026",
+                "declared_document_type": "change_control_package",
+                "declared_process_area": "qc_lab",
+            }
+        )
+    )
+    repository.replace_claim_ledger(
+        document_set_id="ds_qc_change_contradiction_demo",
+        claims=[
+            _claim(
+                "claim_cross_document_scope_gap",
+                "missing_or_unclear",
+                "affected batches",
+                "A17-26044",
+                (
+                    "Cross-document consistency is required because the Change Control "
+                    "lists A17-26045 and A17-26046, while the Execution Record includes "
+                    "a retained-sample retest for A17-26044."
+                ),
+            )
+        ],
+    )
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id="agent_qc_change_contradiction",
+                role="ContradictionHunter",
+                prompt_version="contradiction-v0.1",
+                applicable_risk_categories=["contradiction"],
+                provider=MockModelProvider(),
+            )
+        ],
+    )
+
+    result = orchestrator.run_primary_review("ds_qc_change_contradiction_demo")
+
+    assert result.model_runs[0].status == "succeeded"
+    assert "contradiction_patterns" in result.model_runs[0].knowledge_pack_ids
     assert result.model_runs[0].missing_knowledge_pack_ids == []
 
 
@@ -355,6 +432,22 @@ class FlakyStructuredOutputProvider:
         output = self._delegate.run_structured(prompt, input_schema, output_schema)
         self.last_run_metadata = self._delegate.last_run_metadata
         return output
+
+
+class StructuredFailureProvider:
+    provider_name = "mock"
+    model_name = "structured-failure-model"
+    model_version = "0.1.0"
+    configured_model_id = "structured-failure-model-v0.1"
+    last_run_metadata = None
+
+    def run_structured(
+        self,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[Any],
+    ) -> dict[str, Any]:
+        raise ProviderStructuredOutputError("findings must be a JSON array")
 
 
 class InvalidRequirementReferenceProvider:
@@ -496,6 +589,44 @@ def _contradiction_requirement_set() -> RequirementSet:
                 "applies_to_process_areas": ["aseptic_filling"],
                 "criticality": "high",
                 "required_evidence": ["current validation evidence", "QA approval status"],
+                "auto_close_allowed": False,
+                "effective_from": "2026-01-01T00:00:00Z",
+                "effective_to": None,
+            }
+        ],
+    )
+
+
+def _qc_change_cross_document_requirement_set() -> RequirementSet:
+    return RequirementSet(
+        requirement_set_id="rset_qc_change_cross_document_2026",
+        tenant_id="tenant_demo_pharma",
+        name="QC Change Cross-Document Requirements",
+        version="2026.1",
+        imported_at=datetime.now(UTC),
+        imported_by="user_quality_admin",
+        active=True,
+        requirements=[
+            {
+                "requirement_id": "req_qc_change_cross_document_consistency",
+                "source_type": "checklist",
+                "source_name": "QC Change Control Checklist",
+                "source_version": "1.0",
+                "section": "4.2",
+                "requirement_text": (
+                    "Cross-document consistency must be demonstrated for QC change "
+                    "packages. Affected batches, retests, retained samples, pending QA "
+                    "approval and old validation evidence must be consistent before "
+                    "release."
+                ),
+                "applies_to_document_types": ["change_control_package"],
+                "applies_to_process_areas": ["qc_lab"],
+                "criticality": "high",
+                "required_evidence": [
+                    "change scope",
+                    "execution record",
+                    "retained sample retest list",
+                ],
                 "auto_close_allowed": False,
                 "effective_from": "2026-01-01T00:00:00Z",
                 "effective_to": None,

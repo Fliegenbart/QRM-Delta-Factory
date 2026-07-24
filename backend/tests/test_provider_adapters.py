@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from hashlib import sha256
 from threading import Thread
@@ -146,6 +147,69 @@ def test_provider_normalizes_model_supplied_quote_hashes_for_reviewer_output() -
         output_schema=ReviewerAgentOutput,
     )
 
+    assert (
+        output["findings"][0]["evidence_items"][0]["quote_hash"]
+        == sha256(quote.encode()).hexdigest()
+    )
+
+
+def test_stringified_findings_payload_is_normalized_for_reviewer_output() -> None:
+    quote = "QA approval remains pending."
+    stringified_findings = (
+        "["
+        + json.dumps(
+            {
+                "finding_id": "finding_stringified",
+                "document_set_id": "ds_provider_demo",
+                "risk_category": "qa_approval",
+                "severity": "high",
+                "likelihood": 3,
+                "detectability": 3,
+                "risk_statement": "QA approval appears pending.",
+                "evidence_items": [
+                    {
+                        "document_id": "doc_provider_demo",
+                        "chunk_id": "chunk_provider_demo",
+                        "page": 1,
+                        "quote": quote,
+                        "quote_hash": "not-a-valid-sha256",
+                        "support_type": "supports",
+                        "verifier_score": 0.8,
+                    }
+                ],
+                "requirement_references": ["req_provider_deviation_review"],
+                "missing_information": ["documented QA approval decision"],
+                "model_provider": "mock",
+                "model_name": "mock-reviewer",
+                "model_version": "0.1.0",
+                "prompt_version": "prompt-v1",
+                "evidence_support": "partial",
+                "recommended_action": "Review approval status.",
+                "auto_close_allowed": False,
+                "status": "needs_human_review",
+            }
+        )
+        + "]"
+    )
+    provider = MockProvider(
+        model_name="mock-reviewer",
+        model_version="0.1.0",
+        configured_model_id="mock-local",
+        structured_output={
+            "coverage_summary": "Reviewed one stringified finding.",
+            "findings": stringified_findings,
+        },
+        prompt_version="prompt-v1",
+    )
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={},
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert isinstance(output["findings"], list)
+    assert output["findings"][0]["finding_id"] == "finding_stringified"
     assert (
         output["findings"][0]["evidence_items"][0]["quote_hash"]
         == sha256(quote.encode()).hexdigest()

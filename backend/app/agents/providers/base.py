@@ -317,6 +317,14 @@ def _normalize_structured_payload(
 
     normalized = dict(payload)
     findings = normalized.get("findings")
+    if isinstance(findings, str):
+        try:
+            parsed_findings = json.loads(findings)
+        except json.JSONDecodeError:
+            parsed_findings = findings
+        if isinstance(parsed_findings, list):
+            findings = parsed_findings
+            normalized["findings"] = parsed_findings
     if not isinstance(findings, list):
         return normalized
 

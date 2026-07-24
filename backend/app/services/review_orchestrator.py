@@ -402,6 +402,8 @@ class PrimaryReviewOrchestrator:
         raw_output_text = ""
         status = ModelRunStatus.SUCCEEDED
         failure_class: str | None = None
+        error_type: str | None = None
+        error_summary: str | None = None
         agent.provider.last_run_metadata = None
         try:
             def run_reviewer() -> ReviewerAgentOutput:
@@ -435,6 +437,8 @@ class PrimaryReviewOrchestrator:
             raw_output_text = json.dumps({"error": str(exc)}, sort_keys=True)
             status = ModelRunStatus.FAILED
             failure_class = _failure_class(exc)
+            error_type = type(exc).__name__
+            error_summary = _safe_error_summary(exc)
 
         completed_at = datetime.now(UTC)
         latency_ms = int((time.perf_counter() - started_perf) * 1000)
@@ -462,6 +466,8 @@ class PrimaryReviewOrchestrator:
             latency_ms=latency_ms,
             token_usage=_token_usage_for_model_run(agent.provider, input_hash, raw_output_text),
             status=status,
+            error_type=error_type,
+            error_summary=error_summary,
         )
         self.repository.add_model_run(document_set_id=document_set_id, model_run=model_run)
         # Full raw outputs may contain regulated document text. Retention remains
@@ -508,6 +514,8 @@ class PrimaryReviewOrchestrator:
                 "input_hash": input_hash,
                 "output_hash": output_hash,
                 "failure_class": failure_class,
+                "error_type": error_type,
+                "error_summary": error_summary,
             },
         )
         if output is not None:
@@ -558,6 +566,9 @@ class PrimaryReviewOrchestrator:
                 "calibration_pack_hash": model_run.calibration_pack_hash,
                 "input_hash": input_hash,
                 "output_hash": output_hash,
+                "failure_class": failure_class,
+                "error_type": error_type,
+                "error_summary": error_summary,
             },
         )
         return _AgentRunResult(agent=agent, output=output, model_run=model_run)
@@ -1071,6 +1082,11 @@ def _failure_class(exc: Exception) -> str:
     return "review_execution_failed"
 
 
+def _safe_error_summary(exc: Exception) -> str:
+    summary = " ".join(str(exc).split())
+    return summary[:500]
+
+
 def _requirement_matches_document_set(
     requirement: Requirement,
     document_set: DocumentSet,
@@ -1287,7 +1303,16 @@ def _requirement_pack_candidates(requirement: Requirement) -> list[str]:
         "capa_management": ("capa", "corrective", "preventive"),
         "change_control": ("change", "aenderung", "change control"),
         "cleaning_validation": ("cleaning", "reinigung"),
-        "contradiction_patterns": ("contradiction", "widerspruch"),
+        "contradiction_patterns": (
+            "contradiction",
+            "widerspruch",
+            "inconsistent",
+            "konsistent",
+            "consistency",
+            "cross-document",
+            "dokumentuebergreifend",
+            "abweichende angaben",
+        ),
         "data_integrity": ("data integrity", "datenintegritaet", "alcoa"),
         "deviation_management": ("deviation", "abweichung"),
         "disposition": ("disposition", "release", "freigabe"),

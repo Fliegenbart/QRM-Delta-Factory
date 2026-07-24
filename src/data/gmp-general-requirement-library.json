@@ -1431,6 +1431,294 @@
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
       "effective_to": null
+    },
+    {
+      "requirement_id": "req_qc_limit_fitness_at_tightened_limit",
+      "title": "Methodenfitness am verschaerften quantitativen Grenzwert",
+      "domain": "method_validation",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base",
+        "change_control",
+        "qc_lab",
+        "method_validation",
+        "validation",
+        "old_evidence_patterns",
+        "contradiction_patterns"
+      ],
+      "applies_to_agents": [
+        "ValidationAndSterilityReviewer",
+        "RegulatoryConsistencyReviewer",
+        "RedTeamCriticAnthropic",
+        "RedTeamCriticOpenAI"
+      ],
+      "applies_when_signals_present": [
+        "method_change",
+        "specification_change",
+        "validation_scope"
+      ],
+      "red_flags": [
+        "alter Validierungsreport deckt neuen Grenzwert nicht explizit ab",
+        "keine Praezisions- oder Genauigkeitsstufe am neuen Limit",
+        "System Suitability nur oberhalb des neuen Grenzwerts"
+      ],
+      "source_refs": [
+        "ICH Q2(R2)",
+        "EU GMP Kapitel 6"
+      ],
+      "required_reviewer_roles": [
+        "ValidationAndSterilityReviewer"
+      ],
+      "source_type": "guideline",
+      "source_name": "ICH Q2(R2) / EU GMP Kapitel 6",
+      "source_version": "2023",
+      "section": "fitness-for-intended-use",
+      "requirement_text": "Wenn ein quantitativer QC-Grenzwert verschaerft wird, muss die Methodenfitness fuer die Entscheidung am neuen Grenzwert belegt sein. Historische Validierung fuer einen weniger strengen Grenzwert reicht nur aus, wenn Genauigkeit, Praezision, Linearitaet und Reporting Capability am neuen Grenzwert oder darunter nachvollziehbar abgedeckt sind.",
+      "applies_to_document_types": [
+        "change_control_package"
+      ],
+      "applies_to_process_areas": [
+        "qc_lab"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "alter und neuer Grenzwert",
+        "Validierungsreport",
+        "Nachweis am neuen Limit",
+        "System-Suitability- oder Spike-Recovery-Daten"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_qc_equipment_site_bridge_for_comparator_evidence",
+      "title": "Geraete- und Standort-Bridging fuer Vergleichsevidenz",
+      "domain": "method_validation",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base",
+        "change_control",
+        "qc_lab",
+        "method_validation",
+        "material_traceability",
+        "contradiction_patterns"
+      ],
+      "applies_to_agents": [
+        "ValidationAndSterilityReviewer",
+        "RegulatoryConsistencyReviewer",
+        "RedTeamCriticAnthropic",
+        "RedTeamCriticOpenAI"
+      ],
+      "applies_when_signals_present": [
+        "method_change",
+        "validation_scope"
+      ],
+      "red_flags": [
+        "Vergleichslabor anderer Standort",
+        "andere Geraeteplattform ohne Bridge",
+        "Comparator Summary nur informational"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 6",
+        "ICH Q2(R2)"
+      ],
+      "required_reviewer_roles": [
+        "ValidationAndSterilityReviewer"
+      ],
+      "source_type": "guideline",
+      "source_name": "EU GMP Kapitel 6 / ICH Q2(R2)",
+      "source_version": "2023",
+      "section": "method-transfer-bridging",
+      "requirement_text": "Vergleichsdaten von anderem Standort oder anderer Geraeteplattform duerfen eine QC-Methodenentscheidung nur stuetzen, wenn eine dokumentierte Geraeteaequivalenz, ein Transfer- oder Bridging-Nachweis oder eine genehmigte fachliche Begruendung vorliegt.",
+      "applies_to_document_types": [
+        "change_control_package"
+      ],
+      "applies_to_process_areas": [
+        "qc_lab"
+      ],
+      "criticality": "medium",
+      "required_evidence": [
+        "Comparator Summary",
+        "Geraeteaequivalenz",
+        "Methodentransfer oder Bridging",
+        "genehmigte Begruendung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_qc_qa_approval_before_first_gmp_use",
+      "title": "QA-Freigabe vor erster GMP-Anwendung",
+      "domain": "qa_approval",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base",
+        "change_control",
+        "qc_lab",
+        "qa_approval",
+        "approval_matrix",
+        "pending_approval_patterns",
+        "contradiction_patterns"
+      ],
+      "applies_to_agents": [
+        "RegulatoryConsistencyReviewer",
+        "BatchImpactReviewer",
+        "RedTeamCriticAnthropic",
+        "RedTeamCriticOpenAI"
+      ],
+      "applies_when_signals_present": [
+        "approval_pending",
+        "specification_change"
+      ],
+      "red_flags": [
+        "QA approval pending",
+        "QA-Freigabesignaturblock leer",
+        "erste Anwendung vor Change Closure",
+        "planned via closure"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 1",
+        "EU GMP Kapitel 4"
+      ],
+      "required_reviewer_roles": [
+        "RegulatoryConsistencyReviewer",
+        "BatchImpactReviewer"
+      ],
+      "source_type": "regulation",
+      "source_name": "EU GMP Kapitel 1 und 4",
+      "source_version": "2024",
+      "section": "change-approval-before-use",
+      "requirement_text": "Eine geaenderte QC-Spezifikation oder Methode darf fuer GMP-Freigabeentscheidungen erst verwendet werden, wenn die erforderliche QA-Genehmigung dokumentiert ist. Geplante oder ausstehende Freigaben reichen vor der ersten Chargenfreigabe nicht aus.",
+      "applies_to_document_types": [
+        "change_control_package"
+      ],
+      "applies_to_process_areas": [
+        "qc_lab"
+      ],
+      "criticality": "high",
+      "required_evidence": [
+        "QA-Genehmigung",
+        "Change-Closure-Status",
+        "Execution Record",
+        "Chargendisposition"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_qc_training_before_effective_sop_use",
+      "title": "Training vor wirksamer SOP- oder Spezifikationsanwendung",
+      "domain": "training",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base",
+        "change_control",
+        "qc_lab",
+        "training",
+        "regulatory_consistency",
+        "contradiction_patterns"
+      ],
+      "applies_to_agents": [
+        "RegulatoryConsistencyReviewer",
+        "RedTeamCriticAnthropic",
+        "RedTeamCriticOpenAI"
+      ],
+      "applies_when_signals_present": [
+        "method_change",
+        "specification_change"
+      ],
+      "red_flags": [
+        "Training N/A trotz SOP-Aenderung",
+        "SOP v4 discussed",
+        "kein Trainingsnachweis",
+        "Read-and-Understand fehlt"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 2",
+        "EU GMP Kapitel 4"
+      ],
+      "required_reviewer_roles": [
+        "RegulatoryConsistencyReviewer"
+      ],
+      "source_type": "regulation",
+      "source_name": "EU GMP Kapitel 2 und 4",
+      "source_version": "2024",
+      "section": "training-before-effective-use",
+      "requirement_text": "Wenn eine SOP-Version oder Spezifikationsanweisung fuer eine QC-Freigabeentscheidung verbindlich ist, muss das betroffene Personal vor der Anwendung geschult sein. Eine Einstufung als nicht trainingsrelevant ist zu begruenden und darf nicht im Widerspruch zur gueltigen SOP oder zum Batch Record stehen.",
+      "applies_to_document_types": [
+        "change_control_package"
+      ],
+      "applies_to_process_areas": [
+        "qc_lab"
+      ],
+      "criticality": "medium",
+      "required_evidence": [
+        "gueltige SOP-Version",
+        "Training Record",
+        "Batch Record Arbeitsanweisung",
+        "Begruendung fuer N/A"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
+    },
+    {
+      "requirement_id": "req_qc_affected_batch_scope_includes_retests",
+      "title": "Betroffene Chargen inklusive Retests und Rueckstellmuster",
+      "domain": "batch_impact_assessment",
+      "knowledge_packs": [
+        "universal_gmp_qrm_base",
+        "change_control",
+        "qc_lab",
+        "batch_impact",
+        "batch_impact_assessment",
+        "material_traceability",
+        "contradiction_patterns"
+      ],
+      "applies_to_agents": [
+        "BatchImpactReviewer",
+        "ContradictionHunter",
+        "RedTeamCriticAnthropic",
+        "RedTeamCriticOpenAI"
+      ],
+      "applies_when_signals_present": [
+        "batch_impact",
+        "specification_change"
+      ],
+      "red_flags": [
+        "Retest nicht im Change-Scope",
+        "Rueckstellmuster erneut bewertet",
+        "informational no release impact",
+        "Batch im Execution Record aber nicht im Change"
+      ],
+      "source_refs": [
+        "EU GMP Kapitel 1",
+        "EU GMP Kapitel 6"
+      ],
+      "required_reviewer_roles": [
+        "BatchImpactReviewer",
+        "ContradictionHunter"
+      ],
+      "source_type": "checklist",
+      "source_name": "GMP Change-Control Batch-Impact Checklist",
+      "source_version": "2026.1",
+      "section": "affected-batch-scope",
+      "requirement_text": "Die Batch-Impact-Bewertung eines QC-Change-Control-Pakets muss alle betroffenen Chargen, Retests und Rueckstellmuster enthalten. Eine Charge oder ein Retest im Execution Record darf nicht als ausserhalb des Scopes behandelt werden, wenn neuer Grenzwert, neues Berechnungssheet oder geaenderte Spezifikation verwendet werden.",
+      "applies_to_document_types": [
+        "change_control_package"
+      ],
+      "applies_to_process_areas": [
+        "qc_lab"
+      ],
+      "criticality": "medium",
+      "required_evidence": [
+        "Change-Scope Chargenliste",
+        "Execution Record",
+        "Retest-Anforderung",
+        "Rueckstellmusterbewertung"
+      ],
+      "auto_close_allowed": false,
+      "effective_from": "2026-01-01T00:00:00Z",
+      "effective_to": null
     }
   ]
 }
