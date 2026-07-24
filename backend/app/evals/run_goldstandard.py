@@ -25,22 +25,46 @@ import re
 import sys
 import tempfile
 import time
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, Protocol, cast
+
+if TYPE_CHECKING:
+    from app.audit.events import AuditService
+    from app.db.in_memory import InMemoryDocumentRepository
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 REPO_ROOT = BACKEND_DIR.parent
 DEFAULT_CASES_DIR = REPO_ROOT / "goldstandard_pharmaqrm"
 DEFAULT_OUTPUT_DIR = DEFAULT_CASES_DIR / "runs"
 
-PROCESS_AREA = "drug_product_manufacturing"
-DOCUMENT_TYPE = "deviation"
 TENANT_ID = "tenant_goldstandard_pharmaqrm"
 REQUIREMENT_SET_ID = "rset_goldstandard_gmp_2026_1"
 _TERMINAL_PIPELINE_STATUSES = {"completed", "failed", "needs_human_review"}
 _ORACLE_FILENAMES = {"gold_standard.json", "hidden_errors_answer_key.json"}
 GOLDSTANDARD_STORAGE_PARENT = Path("/tmp/qrm-goldstandard-documents")
+_DOCUMENT_TYPE_ALIASES = {
+    "change_control_package": "change_control_package",
+}
+_PROCESS_AREA_ALIASES = {
+    "qc_analytische_freigabeprufung": "qc_lab",
+    "quality_control": "quality_control",
+}
+_CANONICAL_VISIBLE_VERIFIER_STATUSES = {"strong", "verified"}
+
+
+class _RouteDependencyBindings(Protocol):
+    """Mutable route globals intentionally swapped by the isolated harness."""
+
+    repository: InMemoryDocumentRepository
+    audit_log: AuditService
+
+
+def _route_dependency_bindings(module: ModuleType) -> _RouteDependencyBindings:
+    """Expose the route's private dependency bindings at this test-only boundary."""
+    return cast(_RouteDependencyBindings, module)
 
 
 def _validate_isolated_harness_environment(
@@ -63,7 +87,7 @@ def _validate_isolated_harness_environment(
         raise ValueError("Goldstandard runner requires a dedicated temporary storage root")
 
 
-def _install_isolated_route_bindings() -> tuple[Any, Any, callable]:
+def _install_isolated_route_bindings() -> tuple[Any, Any, Callable[[], None]]:
     """Bind the harness routes to fresh in-memory state and return a restore hook.
 
     A caller may have imported the production app before this module. Environment
@@ -78,23 +102,25 @@ def _install_isolated_route_bindings() -> tuple[Any, Any, callable]:
 
     isolated_repository = InMemoryDocumentRepository()
     isolated_audit_log = AuditService()
+    document_sets_bindings = _route_dependency_bindings(document_sets_api)
+    pipeline_runs_bindings = _route_dependency_bindings(pipeline_runs_api)
     originals = (
-        document_sets_api.repository,
-        document_sets_api.audit_log,
-        pipeline_runs_api.repository,
-        pipeline_runs_api.audit_log,
+        document_sets_bindings.repository,
+        document_sets_bindings.audit_log,
+        pipeline_runs_bindings.repository,
+        pipeline_runs_bindings.audit_log,
     )
-    document_sets_api.repository = isolated_repository
-    document_sets_api.audit_log = isolated_audit_log
-    pipeline_runs_api.repository = isolated_repository
-    pipeline_runs_api.audit_log = isolated_audit_log
+    document_sets_bindings.repository = isolated_repository
+    document_sets_bindings.audit_log = isolated_audit_log
+    pipeline_runs_bindings.repository = isolated_repository
+    pipeline_runs_bindings.audit_log = isolated_audit_log
 
     def restore() -> None:
         (
-            document_sets_api.repository,
-            document_sets_api.audit_log,
-            pipeline_runs_api.repository,
-            pipeline_runs_api.audit_log,
+            document_sets_bindings.repository,
+            document_sets_bindings.audit_log,
+            pipeline_runs_bindings.repository,
+            pipeline_runs_bindings.audit_log,
         ) = originals
 
     return isolated_repository, isolated_audit_log, restore
@@ -194,6 +220,32 @@ def _normalize(text: str) -> str:
     return text.strip()
 
 
+def _normalize_package_metadata_value(value: str, aliases: dict[str, str]) -> str:
+    """Turn package metadata labels into stable API values, with taxonomy aliases."""
+    transliterated = value.lower().translate(str.maketrans("äöüß", "aous"))
+    slug = re.sub(r"[^a-z0-9]+", "_", transliterated).strip("_")
+    if not slug:
+        raise ValueError("Package metadata value must not be empty")
+    return aliases.get(slug, slug)
+
+
+def _package_metadata(package_dir: Path) -> dict[str, str]:
+    """Read the package declaration without ever treating its oracle as an upload."""
+    payload: dict[str, Any] = json.loads(_oracle_path(package_dir).read_text(encoding="utf-8"))
+    document_type = payload.get("document_type")
+    process_area = payload.get("process_area")
+    if not isinstance(document_type, str) or not isinstance(process_area, str):
+        raise ValueError("Package oracle must declare document_type and process_area")
+    return {
+        "declared_document_type": _normalize_package_metadata_value(
+            document_type, _DOCUMENT_TYPE_ALIASES
+        ),
+        "declared_process_area": _normalize_package_metadata_value(
+            process_area, _PROCESS_AREA_ALIASES
+        ),
+    }
+
+
 def _token_set(text: str) -> set[str]:
     return {token for token in re.findall(r"[a-z0-9äöüß]+", _normalize(text)) if len(token) > 2}
 
@@ -288,6 +340,7 @@ def _review_pack_risks_as_findings(risks: list[dict[str, Any]]) -> list[dict[str
                 "finding_id": risk.get("finding_id"),
                 "risk_statement": risk.get("risk_statement", ""),
                 "severity": risk.get("severity"),
+                "verifier_status": risk.get("verifier_status", ""),
                 "recommended_action": risk.get("human_review_reason", ""),
                 "missing_information": [],
                 "requirement_references": risk.get("requirement_references", []),
@@ -319,6 +372,7 @@ def _score_errors(
             "severity": gold.get("severity"),
             "error_type": gold.get("error_type"),
             "expected_reviewer_finding": gold.get("expected_reviewer_finding"),
+            "should_block_auto_clear": gold.get("should_block_auto_clear", False),
             "match": match,
         }
         (matched if match else missed).append(record)
@@ -362,6 +416,8 @@ def _load_post_run_oracle(path: Path) -> dict[str, Any]:
                     ref.get("quote", "")
                     for ref in finding.get("expected_evidence_refs", [])
                 ),
+                "expected_requirement_theme": finding.get("expected_requirement_theme", ""),
+                "expected_evidence_refs": finding.get("expected_evidence_refs", []),
                 "should_block_auto_clear": finding.get("should_block_auto_clear", False),
             }
             for finding in payload["must_detect_findings"]
@@ -371,6 +427,114 @@ def _load_post_run_oracle(path: Path) -> dict[str, Any]:
             "acceptable_false_positive_boundaries", []
         ),
     }
+
+
+def _match_visible_review_pack_error(
+    gold: dict[str, Any], findings: list[dict[str, Any]]
+) -> dict[str, Any] | None:
+    """Match a gold finding only when one visible card states and evidences it.
+
+    A source quote alone is deliberately insufficient: it would credit a generic
+    hint that a reviewer cannot action. Conversely, raw pipeline findings are
+    never supplied here; this scorer accepts only rendered ReviewPack cards.
+    """
+    expected_statement = gold.get("expected_reviewer_finding", "")
+    expected_evidence = [
+        ref.get("quote", "") for ref in gold.get("expected_evidence_refs", [])
+    ]
+    if not expected_statement or not expected_evidence:
+        return _match_error(gold, findings)
+
+    expected_severity = _severity_rank_name(gold.get("severity"))
+    best: tuple[float, dict[str, Any]] | None = None
+    for finding in findings:
+        if finding.get("verifier_status") not in _CANONICAL_VISIBLE_VERIFIER_STATUSES:
+            continue
+        statement = finding.get("risk_statement", "")
+        statement_score = max(
+            _jaccard(expected_statement, statement),
+            _similarity(expected_statement, statement),
+        )
+        evidence_quotes = [
+            item.get("quote", "") for item in finding.get("evidence_items", []) or []
+        ]
+        has_expected_evidence = any(
+            _normalize(expected_quote) in _normalize(quote)
+            or _normalize(quote) in _normalize(expected_quote)
+            for expected_quote in expected_evidence
+            if expected_quote
+            for quote in evidence_quotes
+            if quote
+        )
+        severity_is_not_undercalled = (
+            _severity_rank_name(finding.get("severity")) >= expected_severity
+        )
+        if statement_score < 0.40 or not has_expected_evidence or not severity_is_not_undercalled:
+            continue
+        if best is None or statement_score > best[0]:
+            best = (statement_score, finding)
+    if best is None:
+        return None
+    return {
+        "score": round(best[0], 3),
+        "method": "visible_pack_statement_and_evidence",
+        "finding_id": best[1].get("finding_id"),
+        "risk_statement": best[1].get("risk_statement"),
+        "severity": best[1].get("severity"),
+    }
+
+
+def _score_visible_review_pack_errors(
+    answer_key: dict[str, Any], findings: list[dict[str, Any]]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Score visible cards one-to-one against gold findings for package release."""
+    matched: list[dict[str, Any]] = []
+    missed: list[dict[str, Any]] = []
+    available = list(findings)
+    for gold in answer_key.get("errors", []):
+        match = _match_visible_review_pack_error(gold, available)
+        record = {
+            "error_id": gold["error_id"],
+            "severity": gold.get("severity"),
+            "error_type": gold.get("error_type"),
+            "expected_reviewer_finding": gold.get("expected_reviewer_finding"),
+            "should_block_auto_clear": gold.get("should_block_auto_clear", False),
+            "match": match,
+        }
+        if match:
+            matched.append(record)
+            finding_id = match.get("finding_id")
+            if finding_id:
+                available = [
+                    finding for finding in available if finding.get("finding_id") != finding_id
+                ]
+        else:
+            missed.append(record)
+    return matched, missed
+
+
+def _package_release_gate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return the package-mode release decision from ReviewPack-visible findings only."""
+    missed_blocking_findings = [
+        {
+            "case_id": case["case_id"],
+            "error_id": record["error_id"],
+            "severity": record.get("severity"),
+            "expected_reviewer_finding": record.get("expected_reviewer_finding"),
+        }
+        for case in case_results
+        for record in case.get("review_pack_missed_errors", [])
+        if record.get("should_block_auto_clear", False)
+    ]
+    return {
+        "passed": not missed_blocking_findings,
+        "missed_blocking_findings": missed_blocking_findings,
+    }
+
+
+def _package_mode_exit_code(package_release_gate: dict[str, Any] | None) -> int:
+    """Keep the CLI's package-mode exit status independently testable."""
+    return 0 if package_release_gate is None or package_release_gate["passed"] else 1
 
 
 def _tenant_auth_headers(api_key_to_tenant_id: dict[str, str], tenant_id: str) -> dict[str, str]:
@@ -427,14 +591,14 @@ def run_case(
 ) -> dict[str, Any]:
     case_id = case_dir.name.upper()
     oracle_path = _oracle_path(case_dir)
+    package_metadata = _package_metadata(case_dir)
 
     create_response = client.post(
         "/document-sets",
         json={
             "tenant_id": TENANT_ID,
             "requirement_set_id": REQUIREMENT_SET_ID,
-            "declared_document_type": DOCUMENT_TYPE,
-            "declared_process_area": PROCESS_AREA,
+            **package_metadata,
             "uploaded_by": "user_goldstandard_harness",
         },
     )
@@ -470,7 +634,8 @@ def run_case(
     findings = [finding.model_dump(mode="json") for finding in findings_models]
     decision = repository.get_latest_risk_decision(document_set_id)
 
-    # The oracle is read only after the full pipeline result is available.
+    # Gold findings are read only after the pipeline; package metadata above is
+    # declaration-only and is never included in the upload manifest.
     answer_key = _load_post_run_oracle(oracle_path)
     case_id = answer_key["case_id"]
 
@@ -489,13 +654,15 @@ def run_case(
                 for risk in review_pack.top_risks
             ]
         )
-        review_pack_matched, review_pack_missed = _score_errors(
+        review_pack_matched, review_pack_missed = _score_visible_review_pack_errors(
             answer_key,
             review_pack_findings,
         )
         review_pack_error: str | None = None
     except Exception as exc:  # noqa: BLE001 - pack visibility must not mask pipeline score
-        review_pack_matched, review_pack_missed = _score_errors(answer_key, [])
+        review_pack_matched, review_pack_missed = _score_visible_review_pack_errors(
+            answer_key, []
+        )
         review_pack_error = str(exc)
 
     decoy_hits: list[dict[str, Any]] = []
@@ -842,7 +1009,8 @@ def _render_markdown(
     lines.append("## Fälle")
     lines.append("")
     lines.append(
-        "| Fall | Status | Claims | Findings | Fehler gefunden | In Prüfmappe | Decoy-Fehlalarme | Entscheidung |"
+        "| Fall | Status | Claims | Findings | Fehler gefunden | In Prüfmappe | "
+        "Decoy-Fehlalarme | Entscheidung |"
     )
     lines.append("|---|---|---|---|---|---|---|---|")
     for case in case_results:
@@ -1014,12 +1182,18 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     aggregate = _aggregate(case_results)
+    package_release_gate = _package_release_gate(case_results) if args.package_dir else None
     run_label = args.mode if args.mode == "mock" else f"{args.mode}_{args.stack}"
     output_dir = Path(args.output_dir) / started_at.strftime(f"%Y%m%d_%H%M%S_{run_label}")
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "results.json").write_text(
         json.dumps(
-            {"run": run_meta, "aggregate": aggregate, "cases": case_results},
+            {
+                "run": run_meta,
+                "aggregate": aggregate,
+                "cases": case_results,
+                "package_release_gate": package_release_gate,
+            },
             indent=2,
             ensure_ascii=False,
         ),
@@ -1029,9 +1203,16 @@ def main(argv: list[str] | None = None) -> int:
     (output_dir / "report.md").write_text(markdown, encoding="utf-8")
     print()
     print(markdown)
+    if package_release_gate is not None:
+        gate_status = "PASS" if package_release_gate["passed"] else "FAIL"
+        print(
+            "\nPackage visible-ReviewPack release gate: "
+            f"{gate_status} ({len(package_release_gate['missed_blocking_findings'])} "
+            "blocking finding(s) missed)"
+        )
     print(f"\nReports written to {output_dir}")
     restore_route_bindings()
-    return 0
+    return _package_mode_exit_code(package_release_gate)
 
 
 if __name__ == "__main__":

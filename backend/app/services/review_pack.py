@@ -96,7 +96,7 @@ class ReviewPackService:
             for finding in _sort_findings(findings)
         ]
         evidence_table = [
-            _evidence_row(finding=finding, evidence=evidence)
+            _evidence_row(repository=self.repository, finding=finding, evidence=evidence)
             for finding in _sort_findings(findings)
             for evidence in finding.evidence_items
         ]
@@ -392,11 +392,18 @@ def _evidence_quote(evidence: EvidenceItem) -> ReviewPackEvidenceQuote:
     )
 
 
-def _evidence_row(*, finding: RiskFinding, evidence: EvidenceItem) -> ReviewPackEvidenceRow:
+def _evidence_row(
+    *,
+    repository: InMemoryDocumentRepository,
+    finding: RiskFinding,
+    evidence: EvidenceItem,
+) -> ReviewPackEvidenceRow:
+    document = repository.get_document(evidence.document_id)
     return ReviewPackEvidenceRow(
         finding_id=finding.finding_id,
         risk_statement=finding.risk_statement,
         document_id=evidence.document_id,
+        document_name=document.filename if document is not None else None,
         page=evidence.page,
         chunk_id=evidence.chunk_id,
         quote=evidence.quote,

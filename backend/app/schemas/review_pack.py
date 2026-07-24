@@ -60,6 +60,7 @@ class ReviewPackEvidenceRow(StrictSchema):
     finding_id: FindingId
     risk_statement: str = Field(min_length=1)
     document_id: DocumentId
+    document_name: str | None = Field(default=None, min_length=1)
     page: int = Field(ge=1)
     chunk_id: str = Field(min_length=1)
     quote: str = Field(min_length=1)

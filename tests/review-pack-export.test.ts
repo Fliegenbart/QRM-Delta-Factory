@@ -67,12 +67,152 @@ const pack: ReviewPack = {
 };
 
 describe("review pack exports", () => {
+  it("keeps five verified PKG-001 risks in Kernbefunde with German text intact", async () => {
+    const pkg001Pack = {
+      ...pack,
+      review_pack_id: "rp_pkg_001",
+      document_set_id: "PKG-001",
+      decision_summary:
+        "Vor einer GMP-Nutzung müssen die fünf offenen Punkte durch QA bewertet werden.",
+      top_risks: [
+        {
+          ...pack.top_risks[0],
+          finding_id: "pkg001-method-limit",
+          risk_statement:
+            "Die Methodenvalidierung belegt die Plattform- und Methodengrenzen nicht ausreichend.",
+          verifier_status: "verified"
+        },
+        {
+          ...pack.top_risks[0],
+          finding_id: "pkg001-site-equipment",
+          risk_statement:
+            "Die Übertragung von Standort und Equipment in den GMP-Prozess ist nicht belegt.",
+          verifier_status: "strong"
+        },
+        {
+          ...pack.top_risks[0],
+          finding_id: "pkg001-qa-pending",
+          risk_statement:
+            "Die QA-Freigabe steht vor der GMP-Nutzung noch aus.",
+          verifier_status: "verified"
+        },
+        {
+          ...pack.top_risks[0],
+          finding_id: "pkg001-sop-training",
+          risk_statement:
+            "Die verpflichtende Schulung zur SOP v4 ist nicht nachgewiesen.",
+          verifier_status: "strong"
+        },
+        {
+          ...pack.top_risks[0],
+          finding_id: "pkg001-batch-scope",
+          risk_statement:
+            "A17-26044 liegt außerhalb des deklarierten Chargenumfangs.",
+          verifier_status: "verified"
+        }
+      ],
+      evidence_table: [
+        {
+          ...pack.evidence_table[0],
+          finding_id: "pkg001-method-limit",
+          risk_statement:
+            "Die Methodenvalidierung belegt die Plattform- und Methodengrenzen nicht ausreichend.",
+          document_id: "doc_opaque_method",
+          quote: "Die Validierung gilt nur für die geprüfte Plattform.",
+          verifier_status: "verified"
+        },
+        {
+          ...pack.evidence_table[0],
+          finding_id: "pkg001-site-equipment",
+          risk_statement:
+            "Die Übertragung von Standort und Equipment in den GMP-Prozess ist nicht belegt.",
+          document_id: "doc_opaque_bridge",
+          quote: "Eine dokumentierte Brücke zum GMP-Equipment fehlt.",
+          verifier_status: "strong"
+        },
+        {
+          ...pack.evidence_table[0],
+          finding_id: "pkg001-qa-pending",
+          risk_statement: "Die QA-Freigabe steht vor der GMP-Nutzung noch aus.",
+          document_id: "doc_opaque_qa",
+          quote: "Die QA-Freigabe ist noch offen.",
+          verifier_status: "verified"
+        },
+        {
+          ...pack.evidence_table[0],
+          finding_id: "pkg001-sop-training",
+          risk_statement: "Die verpflichtende Schulung zur SOP v4 ist nicht nachgewiesen.",
+          document_id: "doc_opaque_training",
+          quote: "Die verpflichtende SOP-v4-Schulung fehlt.",
+          verifier_status: "strong"
+        },
+        {
+          ...pack.evidence_table[0],
+          finding_id: "pkg001-batch-scope",
+          risk_statement: "A17-26044 liegt außerhalb des deklarierten Chargenumfangs.",
+          document_id: "doc_opaque_batch",
+          quote: "A17-26044 ist nicht im deklarierten Umfang enthalten.",
+          verifier_status: "verified"
+        }
+      ]
+    } as ReviewPack;
+    const content = String.fromCharCode(
+      ...new Uint8Array(await createReviewPackPdf(pkg001Pack).arrayBuffer())
+    );
+    const canonicalSection = content.slice(
+      content.indexOf("Kernbefunde"),
+      content.indexOf("Hinweise zur QA-Prüfung")
+    );
+    const qaHintSection = content.slice(
+      content.indexOf("Hinweise zur QA-Prüfung"),
+      content.indexOf("Evidenzanhang")
+    );
+
+    expect(canonicalSection).toContain("Methodenvalidierung belegt die Plattform- und Methodengrenzen");
+    expect(canonicalSection).toContain("Übertragung von Standort und Equipment in den GMP-Prozess");
+    expect(canonicalSection).toContain("QA-Freigabe steht vor der GMP-Nutzung noch aus");
+    expect(canonicalSection).toContain("verpflichtende Schulung zur SOP v4 ist nicht nachgewiesen");
+    expect(canonicalSection).toContain("A17-26044 liegt außerhalb des deklarierten Chargenumfangs");
+    expect(canonicalSection.match(/Verifier-Status: (?:verified|strong)/g)).toHaveLength(5);
+    expect(qaHintSection).toContain("Keine nicht-kanonischen QA-Hinweise vorhanden.");
+    expect(content).toContain("Quelle doc_opaque_method, Seite 3");
+    expect(content).toContain("Quelle doc_opaque_bridge, Seite 3");
+    expect(content).toContain("Quelle doc_opaque_qa, Seite 3");
+    expect(content).toContain("Quelle doc_opaque_training, Seite 3");
+    expect(content).toContain("Quelle doc_opaque_batch, Seite 3");
+  });
+
   it("builds an Excel-compatible evidence export with stable, quoted columns", () => {
     const csv = buildReviewPackCsv(pack);
 
     expect(csv).toContain("Prüfpunkt-ID;Risikobeschreibung;Dokument;Seite;Chunk;Zitat;Anforderungen;Verifikationsstatus");
     expect(csv).toContain("finding_1;\"Die Chargenbewertung ist nicht belegt.\";doc_1;3;chunk_1");
     expect(csv).toContain("\"Eine Entscheidung zur Charge liegt nicht vor.\"");
+  });
+
+  it("prefers human-readable document names in CSV and PDF, with ID fallback", async () => {
+    const namedPack: ReviewPack = {
+      ...pack,
+      evidence_table: [
+        {
+          ...pack.evidence_table[0],
+          document_name: "Änderungskontrolle Prüfung.pdf"
+        }
+      ]
+    };
+
+    const namedCsv = buildReviewPackCsv(namedPack);
+    const namedPdf = String.fromCharCode(
+      ...new Uint8Array(await createReviewPackPdf(namedPack).arrayBuffer())
+    );
+    const fallbackPdf = String.fromCharCode(
+      ...new Uint8Array(await createReviewPackPdf(pack).arrayBuffer())
+    );
+
+    expect(namedCsv).toContain("Änderungskontrolle Prüfung.pdf");
+    expect(namedPdf).toContain("Quelle Änderungskontrolle Prüfung.pdf, Seite 3");
+    expect(buildReviewPackCsv(pack)).toContain(";doc_1;3;");
+    expect(fallbackPdf).toContain("Quelle doc_1, Seite 3");
   });
 
   it("creates a downloadable PDF with the case decision and source evidence", async () => {

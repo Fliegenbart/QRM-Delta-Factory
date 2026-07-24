@@ -683,6 +683,7 @@ export type ReviewPackEvidenceRow = {
   finding_id: string;
   risk_statement: string;
   document_id: string;
+  document_name?: string | null;
   page: number;
   chunk_id: string;
   quote: string;
@@ -692,7 +693,7 @@ export type ReviewPackEvidenceRow = {
 
 export type FindingReviewChecklistEvidenceRow = Pick<
   ReviewPackEvidenceRow,
-  "document_id" | "page" | "chunk_id" | "quote"
+  "document_id" | "document_name" | "page" | "chunk_id" | "quote"
 >;
 
 export type ReviewPackModelPosition = {
@@ -1044,12 +1045,9 @@ export function cleanEvidenceQuote(quote: string): string {
 }
 
 export function evidenceSourceLabel(row: FindingReviewChecklistEvidenceRow): string {
-  const cleanedQuote = cleanEvidenceQuote(row.quote);
-  const documentTypeMatch = cleanedQuote.match(/Dokumenttyp:\s*([^*]+?)(?:\s+Prozessbereich:|\s+Seiten-|$)/i);
-  const readableDocument = documentTypeMatch?.[1]?.trim();
-
-  if (readableDocument) {
-    return `${readableDocument}, Seite ${row.page}`;
+  const documentName = row.document_name?.trim();
+  if (documentName) {
+    return `${documentName}, Seite ${row.page}`;
   }
 
   if (row.document_id.startsWith("doc_")) {

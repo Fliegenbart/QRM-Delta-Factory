@@ -50,6 +50,9 @@ def reset_state(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("QRM_OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("QRM_ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("QRM_GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("QRM_MISTRAL_API_KEY", raising=False)
+    monkeypatch.delenv("QRM_REVIEWER_PROVIDER_OVERRIDE", raising=False)
+    monkeypatch.delenv("QRM_CRITIC_PROVIDERS", raising=False)
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
@@ -216,6 +219,171 @@ def test_stringified_findings_payload_is_normalized_for_reviewer_output() -> Non
     )
 
 
+def test_pure_json_fenced_findings_are_normalized_for_reviewer_output() -> None:
+    provider = _reviewer_output_provider(
+        findings="```json\n" + json.dumps([_reviewer_finding("finding_fenced")]) + "\n```"
+    )
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={},
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert output["findings"][0]["finding_id"] == "finding_fenced"
+
+
+def test_python_literal_findings_are_normalized_for_reviewer_output() -> None:
+    provider = _reviewer_output_provider(
+        findings=repr([_reviewer_finding("finding_python_literal")])
+    )
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={},
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert output["findings"][0]["finding_id"] == "finding_python_literal"
+
+
+def test_pure_untagged_fenced_findings_are_normalized_for_reviewer_output() -> None:
+    provider = _reviewer_output_provider(
+        findings="```\n" + json.dumps([_reviewer_finding("finding_untagged_fence")]) + "\n```"
+    )
+
+    output = provider.run_structured(
+        prompt="Return reviewer output.",
+        input_schema={},
+        output_schema=ReviewerAgentOutput,
+    )
+
+    assert output["findings"][0]["finding_id"] == "finding_untagged_fence"
+
+
+@pytest.mark.parametrize(
+    ("findings", "message"),
+    [
+        (
+            "The findings are:\n```json\n[]\n```",
+            "findings must be a valid list of objects",
+        ),
+        ("[not valid", "findings must be a valid list of objects"),
+        (json.dumps({"finding_id": "finding_object"}), "findings must be a list"),
+        (json.dumps(["not an object"]), "findings entries must be objects"),
+    ],
+)
+def test_reviewer_findings_string_normalization_rejects_invalid_shapes(
+    findings: str,
+    message: str,
+) -> None:
+    provider = _reviewer_output_provider(findings=findings)
+
+    with pytest.raises(ProviderStructuredOutputError, match=message):
+        provider.run_structured(
+            prompt="Return reviewer output.",
+            input_schema={},
+            output_schema=ReviewerAgentOutput,
+        )
+
+
+@pytest.mark.parametrize("findings", [None, {"finding_id": "finding_object"}])
+def test_reviewer_findings_normalization_rejects_non_string_invalid_values(
+    findings: Any,
+) -> None:
+    provider = _reviewer_output_provider(findings=findings)
+
+    with pytest.raises(ProviderStructuredOutputError, match="findings must be a list"):
+        provider.run_structured(
+            prompt="Return reviewer output.",
+            input_schema={},
+            output_schema=ReviewerAgentOutput,
+        )
+
+
+def test_reviewer_findings_normalization_rejects_materialized_non_dict_entries() -> None:
+    provider = _reviewer_output_provider(findings=["not an object"])
+
+    with pytest.raises(
+        ProviderStructuredOutputError,
+        match="findings entries must be objects",
+    ):
+        provider.run_structured(
+            prompt="Return reviewer output.",
+            input_schema={},
+            output_schema=ReviewerAgentOutput,
+        )
+
+
+@pytest.mark.parametrize(
+    "findings",
+    [
+        "```json\n[]\n```\n```json\n[]\n```",
+        "```json\n[\n```json\n{}\n```\n]\n```",
+    ],
+)
+def test_reviewer_findings_normalization_rejects_multiple_or_nested_fences(
+    findings: str,
+) -> None:
+    provider = _reviewer_output_provider(findings=findings)
+
+    with pytest.raises(
+        ProviderStructuredOutputError,
+        match="findings must be a valid list of objects",
+    ):
+        provider.run_structured(
+            prompt="Return reviewer output.",
+            input_schema={},
+            output_schema=ReviewerAgentOutput,
+        )
+
+
+def _reviewer_output_provider(*, findings: Any) -> MockProvider:
+    return MockProvider(
+        model_name="mock-reviewer",
+        model_version="0.1.0",
+        configured_model_id=f"mock-local-{sha256(repr(findings).encode()).hexdigest()[:8]}",
+        structured_output={
+            "coverage_summary": "Reviewed one finding.",
+            "findings": findings,
+        },
+        prompt_version="prompt-v1",
+    )
+
+
+def _reviewer_finding(finding_id: str) -> dict[str, Any]:
+    return {
+        "finding_id": finding_id,
+        "document_set_id": "ds_provider_demo",
+        "risk_category": "qa_approval",
+        "severity": "high",
+        "likelihood": 3,
+        "detectability": 3,
+        "risk_statement": "QA approval appears pending.",
+        "evidence_items": [
+            {
+                "document_id": "doc_provider_demo",
+                "chunk_id": "chunk_provider_demo",
+                "page": 1,
+                "quote": "QA approval remains pending.",
+                "quote_hash": "not-a-valid-sha256",
+                "support_type": "supports",
+                "verifier_score": 0.8,
+            }
+        ],
+        "requirement_references": ["req_provider_deviation_review"],
+        "missing_information": ["documented QA approval decision"],
+        "model_provider": "mock",
+        "model_name": "mock-reviewer",
+        "model_version": "0.1.0",
+        "prompt_version": "prompt-v1",
+        "evidence_support": "partial",
+        "recommended_action": "Review approval status.",
+        "auto_close_allowed": False,
+        "status": "needs_human_review",
+    }
+
+
 @pytest.mark.parametrize(
     "provider",
     [
@@ -295,6 +463,7 @@ def test_anthropic_provider_runs_structured_call_with_mocked_http(
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
     monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
     monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-anthropic-key")
+    monkeypatch.setenv("QRM_MODEL_PROVIDER_MAX_OUTPUT_TOKENS", "512")
     get_settings.cache_clear()
     provider = AnthropicProvider(configured_model_id="claude-test")
 
@@ -307,6 +476,7 @@ def test_anthropic_provider_runs_structured_call_with_mocked_http(
         assert url.endswith("/v1/messages")
         assert headers["x-api-key"] == "test-anthropic-key"
         assert json_body["model"] == "claude-test"
+        assert json_body["max_tokens"] == 512
         return {
             "content": [{"type": "text", "text": '{"value": "ok-anthropic"}'}],
             "usage": {"input_tokens": 12, "output_tokens": 6},
@@ -375,27 +545,79 @@ def test_external_provider_requires_api_key_when_enabled(
         provider.run_structured("Return JSON.", {}, SimpleOutput)
 
 
-def test_default_agents_use_real_provider_mapping_when_enabled(
+def test_default_agents_use_mixed_primary_provider_routing_and_all_critics(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai,anthropic")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral,anthropic,openai")
+    monkeypatch.setenv("QRM_MISTRAL_MODEL_ID", "mistral-test")
     monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
     monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
+    monkeypatch.setenv("QRM_CRITIC_PROVIDERS", "anthropic,openai,mistral")
     get_settings.cache_clear()
 
     agents = default_reviewer_agents()
     providers_by_role = {agent.role: agent.provider.provider_name for agent in agents}
 
     assert providers_by_role == {
-        "GMPDataIntegrityReviewer": "anthropic",
-        "DeviationReviewer": "anthropic",
-        "CAPAReviewer": "anthropic",
+        "GMPDataIntegrityReviewer": "mistral",
+        "DeviationReviewer": "mistral",
+        "CAPAReviewer": "mistral",
         "BatchImpactReviewer": "openai",
         "ValidationAndSterilityReviewer": "anthropic",
         "RegulatoryConsistencyReviewer": "anthropic",
         "ContradictionHunter": "openai",
+        "RedTeamCriticAnthropic": "anthropic",
+        "RedTeamCriticOpenAI": "openai",
+        "RedTeamCriticMistral": "mistral",
     }
+    assert len(agents) == len({agent.agent_id for agent in agents})
+    assert len(agents) == len({agent.role for agent in agents})
+
+
+def test_critic_provider_configuration_is_deduplicated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral,anthropic,openai")
+    monkeypatch.setenv("QRM_MISTRAL_MODEL_ID", "mistral-test")
+    monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
+    monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
+    monkeypatch.setenv(
+        "QRM_CRITIC_PROVIDERS", "anthropic,openai,anthropic,mistral,openai"
+    )
+    get_settings.cache_clear()
+
+    critics = [
+        agent for agent in default_reviewer_agents() if agent.role.startswith("RedTeamCritic")
+    ]
+
+    assert [agent.provider.provider_name for agent in critics] == [
+        "anthropic",
+        "openai",
+        "mistral",
+    ]
+    assert len(critics) == len({agent.agent_id for agent in critics})
+
+
+def test_reviewer_provider_override_still_routes_primary_roles_to_mistral(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral,anthropic,openai")
+    monkeypatch.setenv("QRM_MISTRAL_MODEL_ID", "mistral-test")
+    monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
+    monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
+    monkeypatch.setenv("QRM_REVIEWER_PROVIDER_OVERRIDE", "mistral")
+    get_settings.cache_clear()
+
+    primary_agents = [
+        agent
+        for agent in default_reviewer_agents()
+        if not agent.role.startswith("RedTeamCritic")
+    ]
+
+    assert {agent.provider.provider_name for agent in primary_agents} == {"mistral"}
 
 
 def test_provider_error_reaches_risk_fusion_as_coverage_risk() -> None:

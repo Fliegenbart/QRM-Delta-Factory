@@ -292,7 +292,7 @@ async function ensureRequirementSet(input: {
 
   if (
     existingRequirementSet === null ||
-    shouldReplaceLegacyDefaultRequirementSet(existingRequirementSet)
+    shouldRefreshDefaultRequirementSet(existingRequirementSet)
   ) {
     await importDefaultRequirementSet(input);
     await activateRequirementSet(input.requirementSetId);
@@ -329,6 +329,35 @@ function defaultRequirementSet(input: { requirementSetId: string; tenantId: stri
     active: true,
     requirements: template.requirements.map((requirement) => ({ ...requirement }))
   };
+}
+
+function shouldRefreshDefaultRequirementSet(requirementSet: RequirementSet): boolean {
+  const canonicalRequirementSet = gmpGeneralRequirementLibrary as unknown as RequirementSet;
+  return (
+    shouldReplaceLegacyDefaultRequirementSet(requirementSet) ||
+    requirementSet.version !== canonicalRequirementSet.version ||
+    !hasExactRequirementIdSet(requirementSet.requirements, canonicalRequirementSet.requirements)
+  );
+}
+
+function hasExactRequirementIdSet(
+  requirements: Requirement[],
+  canonicalRequirements: Requirement[]
+): boolean {
+  if (requirements.length !== canonicalRequirements.length) {
+    return false;
+  }
+
+  const requirementIds = new Set(requirements.map((requirement) => requirement.requirement_id));
+  const canonicalRequirementIds = new Set(
+    canonicalRequirements.map((requirement) => requirement.requirement_id)
+  );
+  return (
+    requirementIds.size === requirements.length &&
+    canonicalRequirementIds.size === canonicalRequirements.length &&
+    requirementIds.size === canonicalRequirementIds.size &&
+    [...requirementIds].every((requirementId) => canonicalRequirementIds.has(requirementId))
+  );
 }
 
 function shouldReplaceLegacyDefaultRequirementSet(requirementSet: RequirementSet): boolean {

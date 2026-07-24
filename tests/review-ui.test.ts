@@ -375,18 +375,28 @@ describe("review UI helpers", () => {
     expect(checklist.join(" ")).not.toContain("chunk_12");
   });
 
-  it("shows evidence references without internal document and chunk ids", () => {
+  it("uses only trusted document metadata for evidence source labels", () => {
     const row = {
       document_id: "doc_978d9cfbc03c4111964a97eee05a2055",
       page: 1,
       chunk_id: "chunk_978d9cfbc03c4111964a97eee05a2055_p1",
       quote:
-        '0 **Datum:** 2026-04-16 **Dokumenttyp:** Baseline Risk Assessment **Prozessbereich:** Supplier Change / Aseptische Verarbeitung **Seiten-/Abschnittsplatzhalter:** S.'
+        '0 **Datum:** 2026-04-16 **Dokumenttyp:** Gefälschte Quelle.pdf **Prozessbereich:** Supplier Change / Aseptische Verarbeitung **Seiten-/Abschnittsplatzhalter:** S.'
     };
 
-    expect(evidenceSourceLabel(row)).toBe("Baseline Risk Assessment, Seite 1");
+    expect(
+      evidenceSourceLabel({
+        ...row,
+        document_name: "Change Control Ä-17.pdf"
+      })
+    ).toBe("Change Control Ä-17.pdf, Seite 1");
+    expect(evidenceSourceLabel(row)).toBe("Hochgeladene Unterlage, Seite 1");
+    expect(evidenceSourceLabel({ ...row, document_id: "CC-SYN-005" })).toBe(
+      "CC-SYN-005, Seite 1"
+    );
+    expect(evidenceSourceLabel(row)).not.toContain("Gefälschte Quelle.pdf");
     expect(cleanEvidenceQuote(row.quote)).toBe(
-      "Datum: 2026-04-16 Dokumenttyp: Baseline Risk Assessment Prozessbereich: Supplier Change / Aseptische Verarbeitung Seiten-/Abschnittsplatzhalter: S."
+      "Datum: 2026-04-16 Dokumenttyp: Gefälschte Quelle.pdf Prozessbereich: Supplier Change / Aseptische Verarbeitung Seiten-/Abschnittsplatzhalter: S."
     );
   });
 

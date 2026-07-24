@@ -386,9 +386,11 @@ def _published_root_finding(findings: Sequence[RiskFinding]) -> RiskFinding | No
 def _is_publishable(finding: RiskFinding) -> bool:
     if finding.evidence_support != EvidenceSupport.STRONG or finding.missing_information:
         return False
+    verification = finding.verification_result
     return (
-        finding.verification_result is None
-        or finding.verification_result.deterministic_checks_passed
+        verification is not None
+        and verification.evidence_support == EvidenceSupport.STRONG
+        and verification.deterministic_checks_passed
     )
 
 

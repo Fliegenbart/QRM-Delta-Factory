@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import time
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -27,6 +27,7 @@ from app.db.in_memory import InMemoryDocumentRepository
 from app.schemas.calibration import CalibrationPromptExample
 from app.schemas.domain import (
     Claim,
+    DocumentChunk,
     DocumentSet,
     EvidenceItem,
     ModelRun,
@@ -125,7 +126,11 @@ REVIEWER_OUTPUT_CONTRACT = (
     "contradicts, contextual. Use strong, partial, weak, or none only for "
     "evidence_support, never for evidence_item support_type. If evidence or requirement "
     "support is missing, do not create a finding; explain the scope in "
-    "coverage_summary. Return at most five concise candidate findings."
+    "coverage_summary. CROSS-DOCUMENT CITATION REQUIREMENT: When a finding "
+    "depends on multiple documents, cite verbatim evidence from every supplied "
+    "source excerpt needed to establish the applicable requirement, observed state, "
+    "and contradiction or gap. Do not infer a cross-document relationship from a "
+    "single source. Return at most five concise candidate findings."
 )
 
 
@@ -143,6 +148,7 @@ class ReviewerAgent:
         claims: Sequence[Claim],
         requirements: Sequence[Requirement],
         *,
+        evidence_context: Sequence[dict[str, Any]],
         document_set_id: str,
         case_signals: Sequence[str],
         knowledge_pack_ids: Sequence[str],
@@ -189,6 +195,7 @@ class ReviewerAgent:
                 ],
                 "calibration_pack_hash": calibration_pack_hash,
                 "claims": [claim.model_dump(mode="json") for claim in claims],
+                "evidence_context": list(evidence_context),
                 "requirements": [
                     requirement.model_dump(mode="json") for requirement in requirements
                 ],
@@ -224,9 +231,9 @@ class PrimaryReviewOrchestrator:
             raise PrimaryReviewDocumentSetNotFoundError(f"DocumentSet {document_set_id} not found")
 
         claims = self.repository.list_claims(document_set_id)
+        chunks = self.repository.list_chunks_for_document_set(document_set_id)
         requirement_set = self.repository.get_requirement_set(document_set.requirement_set_id)
         requirements = requirement_set.requirements if requirement_set else []
-        case_signals = _case_signals(document_set=document_set, claims=claims)
 
         agent_results = []
         with ThreadPoolExecutor(max_workers=max(1, len(self.agents))) as executor:
@@ -237,7 +244,7 @@ class PrimaryReviewOrchestrator:
                     document_set,
                     claims,
                     requirements,
-                    case_signals,
+                    chunks,
                 )
                 for agent in self.agents
             ]
@@ -295,12 +302,45 @@ class PrimaryReviewOrchestrator:
         document_set: DocumentSet,
         claims: Sequence[Claim],
         requirements: Sequence[Requirement],
-        case_signals: Sequence[str],
+        chunks: Sequence[DocumentChunk],
     ) -> _AgentRunResult:
         document_set_id = document_set.document_set_id
+        settings = get_settings()
+        preliminary_chunks = _source_chunks_for_agent(
+            agent=agent,
+            chunks=chunks,
+            claims=claims,
+            requirements=requirements,
+            max_chunks=settings.reviewer_max_source_excerpts_per_agent,
+        )
+        preliminary_signals = _case_signals(
+            document_set=document_set,
+            claims=claims,
+            chunks=preliminary_chunks,
+        )
         retrieval_profile = AGENT_RETRIEVAL_PROFILES.get(
             agent.role,
             DEFAULT_RETRIEVAL_PROFILE,
+        )
+        expected_knowledge_pack_ids = retrieval_profile.packs_for_signals(preliminary_signals)
+        agent_requirements = _requirements_for_agent(
+            agent=agent,
+            document_set=document_set,
+            requirements=requirements,
+            case_signals=preliminary_signals,
+            expected_knowledge_pack_ids=expected_knowledge_pack_ids,
+        )
+        selected_chunks = _source_chunks_for_agent(
+            agent=agent,
+            chunks=chunks,
+            claims=claims,
+            requirements=agent_requirements,
+            max_chunks=settings.reviewer_max_source_excerpts_per_agent,
+        )
+        case_signals = _case_signals(
+            document_set=document_set,
+            claims=claims,
+            chunks=selected_chunks,
         )
         expected_knowledge_pack_ids = retrieval_profile.packs_for_signals(case_signals)
         agent_requirements = _requirements_for_agent(
@@ -309,6 +349,16 @@ class PrimaryReviewOrchestrator:
             requirements=requirements,
             case_signals=case_signals,
             expected_knowledge_pack_ids=expected_knowledge_pack_ids,
+        )
+        evidence_context = _bounded_evidence_context(
+            selected_chunks,
+            relevance_terms=_source_relevance_terms(
+                agent=agent,
+                claims=claims,
+                requirements=agent_requirements,
+            ),
+            max_chars_per_excerpt=settings.reviewer_max_source_excerpt_chars,
+            max_total_chars=settings.reviewer_max_source_context_chars,
         )
         requirement_ids = [
             requirement.requirement_id for requirement in agent_requirements
@@ -350,7 +400,7 @@ class PrimaryReviewOrchestrator:
             agent=agent,
             claims=claims,
             requirements=agent_requirements,
-            max_claims=get_settings().reviewer_max_claims_per_agent,
+            max_claims=settings.reviewer_max_claims_per_agent,
         )
         input_hash = _hash_json(
             {
@@ -365,6 +415,7 @@ class PrimaryReviewOrchestrator:
                 "knowledge_pack_ids": knowledge_pack_ids,
                 "missing_knowledge_pack_ids": missing_knowledge_pack_ids,
                 "case_signals": list(case_signals),
+                "evidence_context": evidence_context,
                 "calibration_example_ids": calibration_pack.example_ids,
                 "calibration_pack_hash": calibration_pack_hash,
             }
@@ -410,6 +461,7 @@ class PrimaryReviewOrchestrator:
                 candidate_output = agent.run(
                     agent_claims,
                     agent_requirements,
+                    evidence_context=evidence_context,
                     document_set_id=document_set_id,
                     case_signals=case_signals,
                     knowledge_pack_ids=knowledge_pack_ids,
@@ -663,14 +715,26 @@ CRITIC_ROLES_BY_PROVIDER = {
     "mistral": "RedTeamCriticMistral",
 }
 
+PRIMARY_PROVIDER_BY_ROLE = {
+    "GMPDataIntegrityReviewer": "mistral",
+    "DeviationReviewer": "mistral",
+    "CAPAReviewer": "mistral",
+    "BatchImpactReviewer": "openai",
+    "ValidationAndSterilityReviewer": "anthropic",
+    "RegulatoryConsistencyReviewer": "anthropic",
+    "ContradictionHunter": "openai",
+}
+
 
 def _critic_agents(loader: PromptTemplateLoader) -> list[ReviewerAgent]:
     settings = get_settings()
-    providers = [
-        entry.strip().lower()
-        for entry in settings.critic_providers.split(",")
-        if entry.strip()
-    ]
+    providers = list(
+        dict.fromkeys(
+            entry.strip().lower()
+            for entry in settings.critic_providers.split(",")
+            if entry.strip()
+        )
+    )
     agents = []
     for provider_name in providers:
         role = CRITIC_ROLES_BY_PROVIDER.get(provider_name)
@@ -713,45 +777,51 @@ def _provider_for_role(role: str) -> BaseModelProvider:
         return MockModelProvider()
 
     runtime_options = _runtime_options_from_settings(settings)
-    if role == "RedTeamCriticAnthropic":
-        return AnthropicProvider(
-            configured_model_id=settings.anthropic_model_id,
-            runtime_options=runtime_options,
-        )
-    if role == "RedTeamCriticOpenAI":
-        return OpenAIProvider(
-            configured_model_id=settings.openai_model_id,
-            runtime_options=runtime_options,
-        )
-    if role == "RedTeamCriticMistral":
-        return MistralProvider(
-            configured_model_id=settings.mistral_model_id,
+    critic_provider_by_role = {
+        critic_role: provider_name
+        for provider_name, critic_role in CRITIC_ROLES_BY_PROVIDER.items()
+    }
+    if role in critic_provider_by_role:
+        return _provider_for_name(
+            critic_provider_by_role[role],
+            settings=settings,
             runtime_options=runtime_options,
         )
     if settings.reviewer_provider_override == "mistral":
-        return MistralProvider(
-            configured_model_id=settings.mistral_model_id,
+        return _provider_for_name(
+            "mistral",
+            settings=settings,
             runtime_options=runtime_options,
         )
-    if role == "BatchImpactReviewer":
-        return OpenAIProvider(
-            configured_model_id=settings.openai_model_id,
+    provider_name = PRIMARY_PROVIDER_BY_ROLE.get(role)
+    if provider_name is not None:
+        return _provider_for_name(
+            provider_name,
+            settings=settings,
             runtime_options=runtime_options,
         )
-    if role in {
-        "GMPDataIntegrityReviewer",
-        "DeviationReviewer",
-        "CAPAReviewer",
-        "ValidationAndSterilityReviewer",
-        "RegulatoryConsistencyReviewer",
-    }:
+    return MockModelProvider()
+
+
+def _provider_for_name(
+    provider_name: str,
+    *,
+    settings: Settings,
+    runtime_options: ProviderRuntimeOptions,
+) -> BaseModelProvider:
+    if provider_name == "anthropic":
         return AnthropicProvider(
             configured_model_id=settings.anthropic_model_id,
             runtime_options=runtime_options,
         )
-    if role == "ContradictionHunter":
+    if provider_name == "openai":
         return OpenAIProvider(
             configured_model_id=settings.openai_model_id,
+            runtime_options=runtime_options,
+        )
+    if provider_name == "mistral":
+        return MistralProvider(
+            configured_model_id=settings.mistral_model_id,
             runtime_options=runtime_options,
         )
     return MockModelProvider()
@@ -1007,7 +1077,14 @@ SIGNAL_PATTERNS: dict[str, tuple[str, ...]] = {
     "em_alert": ("em alert", "environmental monitoring", "umgebungsmonitoring"),
     "manual_override": ("manual override", "override", "manual change", "manuelle aenderung"),
     "material_change": ("material change", "materialaenderung", "coating", "beschichtung"),
-    "method_change": ("method changed", "test method", "methode", "pruefmethode"),
+    "method_change": (
+        "method changed",
+        "test method",
+        "methode",
+        "pruefmethode",
+        "uplc",
+        "hplc",
+    ),
     "missing_attachment": ("missing attachment", "fehlender anhang", "not attached"),
     "primary_packaging_component": (
         "primary packaging",
@@ -1244,7 +1321,177 @@ def _claim_relevance_score(claim: Claim, terms: set[str]) -> int:
     return score
 
 
-def _case_signals(*, document_set: DocumentSet, claims: Sequence[Claim]) -> list[str]:
+def _source_chunks_for_agent(
+    *,
+    agent: ReviewerAgent,
+    chunks: Sequence[DocumentChunk],
+    claims: Sequence[Claim],
+    requirements: Sequence[Requirement],
+    max_chunks: int,
+) -> list[DocumentChunk]:
+    """Select a bounded, role-relevant context while preserving document diversity."""
+    if not chunks:
+        return []
+
+    terms = _source_relevance_terms(
+        agent=agent,
+        claims=claims,
+        requirements=requirements,
+    )
+    scored = [
+        (index, chunk, _source_chunk_relevance_score(chunk, terms, claims))
+        for index, chunk in enumerate(chunks)
+    ]
+    positive = [item for item in scored if item[2] > 0]
+    candidates = positive or scored
+    ranked = sorted(candidates, key=lambda item: (-item[2], item[0]))
+
+    selected: list[DocumentChunk] = []
+    selected_chunk_ids: set[str] = set()
+    selected_document_ids: set[str] = set()
+    # Allocate one high-scoring excerpt to each relevant document first. If
+    # relevant chunks exist, unrelated documents cannot consume this budget.
+    for _, chunk, _ in ranked:
+        if len(selected) >= max_chunks:
+            break
+        if chunk.document_id not in selected_document_ids:
+            selected.append(chunk)
+            selected_chunk_ids.add(chunk.chunk_id)
+            selected_document_ids.add(chunk.document_id)
+    for _, chunk, _ in ranked:
+        if len(selected) >= max_chunks:
+            break
+        if chunk.chunk_id not in selected_chunk_ids:
+            selected.append(chunk)
+            selected_chunk_ids.add(chunk.chunk_id)
+    return selected
+
+
+def _source_relevance_terms(
+    *,
+    agent: ReviewerAgent,
+    claims: Sequence[Claim],
+    requirements: Sequence[Requirement],
+) -> set[str]:
+    profile = AGENT_RETRIEVAL_PROFILES.get(agent.role, DEFAULT_RETRIEVAL_PROFILE)
+    role_terms = [
+        *agent.applicable_risk_categories,
+        *ROLE_REQUIREMENT_KEYWORDS.get(agent.role, ()),
+        *profile.keywords,
+    ]
+    for requirement in requirements:
+        role_terms.extend(
+            [
+                requirement.requirement_id,
+                requirement.title or "",
+                requirement.domain or "",
+                requirement.requirement_text,
+                *requirement.red_flags,
+                *requirement.required_evidence,
+            ]
+        )
+    for claim in claims:
+        role_terms.extend(
+            [
+                claim.normalized_subject,
+                claim.normalized_predicate,
+                claim.normalized_object,
+                claim.raw_text_quote,
+            ]
+        )
+    return {term.lower() for term in role_terms if len(term.strip()) >= 4}
+
+
+def _source_chunk_relevance_score(
+    chunk: DocumentChunk,
+    terms: set[str],
+    claims: Sequence[Claim],
+) -> int:
+    searchable = chunk.text.lower()
+    score = sum(1 for term in terms if term in searchable)
+    for claim in claims:
+        if claim.document_id == chunk.document_id and claim.chunk_id == chunk.chunk_id:
+            score += 4
+    return score
+
+
+def _bounded_evidence_context(
+    chunks: Sequence[DocumentChunk],
+    *,
+    relevance_terms: set[str],
+    max_chars_per_excerpt: int,
+    max_total_chars: int,
+) -> list[dict[str, Any]]:
+    """Return exact source substrings plus enough metadata for later verification."""
+    context: list[dict[str, Any]] = []
+    remaining_chars = max_total_chars
+    for chunk in chunks:
+        if remaining_chars <= 0:
+            break
+        text, char_start, char_end = _relevance_centered_excerpt(
+            chunk.text,
+            relevance_terms=relevance_terms,
+            max_chars=min(max_chars_per_excerpt, remaining_chars),
+        )
+        if not text:
+            continue
+        context.append(
+            {
+                "document_id": chunk.document_id,
+                "chunk_id": chunk.chunk_id,
+                "page_start": chunk.page_start,
+                "page_end": chunk.page_end,
+                "source_hash": chunk.source_hash,
+                "text": text,
+                "char_start": char_start,
+                "char_end": char_end,
+                "truncated": len(text) < len(chunk.text),
+            }
+        )
+        remaining_chars -= len(text)
+    return context
+
+
+def _relevance_centered_excerpt(
+    text: str,
+    *,
+    relevance_terms: set[str],
+    max_chars: int,
+) -> tuple[str, int, int]:
+    if len(text) <= max_chars:
+        return text, 0, len(text)
+
+    searchable = text.lower()
+    candidate_positions = [
+        position
+        for term in relevance_terms
+        if len(term) <= max_chars
+        for position in [searchable.find(term)]
+        if position >= 0
+    ]
+    if not candidate_positions:
+        return text[:max_chars], 0, max_chars
+
+    best_start = 0
+    best_rank = (-1, -1, -1)
+    for position in candidate_positions:
+        start = min(max(0, position - (max_chars // 2)), len(text) - max_chars)
+        window = searchable[start : start + max_chars]
+        matching_terms = {term for term in relevance_terms if term in window}
+        rank = (len(matching_terms), sum(map(len, matching_terms)), position)
+        if rank > best_rank:
+            best_rank = rank
+            best_start = start
+    end = best_start + max_chars
+    return text[best_start:end], best_start, end
+
+
+def _case_signals(
+    *,
+    document_set: DocumentSet,
+    claims: Sequence[Claim],
+    chunks: Sequence[DocumentChunk] = (),
+) -> list[str]:
     fragments = [
         document_set.declared_document_type,
         document_set.declared_process_area,
@@ -1259,6 +1506,8 @@ def _case_signals(*, document_set: DocumentSet, claims: Sequence[Claim]) -> list
                 claim.raw_text_quote,
             ]
         )
+    for chunk in chunks:
+        fragments.append(chunk.text)
     searchable = " ".join(fragments).lower()
     signals = [
         signal
@@ -1353,11 +1602,11 @@ def _requirement_pack_candidates(requirement: Requirement) -> list[str]:
     return _dedupe_strings(packs)
 
 
-def _normalise_keys(values: Sequence[str]) -> list[str]:
+def _normalise_keys(values: Iterable[str]) -> list[str]:
     return [value.strip().lower() for value in values if value and value.strip()]
 
 
-def _dedupe_strings(values: Sequence[str]) -> list[str]:
+def _dedupe_strings(values: Iterable[str]) -> list[str]:
     deduped: list[str] = []
     seen: set[str] = set()
     for value in values:

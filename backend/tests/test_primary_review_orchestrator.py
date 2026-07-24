@@ -12,11 +12,12 @@ from app.agents.providers.base import ProviderStructuredOutputError
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.main import app
-from app.schemas.domain import Claim, DocumentSet, RequirementSet
+from app.schemas.domain import Claim, Document, DocumentChunk, DocumentSet, RequirementSet
 from app.services.review_orchestrator import (
     MockModelProvider,
     PrimaryReviewOrchestrator,
     ReviewerAgent,
+    _source_chunks_for_agent,
 )
 
 
@@ -94,6 +95,195 @@ def test_model_run_audit_includes_tenant_provider_model_id_prompt_and_hashes() -
     )
     assert completed_event.payload["knowledge_pack_ids"] == result.model_runs[0].knowledge_pack_ids
     assert completed_event.payload["case_signals"] == result.model_runs[0].case_signals
+
+
+def test_primary_reviewers_receive_bounded_source_diverse_pkg001_evidence_context() -> None:
+    """Review context must preserve the source facts that claims alone lose."""
+    repository.create_requirement_set(_qc_change_cross_document_requirement_set())
+    document_set = _document_set().model_copy(
+        update={
+            "document_set_id": "ds_pkg001_source_context",
+            "requirement_set_id": "rset_qc_change_cross_document_2026",
+            "declared_document_type": "change_control_package",
+            "declared_process_area": "qc_lab",
+        }
+    )
+    repository.create_document_set(document_set)
+    for document_id, filename, text in _pkg001_source_documents():
+        repository.add_document(
+            document=_source_document(
+                document_id=document_id,
+                document_set_id=document_set.document_set_id,
+                filename=filename,
+            ),
+            chunks=[_source_chunk(document_id=document_id, text=text)],
+        )
+    repository.replace_claim_ledger(
+        document_set_id=document_set.document_set_id,
+        claims=[
+            _pkg001_claim(
+                claim_id="claim_old_validation",
+                document_id="doc_pkg001_validation",
+                normalized_object="validation report NMT 0.10",
+                quote="Validation report reports NMT 0.10.",
+            ),
+            _pkg001_claim(
+                claim_id="claim_pending_qa",
+                document_id="doc_pkg001_qa_training",
+                normalized_object="QA approval pending",
+                quote="QA approval remains pending.",
+            ),
+        ],
+    )
+    providers = {role: CapturingProvider() for role in _PKG001_REVIEWER_ROLES}
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id=f"agent_{role}",
+                role=role,
+                prompt_version="pkg001-source-context-v1",
+                applicable_risk_categories=["validation", "regulatory_consistency", "batch_impact"],
+                provider=provider,
+            )
+            for role, provider in providers.items()
+        ],
+    )
+
+    result = orchestrator.run_primary_review(document_set.document_set_id)
+
+    assert not result.failed_model_runs
+    all_contexts = [
+        provider.last_input_schema["evidence_context"]
+        for provider in providers.values()
+        if provider.last_input_schema is not None
+    ]
+    assert len(all_contexts) == len(providers)
+    assert all(context for context in all_contexts)
+    assert all(
+        len(context) <= 8
+        and sum(len(item["text"]) for item in context) <= 6000
+        for context in all_contexts
+    )
+    assert all(
+        {"document_id", "chunk_id", "page_start", "page_end", "source_hash", "text"}
+        <= context[0].keys()
+        for context in all_contexts
+    )
+    for source_fact in (
+        "NMT 0.10",
+        "UPLC-12",
+        "different comparator equipment",
+        "QA approval remains pending",
+        "SOP v4 training is mandatory",
+        "A17-26044 is outside the approved scope",
+    ):
+        assert all(
+            source_fact in " ".join(item["text"] for item in context)
+            for context in all_contexts
+        )
+    expected_document_ids = {
+        "doc_pkg001_validation",
+        "doc_pkg001_comparator",
+        "doc_pkg001_qa_training",
+        "doc_pkg001_scope",
+    }
+    assert all(
+        {item["document_id"] for item in context} >= expected_document_ids
+        for context in all_contexts
+    )
+    for provider in providers.values():
+        assert provider.last_input_schema is not None
+        assert {"validation_scope", "approval_pending", "training", "method_change"} <= set(
+            provider.last_input_schema["case_signals"]
+        )
+        assert provider.last_prompt is not None
+        assert "CROSS-DOCUMENT CITATION REQUIREMENT" in provider.last_prompt
+
+
+def test_source_excerpt_centers_on_relevant_passage_late_in_long_chunk() -> None:
+    relevant_passage = (
+        "Validation bridge for UPLC-12 is missing despite different comparator equipment."
+    )
+    long_text = ("Administrative appendix entry without assessment. " * 40) + relevant_passage
+    repository.add_document(
+        document=_source_document(
+            document_id="doc_late_validation",
+            document_set_id="ds_review_demo",
+            filename="late-validation.txt",
+        ),
+        chunks=[_source_chunk(document_id="doc_late_validation", text=long_text)],
+    )
+    provider = CapturingProvider()
+    orchestrator = PrimaryReviewOrchestrator(
+        repository=repository,
+        audit_log=audit_log,
+        agents=[
+            ReviewerAgent(
+                agent_id="agent_late_validation",
+                role="ValidationAndSterilityReviewer",
+                prompt_version="late-source-context-v1",
+                applicable_risk_categories=["validation"],
+                provider=provider,
+            )
+        ],
+    )
+
+    result = orchestrator.run_primary_review("ds_review_demo")
+
+    assert not result.failed_model_runs
+    assert provider.last_input_schema is not None
+    excerpt = provider.last_input_schema["evidence_context"][0]
+    assert relevant_passage in excerpt["text"]
+    assert len(excerpt["text"]) <= 1200
+    assert 0 < excerpt["char_start"] < excerpt["char_end"] <= len(long_text)
+    assert excerpt["text"] == long_text[excerpt["char_start"] : excerpt["char_end"]]
+    assert excerpt["source_hash"] == sha256(long_text.encode()).hexdigest()
+
+
+def test_source_chunk_selection_does_not_force_irrelevant_document_over_positive_match() -> None:
+    relevant_document_id = "doc_role_relevant"
+    relevant_chunks = [
+        _source_chunk(
+            document_id=relevant_document_id,
+            text="Validation protocol requires a current comparator bridge.",
+        ),
+        _source_chunk(
+            document_id=relevant_document_id,
+            text="Cleaning validation acceptance criteria remain pending.",
+        ).model_copy(
+            update={
+                "chunk_id": "chunk_doc_role_relevant_p2",
+                "page_start": 2,
+                "page_end": 2,
+            }
+        ),
+    ]
+    irrelevant_chunk = _source_chunk(
+        document_id="doc_role_irrelevant",
+        text="Cafeteria opening hours and parking allocation.",
+    )
+    agent = ReviewerAgent(
+        agent_id="agent_role_relevance",
+        role="ValidationAndSterilityReviewer",
+        prompt_version="role-relevance-v1",
+        applicable_risk_categories=["validation"],
+        provider=CapturingProvider(),
+    )
+
+    selected = _source_chunks_for_agent(
+        agent=agent,
+        chunks=[*relevant_chunks, irrelevant_chunk],
+        claims=[],
+        requirements=[],
+        max_chunks=2,
+    )
+
+    assert {chunk.chunk_id for chunk in selected} == {
+        "chunk_doc_role_relevant_p1",
+        "chunk_doc_role_relevant_p2",
+    }
 
 
 def test_orchestrator_runs_review_agents_in_parallel() -> None:
@@ -284,7 +474,8 @@ def test_contradiction_hunter_loads_pattern_knowledge_packs_from_matching_requir
     assert result.model_runs[0].missing_knowledge_pack_ids == []
 
 
-def test_contradiction_hunter_loads_contradiction_patterns_for_qc_change_package_requirements() -> None:
+def test_contradiction_hunter_loads_contradiction_patterns_for_qc_change_package_requirements(
+) -> None:
     repository.create_requirement_set(_qc_change_cross_document_requirement_set())
     repository.create_document_set(
         _document_set().model_copy(
@@ -502,6 +693,122 @@ class InvalidRequirementReferenceProvider:
             ],
             "coverage_summary": "Reviewer found a deviation impact issue.",
         }
+
+
+class CapturingProvider:
+    provider_name = "mock"
+    model_name = "capturing-reviewer"
+    model_version = "0.1.0"
+    configured_model_id = "capturing-reviewer-v0.1"
+    last_run_metadata = None
+
+    def __init__(self) -> None:
+        self.last_prompt: str | None = None
+        self.last_input_schema: dict[str, Any] | None = None
+
+    def run_structured(
+        self,
+        prompt: str,
+        input_schema: dict[str, Any],
+        output_schema: type[Any],
+    ) -> dict[str, Any]:
+        self.last_prompt = prompt
+        self.last_input_schema = input_schema
+        return {
+            "findings": [],
+            "coverage_summary": "No candidate finding from the supplied context.",
+        }
+
+
+_PKG001_REVIEWER_ROLES = (
+    "ValidationAndSterilityReviewer",
+    "RegulatoryConsistencyReviewer",
+    "BatchImpactReviewer",
+    "ContradictionHunter",
+    "RedTeamCriticOpenAI",
+)
+
+
+def _pkg001_source_documents() -> list[tuple[str, str, str]]:
+    return [
+        (
+            "doc_pkg001_validation",
+            "validation-report.txt",
+            "Validation report VAL-19 uses the legacy NMT 0.10 limit for UPLC-12.",
+        ),
+        (
+            "doc_pkg001_comparator",
+            "comparator-assessment.txt",
+            (
+                "Validation comparator study uses different comparator equipment. "
+                "No bridging study to UPLC-12 is attached."
+            ),
+        ),
+        (
+            "doc_pkg001_qa_training",
+            "qa-training-status.txt",
+            "QA approval remains pending. SOP v4 training is mandatory before implementation.",
+        ),
+        (
+            "doc_pkg001_scope",
+            "change-control-scope.txt",
+            (
+                "A17-26044 is outside the approved scope but appears in the retained sample "
+                "retest list."
+            ),
+        ),
+    ]
+
+
+def _source_document(*, document_id: str, document_set_id: str, filename: str) -> Document:
+    return Document(
+        document_id=document_id,
+        document_set_id=document_set_id,
+        filename=filename,
+        file_hash_sha256=sha256(filename.encode()).hexdigest(),
+        mime_type="text/plain",
+        page_count=1,
+        storage_uri=f"memory://{document_id}",
+        parser_version="test-parser-v1",
+        parsing_status="parsed",
+        parsing_quality_score=1.0,
+        language="en",
+        metadata={},
+    )
+
+
+def _source_chunk(*, document_id: str, text: str) -> DocumentChunk:
+    return DocumentChunk(
+        chunk_id=f"chunk_{document_id}_p1",
+        document_id=document_id,
+        page_start=1,
+        page_end=1,
+        text=text,
+        token_count=max(1, len(text.split())),
+        extraction_confidence=1.0,
+        bbox=None,
+        source_hash=sha256(text.encode()).hexdigest(),
+    )
+
+
+def _pkg001_claim(
+    *, claim_id: str, document_id: str, normalized_object: str, quote: str
+) -> Claim:
+    return Claim(
+        claim_id=claim_id,
+        document_id=document_id,
+        chunk_id=f"chunk_{document_id}_p1",
+        page=1,
+        claim_type="missing_or_unclear",
+        normalized_subject="package evidence",
+        normalized_predicate="states",
+        normalized_object=normalized_object,
+        raw_text_quote=quote,
+        confidence=0.9,
+        dependencies=[],
+        created_by_model="test-claim-extractor-v1",
+        prompt_version="test-claim-ledger-v1",
+    )
 
 
 def _document_set() -> DocumentSet:

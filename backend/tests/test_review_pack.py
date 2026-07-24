@@ -78,6 +78,45 @@ def test_review_pack_contains_evidence_model_positions_and_verifier_status() -> 
     assert pack.verifier_results[0].finding_id == "finding_pack_high"
 
 
+def test_review_pack_evidence_rows_resolve_document_names_from_repository() -> None:
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert pack.evidence_table[0].document_id == "doc_pack_change"
+    assert pack.evidence_table[0].document_name == "change-control.txt"
+
+
+def test_review_pack_evidence_rows_keep_id_when_document_is_missing() -> None:
+    finding = _finding().model_copy(
+        update={
+            "evidence_items": [
+                _finding().evidence_items[0].model_copy(
+                    update={"document_id": "doc_pack_missing"}
+                )
+            ]
+        }
+    )
+    repository.replace_risk_findings(
+        document_set_id="ds_review_pack_demo",
+        findings=[finding],
+    )
+    RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_review_pack_demo"
+    )
+
+    pack = ReviewPackService(repository=repository, audit_log=audit_log).get_review_pack(
+        "ds_review_pack_demo"
+    )
+
+    assert pack.evidence_table[0].document_id == "doc_pack_missing"
+    assert pack.evidence_table[0].document_name is None
+
+
 def test_review_pack_publishes_one_root_risk_with_supporting_model_signals() -> None:
     supporting = _finding().model_copy(
         update={

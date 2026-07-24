@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from difflib import SequenceMatcher
+from hashlib import sha256
 from typing import Protocol
 
 from app.audit.events import InMemoryAuditLog
@@ -39,6 +40,8 @@ class CitationCheckResult:
     quote_matches_chunk: bool
     page_plausible: bool
     claim_support: EvidenceSupport
+    multi_document_synthesis_valid: bool
+    multi_document_semantic_support: bool
     unsupported_claims: list[str]
     missing_evidence: list[str]
 
@@ -47,13 +50,21 @@ class CitationIntegrityChecker:
     def __init__(self, *, repository: InMemoryDocumentRepository) -> None:
         self.repository = repository
 
-    def check(self, finding: RiskFinding) -> CitationCheckResult:
+    def check(
+        self,
+        finding: RiskFinding,
+        *,
+        requirement_texts: Sequence[str] = (),
+    ) -> CitationCheckResult:
         quote_exists = True
         quote_matches_chunk = True
         page_plausible = True
         unsupported_claims: list[str] = []
         missing_evidence: list[str] = []
         quote_texts: list[str] = []
+        exact_quote_document_ids: set[str] = set()
+        exact_quotes_by_document: dict[str, list[str]] = {}
+        multi_document_finding = len(finding.evidence_items) >= 2
 
         for evidence_item in finding.evidence_items:
             document = self.repository.get_document(evidence_item.document_id)
@@ -81,14 +92,34 @@ class CitationIntegrityChecker:
                 missing_evidence.append("evidence quote is empty")
                 continue
 
-            if not _quote_matches_chunk(evidence_item.quote, chunk.text):
+            quote_hash_matches = (
+                sha256(evidence_item.quote.encode()).hexdigest()
+                == evidence_item.quote_hash
+            )
+            quote_matches_source = (
+                _strict_quote_matches_chunk(evidence_item.quote, chunk.text)
+                if multi_document_finding
+                else _quote_matches_chunk(evidence_item.quote, chunk.text)
+            )
+            if multi_document_finding and not quote_hash_matches:
+                quote_exists = False
+                quote_matches_chunk = False
+                missing_evidence.append(
+                    f"quote_hash does not match evidence quote: {evidence_item.document_id}"
+                )
+
+            if not quote_matches_source:
                 quote_exists = False
                 quote_matches_chunk = False
                 unsupported_claims.append(
                     f"quote does not match source chunk: {evidence_item.quote}"
                 )
-            else:
+            elif quote_hash_matches or not multi_document_finding:
                 quote_texts.append(evidence_item.quote)
+                exact_quote_document_ids.add(evidence_item.document_id)
+                exact_quotes_by_document.setdefault(evidence_item.document_id, []).append(
+                    evidence_item.quote
+                )
 
             if not chunk.page_start <= evidence_item.page <= chunk.page_end:
                 page_plausible = False
@@ -101,11 +132,48 @@ class CitationIntegrityChecker:
             evidence_quotes=quote_texts,
         )
         unsupported_claims.extend(claim_issues)
+        multi_document_synthesis_valid = _multi_document_synthesis_is_valid(
+            finding=finding,
+            exact_quote_document_ids=exact_quote_document_ids,
+            evidence_quotes=quote_texts,
+            unsupported_claims=unsupported_claims,
+            missing_evidence=missing_evidence,
+        )
+        multi_document_semantic_support = _multi_document_claim_is_semantically_supported(
+            finding=finding,
+            exact_quotes_by_document=exact_quotes_by_document,
+            requirement_texts=requirement_texts,
+        )
+        if (
+            len(finding.evidence_items) >= 2
+            and multi_document_synthesis_valid
+            and not multi_document_semantic_support
+        ):
+            quote_concepts = _synthesis_concepts(" ".join(quote_texts))
+            requirement_concepts = _synthesis_concepts(" ".join(requirement_texts))
+            unsupported_claims.extend(
+                f"risk statement material clause lacks multi-document concept support: {clause}"
+                for clause in _unsupported_material_clauses(
+                    risk_statement=finding.risk_statement,
+                    quote_concepts=quote_concepts,
+                    requirement_concepts=requirement_concepts,
+                )
+            )
+        if (
+            len(finding.evidence_items) >= 2
+            and multi_document_synthesis_valid
+            and multi_document_semantic_support
+        ):
+            unsupported_claims = [
+                issue for issue in unsupported_claims if issue not in claim_issues
+            ]
         return CitationCheckResult(
             quote_exists=quote_exists,
             quote_matches_chunk=quote_matches_chunk,
             page_plausible=page_plausible,
             claim_support=claim_support,
+            multi_document_synthesis_valid=multi_document_synthesis_valid,
+            multi_document_semantic_support=multi_document_semantic_support,
             unsupported_claims=unsupported_claims,
             missing_evidence=missing_evidence,
         )
@@ -116,6 +184,7 @@ class RequirementMatchResult:
     requirement_applicable: bool
     auto_close_allowed_considered: bool
     missing_evidence: list[str]
+    applicable_requirement_texts: list[str]
 
 
 class RequirementMatcherVerifier:
@@ -129,6 +198,7 @@ class RequirementMatcherVerifier:
                 requirement_applicable=False,
                 auto_close_allowed_considered=False,
                 missing_evidence=[f"document_set_id does not exist: {document_set_id}"],
+                applicable_requirement_texts=[],
             )
 
         requirement_set = self.repository.get_requirement_set(document_set.requirement_set_id)
@@ -139,6 +209,7 @@ class RequirementMatcherVerifier:
                 missing_evidence=[
                     f"requirement_set_id does not exist: {document_set.requirement_set_id}"
                 ],
+                applicable_requirement_texts=[],
             )
 
         if not finding.requirement_references:
@@ -146,6 +217,7 @@ class RequirementMatcherVerifier:
                 requirement_applicable=False,
                 auto_close_allowed_considered=not finding.auto_close_allowed,
                 missing_evidence=["finding has no requirement references"],
+                applicable_requirement_texts=[],
             )
 
         requirements_by_id = {
@@ -182,6 +254,9 @@ class RequirementMatcherVerifier:
             requirement_applicable=bool(applicable_requirements),
             auto_close_allowed_considered=auto_close_allowed_considered,
             missing_evidence=missing_evidence,
+            applicable_requirement_texts=[
+                requirement.requirement_text for requirement in applicable_requirements
+            ],
         )
 
 
@@ -261,21 +336,30 @@ class EvidenceVerifierService:
         document_set_id: str,
         finding: RiskFinding,
     ) -> FindingVerificationResult:
-        citation_result = self.citation_checker.check(finding)
         requirement_result = self.requirement_checker.check(
             document_set_id=document_set_id,
             finding=finding,
+        )
+        citation_result = self.citation_checker.check(
+            finding,
+            requirement_texts=requirement_result.applicable_requirement_texts,
         )
         missing_evidence = [
             *citation_result.missing_evidence,
             *requirement_result.missing_evidence,
             *finding.missing_information,
         ]
+        claim_support_is_sufficient = citation_result.claim_support == EvidenceSupport.STRONG or (
+            len(finding.evidence_items) >= 2
+            and citation_result.multi_document_synthesis_valid
+            and citation_result.multi_document_semantic_support
+        )
         deterministic_checks_passed = (
             citation_result.quote_exists
             and citation_result.quote_matches_chunk
             and citation_result.page_plausible
-            and citation_result.claim_support == EvidenceSupport.STRONG
+            and claim_support_is_sufficient
+            and citation_result.multi_document_synthesis_valid
             and requirement_result.requirement_applicable
             and requirement_result.auto_close_allowed_considered
             and not missing_evidence
@@ -311,6 +395,15 @@ def _quote_matches_chunk(quote: str, chunk_text: str) -> bool:
     if normalized_quote in normalized_chunk:
         return True
     return SequenceMatcher(None, normalized_quote, normalized_chunk).ratio() >= 0.82
+
+
+def _strict_quote_matches_chunk(quote: str, chunk_text: str) -> bool:
+    return _normalize_strict_quote(quote) in _normalize_strict_quote(chunk_text)
+
+
+def _normalize_strict_quote(value: str) -> str:
+    """Ignore presentation-only Markdown markers without altering quote content."""
+    return _normalize(value.replace("**", "").replace("__", "").replace("`", ""))
 
 
 def _normalize(value: str) -> str:
@@ -356,6 +449,201 @@ def _claim_support(
     return EvidenceSupport.STRONG, []
 
 
+def _multi_document_synthesis_is_valid(
+    *,
+    finding: RiskFinding,
+    exact_quote_document_ids: set[str],
+    evidence_quotes: Sequence[str],
+    unsupported_claims: list[str],
+    missing_evidence: list[str],
+) -> bool:
+    """Validate claims deliberately synthesized from more than one citation.
+
+    Single-citation findings retain the established lexical verifier behavior.  A
+    finding that supplies multiple citations, however, is asserting a synthesis
+    across them and must meet stricter, deterministic provenance constraints.
+    """
+    if len(finding.evidence_items) < 2:
+        return True
+
+    valid = True
+    if len(exact_quote_document_ids) < 2:
+        missing_evidence.append(
+            "multi-document synthesis requires at least two distinct source documents"
+        )
+        valid = False
+
+    normalized_quotes = [_normalize_strict_quote(quote) for quote in evidence_quotes]
+    if len(set(normalized_quotes)) != len(normalized_quotes):
+        missing_evidence.append(
+            "multi-document synthesis requires non-duplicate exact evidence quotes"
+        )
+        valid = False
+
+    non_supporting_evidence = [
+        evidence_item
+        for evidence_item in finding.evidence_items
+        if evidence_item.support_type.value != "supports"
+    ]
+    if non_supporting_evidence:
+        unsupported_claims.append(
+            "multi-document synthesis requires every evidence item to have support_type=supports"
+        )
+        valid = False
+
+    exact_quote_text = _normalize(" ".join(evidence_quotes))
+    uncovered_anchors = [
+        anchor
+        for anchor in _factual_anchors(finding.risk_statement)
+        if _normalize(anchor) not in exact_quote_text
+    ]
+    if uncovered_anchors:
+        unsupported_claims.extend(
+            f"factual anchor is not covered by exact evidence quotes: {anchor}"
+            for anchor in uncovered_anchors
+        )
+        valid = False
+    return valid
+
+
+def _multi_document_claim_is_semantically_supported(
+    *,
+    finding: RiskFinding,
+    exact_quotes_by_document: dict[str, list[str]],
+    requirement_texts: Sequence[str],
+) -> bool:
+    """Require multi-source concept coverage before promoting a synthesis.
+
+    This is intentionally a small deterministic guard, not an inference engine:
+    the risk must share at least two normalized concepts with the exact quote
+    corpus, the support must span source documents, and explicit anchors are
+    counted only after their exact-quote check elsewhere has succeeded.
+    """
+    if len(finding.evidence_items) < 2:
+        return True
+
+    claim_concepts = _synthesis_concepts(finding.risk_statement)
+    if not claim_concepts:
+        return False
+
+    requirement_concepts = _synthesis_concepts(" ".join(requirement_texts))
+    quote_concepts_by_document = {
+        document_id: _synthesis_concepts(" ".join(quotes))
+        for document_id, quotes in exact_quotes_by_document.items()
+    }
+    quote_corpus_concepts = set().union(*quote_concepts_by_document.values())
+    if _unsupported_material_clauses(
+        risk_statement=finding.risk_statement,
+        quote_concepts=quote_corpus_concepts,
+        requirement_concepts=requirement_concepts,
+    ):
+        return False
+
+    concept_sources: dict[str, set[str]] = {}
+    for document_id, quote_concepts in quote_concepts_by_document.items():
+        for concept in claim_concepts.intersection(quote_concepts):
+            concept_sources.setdefault(concept, set()).add(document_id)
+
+    quote_concepts = set(concept_sources)
+    required_concepts = claim_concepts.intersection(requirement_concepts)
+    covered_concepts = quote_concepts.union(required_concepts)
+    anchors = _factual_anchors(finding.risk_statement)
+    anchor_sources = {
+        document_id
+        for document_id, quotes in exact_quotes_by_document.items()
+        if any(_normalize(anchor) in _normalize(" ".join(quotes)) for anchor in anchors)
+    }
+    supporting_documents = {
+        document_id
+        for document_id, quote_concepts in quote_concepts_by_document.items()
+        if quote_concepts.intersection(claim_concepts)
+    }.union(anchor_sources)
+
+    return (
+        len(quote_concepts) >= 2
+        and len(covered_concepts) + len(anchors) >= 3
+        and len(supporting_documents) >= 2
+    )
+
+
+def _synthesis_clauses(risk_statement: str) -> list[str]:
+    import re
+
+    return [
+        clause.strip()
+        for clause in re.split(r";|(?<!\d)\.(?!\d)", risk_statement)
+        if _synthesis_concepts(clause)
+    ]
+
+
+def _material_clause_is_supported(
+    *,
+    clause: str,
+    quote_concepts: set[str],
+    requirement_concepts: set[str],
+) -> bool:
+    clause_concepts = _synthesis_concepts(clause)
+    covered_concepts = clause_concepts.intersection(
+        quote_concepts.union(requirement_concepts)
+    )
+    return len(covered_concepts) >= 2 and covered_concepts == clause_concepts
+
+
+def _unsupported_material_clauses(
+    *,
+    risk_statement: str,
+    quote_concepts: set[str],
+    requirement_concepts: set[str],
+) -> list[str]:
+    return [
+        clause
+        for clause in _synthesis_clauses(risk_statement)
+        if not _material_clause_is_supported(
+            clause=clause,
+            quote_concepts=quote_concepts,
+            requirement_concepts=requirement_concepts,
+        )
+    ]
+
+
+def _synthesis_concepts(value: str) -> set[str]:
+    import re
+
+    value = value.replace("N/A", " optional ").replace("n/a", " optional ")
+    tokens = {
+        token
+        for token in re.findall(r"[^\W_]+", value.lower(), flags=re.UNICODE)
+        if len(token) >= 3 and token not in _SYNTHESIS_STOPWORDS
+    }
+    return {
+        _SYNTHESIS_SYNONYMS.get(
+            _TOKEN_SYNONYMS.get(token, token),
+            _TOKEN_SYNONYMS.get(token, token),
+        )
+        for token in tokens
+    }
+
+
+def _factual_anchors(risk_statement: str) -> set[str]:
+    """Return explicit identifiers, versions, and numerical limit expressions.
+
+    These are intentionally narrow: they are checkable facts, rather than a
+    semantic inference from the risk statement.
+    """
+    import re
+
+    identifier_anchors = [
+        *re.findall(r"\b[A-Za-z][A-Za-z0-9]*-\d+(?:[.,]\d+)?", risk_statement),
+        *re.findall(r"\b[A-Z]{2,}-[A-Z]{2,}\b", risk_statement),
+    ]
+    numerical_anchors = re.findall(
+        r"(?<![A-Za-z0-9])(?:v(?:ersion)?\.?\s*)?\d+(?:[.,]\d+)+(?:\s*%)?",
+        risk_statement,
+        flags=re.IGNORECASE,
+    )
+    return {anchor.strip() for anchor in [*identifier_anchors, *numerical_anchors]}
+
+
 def _risk_statement_clauses(risk_statement: str) -> list[str]:
     import re
 
@@ -379,7 +667,7 @@ def _meaningful_tokens(value: str) -> set[str]:
 
     tokens = {
         token
-        for token in re.findall(r"[a-zA-Z0-9]+", value.lower())
+        for token in re.findall(r"[^\W_]+", value.lower(), flags=re.UNICODE)
         if len(token) >= 3 and token not in _SUPPORT_STOPWORDS
     }
     return {_TOKEN_SYNONYMS.get(token, token) for token in tokens}
@@ -403,14 +691,25 @@ def _classify_support(
 ) -> EvidenceSupport:
     if not citation_result.quote_exists:
         return EvidenceSupport.NONE
-    if citation_result.claim_support == EvidenceSupport.NONE:
-        return EvidenceSupport.NONE
     if citation_result.quote_matches_chunk and requirement_result.requirement_applicable:
+        if (
+            len(finding.evidence_items) >= 2
+            and citation_result.multi_document_synthesis_valid
+            and citation_result.multi_document_semantic_support
+            and not missing_evidence
+        ):
+            return EvidenceSupport.STRONG
+        if citation_result.claim_support == EvidenceSupport.NONE:
+            return EvidenceSupport.NONE
+        if not citation_result.multi_document_synthesis_valid:
+            return EvidenceSupport.PARTIAL
         if citation_result.claim_support == EvidenceSupport.PARTIAL:
             return EvidenceSupport.PARTIAL
         if missing_evidence:
             return EvidenceSupport.PARTIAL
         return EvidenceSupport.STRONG
+    if citation_result.claim_support == EvidenceSupport.NONE:
+        return EvidenceSupport.NONE
     if citation_result.quote_matches_chunk or requirement_result.requirement_applicable:
         return EvidenceSupport.WEAK
     return EvidenceSupport.NONE
@@ -469,4 +768,139 @@ _TOKEN_SYNONYMS = {
     "defects": "defective",
     "deviation": "deviation",
     "deviations": "deviation",
+}
+
+_SYNTHESIS_STOPWORDS = {
+    "aber",
+    "alle",
+    "als",
+    "am",
+    "an",
+    "auch",
+    "auf",
+    "aus",
+    "bei",
+    "behandelt",
+    "beziehungsweise",
+    "dass",
+    "das",
+    "dem",
+    "den",
+    "der",
+    "des",
+    "die",
+    "einem",
+    "einen",
+    "eine",
+    "ein",
+    "erste",
+    "ersten",
+    "für",
+    "im",
+    "in",
+    "ist",
+    "kein",
+    "keine",
+    "mit",
+    "nicht",
+    "noch",
+    "nur",
+    "obwohl",
+    "oder",
+    "sein",
+    "sich",
+    "sind",
+    "und",
+    "von",
+    "vor",
+    "werden",
+    "wird",
+    "wie",
+    "zeigen",
+    "zu",
+    "zur",
+}
+
+_SYNTHESIS_SYNONYMS = {
+    "abgedeckt": "coverage",
+    "akzeptiert": "support",
+    "aktuell": "equipment",
+    "aktuelle": "equipment",
+    "alten": "historical",
+    "alte": "historical",
+    "andere": "comparison",
+    "anderen": "comparison",
+    "anwendung": "release",
+    "approval": "approval",
+    "ausgeführt": "release",
+    "ausreichend": "coverage",
+    "auftaucht": "record",
+    "batch": "batch",
+    "bridging": "bridge",
+    "chargen": "batch",
+    "chargenfreigabe": "release",
+    "change": "record",
+    "comparison": "comparison",
+    "comparator": "comparison",
+    "coverage": "coverage",
+    "deckt": "coverage",
+    "decision": "decision",
+    "dokumentiert": "documented",
+    "dokumentierte": "documented",
+    "documented": "documented",
+    "entscheidung": "decision",
+    "entwarnung": "support",
+    "equipment": "equipment",
+    "erforderlich": "required",
+    "ergebnisreview": "review",
+    "execution": "record",
+    "freigabe": "approval",
+    "freigaben": "approval",
+    "freigabesignaturblock": "documented",
+    "geräte": "equipment",
+    "geräteäquivalenz": "bridge",
+    "gerätebrücke": "bridge",
+    "geplant": "pending",
+    "geschult": "training",
+    "grenzwert": "limit",
+    "grenzwerts": "limit",
+    "hplc": "equipment",
+    "leer": "documented",
+    "methode": "validation",
+    "methodenfitness": "validation",
+    "muss": "required",
+    "müssen": "required",
+    "nennt": "scope",
+    "neue": "new",
+    "neuem": "new",
+    "neuen": "new",
+    "original": "historical",
+    "optional": "optional",
+    "part": "coverage",
+    "pending": "pending",
+    "protokolls": "historical",
+    "record": "record",
+    "retest": "retest",
+    "review": "review",
+    "reduzierten": "limit",
+    "routinegeräteplattform": "equipment",
+    "routineplattform": "equipment",
+    "rückstellmuster": "retest",
+    "scope": "scope",
+    "sheet": "limit",
+    "standort": "site",
+    "stützt": "support",
+    "teil": "coverage",
+    "training": "training",
+    "transfer": "bridge",
+    "uplc": "equipment",
+    "ursprünglichen": "historical",
+    "validation": "validation",
+    "validated": "validation",
+    "validierung": "validation",
+    "validierungspaket": "validation",
+    "vergleichslabordaten": "comparison",
+    "verpflichtend": "required",
+    "vorliegt": "documented",
+    "änderung": "record",
 }

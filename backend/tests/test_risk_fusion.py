@@ -174,7 +174,17 @@ def test_reviewable_finding_keeps_human_review_decision_when_model_coverage_fail
     _setup_document_context()
     repository.replace_risk_findings(
         document_set_id="ds_fusion_demo",
-        findings=[_finding("finding_reviewable", severity="high")],
+        findings=[
+            _finding(
+                "finding_reviewable",
+                severity="high",
+                verification_result=_verification(
+                    finding_id="finding_reviewable",
+                    evidence_support="strong",
+                    deterministic_checks_passed=True,
+                ),
+            )
+        ],
     )
     repository.add_model_run(
         document_set_id="ds_fusion_demo",
@@ -338,6 +348,11 @@ def test_canonical_root_is_deterministic_and_publishes_only_the_root_finding() -
                 severity="medium",
                 risk_category="data_integrity",
                 requirement_references=["req_fusion_data_integrity"],
+                verification_result=_verification(
+                    finding_id="finding_same_cluster_medium",
+                    evidence_support="strong",
+                    deterministic_checks_passed=True,
+                ),
             ),
             _finding(
                 "finding_same_cluster_high",
@@ -345,6 +360,11 @@ def test_canonical_root_is_deterministic_and_publishes_only_the_root_finding() -
                 risk_category="data_integrity",
                 requirement_references=["req_fusion_data_integrity"],
                 model_name="second-reviewer",
+                verification_result=_verification(
+                    finding_id="finding_same_cluster_high",
+                    evidence_support="strong",
+                    deterministic_checks_passed=True,
+                ),
             ),
         ],
     )
@@ -360,6 +380,52 @@ def test_canonical_root_is_deterministic_and_publishes_only_the_root_finding() -
     assert set(cluster.finding_ids) == {
         "finding_same_cluster_medium",
         "finding_same_cluster_high",
+    }
+
+
+def test_unverified_strong_finding_is_not_published() -> None:
+    _setup_document_context()
+    repository.replace_risk_findings(
+        document_set_id="ds_fusion_demo",
+        findings=[_finding("finding_unverified_strong", severity="high")],
+    )
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    cluster = decision.finding_clusters[0]
+    assert cluster.root_finding_id is None
+    assert cluster.published_finding_id is None
+    assert decision.published_finding_ids == []
+
+
+def test_five_verified_strong_findings_are_publishable() -> None:
+    _setup_document_context()
+    findings = [
+        _finding(
+            f"finding_verified_gold_{index}",
+            severity="high" if index in {1, 3} else "medium",
+            risk_category=f"gold_risk_{index}",
+            verification_result=_verification(
+                finding_id=f"finding_verified_gold_{index}",
+                evidence_support="strong",
+                deterministic_checks_passed=True,
+            ),
+        )
+        for index in range(1, 6)
+    ]
+    repository.replace_risk_findings(
+        document_set_id="ds_fusion_demo",
+        findings=findings,
+    )
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    assert set(decision.published_finding_ids) == {
+        finding.finding_id for finding in findings
     }
 
 

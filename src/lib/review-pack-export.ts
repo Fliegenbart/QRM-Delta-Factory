@@ -42,7 +42,7 @@ export function buildReviewPackCsv(pack: ReviewPack): string {
   const rows = pack.evidence_table.map((row) => [
     row.finding_id,
     row.risk_statement,
-    row.document_id,
+    sourceName(row),
     String(row.page),
     row.chunk_id,
     row.quote,
@@ -133,13 +133,17 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
   }
   for (const evidence of pack.evidence_table) {
     pages.paragraph(
-      `Quelle ${evidence.document_id}, Seite ${evidence.page}: ${cleanPdfSnippet(evidence.quote)}`,
+      `Quelle ${sourceName(evidence)}, Seite ${evidence.page}: ${cleanPdfSnippet(evidence.quote)}`,
       9,
       0
     );
   }
 
   return new Blob([new Uint8Array(buildPdf(pages.finish()))], { type: "application/pdf" });
+}
+
+function sourceName(evidence: ReviewPack["evidence_table"][number]): string {
+  return evidence.document_name?.trim() || evidence.document_id;
 }
 
 function csvCell(value: string): string {

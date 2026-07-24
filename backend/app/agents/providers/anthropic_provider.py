@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from app.agents.providers.base import ProviderRuntimeOptions
 from app.agents.providers.external_base import ExternalProviderBase
+from app.core.config import get_settings
 
 STRUCTURED_OUTPUT_TOOL_NAME = "submit_structured_output"
 
@@ -42,7 +43,7 @@ class AnthropicProvider(ExternalProviderBase):
     ) -> dict[str, Any]:
         payload = {
             "model": self.configured_model_id,
-            "max_tokens": 16384,
+            "max_tokens": get_settings().model_provider_max_output_tokens,
             "temperature": 0,
             "system": (
                 "You are a conservative GMP review model. Use only the provided inputs. "

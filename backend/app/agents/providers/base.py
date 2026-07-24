@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 import random
 import time
@@ -31,6 +32,10 @@ class ProviderCircuitOpenError(Exception):
 
 
 class ProviderStructuredOutputError(Exception):
+    pass
+
+
+class _StructuredPayloadNormalizationError(ValueError):
     pass
 
 
@@ -187,7 +192,7 @@ class BaseModelProvider(ABC):
                     )
                     self._clear_failures()
                     return structured_output
-                except ValidationError as exc:
+                except (ValidationError, _StructuredPayloadNormalizationError) as exc:
                     self._record_failure()
                     raise ProviderStructuredOutputError(str(exc)) from exc
                 except ProviderCallError as exc:
@@ -318,22 +323,15 @@ def _normalize_structured_payload(
     normalized = dict(payload)
     findings = normalized.get("findings")
     if isinstance(findings, str):
-        try:
-            parsed_findings = json.loads(findings)
-        except json.JSONDecodeError:
-            parsed_findings = findings
-        if isinstance(parsed_findings, list):
-            findings = parsed_findings
-            normalized["findings"] = parsed_findings
+        findings = _parse_reviewer_findings(findings)
+        normalized["findings"] = findings
     if not isinstance(findings, list):
-        return normalized
+        raise _StructuredPayloadNormalizationError("findings must be a list")
+    if not all(isinstance(finding, dict) for finding in findings):
+        raise _StructuredPayloadNormalizationError("findings entries must be objects")
 
-    normalized_findings: list[Any] = []
+    normalized_findings: list[dict[str, Any]] = []
     for finding in findings:
-        if not isinstance(finding, dict):
-            normalized_findings.append(finding)
-            continue
-
         normalized_finding = dict(finding)
         evidence_items = normalized_finding.get("evidence_items")
         if isinstance(evidence_items, list):
@@ -344,6 +342,41 @@ def _normalize_structured_payload(
 
     normalized["findings"] = normalized_findings
     return normalized
+
+
+def _parse_reviewer_findings(value: str) -> list[dict[str, Any]]:
+    normalized_value = _unwrap_pure_json_fence(value)
+    try:
+        parsed = json.loads(normalized_value)
+    except json.JSONDecodeError:
+        try:
+            parsed = ast.literal_eval(normalized_value)
+        except (SyntaxError, ValueError) as exc:
+            raise _StructuredPayloadNormalizationError(
+                "findings must be a valid list of objects"
+            ) from exc
+
+    if not isinstance(parsed, list):
+        raise _StructuredPayloadNormalizationError("findings must be a list")
+    if not all(isinstance(finding, dict) for finding in parsed):
+        raise _StructuredPayloadNormalizationError("findings entries must be objects")
+    return parsed
+
+
+def _unwrap_pure_json_fence(value: str) -> str:
+    trimmed = value.strip()
+    if not trimmed.startswith("```"):
+        return trimmed
+
+    lines = trimmed.splitlines()
+    if (
+        len(lines) < 3
+        or lines[0].strip().lower() not in {"```", "```json"}
+        or lines[-1].strip() != "```"
+        or any(line.strip().startswith("```") for line in lines[1:-1])
+    ):
+        raise _StructuredPayloadNormalizationError("findings must be a valid list of objects")
+    return "\n".join(lines[1:-1]).strip()
 
 
 def _normalize_evidence_item(item: Any) -> Any:

@@ -2,7 +2,7 @@
   "requirement_set_id": "rset_gmp_general_2026_1",
   "tenant_id": "tenant_gruenewald",
   "name": "Allgemeine GMP/QRM Requirement Library (ICH Q9, Annex 11, Part 11)",
-  "version": "2026.1",
+  "version": "2026.2",
   "imported_at": "2026-01-01T00:00:00Z",
   "imported_by": "user_quality_admin",
   "active": true,

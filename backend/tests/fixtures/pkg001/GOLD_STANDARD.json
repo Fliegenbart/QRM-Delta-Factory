@@ -1,0 +1,148 @@
+{
+  "package_id": "PKG-001",
+  "package_title": "Change Control: neuer Impurity-Q-Grenzwert, alte Validierung und ungeeignete Vergleichsbasis",
+  "document_type": "Change Control Package",
+  "process_area": "QC / Analytische Freigabeprüfung",
+  "must_detect_findings": [
+    {
+      "finding_id": "PKG001-F01",
+      "severity": "high",
+      "risk_category": "Methodenvalidierung / Spezifikationsänderung",
+      "risk_statement": "Die alte Validierung deckt die Entscheidung am neuen Grenzwert von NMT 0,10 % und die aktuelle UPLC-12-Routineplattform nicht ausreichend ab.",
+      "why_it_is_hard": "Einzelne Dokumente wirken positiv, aber erst die Kombination aus Change-Ziel, SOP-Anforderung und Validierungsumfang zeigt die Lücke.",
+      "expected_evidence_refs": [
+        {
+          "document_id": "CC-SYN-001",
+          "page_or_section": "Abschnitt 1",
+          "quote": "von NMT 0,20 % auf NMT 0,10 % abgesenkt"
+        },
+        {
+          "document_id": "SOP-QC-AN-014-EX",
+          "page_or_section": "Abschnitt 5.1",
+          "quote": "muss die Methodenfitness am neuen Grenzwert dokumentiert werden"
+        },
+        {
+          "document_id": "VE-SYN-001",
+          "page_or_section": "Abschnitt 2",
+          "quote": "UPLC-12 am Standort BRX-3 war nicht Teil des ursprünglichen Protokolls"
+        },
+        {
+          "document_id": "VE-SYN-001",
+          "page_or_section": "Abschnitt 3",
+          "quote": "Für 0,10 % wurde keine separate Genauigkeits- oder Präzisionsstufe durchgeführt"
+        }
+      ],
+      "expected_requirement_theme": "Fitness for intended use after tightened quantitative limit",
+      "should_block_auto_clear": true
+    },
+    {
+      "finding_id": "PKG001-F02",
+      "severity": "medium",
+      "risk_category": "Ungeeignete Vergleichsevidenz",
+      "risk_statement": "Die Entwarnung stützt sich auf einen anderen Standort und andere Geräte, obwohl keine dokumentierte Gerätebrücke vorliegt.",
+      "why_it_is_hard": "Die Risikoanalyse nennt die Vergleichsdaten als akzeptiert; die einschränkenden Sätze stehen in separater Evidenz und SOP.",
+      "expected_evidence_refs": [
+        {
+          "document_id": "RA-SYN-001",
+          "page_or_section": "Abschnitt 2",
+          "quote": "Vergleichslabordaten akzeptiert; keine separate Bridge"
+        },
+        {
+          "document_id": "SOP-QC-AN-014-EX",
+          "page_or_section": "Abschnitt 5.2",
+          "quote": "ist eine dokumentierte Geräteäquivalenz oder ein genehmigtes Bridging erforderlich"
+        },
+        {
+          "document_id": "VE-SYN-001",
+          "page_or_section": "Abschnitt 5",
+          "quote": "No formal transfer was executed; comparison is informational only"
+        }
+      ],
+      "expected_requirement_theme": "Analytical method transfer / equipment equivalence",
+      "should_block_auto_clear": true
+    },
+    {
+      "finding_id": "PKG001-F03",
+      "severity": "high",
+      "risk_category": "QA-Genehmigung / Change Closure",
+      "risk_statement": "Die erste Anwendung des reduzierten Grenzwerts ist geplant beziehungsweise ausgeführt, obwohl QA-Freigaben im Change und im Execution Record nicht dokumentiert sind.",
+      "why_it_is_hard": "Der Change klingt kontrolliert, aber der Workflow-Status und der leere Signaturblock widersprechen der SOP-Anforderung.",
+      "expected_evidence_refs": [
+        {
+          "document_id": "CC-SYN-001",
+          "page_or_section": "Abschnitt 4",
+          "quote": "QA-QC Reviewer: pending"
+        },
+        {
+          "document_id": "SOP-QC-AN-014-EX",
+          "page_or_section": "Abschnitt 5.5",
+          "quote": "muss vor der ersten Chargenfreigabe vorliegen"
+        },
+        {
+          "document_id": "BR-SYN-001",
+          "page_or_section": "Abschnitt 4",
+          "quote": "Ein QA-Freigabesignaturblock ist in diesem Execution Record leer"
+        }
+      ],
+      "expected_requirement_theme": "QA approval prior to GMP use",
+      "should_block_auto_clear": true
+    },
+    {
+      "finding_id": "PKG001-F04",
+      "severity": "medium",
+      "risk_category": "Training / SOP-Implementierung",
+      "risk_statement": "Training zur SOP v4.0 wird als optional behandelt, obwohl SOP und Batch Record zeigen, dass die Änderung vor Ergebnisreview verpflichtend geschult sein muss.",
+      "why_it_is_hard": "Der Change argumentiert mit unveränderter Methode; die SOP betrachtet die Freigabeentscheidung als trainingsrelevant.",
+      "expected_evidence_refs": [
+        {
+          "document_id": "CC-SYN-001",
+          "page_or_section": "Abschnitt 3",
+          "quote": "Das Feld „Training record attached“ ist mit „N/A – no procedural change“ ausgefüllt."
+        },
+        {
+          "document_id": "SOP-QC-AN-014-EX",
+          "page_or_section": "Abschnitt 5.4",
+          "quote": "müssen ein Read-and-Understand-Training zur gültigen SOP-Version"
+        },
+        {
+          "document_id": "BR-SYN-001",
+          "page_or_section": "Abschnitt 2",
+          "quote": "Ein Trainingsnachweis zu SOP v4.0 ist im Batch-Review-Paket nicht abgelegt"
+        }
+      ],
+      "expected_requirement_theme": "Training before effective procedural/specification use",
+      "should_block_auto_clear": true
+    },
+    {
+      "finding_id": "PKG001-F05",
+      "severity": "medium",
+      "risk_category": "Batch Impact / Scope-Lücke",
+      "risk_statement": "Der Change nennt nur A17-26045 und A17-26046, obwohl ein Retest von A17-26044 mit neuem Sheet beziehungsweise neuem Grenzwert im Execution Record auftaucht.",
+      "why_it_is_hard": "Der zusätzliche Retest ist nicht im Change, sondern im Execution Record versteckt und wird als informational heruntergestuft.",
+      "expected_evidence_refs": [
+        {
+          "document_id": "CC-SYN-001",
+          "page_or_section": "Abschnitt 5",
+          "quote": "Für A17-26045 und A17-26046 soll der neue Grenzwert angewendet werden"
+        },
+        {
+          "document_id": "BR-SYN-001",
+          "page_or_section": "Abschnitt 1",
+          "quote": "ein Rückstellmuster von A17-26044 aufgrund einer internen Trendanfrage erneut bewertet"
+        },
+        {
+          "document_id": "BR-SYN-001",
+          "page_or_section": "Abschnitt 3",
+          "quote": "A17-26044 Retest"
+        }
+      ],
+      "expected_requirement_theme": "Complete affected-batch assessment including retests and retained samples",
+      "should_block_auto_clear": true
+    }
+  ],
+  "acceptable_false_positive_boundaries": [
+    "Manuelle Baseline-Anpassung allein soll nicht als Finding zählen, wenn sie nicht mit fehlender Audit-Trail- oder Methodenfitness-Evidenz verbunden wird.",
+    "Der numerische Pass von A17-26045 ist kein eigenständiges Finding; relevant ist die Eignung und Freigabe der Entscheidungsbasis."
+  ],
+  "notes_for_evaluator": "Reviewer-Routing: QA Auditor + QC Validation SME + Data-Integrity Reviewer für den Retest-/Integrationsaspekt."
+}
