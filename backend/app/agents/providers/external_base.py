@@ -53,7 +53,19 @@ class ExternalProviderBase(BaseModelProvider):
                 retryable=True,
             ) from exc
         except httpx.HTTPError as exc:
-            raise ProviderCallError(f"{self.provider_name} provider call failed") from exc
+            # Connection resets and protocol faults are transient, but the default
+            # ProviderCallError is non-retryable, so these were the one transport
+            # failure the retry policy never covered. Name the fault class too:
+            # a bare "call failed" is what made the Anthropic critic's six
+            # failures undiagnosable. The class name is safe to surface, the
+            # exception message is not -- httpx can embed provider payload in it.
+            raise ProviderCallError(
+                f"{self.provider_name} provider call failed ({type(exc).__name__})",
+                retryable=isinstance(
+                    exc,
+                    httpx.NetworkError | httpx.ProtocolError | httpx.ProxyError,
+                ),
+            ) from exc
         except ValueError as exc:
             raise ProviderCallError(
                 f"{self.provider_name} provider returned non-JSON response"

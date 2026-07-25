@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -34,32 +35,75 @@ class FindingSimilarityStrategy(Protocol):
 
 
 class DeterministicFindingClusterer:
+    """Group findings that report the same issue, whichever agent phrased it.
+
+    Grouping on ``(risk_category, requirement_references)`` alone left most
+    repetition intact, because agents restate one issue under different
+    categories and requirement tags: the last suite run cut 244 findings to
+    207, while 113 of them were repeats of an error already reported.
+
+    Evidence is the reliable signal, and it was computed but only ever stored
+    as a score. It cannot be used alone, though. Distinct issues routinely
+    share a citation -- CASE_01 has a future-dated signature and an unfounded
+    Minor classification in the same chunk -- so grouping on evidence by
+    itself merged eight pairs of separate planted errors. Requiring the risk
+    statements to agree as well separates those, and holds every planted error
+    apart at thresholds down to 0.20.
+
+    Shared evidence is added to the original rule rather than replacing it.
+    Agents also restate an issue in wording too different to score as similar
+    while still landing on the same category and requirement, and dropping
+    that rule stopped those from being offered as supporting signals on the
+    published risk. Together they take the same run from 244 findings to 130,
+    against 207 for the original rule alone, still without merging two
+    planted errors.
+    """
+
+    #: Statement agreement required alongside shared evidence. Chosen with margin:
+    #: 0.18 starts merging distinct errors, and 0.20 only just survives on one
+    #: run's data, which is not something to tune a safety property against.
+    statement_similarity_threshold = 0.25
+
     def cluster_findings(self, findings: Sequence[RiskFinding]) -> list[FindingCluster]:
-        grouped: dict[tuple[str, tuple[str, ...]], list[RiskFinding]] = {}
-        for finding in sorted(findings, key=lambda item: item.finding_id):
-            key = (
-                finding.risk_category,
-                tuple(sorted(finding.requirement_references)),
-            )
-            grouped.setdefault(key, []).append(finding)
+        ordered = sorted(findings, key=lambda item: item.finding_id)
+        groups = _group_by_shared_evidence_and_statement(
+            ordered,
+            threshold=self.statement_similarity_threshold,
+        )
 
         clusters: list[FindingCluster] = []
-        for (risk_category, requirement_references), cluster_findings in grouped.items():
+        for cluster_findings in groups:
             finding_ids = [finding.finding_id for finding in cluster_findings]
             root_finding = _published_root_finding(cluster_findings)
-            cluster_id = _cluster_id(risk_category, list(requirement_references), finding_ids)
+            # A merged group can span categories and requirements. The published
+            # finding names the cluster, and every requirement stays listed so
+            # nothing silently drops out of the requirement trail.
+            representative = root_finding or cluster_findings[0]
+            requirement_references = sorted(
+                {
+                    requirement_id
+                    for finding in cluster_findings
+                    for requirement_id in finding.requirement_references
+                }
+            )
+            cluster_id = _cluster_id(
+                representative.risk_category,
+                requirement_references,
+                finding_ids,
+            )
             clusters.append(
                 FindingCluster(
                     cluster_id=cluster_id,
-                    risk_category=risk_category,
-                    requirement_references=list(requirement_references),
+                    risk_category=representative.risk_category,
+                    requirement_references=requirement_references,
                     finding_ids=finding_ids,
                     max_severity=_max_severity(cluster_findings),
                     evidence_overlap_score=_evidence_overlap_score(cluster_findings),
                     similarity_basis=[
                         "risk_category",
                         "requirement_id",
-                        "deterministic evidence overlap",
+                        "shared evidence chunk",
+                        "risk statement agreement",
                     ],
                     root_finding_id=(
                         root_finding.finding_id if root_finding is not None else None
@@ -70,6 +114,106 @@ class DeterministicFindingClusterer:
                 )
             )
         return sorted(clusters, key=lambda cluster: cluster.cluster_id)
+
+
+def _group_by_shared_evidence_and_statement(
+    findings: Sequence[RiskFinding],
+    *,
+    threshold: float,
+) -> list[list[RiskFinding]]:
+    """Union findings that cite a common chunk and make the same claim."""
+    parent = list(range(len(findings)))
+
+    def find(index: int) -> int:
+        while parent[index] != index:
+            parent[index] = parent[parent[index]]
+            index = parent[index]
+        return index
+
+    chunk_ids = [
+        {item.chunk_id for item in finding.evidence_items} for finding in findings
+    ]
+    statement_tokens = [
+        _statement_tokens(finding.risk_statement) for finding in findings
+    ]
+    requirement_keys = [
+        (finding.risk_category, tuple(sorted(finding.requirement_references)))
+        for finding in findings
+    ]
+    requirement_sets = [set(finding.requirement_references) for finding in findings]
+    for left in range(len(findings)):
+        for right in range(left + 1, len(findings)):
+            same_requirement_scope = requirement_keys[left] == requirement_keys[right]
+            same_issue_restated = (
+                bool(chunk_ids[left] & chunk_ids[right])
+                and _token_similarity(statement_tokens[left], statement_tokens[right])
+                >= threshold
+                # Only one finding of a cluster is published, so merging a finding
+                # that cites a requirement the other does not would drop that
+                # requirement out of the pack. Restatements that carry an extra
+                # requirement stay separate risks; letting them merge would trade
+                # a shorter list for a gap in the requirement trail.
+                and _requirement_scopes_are_interchangeable(
+                    requirement_sets[left], requirement_sets[right]
+                )
+            )
+            if same_requirement_scope or same_issue_restated:
+                parent[find(left)] = find(right)
+
+    grouped: dict[int, list[RiskFinding]] = {}
+    for index, finding in enumerate(findings):
+        grouped.setdefault(find(index), []).append(finding)
+    return list(grouped.values())
+
+
+def _requirement_scopes_are_interchangeable(left: set[str], right: set[str]) -> bool:
+    """True when neither finding contributes a requirement the other lacks."""
+    return left == right or not left or not right
+
+
+def _statement_tokens(risk_statement: str) -> set[str]:
+    return {
+        token
+        for token in re.findall(r"[^\W_]+", risk_statement.lower(), flags=re.UNICODE)
+        if len(token) >= 4 and token not in _STATEMENT_STOPWORDS
+    }
+
+
+def _token_similarity(left: set[str], right: set[str]) -> float:
+    if not left or not right:
+        return 0.0
+    return len(left & right) / len(left | right)
+
+
+_STATEMENT_STOPWORDS = {
+    "aber",
+    "auch",
+    "aus",
+    "bei",
+    "dass",
+    "dem",
+    "den",
+    "der",
+    "des",
+    "die",
+    "dies",
+    "eine",
+    "einen",
+    "einer",
+    "eines",
+    "für",
+    "ist",
+    "nicht",
+    "noch",
+    "nur",
+    "oder",
+    "sind",
+    "und",
+    "vor",
+    "von",
+    "wird",
+    "wurde",
+}
 
 
 class RiskFusionService:

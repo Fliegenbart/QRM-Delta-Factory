@@ -669,6 +669,62 @@ def test_provider_truncation_is_sanitized_and_retryable(
 
 
 @pytest.mark.parametrize(
+    "transport_error",
+    [
+        httpx.ConnectError("connection refused"),
+        httpx.ReadError("connection reset by peer"),
+        httpx.RemoteProtocolError("server disconnected without sending a response"),
+    ],
+)
+def test_transport_faults_are_retryable_and_name_their_cause(
+    monkeypatch: pytest.MonkeyPatch,
+    transport_error: httpx.HTTPError,
+) -> None:
+    """A dropped connection is transient, and the report has to say which one.
+
+    These reached the orchestrator as a non-retryable bare "call failed", which
+    is how the Anthropic critic could die in six of ten cases without the run
+    recording anything about why.
+    """
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
+    monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-provider-key")
+    get_settings.cache_clear()
+    provider = AnthropicProvider(configured_model_id="claude-transport-test")
+
+    def _raise(*_args: Any, **_kwargs: Any) -> None:
+        raise transport_error
+
+    monkeypatch.setattr(httpx.Client, "post", _raise)
+
+    with pytest.raises(ProviderCallError) as raised:
+        provider._post_json(url=provider.endpoint, headers={}, json_body={})
+
+    assert raised.value.retryable is True
+    assert type(transport_error).__name__ in str(raised.value)
+
+
+def test_unsupported_protocol_stays_non_retryable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Retrying a misconfigured endpoint only burns the circuit breaker."""
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic")
+    monkeypatch.setenv("QRM_ANTHROPIC_API_KEY", "test-provider-key")
+    get_settings.cache_clear()
+    provider = AnthropicProvider(configured_model_id="claude-protocol-test")
+
+    def _raise(*_args: Any, **_kwargs: Any) -> None:
+        raise httpx.UnsupportedProtocol("unsupported protocol")
+
+    monkeypatch.setattr(httpx.Client, "post", _raise)
+
+    with pytest.raises(ProviderCallError) as raised:
+        provider._post_json(url=provider.endpoint, headers={}, json_body={})
+
+    assert raised.value.retryable is False
+    assert "UnsupportedProtocol" in str(raised.value)
+
+
+@pytest.mark.parametrize(
     "provider",
     [
         AnthropicProvider(configured_model_id="claude-output-cap-test"),

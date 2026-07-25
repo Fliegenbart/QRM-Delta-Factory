@@ -402,6 +402,17 @@ def test_unverified_strong_finding_is_not_published() -> None:
 
 def test_five_verified_strong_findings_are_publishable() -> None:
     _setup_document_context()
+    # Distinct risks need distinct statements. These previously differed only by
+    # category name over one shared quote, which the clusterer now reads as five
+    # agents restating one issue -- correctly, so the fixture has to describe
+    # five issues to test that five of them publish.
+    statements = {
+        1: "Threshold change may allow false accept of defective containers.",
+        2: "Operator training for the revised threshold is not evidenced.",
+        3: "Batch disposition proceeds without a documented QA decision.",
+        4: "Cleaning validation does not cover the new equipment train.",
+        5: "Stability commitment for the affected batches is unaddressed.",
+    }
     findings = [
         _finding(
             f"finding_verified_gold_{index}",
@@ -412,7 +423,7 @@ def test_five_verified_strong_findings_are_publishable() -> None:
                 evidence_support="strong",
                 deterministic_checks_passed=True,
             ),
-        )
+        ).model_copy(update={"risk_statement": statements[index]})
         for index in range(1, 6)
     ]
     repository.replace_risk_findings(
@@ -426,6 +437,152 @@ def test_five_verified_strong_findings_are_publishable() -> None:
 
     assert set(decision.published_finding_ids) == {
         finding.finding_id for finding in findings
+    }
+
+
+def test_restated_finding_on_shared_evidence_is_clustered_once() -> None:
+    """Two agents phrasing one issue over the same quote publish a single risk."""
+    _setup_document_context()
+    findings = [
+        _finding(
+            "finding_restated_primary",
+            severity="high",
+            risk_category="deviation_management",
+            verification_result=_verification(
+                finding_id="finding_restated_primary",
+                evidence_support="strong",
+                deterministic_checks_passed=True,
+            ),
+        ).model_copy(
+            update={
+                "risk_statement": (
+                    "Change control CC-2026-014 lowers the AVI threshold without a "
+                    "documented validation bridge."
+                )
+            }
+        ),
+        _finding(
+            "finding_restated_echo",
+            severity="medium",
+            risk_category="validation",
+            verification_result=_verification(
+                finding_id="finding_restated_echo",
+                evidence_support="strong",
+                deterministic_checks_passed=True,
+            ),
+        ).model_copy(
+            update={
+                "risk_statement": (
+                    "The lowered AVI threshold in change control CC-2026-014 lacks a "
+                    "documented validation bridge."
+                )
+            }
+        ),
+    ]
+    repository.replace_risk_findings(document_set_id="ds_fusion_demo", findings=findings)
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    assert decision.published_finding_ids == ["finding_restated_primary"]
+
+
+def test_distinct_risks_sharing_one_quote_stay_separate() -> None:
+    """Shared evidence alone must not merge two different issues.
+
+    A single chunk routinely carries more than one problem, and grouping on
+    evidence without comparing the statements merged eight pairs of separate
+    planted errors in the last suite run.
+    """
+    _setup_document_context()
+    findings = [
+        _finding(
+            "finding_distinct_signature",
+            severity="high",
+            risk_category="data_integrity",
+            verification_result=_verification(
+                finding_id="finding_distinct_signature",
+                evidence_support="strong",
+                deterministic_checks_passed=True,
+            ),
+        ).model_copy(
+            update={
+                "risk_statement": (
+                    "The QA signature is dated in the future, so signature "
+                    "plausibility cannot be established."
+                )
+            }
+        ),
+        _finding(
+            "finding_distinct_classification",
+            severity="high",
+            risk_category="deviation_management",
+            verification_result=_verification(
+                finding_id="finding_distinct_classification",
+                evidence_support="strong",
+                deterministic_checks_passed=True,
+            ),
+        ).model_copy(
+            update={
+                "risk_statement": (
+                    "The deviation is classified as Minor without supporting "
+                    "physico-chemical impact data."
+                )
+            }
+        ),
+    ]
+    repository.replace_risk_findings(document_set_id="ds_fusion_demo", findings=findings)
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    assert set(decision.published_finding_ids) == {
+        "finding_distinct_signature",
+        "finding_distinct_classification",
+    }
+
+
+def test_restatement_carrying_an_extra_requirement_is_not_merged_away() -> None:
+    """Merging must never drop a requirement from the published risk."""
+    _setup_document_context()
+    shared_statement = "Change control CC-2026-014 modifies the AVI threshold."
+    findings = [
+        _finding(
+            "finding_requirement_root",
+            severity="high",
+            risk_category="validation",
+            verification_result=_verification(
+                finding_id="finding_requirement_root",
+                evidence_support="strong",
+                deterministic_checks_passed=True,
+            ),
+        ).model_copy(update={"risk_statement": shared_statement}),
+        _finding(
+            "finding_requirement_extra",
+            severity="high",
+            risk_category="validation",
+            requirement_references=[
+                "req_fusion_threshold_validation",
+                "req_fusion_training_before_use",
+            ],
+            verification_result=_verification(
+                finding_id="finding_requirement_extra",
+                evidence_support="strong",
+                deterministic_checks_passed=True,
+            ),
+        ).model_copy(update={"risk_statement": shared_statement}),
+    ]
+    repository.replace_risk_findings(document_set_id="ds_fusion_demo", findings=findings)
+
+    decision = RiskFusionService(repository=repository, audit_log=audit_log).run_risk_fusion(
+        "ds_fusion_demo"
+    )
+
+    assert set(decision.published_finding_ids) == {
+        "finding_requirement_root",
+        "finding_requirement_extra",
     }
 
 
