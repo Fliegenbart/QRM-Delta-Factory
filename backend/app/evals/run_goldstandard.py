@@ -698,14 +698,29 @@ def run_case(
     matched_finding_ids = {
         record["match"]["finding_id"] for record in matched if record["match"]
     }
-    unmatched_findings = [
-        {
+    gold_related_finding_ids = _gold_related_finding_ids(
+        answer_key.get("errors", []), findings
+    )
+
+    def _summarize(finding: dict[str, Any]) -> dict[str, Any]:
+        return {
             "finding_id": finding.get("finding_id"),
             "severity": finding.get("severity"),
             "risk_statement": finding.get("risk_statement"),
         }
+
+    # Split by whether the finding relates to a planted error at all. Lumping
+    # both together made a correct restatement look identical to a false alarm.
+    redundant_findings = [
+        _summarize(finding)
         for finding in findings
-        if finding.get("finding_id") not in matched_finding_ids
+        if finding.get("finding_id") in gold_related_finding_ids
+        and finding.get("finding_id") not in matched_finding_ids
+    ]
+    unmatched_findings = [
+        _summarize(finding)
+        for finding in findings
+        if finding.get("finding_id") not in gold_related_finding_ids
     ]
 
     verified = [
@@ -789,7 +804,11 @@ def run_case(
         "decoy_count": len(answer_key.get("non_error_decoys", [])),
         "decoy_false_alarms": decoy_hits,
         "decoys_passed": decoys_passed,
+        "redundant_findings": redundant_findings,
         "unmatched_findings": unmatched_findings,
+        # Kept in full so a finished run can be rescored against a changed
+        # matcher without paying for the model calls again.
+        "findings": findings,
         "quality_metrics": _quality_metrics(
             answer_key=answer_key,
             findings=findings,
@@ -810,17 +829,12 @@ def _quality_metrics(
     matched_ids = {
         record["match"]["finding_id"] for record in matched if record.get("match")
     }
-    duplicate_count = 0
     exact = 0
     under = 0
     over = 0
     high_or_critical_under = 0
     for record in matched:
         gold = next(error for error in errors if error["error_id"] == record["error_id"])
-        candidate_matches = [
-            finding for finding in findings if _match_error(gold, [finding]) is not None
-        ]
-        duplicate_count += max(0, len(candidate_matches) - 1)
         actual = record["match"].get("severity")
         expected = gold.get("severity")
         if actual == expected:
@@ -831,8 +845,14 @@ def _quality_metrics(
                 high_or_critical_under += 1
         else:
             over += 1
+    # A finding either restates an error the run already reported, or it points
+    # at nothing in the answer key. Summing per-gold candidate counts conflated
+    # the two and could exceed the number of findings, because a finding that
+    # fits two gold errors was counted once per error.
+    gold_related_ids = _gold_related_finding_ids(errors, findings)
+    redundant_ids = gold_related_ids - matched_ids
     unmatched_findings = [
-        finding for finding in findings if finding.get("finding_id") not in matched_ids
+        finding for finding in findings if finding.get("finding_id") not in gold_related_ids
     ]
     unsupported = [
         finding
@@ -854,13 +874,12 @@ def _quality_metrics(
     )
     return {
         "must_detect_recall": round(len(matched) / len(errors), 4) if errors else 1.0,
-        "duplicate_finding_count": duplicate_count,
-        "duplicate_finding_rate": round(duplicate_count / len(matched), 4)
-        if matched
-        else 0.0,
-        "unsupported_finding_rate": round(len(unsupported) / len(findings), 4)
-        if findings
-        else 0.0,
+        "matched_finding_count": len(matched_ids),
+        "gold_related_finding_count": len(gold_related_ids),
+        "redundant_finding_count": len(redundant_ids),
+        "unrelated_finding_count": len(unmatched_findings),
+        "unsupported_finding_count": len(unsupported),
+        "finding_count": len(findings),
         "unsupported_high_critical_published_count": sum(
             finding.get("severity") in {"high", "critical"} for finding in unsupported
         ),
@@ -870,6 +889,24 @@ def _quality_metrics(
         "severity_overcall_count": over,
         "high_or_critical_undercall_count": high_or_critical_under,
         "auto_clear_false_negative_count": auto_clear_false_negative_count,
+    }
+
+
+def _gold_related_finding_ids(
+    errors: list[dict[str, Any]],
+    findings: list[dict[str, Any]],
+) -> set[Any]:
+    """Findings that point at some planted error, whether or not they scored it.
+
+    Only the first finding per gold error is credited as the match, so without
+    this distinction every further correct restatement of the same error was
+    indistinguishable from a finding about nothing.
+    """
+    return {
+        finding.get("finding_id")
+        for gold in errors
+        for finding in findings
+        if _match_error(gold, [finding]) is not None
     }
 
 
@@ -901,11 +938,14 @@ def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
     total_decoy_hits = sum(len(case["decoy_false_alarms"]) for case in case_results)
     total_findings = sum(case["finding_count"] for case in case_results)
     total_verified = sum(case["citation_verified_finding_count"] for case in case_results)
+    # Only counts may be summed. Rates are recomputed from the totals below;
+    # adding a per-case ratio ten times reported a recall of 10.0.
     quality_metric_keys = [
-        "must_detect_recall",
-        "duplicate_finding_count",
-        "duplicate_finding_rate",
-        "unsupported_finding_rate",
+        "matched_finding_count",
+        "gold_related_finding_count",
+        "redundant_finding_count",
+        "unrelated_finding_count",
+        "unsupported_finding_count",
         "unsupported_high_critical_published_count",
         "false_positive_boundary_violation_count",
         "severity_exact_count",
@@ -914,6 +954,25 @@ def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
         "high_or_critical_undercall_count",
         "auto_clear_false_negative_count",
     ]
+    quality_metrics: dict[str, Any] = {
+        key: sum((case.get("quality_metrics") or {}).get(key, 0) for case in case_results)
+        for key in quality_metric_keys
+    }
+    quality_metrics["must_detect_recall"] = (
+        round(total_matched / total_errors, 4) if total_errors else 1.0
+    )
+    gold_related = quality_metrics["gold_related_finding_count"]
+    quality_metrics["redundancy_rate"] = (
+        round(quality_metrics["redundant_finding_count"] / gold_related, 4)
+        if gold_related
+        else 0.0
+    )
+    quality_metrics["unsupported_finding_rate"] = (
+        round(quality_metrics["unsupported_finding_count"] / total_findings, 4)
+        if total_findings
+        else 0.0
+    )
+
     tokens: dict[str, dict[str, int]] = {}
     for case in case_results:
         for provider, usage in (case.get("tokens_by_provider") or {}).items():
@@ -961,13 +1020,7 @@ def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
         "findings_per_case": (
             round(total_findings / len(case_results), 1) if case_results else None
         ),
-        "quality_metrics": {
-            key: round(
-                sum((case.get("quality_metrics") or {}).get(key, 0) for case in case_results),
-                4,
-            )
-            for key in quality_metric_keys
-        },
+        "quality_metrics": quality_metrics,
     }
 
 
@@ -1008,11 +1061,27 @@ def _render_markdown(
         + " — deckt nur die gepflanzten Decoys ab, nicht die übrigen Findings"
     )
     prec = aggregate["finding_precision"]
-    lines.append(
-        f"- **Trefferquote der Ausgabe:** {prec['matched']} von {prec['total_findings']}"
-        " Findings zeigen auf einen echten Fehler"
-        + (f" ({prec['rate']:.0%})" if prec["rate"] is not None else "")
-    )
+    quality_summary = aggregate.get("quality_metrics") or {}
+    total_findings = prec["total_findings"]
+    related = quality_summary.get("gold_related_finding_count")
+    if related is not None and total_findings:
+        matched_findings = quality_summary.get("matched_finding_count", 0)
+        redundant = quality_summary.get("redundant_finding_count", 0)
+        unrelated = quality_summary.get("unrelated_finding_count", 0)
+        # Deliberately not prec["matched"]: that counts gold errors, and a single
+        # finding can satisfy two of them, which produced a hit count larger than
+        # the number of findings it came from.
+        lines.append(
+            f"- **Findings mit Bezug zu echten Fehlern:** {related} von"
+            f" {total_findings} ({related / total_findings:.0%})"
+            f" — {matched_findings} als Treffer gewertet,"
+            f" {redundant} Wiederholungen bereits gemeldeter Fehler"
+        )
+        lines.append(
+            f"- **Ohne Bezug zum Lösungsschlüssel:** {unrelated} von"
+            f" {total_findings} ({unrelated / total_findings:.0%})"
+            " — ungeprüft, kann Fehlalarm oder echter, nicht gepflanzter Befund sein"
+        )
     if aggregate.get("findings_per_case") is not None:
         lines.append(
             f"- **Findings pro Fall:** {aggregate['findings_per_case']}"
@@ -1031,7 +1100,11 @@ def _render_markdown(
                 "## Qualitätsmetriken",
                 "",
                 f"- Must-detect Recall: `{quality['must_detect_recall']}`",
-                f"- Duplikate: `{quality['duplicate_finding_count']}`",
+                (
+                    "- Wiederholungen: "
+                    f"`{quality['redundant_finding_count']}`"
+                    f" (Redundanzrate `{quality['redundancy_rate']}`)"
+                ),
                 f"- Unsupported Findings: `{quality['unsupported_finding_rate']}`",
                 (
                     "- False-positive-Grenzverletzungen: "
@@ -1064,14 +1137,15 @@ def _render_markdown(
     lines.append("## Fälle")
     lines.append("")
     lines.append(
-        "| Fall | Status | Claims | Findings | ohne Fehlerbezug | Fehler gefunden "
+        "| Fall | Status | Claims | Findings | Wiederholungen | ohne Bezug | Fehler gefunden "
         "| In Prüfmappe | Decoy-Fehlalarme | Entscheidung |"
     )
-    lines.append("|---|---|---|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|")
     for case in case_results:
         lines.append(
             f"| {case['case_id']} | {case['pipeline_status']} | {case['claim_count']} "
-            f"| {case['finding_count']} | {len(case['unmatched_findings'])} "
+            f"| {case['finding_count']} | {len(case.get('redundant_findings') or [])} "
+            f"| {len(case['unmatched_findings'])} "
             f"| {len(case['matched_errors'])}/{case['gold_error_count']} "
             f"| {len(case.get('review_pack_matched_errors') or [])}/{case['gold_error_count']} "
             f"| {len(case['decoy_false_alarms'])}/{case['decoy_count']} "
@@ -1116,10 +1190,15 @@ def _render_markdown(
                 f"- ⚠️ Decoy `{record['decoy_id']}` fälschlich beanstandet:"
                 f" {record['hit']['risk_statement']}"
             )
+        if case.get("redundant_findings"):
+            lines.append(
+                f"- 🔁 {len(case['redundant_findings'])} weitere Findings zu bereits"
+                " gemeldeten Fehlern (Wiederholungen)"
+            )
         if case["unmatched_findings"]:
             lines.append(
-                f"- ℹ️ {len(case['unmatched_findings'])} weitere Findings ohne"
-                " Gold-Zuordnung (manuell prüfen)"
+                f"- ℹ️ {len(case['unmatched_findings'])} Findings ohne Bezug zum"
+                " Lösungsschlüssel (manuell prüfen)"
             )
         lines.append("")
     return "\n".join(lines)
@@ -1244,7 +1323,9 @@ def main(argv: list[str] | None = None) -> int:
                 "decoy_count": 0,
                 "decoy_false_alarms": [],
                 "decoys_passed": [],
+                "redundant_findings": [],
                 "unmatched_findings": [],
+                "findings": [],
                 "quality_metrics": {},
             }
         case_results.append(result)
@@ -1260,6 +1341,16 @@ def main(argv: list[str] | None = None) -> int:
     run_label = args.mode if args.mode == "mock" else f"{args.mode}_{args.stack}"
     output_dir = Path(args.output_dir) / started_at.strftime(f"%Y%m%d_%H%M%S_{run_label}")
     output_dir.mkdir(parents=True, exist_ok=True)
+    # The raw findings are what a rescore needs and they dwarf everything else,
+    # so they live beside results.json rather than inside it.
+    (output_dir / "findings.json").write_text(
+        json.dumps(
+            {case["case_id"]: case.pop("findings", []) for case in case_results},
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
     (output_dir / "results.json").write_text(
         json.dumps(
             {

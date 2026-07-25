@@ -1091,7 +1091,11 @@ def test_retries_within_one_call_count_as_a_single_circuit_failure() -> None:
         circuit_breaker_failure_threshold=3,
         retry_deadline_seconds=30,
     )
-    provider = AlwaysRetryableProvider(runtime_options=options, provider_name="retry-circuit")
+    provider = AlwaysRetryableProvider(
+        runtime_options=options,
+        provider_name="retry-circuit",
+        retry_after_seconds=None,
+    )
 
     with pytest.raises(ProviderCallError):
         provider.run_structured("Return JSON.", {}, SimpleOutput)
@@ -1155,6 +1159,7 @@ class AlwaysRetryableProvider(BaseModelProvider):
         *,
         runtime_options: ProviderRuntimeOptions,
         provider_name: str = "deadline-test",
+        retry_after_seconds: float | None = 30,
     ) -> None:
         super().__init__(
             provider_name=provider_name,
@@ -1165,6 +1170,10 @@ class AlwaysRetryableProvider(BaseModelProvider):
             external_calls_required=False,
         )
         self.calls = 0
+        # A Retry-After of 30 makes the backoff draw from uniform(0, 30), which
+        # against a 30 second deadline abandons the retry loop about half the
+        # time. Tests that count attempts must not inherit that coin flip.
+        self.retry_after_seconds = retry_after_seconds
 
     def _run_structured_once(
         self,
@@ -1174,7 +1183,11 @@ class AlwaysRetryableProvider(BaseModelProvider):
         output_schema: type[BaseModel],
     ) -> dict[str, Any]:
         self.calls += 1
-        raise ProviderCallError("transient failure", retryable=True, retry_after_seconds=30)
+        raise ProviderCallError(
+            "transient failure",
+            retryable=True,
+            retry_after_seconds=self.retry_after_seconds,
+        )
 
 
 class ImmediateProvider(BaseModelProvider):
