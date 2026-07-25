@@ -86,10 +86,25 @@ class EvalMetrics(StrictSchema):
     high_or_critical_undercall_count: int = Field(default=0, ge=0)
 
 
+class FindingsProvenance(StrEnum):
+    """Where a fixture's system_findings came from.
+
+    A fixture that carries recorded findings grades a frozen snapshot, so it can
+    verify the scoring logic but can never detect a regression in the system that
+    produced them. Only findings from an actual pipeline run can do that.
+    """
+
+    PRERECORDED = "prerecorded"
+    LIVE_PIPELINE_RUN = "live_pipeline_run"
+
+
 class EvalFixture(StrictSchema):
     dataset: EvalDataset
     system_findings: list[dict[str, object]] = Field(default_factory=list)
     risk_decision: RiskDecision
+    findings_provenance: FindingsProvenance = Field(
+        default=FindingsProvenance.PRERECORDED
+    )
 
 
 class EvalReport(StrictSchema):

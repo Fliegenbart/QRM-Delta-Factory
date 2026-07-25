@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from app.core.config import get_settings
 from app.schemas.domain import EvidenceSupport, FindingStatus, RiskFinding, Severity
 from app.schemas.evals import (
     EvalDataset,
@@ -26,7 +27,7 @@ class EvalFixtureNotFoundError(Exception):
 
 class EvalRunner:
     def __init__(self, *, fixture_dir: Path | None = None) -> None:
-        self.fixture_dir = fixture_dir or DEFAULT_FIXTURE_DIR
+        self.fixture_dir = fixture_dir or Path(get_settings().eval_fixture_dir)
 
     def list_datasets(self) -> list[EvalFixture]:
         fixtures = [
@@ -176,12 +177,43 @@ def _match_findings(
 def _finding_matches_gold(finding: RiskFinding, gold: GoldFinding) -> bool:
     if finding.risk_category != gold.expected_risk_category:
         return False
-    return not (
+    if gold.expected_requirement_ids and not set(
         gold.expected_requirement_ids
-        and not set(gold.expected_requirement_ids).intersection(
-            finding.requirement_references
-        )
+    ).intersection(finding.requirement_references):
+        return False
+    # Category plus requirement id alone is far too loose to mean "detected": a
+    # case yields ~20 findings spread over a handful of categories, so an
+    # unrelated finding lands on the right category by chance. When the gold
+    # finding names the evidence it must be grounded in, require the finding to
+    # actually cite it.
+    if not gold.expected_evidence_refs:
+        return True
+    return any(
+        _evidence_item_matches_ref(evidence_item, ref)
+        for ref in gold.expected_evidence_refs
+        for evidence_item in finding.evidence_items
     )
+
+
+def _evidence_item_matches_ref(evidence_item: Any, ref: Any) -> bool:
+    """Accept a citation that points at the expected source and quotes it.
+
+    Chunk ids are an ingestion detail and shift when chunking changes, so a
+    matching document plus an overlapping quote is enough. The quote comparison
+    is containment in either direction: a finding may cite a longer span than
+    the gold reference names, or vice versa.
+    """
+    if evidence_item.document_id != ref.document_id:
+        return False
+    quote = _normalize_quote(evidence_item.quote)
+    expected = _normalize_quote(ref.quote)
+    if not quote or not expected:
+        return False
+    return expected in quote or quote in expected
+
+
+def _normalize_quote(value: str) -> str:
+    return " ".join(value.lower().split())
 
 
 def _metrics(

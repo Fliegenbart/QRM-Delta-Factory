@@ -26,6 +26,7 @@ from app.schemas.domain import (
     RiskFinding,
     Severity,
 )
+from app.schemas.evals import FindingsProvenance
 from app.services.eval_runner import EvalRunner
 
 
@@ -49,9 +50,11 @@ class ReviewCalibrationService:
         *,
         repository: InMemoryDocumentRepository,
         audit_log: InMemoryAuditLog,
+        eval_runner: EvalRunner | None = None,
     ) -> None:
         self.repository = repository
         self.audit_log = audit_log
+        self.eval_runner = eval_runner or EvalRunner()
 
     def record_feedback_decision(self, review_decision: ReviewDecision) -> CalibrationExample:
         existing = self.repository.get_calibration_example(
@@ -182,14 +185,28 @@ class ReviewCalibrationService:
         return updated
 
     def run_regression_gate(self) -> CalibrationRegressionGateReport:
-        runner = EvalRunner()
+        runner = self.eval_runner
+        fixtures = runner.list_datasets()
         eval_reports = [
-            runner.run_fixture(fixture.dataset.dataset_id)
-            for fixture in runner.list_datasets()
+            runner.run_fixture(fixture.dataset.dataset_id) for fixture in fixtures
         ]
         failed_dataset_ids = [
             report.dataset.dataset_id for report in eval_reports if not report.passed
         ]
+        # This gate is the only thing standing between a calibration example and
+        # the live reviewer prompts, so it must not pass on evidence it does not
+        # have. A fixture with recorded findings scores the same no matter what
+        # the prompt does, which would make activation a rubber stamp.
+        prerecorded_dataset_ids = [
+            fixture.dataset.dataset_id
+            for fixture in fixtures
+            if fixture.findings_provenance is not FindingsProvenance.LIVE_PIPELINE_RUN
+        ]
+        failed_dataset_ids.extend(
+            dataset_id
+            for dataset_id in prerecorded_dataset_ids
+            if dataset_id not in failed_dataset_ids
+        )
         passed = bool(eval_reports) and not failed_dataset_ids
         generated_at = datetime.now(UTC)
         report = CalibrationRegressionGateReport(

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import json
+import shutil
 from datetime import UTC, datetime
 from hashlib import sha256
+from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -18,6 +22,7 @@ from app.schemas.domain import (
     RequirementSet,
     RiskFinding,
 )
+from app.services.eval_runner import DEFAULT_FIXTURE_DIR, EvalRunner
 from app.services.review_calibration import (
     CalibrationActivationGateError,
     ReviewCalibrationService,
@@ -61,9 +66,30 @@ def test_review_decision_creates_raw_calibration_example_only() -> None:
     assert payload["active_count"] == 0
 
 
-def test_calibration_activation_requires_regression_gate_then_builds_prompt_pack() -> None:
-    raw_example = _record_reviewer_feedback()
+def test_regression_gate_fails_on_prerecorded_fixtures() -> None:
+    """The shipped fixtures carry recorded findings, so the gate proves nothing.
+
+    Scoring a frozen snapshot returns the same verdict no matter how the prompts
+    change, which would make activation a rubber stamp for the one mechanism that
+    alters live reviewer behaviour.
+    """
     calibration = ReviewCalibrationService(repository=repository, audit_log=audit_log)
+
+    gate_report = calibration.run_regression_gate()
+
+    assert gate_report.passed is False
+    assert gate_report.failed_dataset_ids
+
+
+def test_calibration_activation_requires_regression_gate_then_builds_prompt_pack(
+    tmp_path: Path,
+) -> None:
+    raw_example = _record_reviewer_feedback()
+    calibration = ReviewCalibrationService(
+        repository=repository,
+        audit_log=audit_log,
+        eval_runner=_live_run_eval_runner(tmp_path),
+    )
 
     with pytest.raises(CalibrationActivationGateError):
         calibration.approve_example(
@@ -111,8 +137,12 @@ def test_calibration_activation_requires_regression_gate_then_builds_prompt_pack
     assert "still zu unterdruecken" in pack.prompt_block
 
 
-def test_review_calibration_api_activates_only_with_gate_report() -> None:
+def test_review_calibration_api_activates_only_with_gate_report(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     raw_example = _record_reviewer_feedback()
+    _point_gate_at_live_fixtures(tmp_path, monkeypatch)
     client = TestClient(app)
 
     rejected = client.post(
@@ -148,8 +178,12 @@ def test_review_calibration_api_activates_only_with_gate_report() -> None:
     assert report.json()["active_count"] == 1
 
 
-def test_primary_review_injects_active_calibration_examples_into_agent_context() -> None:
+def test_primary_review_injects_active_calibration_examples_into_agent_context(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     raw_example = _record_reviewer_feedback()
+    _point_gate_at_live_fixtures(tmp_path, monkeypatch)
     active = ReviewCalibrationService(
         repository=repository,
         audit_log=audit_log,
@@ -221,6 +255,43 @@ class CapturingProvider:
             "findings": [],
             "coverage_summary": "No comparable risk found after calibrated review.",
         }
+
+
+def _live_fixture_dir(tmp_path: Path) -> Path:
+    """Copy the shipped fixtures and mark them as produced by a pipeline run.
+
+    Only the provenance flag differs, so the activation path is exercised without
+    relabelling the checked-in fixtures, which really are prerecorded.
+    """
+    fixture_dir = tmp_path / "evals"
+    fixture_dir.mkdir()
+    for source in sorted(DEFAULT_FIXTURE_DIR.glob("*.json")):
+        target = fixture_dir / source.name
+        shutil.copyfile(source, target)
+        payload = json.loads(target.read_text(encoding="utf-8"))
+        payload["findings_provenance"] = "live_pipeline_run"
+        target.write_text(json.dumps(payload), encoding="utf-8")
+    return fixture_dir
+
+
+def _live_run_eval_runner(tmp_path: Path) -> EvalRunner:
+    return EvalRunner(fixture_dir=_live_fixture_dir(tmp_path))
+
+
+def _point_gate_at_live_fixtures(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Redirect the default-constructed runner, as used behind the API.
+
+    Settings read the environment once at import, so setenv would not reach a
+    runner built later in the request; patch the lookup the runner performs.
+    """
+    fixture_dir = _live_fixture_dir(tmp_path)
+    monkeypatch.setattr(
+        "app.services.eval_runner.get_settings",
+        lambda: SimpleNamespace(eval_fixture_dir=str(fixture_dir)),
+    )
 
 
 def _record_reviewer_feedback() -> Any:

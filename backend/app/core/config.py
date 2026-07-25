@@ -75,7 +75,11 @@ class Settings(BaseSettings):
         " when reviewer_provider_override is set.",
     )
     model_provider_timeout_seconds: float = Field(default=30.0, gt=0)
-    model_provider_max_retries: int = Field(default=0, ge=0)
+    # A transient 429 or 502 previously failed the reviewer role outright, which
+    # fail-secure turns into a blocked auto-clear for the whole case. Retrying is
+    # bounded by model_provider_retry_deadline_seconds and the shared circuit
+    # breaker, so two attempts cannot extend a run beyond the pipeline lease.
+    model_provider_max_retries: int = Field(default=2, ge=0)
     model_provider_retry_deadline_seconds: float = Field(default=120.0, gt=0)
     model_provider_max_concurrency: int = Field(default=2, gt=0)
     model_provider_max_output_tokens: int = Field(default=1600, ge=256, le=8192)
@@ -84,6 +88,10 @@ class Settings(BaseSettings):
     reviewer_max_source_excerpts_per_agent: int = Field(default=8, ge=1, le=40)
     reviewer_max_source_excerpt_chars: int = Field(default=1200, ge=100, le=10000)
     reviewer_max_source_context_chars: int = Field(default=6000, ge=512, le=40000)
+    # Where the calibration regression gate looks for eval fixtures. Point this
+    # at a corpus produced by real pipeline runs to make the gate meaningful;
+    # the checked-in examples are prerecorded and cannot pass it.
+    eval_fixture_dir: str = Field(default="examples/evals")
     pipeline_run_lease_seconds: int = Field(default=900, gt=0)
     retain_raw_model_outputs: bool = Field(default=False)
     max_upload_bytes: int = Field(default=20 * 1024 * 1024, gt=0)

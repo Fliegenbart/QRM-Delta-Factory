@@ -40,6 +40,12 @@ REPO_ROOT = BACKEND_DIR.parent
 DEFAULT_CASES_DIR = REPO_ROOT / "goldstandard_pharmaqrm"
 DEFAULT_OUTPUT_DIR = DEFAULT_CASES_DIR / "runs"
 
+# The ten suite cases predate per-package declarations and their answer keys
+# carry no metadata. Real packages must still declare their own; see
+# _package_metadata.
+SUITE_DOCUMENT_TYPE = "deviation"
+SUITE_PROCESS_AREA = "drug_product_manufacturing"
+
 TENANT_ID = "tenant_goldstandard_pharmaqrm"
 REQUIREMENT_SET_ID = "rset_goldstandard_gmp_2026_1"
 _TERMINAL_PIPELINE_STATUSES = {"completed", "failed", "needs_human_review"}
@@ -230,10 +236,23 @@ def _normalize_package_metadata_value(value: str, aliases: dict[str, str]) -> st
 
 
 def _package_metadata(package_dir: Path) -> dict[str, str]:
-    """Read the package declaration without ever treating its oracle as an upload."""
-    payload: dict[str, Any] = json.loads(_oracle_path(package_dir).read_text(encoding="utf-8"))
+    """Read the package declaration without ever treating its oracle as an upload.
+
+    A GOLD_STANDARD.json describes a real package and must say what it contains,
+    so a missing declaration stays an error there. The suite's own
+    hidden_errors_answer_key.json files were written before that contract existed
+    and only hold errors and decoys, so they fall back to the suite defaults
+    rather than failing every case.
+    """
+    oracle_path = _oracle_path(package_dir)
+    payload: dict[str, Any] = json.loads(oracle_path.read_text(encoding="utf-8"))
     document_type = payload.get("document_type")
     process_area = payload.get("process_area")
+    if oracle_path.name == "hidden_errors_answer_key.json":
+        if not isinstance(document_type, str):
+            document_type = SUITE_DOCUMENT_TYPE
+        if not isinstance(process_area, str):
+            process_area = SUITE_PROCESS_AREA
     if not isinstance(document_type, str) or not isinstance(process_area, str):
         raise ValueError("Package oracle must declare document_type and process_area")
     return {
@@ -918,6 +937,18 @@ def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
             "total_findings": total_findings,
             "rate": round(total_verified / total_findings, 3) if total_findings else None,
         },
+        # Decoy specificity only covers the planted decoys, which are a tiny
+        # fraction of what a run emits. These two say what a reviewer actually
+        # faces: how much of the output pointed at a real error, and how long
+        # the list in front of them is.
+        "finding_precision": {
+            "matched": total_matched,
+            "total_findings": total_findings,
+            "rate": round(total_matched / total_findings, 3) if total_findings else None,
+        },
+        "findings_per_case": (
+            round(total_findings / len(case_results), 1) if case_results else None
+        ),
         "quality_metrics": {
             key: round(
                 sum((case.get("quality_metrics") or {}).get(key, 0) for case in case_results),
@@ -958,6 +989,28 @@ def _render_markdown(
         " versteckten Fehlern"
         + (f" ({pack_sens['rate']:.0%})" if pack_sens["rate"] is not None else "")
     )
+    lines.append(
+        f"- **Spezifität (Decoys):** {spec['passed']} von {spec['total']} Decoys korrekt"
+        " nicht beanstandet"
+        + (f" ({spec['rate']:.0%})" if spec["rate"] is not None else "")
+        + " — deckt nur die gepflanzten Decoys ab, nicht die übrigen Findings"
+    )
+    prec = aggregate["finding_precision"]
+    lines.append(
+        f"- **Trefferquote der Ausgabe:** {prec['matched']} von {prec['total_findings']}"
+        " Findings zeigen auf einen echten Fehler"
+        + (f" ({prec['rate']:.0%})" if prec["rate"] is not None else "")
+    )
+    if aggregate.get("findings_per_case") is not None:
+        lines.append(
+            f"- **Findings pro Fall:** {aggregate['findings_per_case']}"
+            " — so lang ist die Liste, die ein Prüfer durchgeht"
+        )
+    lines.append(
+        f"- **Belegtreue:** {cite['verified']} von {cite['total_findings']} Findings mit"
+        " verifiziertem Zitat"
+        + (f" ({cite['rate']:.0%})" if cite["rate"] is not None else "")
+    )
     quality = aggregate.get("quality_metrics") or {}
     if quality:
         lines.extend(
@@ -984,16 +1037,6 @@ def _render_markdown(
                 ),
             ]
         )
-    lines.append(
-        f"- **Spezifität (Decoys):** {spec['passed']} von {spec['total']} Decoys korrekt"
-        " nicht beanstandet"
-        + (f" ({spec['rate']:.0%})" if spec["rate"] is not None else "")
-    )
-    lines.append(
-        f"- **Belegtreue:** {cite['verified']} von {cite['total_findings']} Findings mit"
-        " verifiziertem Zitat"
-        + (f" ({cite['rate']:.0%})" if cite["rate"] is not None else "")
-    )
     if aggregate.get("tokens_by_provider"):
         lines.append("")
         lines.append("## Token-Verbrauch")
@@ -1009,14 +1052,15 @@ def _render_markdown(
     lines.append("## Fälle")
     lines.append("")
     lines.append(
-        "| Fall | Status | Claims | Findings | Fehler gefunden | In Prüfmappe | "
-        "Decoy-Fehlalarme | Entscheidung |"
+        "| Fall | Status | Claims | Findings | ohne Fehlerbezug | Fehler gefunden "
+        "| In Prüfmappe | Decoy-Fehlalarme | Entscheidung |"
     )
-    lines.append("|---|---|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|---|")
     for case in case_results:
         lines.append(
             f"| {case['case_id']} | {case['pipeline_status']} | {case['claim_count']} "
-            f"| {case['finding_count']} | {len(case['matched_errors'])}/{case['gold_error_count']} "
+            f"| {case['finding_count']} | {len(case['unmatched_findings'])} "
+            f"| {len(case['matched_errors'])}/{case['gold_error_count']} "
             f"| {len(case.get('review_pack_matched_errors') or [])}/{case['gold_error_count']} "
             f"| {len(case['decoy_false_alarms'])}/{case['decoy_count']} "
             f"| {case['risk_decision'] or '-'} |"
