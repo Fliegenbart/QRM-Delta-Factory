@@ -718,6 +718,17 @@ def run_case(
         entry.get("agent_role"): entry.get("status")
         for entry in pipeline_payload.get("model_manifest", [])
     }
+    # The manifest already carries why a role failed; without it a run reports
+    # only that eight roles are gone and the cause has to be reconstructed from
+    # token counts.
+    model_failures = {
+        entry.get("agent_role"): {
+            "error_type": entry.get("error_type"),
+            "error_summary": entry.get("error_summary"),
+        }
+        for entry in pipeline_payload.get("model_manifest", [])
+        if entry.get("status") and entry.get("status") != "succeeded"
+    }
 
     tokens_by_provider: dict[str, dict[str, int]] = {}
 
@@ -762,6 +773,7 @@ def run_case(
         "failed_model_roles": sorted(
             role for role, status in model_statuses.items() if status and status != "succeeded"
         ),
+        "model_failures": model_failures,
         "claim_count": len(claims),
         "finding_count": len(findings),
         "review_pack_finding_count": len(review_pack_findings),
@@ -1066,6 +1078,24 @@ def _render_markdown(
             f"| {case['risk_decision'] or '-'} |"
         )
     lines.append("")
+    failures_by_reason: dict[tuple[str, str], list[str]] = {}
+    for case in case_results:
+        for role, failure in (case.get("model_failures") or {}).items():
+            key = (
+                failure.get("error_type") or "unknown",
+                (failure.get("error_summary") or "")[:160],
+            )
+            failures_by_reason.setdefault(key, []).append(f"{case['case_id']}/{role}")
+    if failures_by_reason:
+        lines.extend(["## Modellausfälle", ""])
+        for (error_type, summary), occurrences in sorted(
+            failures_by_reason.items(), key=lambda item: -len(item[1])
+        ):
+            lines.append(f"- **{error_type}** ({len(occurrences)}×): {summary or '-'}")
+            lines.append(f"  - betroffen: {', '.join(occurrences[:6])}")
+            if len(occurrences) > 6:
+                lines.append(f"  - … und {len(occurrences) - 6} weitere")
+        lines.append("")
     for case in case_results:
         lines.append(f"### {case['case_id']}")
         lines.append("")

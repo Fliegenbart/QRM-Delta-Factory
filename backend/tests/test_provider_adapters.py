@@ -1080,6 +1080,50 @@ def test_provider_circuit_state_is_shared_by_provider_and_model() -> None:
     assert second.calls == 0
 
 
+def test_retries_within_one_call_count_as_a_single_circuit_failure() -> None:
+    """Retrying must not consume the budget meant for repeated outages.
+
+    Counting every attempt let one unlucky call trip a threshold of three on its
+    own, so enabling retries made the breaker more trigger-happy, not less.
+    """
+    options = ProviderRuntimeOptions(
+        max_retries=2,
+        circuit_breaker_failure_threshold=3,
+        retry_deadline_seconds=30,
+    )
+    provider = AlwaysRetryableProvider(runtime_options=options, provider_name="retry-circuit")
+
+    with pytest.raises(ProviderCallError):
+        provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert provider.calls == 3
+    assert not provider._circuit_is_open()
+
+
+def test_open_circuit_admits_a_probe_after_the_cooldown() -> None:
+    """An open breaker must be able to recover without a process restart."""
+    options = ProviderRuntimeOptions(
+        max_retries=0,
+        circuit_breaker_failure_threshold=1,
+        circuit_breaker_cooldown_seconds=0.05,
+    )
+    provider = AlwaysRetryableProvider(runtime_options=options, provider_name="cooldown-test")
+
+    with pytest.raises(ProviderCallError):
+        provider.run_structured("Return JSON.", {}, SimpleOutput)
+    with pytest.raises(ProviderCircuitOpenError):
+        provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    calls_while_open = provider.calls
+    sleep(0.06)
+
+    # Half-open: the probe reaches the provider instead of being rejected.
+    with pytest.raises(ProviderCallError):
+        provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert provider.calls == calls_while_open + 1
+
+
 class RetryOnceProvider(BaseModelProvider):
     def __init__(self, *, runtime_options: ProviderRuntimeOptions) -> None:
         super().__init__(

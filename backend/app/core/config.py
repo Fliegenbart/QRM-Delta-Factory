@@ -82,8 +82,15 @@ class Settings(BaseSettings):
     model_provider_max_retries: int = Field(default=2, ge=0)
     model_provider_retry_deadline_seconds: float = Field(default=120.0, gt=0)
     model_provider_max_concurrency: int = Field(default=2, gt=0)
-    model_provider_max_output_tokens: int = Field(default=1600, ge=256, le=8192)
+    # Reviewers emit JSON with a finding list and verbatim evidence quotes, so a
+    # cut-off response is not a shorter answer but a dead role: the provider
+    # raises "output was truncated" and the agent produces nothing. The last
+    # healthy run averaged 2,814 output tokens per Mistral call and 6,502 per
+    # Anthropic call, so a 1,600 cap truncated nearly every reviewer.
+    model_provider_max_output_tokens: int = Field(default=8192, ge=256, le=8192)
     model_provider_circuit_breaker_threshold: int = Field(default=3, gt=0)
+    # How long an open breaker stays open before one probe call is admitted.
+    model_provider_circuit_breaker_cooldown_seconds: float = Field(default=60.0, gt=0)
     reviewer_max_claims_per_agent: int = Field(default=20, ge=8, le=200)
     reviewer_max_source_excerpts_per_agent: int = Field(default=8, ge=1, le=40)
     reviewer_max_source_excerpt_chars: int = Field(default=1200, ge=100, le=10000)

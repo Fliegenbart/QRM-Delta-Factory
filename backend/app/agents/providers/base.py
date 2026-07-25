@@ -59,6 +59,7 @@ class ProviderRuntimeOptions:
     retry_deadline_seconds: float = 120.0
     max_concurrent_calls: int = 2
     circuit_breaker_failure_threshold: int = 3
+    circuit_breaker_cooldown_seconds: float = 60.0
 
     def __post_init__(self) -> None:
         if self.timeout_seconds <= 0:
@@ -71,6 +72,8 @@ class ProviderRuntimeOptions:
             raise ValueError("max_concurrent_calls must be greater than 0")
         if self.circuit_breaker_failure_threshold <= 0:
             raise ValueError("circuit_breaker_failure_threshold must be greater than 0")
+        if self.circuit_breaker_cooldown_seconds <= 0:
+            raise ValueError("circuit_breaker_cooldown_seconds must be greater than 0")
 
 
 class ProviderTokenUsage(BaseModel):
@@ -102,6 +105,7 @@ class BaseModelProvider(ABC):
     external_calls_required: bool
     _circuit_lock = Lock()
     _provider_failure_counts: dict[tuple[str, str], int] = {}
+    _provider_opened_at: dict[tuple[str, str], float] = {}
     _concurrency_lock = Lock()
     _provider_semaphores: dict[tuple[str, str, int], Semaphore] = {}
 
@@ -201,12 +205,7 @@ class BaseModelProvider(ABC):
                     raise
                 except ProviderCallError as exc:
                     last_error = exc
-                    self._record_failure()
-                    if (
-                        not exc.retryable
-                        or attempt >= self.runtime_options.max_retries
-                        or self._circuit_is_open()
-                    ):
+                    if not exc.retryable or attempt >= self.runtime_options.max_retries:
                         break
                     delay = self._retry_delay_seconds(exc, attempt=attempt, deadline=deadline)
                     if delay is None:
@@ -219,9 +218,12 @@ class BaseModelProvider(ABC):
                     retry_delay_ms += int(delay * 1000)
                 except Exception as exc:
                     last_error = exc
-                    self._record_failure()
                     break
         if last_error is not None:
+            # One exhausted call is one failure. Counting each retry separately
+            # would let a single unlucky call trip a threshold meant to detect a
+            # provider that is repeatedly unavailable.
+            self._record_failure()
             raise last_error
         raise ProviderCallError("Provider call failed without an exception")
 
@@ -271,17 +273,43 @@ class BaseModelProvider(ABC):
         with self._circuit_lock:
             key = self._provider_key()
             self._provider_failure_counts[key] = self._provider_failure_counts.get(key, 0) + 1
+            self._provider_opened_at[key] = time.monotonic()
 
     def _clear_failures(self) -> None:
         with self._circuit_lock:
             self._provider_failure_counts.pop(self._provider_key(), None)
+            self._provider_opened_at.pop(self._provider_key(), None)
 
     def _circuit_is_open(self) -> bool:
+        """Report the breaker open only while the cooldown is still running.
+
+        Without this the breaker was a permanent latch: the count only ever
+        cleared on a success, and no success could occur because this check runs
+        before the call. A provider that failed three times stayed disabled for
+        the life of the process. After the cooldown one probe call is admitted;
+        it either succeeds and clears the count, or re-opens the breaker.
+        """
         with self._circuit_lock:
-            return (
-                self._provider_failure_counts.get(self._provider_key(), 0)
-                >= self.runtime_options.circuit_breaker_failure_threshold
+            key = self._provider_key()
+            if (
+                self._provider_failure_counts.get(key, 0)
+                < self.runtime_options.circuit_breaker_failure_threshold
+            ):
+                return False
+            opened_at = self._provider_opened_at.get(key)
+            if opened_at is None:
+                return True
+            cooling = time.monotonic() - opened_at
+            if cooling < self.runtime_options.circuit_breaker_cooldown_seconds:
+                return True
+            # Half-open: admit this caller and make it the probe. Dropping the
+            # count below the threshold keeps concurrent callers from queueing up
+            # behind an unproven provider.
+            self._provider_failure_counts[key] = (
+                self.runtime_options.circuit_breaker_failure_threshold - 1
             )
+            self._provider_opened_at.pop(key, None)
+            return False
 
     def _provider_key(self) -> tuple[str, str]:
         return self.provider_name, self.configured_model_id

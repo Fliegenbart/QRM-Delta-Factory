@@ -1906,6 +1906,9 @@ def _runtime_options_from_settings(settings: Settings) -> ProviderRuntimeOptions
         retry_deadline_seconds=settings.model_provider_retry_deadline_seconds,
         max_concurrent_calls=settings.model_provider_max_concurrency,
         circuit_breaker_failure_threshold=settings.model_provider_circuit_breaker_threshold,
+        circuit_breaker_cooldown_seconds=(
+            settings.model_provider_circuit_breaker_cooldown_seconds
+        ),
     )
 
 
