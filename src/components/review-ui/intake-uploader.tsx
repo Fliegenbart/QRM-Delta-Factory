@@ -150,7 +150,7 @@ export function IntakeUploader() {
   }
 
   return (
-    <section className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4 dark:border-white/10">
+    <section className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] p-4">
       <AgentActivityPopup
         status={status}
       />
@@ -268,7 +268,7 @@ export function IntakeUploader() {
       ) : null}
 
       {error ? (
-        <div className="mt-4 flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-100">
+        <div className="mt-4 flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-800">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -296,7 +296,7 @@ export function IntakeUploader() {
           type="button"
           onClick={submit}
           disabled={!canSubmit}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[var(--brand)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[var(--brand)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
         >
           {status === "creating" || status === "uploading" || status === "running" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -329,10 +329,10 @@ function AgentActivityPopup({
           <Loader2 className="h-4 w-4 animate-spin" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-slate-950 dark:text-white">
+          <div className="text-sm font-semibold text-slate-950">
             {copy.title}
           </div>
-          <div className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          <div className="mt-1 text-sm text-slate-600">
             {copy.description}
           </div>
         </div>

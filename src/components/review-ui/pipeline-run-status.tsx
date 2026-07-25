@@ -82,9 +82,9 @@ export function PipelineRunStatus({
   return (
     <section
       className={`rounded-md border px-4 py-3 ${copy.tone === "warning"
-        ? "border-amber-400/45 bg-amber-50 dark:border-amber-400/30 dark:bg-amber-950/25"
+        ? "border-amber-400/45 bg-amber-50"
         : copy.tone === "error"
-          ? "border-red-300 bg-red-50 dark:border-red-500/30 dark:bg-red-950/25"
+          ? "border-red-300 bg-red-50"
           : "border-[var(--brand)] bg-[var(--brand-soft)]"
         }`}
       aria-live="polite"
@@ -106,7 +106,7 @@ export function PipelineRunStatus({
                 </span>
                 <span>{timing.waitingCopy}</span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/70 dark:bg-slate-900/30" aria-label="Zeitlicher Richtwert für die Analyse">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/70" aria-label="Zeitlicher Richtwert für die Analyse">
                 <div
                   className="h-full rounded-full bg-[var(--brand)] transition-[width] duration-1000"
                   style={{ width: `${timing.progressPercent}%` }}
@@ -119,7 +119,7 @@ export function PipelineRunStatus({
           ) : null}
 
           {isRunning && refreshError ? (
-            <p className="mt-2 text-xs leading-5 text-amber-800 dark:text-amber-200">
+            <p className="mt-2 text-xs leading-5 text-amber-800">
               Status wird erneut abgefragt. Die Analyse läuft auf dem Server weiter.
             </p>
           ) : null}

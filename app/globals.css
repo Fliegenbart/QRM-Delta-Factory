@@ -48,67 +48,9 @@
   --font-serif: "Iowan Old Style", "Charter", "Source Serif 4", "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
 }
 
-.dark {
-  color-scheme: dark;
-
-  --background: #0b1220;
-  --surface-primary: #131c2b;
-  --surface-secondary: #0f1825;
-  --surface-elevated: #1b2535;
-
-  --brand: #10b981;
-  --brand-strong: #34d399;
-  --brand-soft: rgba(16, 185, 129, 0.12);
-  --brand-ring: rgba(16, 185, 129, 0.30);
-
-  --foreground: #e6edf3;
-  --ink: #e6edf3;
-  --text-primary: #e6edf3;
-  --text-secondary: #97a6b6;
-  --text-tertiary: #6a7888;
-  --text-muted: #4c5a6a;
-
-  --border-default: #25303f;
-  --border-strong: #374559;
-  --border-muted: #18222f;
-
-  --severity-critical: #f08080;
-  --severity-critical-soft: rgba(240, 128, 128, 0.12);
-  --severity-major: #e0a85a;
-  --severity-major-soft: rgba(224, 168, 90, 0.12);
-  --severity-minor: #7aa7d3;
-  --severity-minor-soft: rgba(122, 167, 211, 0.12);
-  --severity-ready: #34d399;
-  --severity-ready-soft: rgba(52, 211, 153, 0.12);
-}
-
-/* Standalone pitch landing — cool, modern palette scoped to the marketing page only.
-   Defined on the wrapper so it wins over :root and .dark for everything inside,
-   without touching the rest of the app. */
+/* Standalone pitch landing — inherits the app palette from :root and only
+   pins its own surface, so the marketing page reads as one piece. */
 .qrm-landing {
-  color-scheme: light;
-
-  --background: #f7f9fb;
-  --surface-primary: #ffffff;
-  --surface-secondary: #eef2f6;
-  --surface-elevated: #ffffff;
-
-  --brand: #0d7a5f;
-  --brand-strong: #0a5f4a;
-  --brand-soft: #e7f4ef;
-  --brand-ring: rgba(13, 122, 95, 0.18);
-
-  --foreground: #0f172a;
-  --ink: #0f172a;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #64748b;
-  --text-muted: #94a3b8;
-
-  --border-default: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --border-muted: #eef2f6;
-
   background: var(--background);
   color: var(--text-primary);
 }
@@ -231,7 +173,6 @@ table { border-collapse: collapse; }
 }
 
 .lab-metal { background: var(--surface-secondary); }
-.dark .lab-metal { background: var(--surface-secondary); }
 
 * {
   transition-property: background-color, border-color, color, fill, stroke;

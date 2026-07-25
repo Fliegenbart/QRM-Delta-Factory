@@ -120,7 +120,7 @@ export default async function ReviewPackPage({ params }: PageProps) {
                         </div>
                         <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--text-primary)]">{displayRiskStatement(risk.risk_statement)}</h3>
                         {deriveReviewPackPublication(risk.verifier_status).state === "qa_hint_partial" ? (
-                          <p className="mt-2 text-sm font-medium text-amber-700 dark:text-amber-300">
+                          <p className="mt-2 text-sm font-medium text-amber-700">
                             QA-Hinweis mit unvollständiger Evidenz — kein kanonischer Risikobefund.
                           </p>
                         ) : null}
@@ -219,7 +219,7 @@ function ReasonList({ reasons, kind = "review" }: { reasons: string[]; kind?: "r
         <ul className="mt-2 space-y-2">
           {uniqueReasons.map((reason) => (
             <li key={reason} className="flex items-start gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2 text-sm text-[var(--text-secondary)]">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" aria-hidden />
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
               {reason}
             </li>
           ))}

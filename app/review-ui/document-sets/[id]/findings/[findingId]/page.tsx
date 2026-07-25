@@ -106,7 +106,7 @@ export default async function FindingDetailPage({ params }: PageProps) {
                 <Detail label={consultantReviewCopy.finding.labels.verifierResult} value={displayReviewValue(risk.verifier_status)} />
               </dl>
 
-              <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 dark:border-amber-800 dark:bg-amber-900/25 dark:text-amber-100">
+              <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
                 <div className="flex items-center gap-2 font-semibold">
                   <AlertCircle className="h-4 w-4" aria-hidden />
                   {consultantReviewCopy.finding.humanReason}

@@ -13,15 +13,12 @@ import {
   Gauge,
   Library,
   Menu,
-  Moon,
   Plus,
   ShieldCheck,
-  Sun,
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useI18n, type TranslationKey } from "@/src/lib/i18n";
-import { useTheme } from "@/src/lib/theme";
 import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
 import { aiArchitectureConcept, demoReviewCases, productHomeCopy } from "@/src/lib/review-ui";
 import type { RingversuchRun } from "@/src/components/review-ui/ringversuch-dashboard";
@@ -157,7 +154,6 @@ export function AppFrame({
   const active = normalizePublicSection(section);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { t } = useI18n();
-  const { resolvedTheme, setTheme } = useTheme();
   const closeMobileNav = () => setMobileNavOpen(false);
 
   return (
@@ -176,14 +172,6 @@ export function AppFrame({
           </div>
           <div className="flex items-center gap-2">
             <SignOutButton />
-            <button
-              type="button"
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              className="grid h-9 w-9 place-items-center rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)]"
-              aria-label={resolvedTheme === "dark" ? t("theme.light") : t("theme.dark")}
-            >
-              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
             <button
               type="button"
               onClick={() => setMobileNavOpen((open) => !open)}

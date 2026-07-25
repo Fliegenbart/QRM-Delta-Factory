@@ -55,7 +55,7 @@ export default async function DemoReviewCasePage({
       >
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="border-l-4 border-[var(--brand)] pl-5">
-            <div className="flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-300">
+            <div className="flex flex-wrap gap-2 text-xs text-slate-500">
               <span className="font-mono">{demoCase.id}</span>
               <span>{demoCase.area}</span>
               <span>{demoCase.regulation}</span>
@@ -115,7 +115,7 @@ export default async function DemoReviewCasePage({
         <ul className="grid gap-2 md:grid-cols-3">
           {demoCase.openQuestions.map((item) => (
             <li key={item} className="flex items-start gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-3 text-sm text-[var(--text-secondary)]">
-              <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" aria-hidden />
+              <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
               <span>{item}</span>
             </li>
           ))}
@@ -165,7 +165,7 @@ function DossierListPanel({
   tone?: "default" | "warning";
 }) {
   const iconClassName =
-    tone === "warning" ? "text-amber-600 dark:text-amber-300" : "text-[var(--brand)]";
+    tone === "warning" ? "text-amber-600" : "text-[var(--brand)]";
 
   return (
     <ReviewPanel title={title}>

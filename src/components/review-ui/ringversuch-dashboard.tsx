@@ -95,9 +95,9 @@ function wholePercent(rate: number | null | undefined): string {
 function severityClasses(severity: string): string {
   switch (severity) {
     case "critical":
-      return "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800";
+      return "bg-red-50 text-red-700 border-red-200";
     case "high":
-      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800";
+      return "bg-amber-50 text-amber-700 border-amber-200";
     default:
       return "bg-[var(--surface-secondary)] text-[var(--text-secondary)] border-[var(--border-default)]";
   }
@@ -532,7 +532,7 @@ function CaseMatrix({ cases }: { cases: CaseResult[] }) {
               </td>
               <td className="px-4 py-2.5">
                 {caseResult.decoy_false_alarms.length === 0 ? (
-                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-1 text-emerald-600">
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                     {caseResult.decoy_count}/{caseResult.decoy_count} bestanden
                   </span>
@@ -559,7 +559,7 @@ function ErrorChip({ error, found }: { error: MatchedError; found: boolean }) {
       className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] ${
         found
           ? severityClasses(error.severity)
-          : "border-red-300 bg-red-50 text-red-700 line-through dark:border-red-800 dark:bg-red-900/30 dark:text-red-300"
+          : "border-red-300 bg-red-50 text-red-700 line-through"
       }`}
     >
       {found ? (

@@ -23,10 +23,6 @@ export const translations = {
   "nav.riskLibrary": { de: "Regelwerk", en: "Rule set" },
   "nav.ringversuch": { de: "Ringversuch", en: "Proficiency test" },
   "nav.ueberblick": { de: "Überblick", en: "Overview" },
-
-  // Theme
-  "theme.light": { de: "Hell", en: "Light" },
-  "theme.dark": { de: "Dunkel", en: "Dark" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

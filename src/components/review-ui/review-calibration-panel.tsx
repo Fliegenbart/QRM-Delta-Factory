@@ -301,7 +301,7 @@ function Pill({ children }: { children: React.ReactNode }) {
 
 function Notice({ children, tone }: { children: React.ReactNode; tone: "red" | "green" }) {
   const className = tone === "red"
-    ? "border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-950/30 dark:text-red-100"
+    ? "border-red-200 bg-red-50 text-red-800"
     : "border-[var(--brand)] bg-[var(--brand-soft)] text-[var(--text-primary)]";
 
   return (
