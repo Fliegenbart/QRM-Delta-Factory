@@ -180,8 +180,8 @@ def _signature_date_findings(
                     ),
                 ),
                 recommended_action=(
-                    f"Signaturdatum {date_text} im Quellsystem pruefen, Audit-Trail "
-                    "ziehen und Datumsstempel korrigieren oder begruenden."
+                    f"Signaturdatum {date_text} im Quellsystem prüfen, Audit-Trail "
+                    "ziehen und Datumsstempel korrigieren oder begründen."
                 ),
             )
         )
@@ -233,8 +233,8 @@ def _minor_misclassification_findings(
             evidence_quotes=[classification, low_temperature, viscosity],
             requirement=requirement,
             recommended_action=(
-                "Abweichung mindestens als Major bewerten, Produktqualitaetsimpact "
-                "mit physikalisch-chemischen Daten pruefen und rheologische "
+                "Abweichung mindestens als Major bewerten, Produktqualitätsimpact "
+                "mit physikalisch-chemischen Daten prüfen und rheologische "
                 "Laboruntersuchung nachfordern."
             ),
         )
@@ -331,8 +331,8 @@ def _specification_breach_findings(
                 ),
                 recommended_action=(
                     "Disposition stoppen, OOS- beziehungsweise Abweichungsbewertung "
-                    "oeffnen und Messwert, Spezifikation sowie Freigabeentscheidung "
-                    "gegen die Primaerdaten pruefen."
+                    "öffnen und Messwert, Spezifikation sowie Freigabeentscheidung "
+                    "gegen die Primärdaten prüfen."
                 ),
             )
         )
@@ -502,8 +502,8 @@ def _qc_change_control_cross_document_findings(
                     keywords=("batch", "charge", "scope", "retest", "rueckstell"),
                 ),
                 recommended_action=(
-                    "Batch-Impact-Scope um den ausgefuehrten Retest beziehungsweise das "
-                    "Rueckstellmuster erweitern und die Risikobewertung nachziehen."
+                    "Batch-Impact-Scope um den ausgeführten Retest beziehungsweise das "
+                    "Rückstellmuster erweitern und die Risikobewertung nachziehen."
                 ),
             )
         )

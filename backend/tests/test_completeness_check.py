@@ -60,7 +60,9 @@ def test_missing_effectiveness_check_is_found_when_capa_present() -> None:
     finding = results[0]
     assert finding.concept.concept_id == "effectiveness_check"
     assert finding.anchor_claim.claim_type == ClaimType.CAPA_ACTION
-    assert "Wirksamkeitspruefung" in finding.statement
+    # Spelled with umlauts: this string reaches the customer's review pack, and the
+    # concept label it comes from was one of the places writing "Wirksamkeitspruefung".
+    assert "Wirksamkeitsprüfung" in finding.statement
     assert finding.requirement.requirement_id == "req_test_capa_effectiveness"
 
 

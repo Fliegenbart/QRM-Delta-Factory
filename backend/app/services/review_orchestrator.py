@@ -105,13 +105,21 @@ class KnowledgeRetrievalProfile:
 
 # Befundtexte (risk_statement, recommended_action, missing_information,
 # coverage_summary) auf Deutsch, damit sie zur Sprache der Quelldokumente und
-# der QA-Zielgruppe passen. Woertliche Zitate in evidence_items bleiben in der
+# der QA-Zielgruppe passen. Wörtliche Zitate in evidence_items bleiben in der
 # Originalsprache des Dokuments.
+#
+# Die Umlautregel steht hier, weil dieser Text selbst in ASCII-Ersatzschreibung
+# verfasst war ("Uebernimm woertliche Zitate unveraendert"). Modelle folgen dem
+# Register ihrer Anweisung: die OpenAI-Reviewer lieferten durchgängig "Fuer",
+# "waehrend" und "gemaess", während Mistral und Anthropic korrekt schrieben. In
+# einer Prüfmappe, die beim Kunden landet, liest sich das wie ein Defekt.
 OUTPUT_LANGUAGE_DIRECTIVE = (
     "AUSGABESPRACHE: Formuliere risk_statement, recommended_action, "
-    "missing_information und coverage_summary auf Deutsch. Uebernimm woertliche "
-    "Zitate (quote in evidence_items) unveraendert in der Originalsprache des "
-    "Dokuments; uebersetze sie nicht."
+    "missing_information und coverage_summary auf Deutsch. Verwende dabei die "
+    "korrekten Umlaute ä, ö, ü und ß; schreibe niemals die Ersatzformen ae, oe, "
+    "ue oder ss, auch dann nicht, wenn die übrigen Anweisungen sie verwenden. "
+    "Übernimm wörtliche Zitate (quote in evidence_items) unverändert in der "
+    "Originalsprache des Dokuments; übersetze sie nicht."
 )
 
 # This contract is deliberately shared by every reviewer.  Provider JSON mode

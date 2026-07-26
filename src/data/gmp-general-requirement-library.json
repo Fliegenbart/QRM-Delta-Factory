@@ -248,7 +248,7 @@
       "criticality": "high",
       "required_evidence": [
         "Berechtigungskonzept",
-        "Begruendung der Override-Aktion"
+        "Begründung der Override-Aktion"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
@@ -560,7 +560,7 @@
       "required_evidence": [
         "CAPA Record",
         "Effectiveness Check Nachweis",
-        "Wirksamkeitspruefung"
+        "Wirksamkeitsprüfung"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
@@ -621,7 +621,7 @@
       ],
       "criticality": "medium",
       "required_evidence": [
-        "benannter Massnahmenverantwortlicher",
+        "benannter Maßnahmenverantwortlicher",
         "Terminplan"
       ],
       "auto_close_allowed": false,
@@ -684,7 +684,7 @@
       "criticality": "high",
       "required_evidence": [
         "Chargenliste",
-        "Begruendung der Chargenauswahl"
+        "Begründung der Chargenauswahl"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
@@ -932,7 +932,7 @@
       "criticality": "high",
       "required_evidence": [
         "aktueller Validierungsbericht",
-        "Uebertragbarkeitsbegruendung"
+        "Übertragbarkeitsbegründung"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
@@ -1240,7 +1240,7 @@
       "criticality": "high",
       "required_evidence": [
         "Lieferantenbewertung",
-        "Impact der Materialaenderung"
+        "Impact der Materialänderung"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
@@ -1302,7 +1302,7 @@
       "criticality": "high",
       "required_evidence": [
         "interne Spezifikation",
-        "Pruefergebnis"
+        "Prüfergebnis"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
@@ -1540,7 +1540,7 @@
         "Comparator Summary",
         "Geraeteaequivalenz",
         "Methodentransfer oder Bridging",
-        "genehmigte Begruendung"
+        "genehmigte Begründung"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
@@ -1655,7 +1655,7 @@
         "gueltige SOP-Version",
         "Training Record",
         "Batch Record Arbeitsanweisung",
-        "Begruendung fuer N/A"
+        "Begründung für N/A"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",
@@ -1714,7 +1714,7 @@
         "Change-Scope Chargenliste",
         "Execution Record",
         "Retest-Anforderung",
-        "Rueckstellmusterbewertung"
+        "Rückstellmusterbewertung"
       ],
       "auto_close_allowed": false,
       "effective_from": "2026-01-01T00:00:00Z",

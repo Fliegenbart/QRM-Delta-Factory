@@ -12,6 +12,7 @@ from app.agents.prompt_templates import (
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.services.review_orchestrator import (
+    OUTPUT_LANGUAGE_DIRECTIVE,
     REVIEWER_OUTPUT_CONTRACT,
     PrimaryReviewOrchestrator,
     default_reviewer_agents,
@@ -136,3 +137,46 @@ def test_prompt_version_is_persisted_in_model_run_and_audit() -> None:
         event for event in audit_log.list_events() if event.event_type == "model_run_recorded"
     ][0]
     assert model_run_audit.payload["prompt_version"] == prompt_version
+
+
+def test_language_directive_demands_umlauts_over_ascii_substitutes() -> None:
+    """The directive has to name the rule, and follow it.
+
+    It previously read "Uebernimm woertliche Zitate unveraendert" -- an instruction
+    to write German, written without German orthography. Models follow the register
+    of their instructions: every finding from the OpenAI-routed reviewers came back
+    with "Fuer", "waehrend" and "gemaess", while Mistral and Anthropic wrote
+    correctly. In a review pack sent to a customer that reads as a defect.
+    """
+    directive = OUTPUT_LANGUAGE_DIRECTIVE
+    assert "ä" in directive and "ö" in directive and "ü" in directive and "ß" in directive
+    for substitute in ("Uebernimm", "woertliche", "unveraendert", "uebersetze"):
+        assert substitute not in directive
+    # The surrounding templates still use substitutes, so the rule must say it wins.
+    assert "korrekten Umlaute" in directive
+    assert "übrigen Anweisungen" in directive
+
+
+def test_reviewer_prompts_carry_the_umlaut_rule() -> None:
+    """Every agent gets the rule, not just the ones that needed it."""
+    for agent in default_reviewer_agents():
+        prompt = "\n\n".join(
+            [agent.prompt_template.content, OUTPUT_LANGUAGE_DIRECTIVE, REVIEWER_OUTPUT_CONTRACT]
+        )
+        assert "korrekten Umlaute" in prompt, agent.role
+
+
+def test_server_authored_finding_text_uses_umlauts() -> None:
+    """Text the server writes itself has no model to blame.
+
+    The rule layers and the completeness check compose their own German, and it
+    reached the pack as "Massnahmenverantwortlicher", "pruefen" and "ausloesende".
+    Matching tokens are excluded on purpose: _fold() folds umlauts to ASCII before
+    comparing against document text, so those must stay in substitute form.
+    """
+    from app.services.completeness_check import EVIDENCE_CONCEPTS
+
+    substitutes = ("fuer", "pruef", "massnahm", "ausloes", "qualitaet", "durchfuehr")
+    for concept in EVIDENCE_CONCEPTS:
+        folded = concept.label_de.lower()
+        assert not any(bad in folded for bad in substitutes), concept.concept_id

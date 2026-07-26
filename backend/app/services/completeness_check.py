@@ -41,7 +41,7 @@ EVIDENCE_CONCEPTS: tuple[EvidenceConcept, ...] = (
     EvidenceConcept(
         concept_id="effectiveness_check",
         label_de=(
-            "Definition oder Durchfuehrung einer Wirksamkeitspruefung"
+            "Definition oder Durchführung einer Wirksamkeitsprüfung"
             " (Effectiveness Check) im CAPA-Plan"
         ),
         evidence_string_keywords=("effectiveness", "wirksamkeit"),
@@ -58,7 +58,7 @@ EVIDENCE_CONCEPTS: tuple[EvidenceConcept, ...] = (
     ),
     EvidenceConcept(
         concept_id="qa_approval",
-        label_de="QA-Freigabe bzw. dokumentierte Genehmigung durch die Qualitaetssicherung",
+        label_de="QA-Freigabe bzw. dokumentierte Genehmigung durch die Qualitätssicherung",
         evidence_string_keywords=("qa approval", "qa-freigabe", "approval record", "qa review"),
         presence_claim_types=(ClaimType.QA_APPROVAL,),
         presence_keywords=(
@@ -74,7 +74,7 @@ EVIDENCE_CONCEPTS: tuple[EvidenceConcept, ...] = (
     ),
     EvidenceConcept(
         concept_id="responsible_party",
-        label_de="benannter Massnahmenverantwortlicher fuer die CAPA",
+        label_de="benannter Maßnahmenverantwortlicher für die CAPA",
         evidence_string_keywords=("verantwortlich", "responsible"),
         presence_claim_types=(ClaimType.RESPONSIBLE_PARTY,),
         presence_keywords=(
@@ -89,7 +89,7 @@ EVIDENCE_CONCEPTS: tuple[EvidenceConcept, ...] = (
     ),
     EvidenceConcept(
         concept_id="impact_assessment",
-        label_de="dokumentierte Bewertung der Auswirkung auf Produktqualitaet und Chargen",
+        label_de="dokumentierte Bewertung der Auswirkung auf Produktqualität und Chargen",
         evidence_string_keywords=("impact", "auswirkung", "chargenliste"),
         presence_claim_types=(ClaimType.IMPACT_ASSESSMENT,),
         presence_keywords=(
@@ -139,7 +139,7 @@ def find_missing_required_evidence(
                 f" Abschnitt {requirement.section} fordert '{evidence}'."
                 f" Die Unterlagen enthalten keine(n) {concept.label_de} -"
                 " im Claim Ledger existiert kein entsprechender Nachweis-Claim,"
-                " obwohl der ausloesende Vorgang dokumentiert ist."
+                " obwohl der auslösende Vorgang dokumentiert ist."
             )
             results.append(
                 MissingEvidenceFinding(
