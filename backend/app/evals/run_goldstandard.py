@@ -1076,8 +1076,11 @@ def _aggregate(case_results: list[dict[str, Any]]) -> dict[str, Any]:
         key: sum((case.get("quality_metrics") or {}).get(key, 0) for case in case_results)
         for key in quality_metric_keys
     }
+    # No gold errors means the run measured nothing, which is not the same as
+    # having found everything. Reporting 1.0 here made a run whose every case
+    # failed to start read as a perfect score.
     quality_metrics["must_detect_recall"] = (
-        round(total_matched / total_errors, 4) if total_errors else 1.0
+        round(total_matched / total_errors, 4) if total_errors else None
     )
     gold_related = quality_metrics["gold_related_finding_count"]
     quality_metrics["redundancy_rate"] = (
@@ -1156,9 +1159,37 @@ def _render_markdown(
         f"- OpenAI-Modell: `{run_meta.get('openai_model') or '-'}`",
         f"- Mistral-Modell: `{run_meta.get('mistral_model') or '-'}`",
         "",
-        "## Gesamtergebnis",
-        "",
     ]
+    # A case that never reached the pipeline scores nothing, and nothing scores
+    # as perfect: sensitivity reads 0 of 0 and must-detect recall falls back to
+    # 1.0. A run where every case failed to start therefore renders as a clean
+    # sheet, so say so before any number is shown.
+    broken_cases = [
+        case
+        for case in case_results
+        if case.get("pipeline_status") == "harness_error"
+        or (case.get("gold_error_count") or 0) == 0
+    ]
+    if broken_cases:
+        lines.extend(
+            [
+                f"> **Ungültiger Lauf: {len(broken_cases)} von {len(case_results)} Fällen"
+                " wurden nicht bewertet.** Die Kennzahlen unten beziehen sich nur auf die"
+                " übrigen Fälle und sind nicht vergleichbar.",
+                "",
+                *(
+                    f">   - {case['case_id']}: "
+                    + str(
+                        case.get("error")
+                        or case.get("error_summary")
+                        or "kein Lösungsschlüssel gelesen"
+                    )
+                    for case in broken_cases[:10]
+                ),
+                "",
+            ]
+        )
+    lines.extend(["## Gesamtergebnis", ""])
     sens = aggregate["sensitivity"]
     pack_sens = aggregate["review_pack_sensitivity"]
     spec = aggregate["specificity_decoys"]
@@ -1217,7 +1248,12 @@ def _render_markdown(
                 "",
                 "## Qualitätsmetriken",
                 "",
-                f"- Must-detect Recall: `{quality['must_detect_recall']}`",
+                "- Must-detect Recall: "
+                + (
+                    f"`{quality['must_detect_recall']}`"
+                    if quality["must_detect_recall"] is not None
+                    else "`nicht gemessen` (kein Fall lieferte Gold-Fehler)"
+                ),
                 (
                     "- Wiederholungen: "
                     f"`{quality['redundant_finding_count']}`"
@@ -1495,6 +1531,21 @@ def main(argv: list[str] | None = None) -> int:
         )
     print(f"\nReports written to {output_dir}")
     restore_route_bindings()
+    unscored = [
+        case
+        for case in case_results
+        if case.get("pipeline_status") == "harness_error"
+        or (case.get("gold_error_count") or 0) == 0
+    ]
+    if unscored:
+        # Exit non-zero so a broken run cannot pass unnoticed in a script or CI
+        # step. Every case failing to start still writes a report full of zeros
+        # that reads like a clean sheet.
+        print(
+            f"\nUngültiger Lauf: {len(unscored)} von {len(case_results)} Fällen wurden "
+            "nicht bewertet."
+        )
+        return 1
     return _package_mode_exit_code(package_release_gate)
 
 
