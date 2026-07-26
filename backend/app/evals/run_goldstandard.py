@@ -289,22 +289,38 @@ def _finding_texts(finding: dict[str, Any]) -> list[str]:
 
 
 def _match_error(gold: dict[str, Any], findings: list[dict[str, Any]]) -> dict[str, Any] | None:
-    """Return best matching finding for a gold error, or None."""
-    gold_evidence = gold.get("exact_evidence_text", "")
+    """Return best matching finding for a gold error, or None.
+
+    A gold error may cite more than one passage, and citing any one of them is
+    a hit: the finding is about that error either way, and requiring all of them
+    would score a correct finding as a miss. Multi-passage errors previously had
+    their quotes joined into one string, which no single finding quote can
+    contain, so they could only ever match fuzzily.
+    """
+    gold_evidence_texts = _oracle_evidence_texts(gold.get("exact_evidence_text"))
     gold_expected = gold.get("expected_reviewer_finding", "")
     gold_why = gold.get("why_it_is_a_problem", "")
     best: tuple[float, dict[str, Any], str] | None = None
     for finding in findings:
         score = 0.0
         method = ""
-        norm_gold_ev = _normalize(gold_evidence)
         for text in _finding_texts(finding):
             norm_text = _normalize(text)
-            if norm_gold_ev and (norm_gold_ev in norm_text or norm_text in norm_gold_ev):
+            substring_hit = any(
+                norm_gold_ev and (norm_gold_ev in norm_text or norm_text in norm_gold_ev)
+                for norm_gold_ev in map(_normalize, gold_evidence_texts)
+            )
+            if substring_hit:
                 score = max(score, 1.0)
                 method = "evidence_substring"
                 continue
-            ev_score = max(_jaccard(gold_evidence, text), _similarity(gold_evidence, text))
+            ev_score = max(
+                (
+                    max(_jaccard(gold_evidence, text), _similarity(gold_evidence, text))
+                    for gold_evidence in gold_evidence_texts
+                ),
+                default=0.0,
+            )
             sem_score = max(
                 _jaccard(gold_expected, text),
                 _jaccard(gold_why, text),
@@ -324,6 +340,31 @@ def _match_error(gold: dict[str, Any], findings: list[dict[str, Any]]) -> dict[s
         "risk_statement": best[1].get("risk_statement"),
         "severity": best[1].get("severity"),
     }
+
+
+def _oracle_evidence_texts(value: Any) -> list[str]:
+    """Read an oracle's cited passages, whichever shape the dataset uses.
+
+    A single string, or a list of either strings or ``{document_name, text}``
+    objects. A shape that yields nothing is returned empty rather than coerced,
+    so a dataset the scorer cannot read fails the oracle contract check instead
+    of silently scoring every error as missed.
+    """
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+    if not isinstance(value, list):
+        return []
+    texts: list[str] = []
+    for entry in value:
+        if isinstance(entry, str):
+            text = entry
+        elif isinstance(entry, dict):
+            text = str(entry.get("text", ""))
+        else:
+            continue
+        if text.strip():
+            texts.append(text)
+    return texts
 
 
 def _match_decoy(decoy: dict[str, Any], findings: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -420,32 +461,109 @@ def _oracle_path(case_dir: Path) -> Path:
 def _load_post_run_oracle(path: Path) -> dict[str, Any]:
     """Normalize supported oracle formats after the pipeline has completed."""
     payload: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
-    if "must_detect_findings" not in payload:
-        return payload
-    return {
-        "case_id": payload["package_id"],
-        "errors": [
-            {
-                "error_id": finding["finding_id"],
-                "severity": finding["severity"],
-                "error_type": finding.get("risk_category", "gold_finding"),
-                "expected_reviewer_finding": finding.get("risk_statement", ""),
-                "why_it_is_a_problem": finding.get("why_it_is_hard", ""),
-                "exact_evidence_text": "\n".join(
-                    ref.get("quote", "")
-                    for ref in finding.get("expected_evidence_refs", [])
+    if "must_detect_findings" in payload:
+        return {
+            "case_id": payload["package_id"],
+            "errors": [
+                {
+                    "error_id": finding["finding_id"],
+                    "severity": finding["severity"],
+                    "error_type": finding.get("risk_category", "gold_finding"),
+                    "expected_reviewer_finding": finding.get("risk_statement", ""),
+                    "why_it_is_a_problem": finding.get("why_it_is_hard", ""),
+                    "exact_evidence_text": [
+                        ref.get("quote", "")
+                        for ref in finding.get("expected_evidence_refs", [])
+                    ],
+                    "expected_requirement_theme": finding.get(
+                        "expected_requirement_theme", ""
+                    ),
+                    "expected_evidence_refs": finding.get("expected_evidence_refs", []),
+                    "should_block_auto_clear": finding.get("should_block_auto_clear", False),
+                }
+                for finding in payload["must_detect_findings"]
+            ],
+            "non_error_decoys": [],
+            "acceptable_false_positive_boundaries": payload.get(
+                "acceptable_false_positive_boundaries", []
+            ),
+        }
+    if "hidden_errors" in payload:
+        payload = _normalize_hidden_errors_oracle(payload)
+    _assert_oracle_is_scorable(payload, path=path)
+    return payload
+
+
+def _normalize_hidden_errors_oracle(payload: dict[str, Any]) -> dict[str, Any]:
+    """Accept the answer-key variant that names its fields differently.
+
+    Weitere-Testcases-1 carries 41 errors over 48 documents and has never been
+    run, because every field the scorer reads is spelled differently there. The
+    failure was silent rather than loud: ``errors`` is absent, so no error was
+    ever scored, and the decoy field is absent too, so no decoy could ever be
+    flagged. A run would have reported perfect sensitivity and specificity over
+    an empty test.
+    """
+    normalized = dict(payload)
+    normalized["errors"] = [
+        {
+            **error,
+            "requires_cross_document_comparison": error.get(
+                "requires_cross_document_comparison",
+                error.get(
+                    "whether_error_is_direct_or_requires_cross_document_comparison"
                 ),
-                "expected_requirement_theme": finding.get("expected_requirement_theme", ""),
-                "expected_evidence_refs": finding.get("expected_evidence_refs", []),
-                "should_block_auto_clear": finding.get("should_block_auto_clear", False),
-            }
-            for finding in payload["must_detect_findings"]
-        ],
-        "non_error_decoys": [],
-        "acceptable_false_positive_boundaries": payload.get(
-            "acceptable_false_positive_boundaries", []
-        ),
-    }
+            ),
+        }
+        for error in payload.get("hidden_errors", [])
+    ]
+    normalized.pop("hidden_errors", None)
+    normalized["non_error_decoys"] = [
+        {
+            **decoy,
+            "evidence_text": _first_oracle_evidence_text(
+                decoy.get("evidence_text") or decoy.get("exact_evidence_text")
+            ),
+            "why_it_is_harmless": decoy.get(
+                "why_it_is_harmless", decoy.get("why_not_an_error", "")
+            ),
+        }
+        for decoy in payload.get("non_error_decoys", [])
+    ]
+    return normalized
+
+
+def _first_oracle_evidence_text(value: Any) -> str:
+    texts = _oracle_evidence_texts(value)
+    return texts[0] if texts else ""
+
+
+def _assert_oracle_is_scorable(payload: dict[str, Any], *, path: Path) -> None:
+    """Refuse an oracle the scorer cannot read.
+
+    An empty test scores a perfect run: ``must_detect_recall`` falls back to 1.0
+    when there are no gold errors, and a decoy with no readable text can never
+    be flagged. Both look like success in the report, which is the one failure
+    mode a report shown to a customer must not have.
+    """
+    errors = payload.get("errors")
+    if not isinstance(errors, list) or not errors:
+        raise ValueError(
+            f"Oracle {path} declares no gold errors the scorer can read. "
+            "An answer key with zero errors would report perfect sensitivity."
+        )
+    for error in errors:
+        if not _oracle_evidence_texts(error.get("exact_evidence_text")):
+            raise ValueError(
+                f"Oracle {path} error {error.get('error_id')!r} has no readable "
+                "exact_evidence_text, so it could only ever be scored as missed."
+            )
+    for decoy in payload.get("non_error_decoys") or []:
+        if not str(decoy.get("evidence_text", "")).strip():
+            raise ValueError(
+                f"Oracle {path} decoy {decoy.get('decoy_id')!r} has no readable "
+                "evidence_text, so it could never be flagged as a false alarm."
+            )
 
 
 def _match_visible_review_pack_error(
