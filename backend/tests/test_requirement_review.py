@@ -544,3 +544,118 @@ def test_challenge_skips_fulfilled_with_independent_support() -> None:
         v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
     )
     assert verdict.published_status == RequirementVerdictStatus.FULFILLED
+
+
+def _extraction(payload: dict[str, Any]) -> MockProvider:
+    base: dict[str, Any] = {
+        "signatures": [],
+        "measurements": [],
+        "specifications": [],
+        "action_items": [],
+        "events": [],
+    }
+    base.update(payload)
+    return MockProvider(output_factory=lambda *_: base)
+
+
+def test_validator_breach_overrides_a_fulfilled_verdict() -> None:
+    """Deterministic evidence of a breach must beat a model all-clear."""
+    _setup()
+    engine = RequirementReviewEngine(
+        repository=repository,
+        audit_log=audit_log,
+        assessor_provider=_assessor(
+            [_fulfilled_verdict("Die QA-Freigabe ist als pending markiert.")]
+        ),
+        entailment_provider=_entailment("supports", challenge_sustained=False),
+        extraction_provider=_extraction(
+            {
+                "signatures": [
+                    {
+                        "field_label": "Freigabe Produktionsleitung",
+                        "role": "Produktionsleitung",
+                        "signer": None,
+                        "date": None,
+                        "is_empty": True,
+                        "requirement_ids": ["req_threshold_validation"],
+                        "location": {
+                            "document_id": "doc_req_change",
+                            "chunk_id": "chunk_req_change_p1",
+                            "page": 1,
+                            "quote": "Die QA-Freigabe ist als pending markiert.",
+                        },
+                    }
+                ]
+            }
+        ),
+    )
+    report = engine.run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.validator_flags == ["empty_required_field"]
+    assert any("Freigabe Produktionsleitung" in s for s in verdict.validator_statements)
+    assert len(report.validator_findings) == 1
+
+
+def test_ungrounded_extraction_rows_never_reach_the_validators() -> None:
+    """A fabricated quote must not become deterministic 'evidence'."""
+    _setup()
+    engine = RequirementReviewEngine(
+        repository=repository,
+        audit_log=audit_log,
+        assessor_provider=_assessor([]),
+        entailment_provider=_entailment("supports"),
+        extraction_provider=_extraction(
+            {
+                "signatures": [
+                    {
+                        "field_label": "Erfundenes Feld",
+                        "is_empty": True,
+                        "requirement_ids": ["req_threshold_validation"],
+                        "location": {
+                            "document_id": "doc_req_change",
+                            "chunk_id": "chunk_req_change_p1",
+                            "page": 1,
+                            "quote": "Dieses Zitat existiert nirgends.",
+                        },
+                    }
+                ]
+            }
+        ),
+    )
+    report = engine.run("ds_req_review_demo")
+
+    assert report.validator_findings == []
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+
+
+def test_failed_extraction_keeps_assessed_verdicts_intact() -> None:
+    """The validator layer is additive; its death must not sink the run."""
+    _setup()
+
+    def _raise(*_: Any) -> dict:
+        raise ProviderCallError("extraction unavailable")
+
+    engine = RequirementReviewEngine(
+        repository=repository,
+        audit_log=audit_log,
+        assessor_provider=_assessor(
+            [_violated_verdict("Die QA-Freigabe ist als pending markiert.")]
+        ),
+        entailment_provider=_entailment("supports"),
+        extraction_provider=MockProvider(output_factory=_raise),
+    )
+    report = engine.run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    failed = [c for c in report.model_calls if c.status == "failed"]
+    assert [c.purpose for c in failed] == ["extract"]

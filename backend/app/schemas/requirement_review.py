@@ -131,6 +131,12 @@ class VerifiedRequirementVerdict(StrictSchema):
     #: Set when the adversarial second look ran on a FULFILLED verdict.
     challenge_sustained: bool | None = None
     challenge_reason: str | None = None
+    #: Validator ids whose deterministic findings escalated or corroborated
+    #: this verdict. Deterministic evidence of a breach overrides a model
+    #: all-clear -- the one path that raises alarm instead of lowering it,
+    #: and it is reserved for checks that do arithmetic, not judgement.
+    validator_flags: list[str] = Field(default_factory=list)
+    validator_statements: list[str] = Field(default_factory=list)
     #: True when the verdict was authored by the server (inapplicable
     #: requirement, failed model group), not by a model.
     server_authored: bool = False
@@ -156,6 +162,10 @@ class RequirementCoverageReport(StrictSchema):
     status_counts: dict[str, int] = Field(default_factory=dict)
     model_calls: list[RequirementReviewModelCall] = Field(default_factory=list)
     failed_model_call_count: int = Field(default=0, ge=0)
+    #: Every deterministic finding of the run, including those no requirement
+    #: claimed -- an unattached breach is still a breach and must not vanish
+    #: because the mapping was missing.
+    validator_findings: list[dict] = Field(default_factory=list)
 
     def summary(self) -> dict[str, Any]:
         return {

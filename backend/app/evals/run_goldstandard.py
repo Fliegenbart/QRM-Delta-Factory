@@ -1004,6 +1004,38 @@ def _run_requirement_engine_case(
             }
         )
 
+    attached_requirement_ids = {
+        verdict.requirement_id for verdict in report.verdicts
+    }
+    for index, validator_finding in enumerate(report.validator_findings):
+        if any(
+            requirement_id in attached_requirement_ids
+            for requirement_id in validator_finding.get("requirement_ids", [])
+        ):
+            # Attached findings already escalated their verdict and travel
+            # with its evidence; a second row would double-count them.
+            continue
+        findings.append(
+            {
+                "finding_id": f"val::{validator_finding['validator_id']}::{index}",
+                "severity": validator_finding.get("severity", "medium"),
+                "risk_statement": validator_finding["statement"],
+                "evidence_items": [
+                    {
+                        "document_id": location["document_id"],
+                        "chunk_id": location["chunk_id"],
+                        "page": location["page"],
+                        "quote": location["quote"],
+                    }
+                    for location in validator_finding.get("locations", [])
+                ],
+                "verification_result": {"quote_matches_chunk": True},
+                "requirement_references": [],
+                "published_status": "violated",
+                "entailment": None,
+            }
+        )
+
     answer_key = _load_post_run_oracle(oracle_path)
     matched, missed = _score_errors(answer_key, findings)
     review_pack_matched, review_pack_missed = _score_visible_review_pack_errors(

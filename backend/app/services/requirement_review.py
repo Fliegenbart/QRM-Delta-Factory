@@ -169,12 +169,15 @@ class RequirementReviewEngine:
         audit_log: InMemoryAuditLog,
         assessor_provider: BaseModelProvider,
         entailment_provider: BaseModelProvider,
+        extraction_provider: BaseModelProvider | None = None,
         group_size: int = REQUIREMENT_GROUP_SIZE,
     ) -> None:
         self.repository = repository
         self.audit_log = audit_log
         self.assessor_provider = assessor_provider
         self.entailment_provider = entailment_provider
+        #: None disables the structured-evidence/validator layer entirely.
+        self.extraction_provider = extraction_provider
         self.group_size = max(1, group_size)
 
     def run(self, document_set_id: str) -> RequirementCoverageReport:
@@ -227,6 +230,16 @@ class RequirementReviewEngine:
             for verdict in verdicts
         ]
 
+        validator_findings: list[dict[str, Any]] = []
+        if self.extraction_provider is not None:
+            verdicts, validator_findings = self._apply_validators(
+                verdicts=verdicts,
+                applicable=applicable,
+                chunk_payload=chunk_payload,
+                chunks=chunks,
+                model_calls=model_calls,
+            )
+
         verdicts.sort(key=lambda v: v.requirement_id)
         status_counts: dict[str, int] = {}
         for verdict in verdicts:
@@ -243,6 +256,7 @@ class RequirementReviewEngine:
             failed_model_call_count=sum(
                 1 for call in model_calls if call.status != "succeeded"
             ),
+            validator_findings=validator_findings,
         )
         self.audit_log.append(
             event_type="requirement_review_completed",
@@ -253,6 +267,86 @@ class RequirementReviewEngine:
             payload=report.summary(),
         )
         return report
+
+    def _apply_validators(
+        self,
+        *,
+        verdicts: list[VerifiedRequirementVerdict],
+        applicable: list[Requirement],
+        chunk_payload: list[dict[str, Any]],
+        chunks: list[DocumentChunk],
+        model_calls: list[RequirementReviewModelCall],
+    ) -> tuple[list[VerifiedRequirementVerdict], list[dict[str, Any]]]:
+        """Run structured extraction plus deterministic checks, then merge.
+
+        Deterministic evidence of a breach overrides a model all-clear: this is
+        the one path that raises a verdict instead of lowering it, and it is
+        reserved for arithmetic over rows whose quotes were grounded against
+        the stored chunks. Extraction failure is recorded and skipped -- the
+        validators are additive, and a dead extraction call must not take the
+        assessed verdicts down with it.
+        """
+        from app.services.deterministic_validators import run_validators
+        from app.services.evidence_extraction import EvidenceExtractor
+
+        requirement_index = [
+            {
+                "requirement_id": requirement.requirement_id,
+                "title": requirement.title or "",
+                "requirement_text": requirement.requirement_text,
+            }
+            for requirement in applicable
+        ]
+        assert self.extraction_provider is not None
+        try:
+            evidence = EvidenceExtractor(provider=self.extraction_provider).extract(
+                chunk_payload=chunk_payload,
+                requirement_index=requirement_index,
+                chunks=chunks,
+            )
+        except Exception as exc:  # noqa: BLE001 - additive layer, record and skip
+            model_calls.append(
+                _model_call(
+                    self.extraction_provider,
+                    purpose="extract",
+                    requirement_ids=[r.requirement_id for r in applicable],
+                    status="failed",
+                    error=exc,
+                )
+            )
+            return verdicts, []
+        model_calls.append(
+            _model_call(
+                self.extraction_provider,
+                purpose="extract",
+                requirement_ids=[r.requirement_id for r in applicable],
+                status="succeeded",
+            )
+        )
+
+        findings = run_validators(evidence)
+        applicable_ids = {requirement.requirement_id for requirement in applicable}
+        verdicts_by_id = {verdict.requirement_id: verdict for verdict in verdicts}
+        for finding in findings:
+            for requirement_id in finding.requirement_ids:
+                verdict = verdicts_by_id.get(requirement_id)
+                if verdict is None or requirement_id not in applicable_ids:
+                    continue
+                update: dict[str, Any] = {
+                    "validator_flags": [*verdict.validator_flags, finding.validator_id],
+                    "validator_statements": [
+                        *verdict.validator_statements,
+                        finding.statement,
+                    ],
+                    "evidence": _merge_evidence(verdict.evidence, finding.locations),
+                }
+                if verdict.published_status != RequirementVerdictStatus.VIOLATED:
+                    update["published_status"] = RequirementVerdictStatus.VIOLATED
+                    if verdict.severity is None:
+                        update["severity"] = Severity(finding.severity)
+                verdicts_by_id[requirement_id] = verdict.model_copy(update=update)
+        merged = [verdicts_by_id[v.requirement_id] for v in verdicts]
+        return merged, [finding.model_dump(mode="json") for finding in findings]
 
     def _assess_group(
         self,
@@ -651,6 +745,28 @@ def _ground_quote(quote: str, chunk_text: str) -> list[str] | None:
     return grounded
 
 
+def _merge_evidence(
+    existing: list[RequirementReviewEvidence],
+    locations: list[Any],
+) -> list[RequirementReviewEvidence]:
+    merged = list(existing)
+    seen = {(item.document_id, item.chunk_id, item.quote) for item in existing}
+    for location in locations:
+        key = (location.document_id, location.chunk_id, location.quote)
+        if key in seen:
+            continue
+        seen.add(key)
+        merged.append(
+            RequirementReviewEvidence(
+                document_id=location.document_id,
+                chunk_id=location.chunk_id,
+                page=location.page,
+                quote=location.quote,
+            )
+        )
+    return merged
+
+
 def _server_verdict(
     requirement: Requirement,
     *,
@@ -729,6 +845,7 @@ def default_requirement_review_engine(
             audit_log=audit_log,
             assessor_provider=mock,
             entailment_provider=MockProvider(output_factory=_mock_entailment_output),
+            extraction_provider=MockProvider(output_factory=_mock_extraction_output),
         )
     runtime_options = _runtime_options(settings)
     return RequirementReviewEngine(
@@ -739,6 +856,11 @@ def default_requirement_review_engine(
         ),
         entailment_provider=_provider(
             settings.requirement_review_entailment_provider, settings, runtime_options
+        ),
+        # Extraction rides the assessor's provider choice: it is mechanical
+        # transcription work, and the cheapest capable model is the right one.
+        extraction_provider=_provider(
+            settings.requirement_review_assessor_provider, settings, runtime_options
         ),
     )
 
@@ -833,6 +955,19 @@ def _mock_assessor_output(
             }
         )
     return {"verdicts": verdicts}
+
+
+def _mock_extraction_output(
+    prompt: str, input_schema: dict[str, Any], output_schema: type
+) -> dict[str, Any]:
+    """Offline extraction extracts nothing; the validator layer stays a no-op."""
+    return {
+        "signatures": [],
+        "measurements": [],
+        "specifications": [],
+        "action_items": [],
+        "events": [],
+    }
 
 
 def _mock_entailment_output(
