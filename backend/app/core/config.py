@@ -92,7 +92,12 @@ class Settings(BaseSettings):
     # bounded by model_provider_retry_deadline_seconds and the shared circuit
     # breaker, so two attempts cannot extend a run beyond the pipeline lease.
     model_provider_max_retries: int = Field(default=2, ge=0)
-    model_provider_retry_deadline_seconds: float = Field(default=120.0, gt=0)
+    # The deadline caps the whole retry loop, so it has to fit several single
+    # attempts plus backoff. At 120s with a 240s per-call timeout a slow first
+    # attempt could never be retried at all -- two entailment calls died exactly
+    # that way in the 2026-07-27 held-out run. 600s covers two full attempts at
+    # the 240s production timeout with backoff to spare.
+    model_provider_retry_deadline_seconds: float = Field(default=600.0, gt=0)
     model_provider_max_concurrency: int = Field(default=2, gt=0)
     # Reviewers emit JSON with a finding list and verbatim evidence quotes, so a
     # cut-off response is not a shorter answer but a dead role: the provider

@@ -46,18 +46,46 @@ class RequirementReviewEvidence(StrictSchema):
     quote: str = Field(min_length=1)
 
 
+class EvidenceSufficiency(StrEnum):
+    SUFFICIENT = "sufficient"
+    PARTIAL = "partial"
+    INSUFFICIENT = "insufficient"
+
+
 class RequirementVerdict(StrictSchema):
     requirement_id: str = Field(min_length=1)
     status: RequirementVerdictStatus
     severity: Severity | None = None
     rationale: str = Field(min_length=1)
     evidence: list[RequirementReviewEvidence] = Field(default_factory=list)
+    #: Required for FULFILLED verdicts: what kind of proof carries the verdict
+    #: (e.g. "Audit-Trail-Auszug", "signierte Freigabeerklärung", "Rohdaten"),
+    #: where it lives, whether it suffices, and whether anything beyond the
+    #: document's own say-so backs it. These make a credulous "fulfilled"
+    #: visible instead of silent.
+    evidence_type: str | None = None
+    evidence_reference: str | None = None
+    evidence_sufficiency: EvidenceSufficiency | None = None
+    independent_support: bool | None = None
 
 
 class RequirementGroupOutput(StrictSchema):
     """Structured output contract for one assessor call over a requirement group."""
 
     verdicts: list[RequirementVerdict]
+
+
+class FulfilledChallenge(StrictSchema):
+    """Structured output of the adversarial second look at a FULFILLED verdict.
+
+    Asked only one question: which required evidence could be missing,
+    incomplete or merely asserted despite the positive wording. A sustained
+    challenge demotes to UNCLEAR; it never upgrades anything.
+    """
+
+    challenge_sustained: bool
+    missing_or_asserted_evidence: list[str] = Field(default_factory=list)
+    reason: str = Field(min_length=1)
 
 
 class EntailmentCheck(StrictSchema):
@@ -91,6 +119,13 @@ class VerifiedRequirementVerdict(StrictSchema):
     provenance_ok: bool
     entailment: EntailmentSupport | None = None
     entailment_reason: str | None = None
+    evidence_type: str | None = None
+    evidence_reference: str | None = None
+    evidence_sufficiency: EvidenceSufficiency | None = None
+    independent_support: bool | None = None
+    #: Set when the adversarial second look ran on a FULFILLED verdict.
+    challenge_sustained: bool | None = None
+    challenge_reason: str | None = None
     #: True when the verdict was authored by the server (inapplicable
     #: requirement, failed model group), not by a model.
     server_authored: bool = False

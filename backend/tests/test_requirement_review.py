@@ -14,6 +14,7 @@ from app.schemas.requirement_review import (
 )
 from app.services.requirement_review import (
     ASSESSOR_PROMPT,
+    CHALLENGE_PROMPT,
     ENTAILMENT_PROMPT,
     RequirementReviewEngine,
 )
@@ -121,10 +122,21 @@ def _assessor(verdicts: list[dict[str, Any]]) -> MockProvider:
     return MockProvider(output_factory=lambda *_: {"verdicts": verdicts})
 
 
-def _entailment(support: str) -> MockProvider:
-    return MockProvider(
-        output_factory=lambda *_: {"support": support, "reason": "Testurteil."}
-    )
+def _entailment(support: str, *, challenge_sustained: bool = False) -> MockProvider:
+    """Second-look provider serving both verifier schemas by output type."""
+
+    def _factory(prompt: str, input_schema: Any, output_schema: Any) -> dict[str, Any]:
+        if getattr(output_schema, "__name__", "") == "FulfilledChallenge":
+            return {
+                "challenge_sustained": challenge_sustained,
+                "missing_or_asserted_evidence": (
+                    ["Audit-Trail-Auszug"] if challenge_sustained else []
+                ),
+                "reason": "Testzweitprüfung.",
+            }
+        return {"support": support, "reason": "Testurteil."}
+
+    return MockProvider(output_factory=_factory)
 
 
 def _violated_verdict(quote: str) -> dict[str, Any]:
@@ -265,8 +277,155 @@ def test_missing_verdict_for_a_requirement_becomes_unclear() -> None:
     assert verdict.server_authored is True
 
 
+def _fulfilled_verdict(quote: str, **overrides: Any) -> dict[str, Any]:
+    verdict: dict[str, Any] = {
+        "requirement_id": "req_threshold_validation",
+        "status": "fulfilled",
+        "severity": None,
+        "rationale": "Die Validierung ist laut Freigabevermerk abgeschlossen.",
+        "evidence": [
+            {
+                "document_id": "doc_req_change",
+                "chunk_id": "chunk_req_change_p1",
+                "page": 1,
+                "quote": quote,
+            }
+        ],
+        "evidence_type": "Freigabevermerk",
+        "evidence_reference": "change-control.md Abschnitt QA",
+        "evidence_sufficiency": "sufficient",
+        "independent_support": False,
+    }
+    verdict.update(overrides)
+    return verdict
+
+
+def test_sustained_challenge_demotes_a_critical_fulfilled_to_unclear() -> None:
+    """A fulfilled earned by self-attestation must not publish as settled.
+
+    All five misses of the held-out run were this exact shape: the document
+    vouching for itself and the assessor believing it.
+    """
+    _setup()
+    report = _engine(
+        _assessor([_fulfilled_verdict("Die QA-Freigabe ist als pending markiert.")]),
+        _entailment("supports", challenge_sustained=True),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.model_status == RequirementVerdictStatus.FULFILLED
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert verdict.challenge_sustained is True
+    assert "Audit-Trail-Auszug" in (verdict.challenge_reason or "")
+
+
+def test_unsustained_challenge_keeps_fulfilled_published() -> None:
+    _setup()
+    report = _engine(
+        _assessor([_fulfilled_verdict("Die QA-Freigabe ist als pending markiert.")]),
+        _entailment("supports", challenge_sustained=False),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.FULFILLED
+    assert verdict.challenge_sustained is False
+    assert verdict.evidence_type == "Freigabevermerk"
+    assert verdict.independent_support is False
+
+
+def test_medium_criticality_fulfilled_skips_the_challenge() -> None:
+    """The second look is bought only where a wrong all-clear is expensive."""
+    _setup()
+    calls: list[str] = []
+
+    def _tracking_factory(prompt: str, input_schema: Any, output_schema: Any) -> dict:
+        calls.append(getattr(output_schema, "__name__", ""))
+        return {
+            "challenge_sustained": True,
+            "missing_or_asserted_evidence": [],
+            "reason": "Sollte nie gefragt werden.",
+        }
+
+    report = _engine(
+        _assessor(
+            [
+                _fulfilled_verdict(
+                    "Die QA-Freigabe ist als pending markiert.",
+                    requirement_id="req_warehouse_only",
+                )
+            ]
+        ),
+        MockProvider(output_factory=_tracking_factory),
+    ).run("ds_req_review_demo", )
+
+    assert "FulfilledChallenge" not in calls
+    # req_warehouse_only is inapplicable for this set, so the verdict from the
+    # model is ignored anyway -- the point is that no challenge call happened.
+    assert report.failed_model_call_count == 0
+
+
+def test_self_rated_insufficient_evidence_cannot_publish_fulfilled() -> None:
+    _setup()
+    report = _engine(
+        _assessor(
+            [
+                _fulfilled_verdict(
+                    "Die QA-Freigabe ist als pending markiert.",
+                    evidence_sufficiency="insufficient",
+                )
+            ]
+        ),
+        _entailment("supports"),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.model_status == RequirementVerdictStatus.FULFILLED
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+
+
+def test_failed_challenge_call_fails_secure_to_unclear() -> None:
+    _setup()
+
+    def _factory(prompt: str, input_schema: Any, output_schema: Any) -> dict:
+        if getattr(output_schema, "__name__", "") == "FulfilledChallenge":
+            raise ProviderCallError("provider unavailable")
+        return {"support": "supports", "reason": "Testurteil."}
+
+    report = _engine(
+        _assessor([_fulfilled_verdict("Die QA-Freigabe ist als pending markiert.")]),
+        MockProvider(output_factory=_factory),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert report.failed_model_call_count == 1
+
+
+def test_assessor_prompt_encodes_differentiated_evidence_scepticism() -> None:
+    """The rule must distinguish execution proof from documented declarations.
+
+    A blanket "self-attestation never counts" would flood the report with
+    precautionary unclear verdicts on perfectly documented declarations.
+    """
+    assert "DURCHFÜHRUNG" in ASSESSOR_PROMPT
+    assert "Primärevidenz" in ASSESSOR_PROMPT
+    assert "ERKLÄRUNG" in ASSESSOR_PROMPT
+    assert "kann die signierte Erklärung selbst die" in ASSESSOR_PROMPT
+    assert "evidence_sufficiency" in ASSESSOR_PROMPT
+    assert "independent_support" in ASSESSOR_PROMPT
+    assert "leeres Pflichtfeld" in ASSESSOR_PROMPT
+
+
 def test_prompts_follow_the_umlaut_rule() -> None:
-    for prompt in (ASSESSOR_PROMPT, ENTAILMENT_PROMPT):
+    for prompt in (ASSESSOR_PROMPT, ENTAILMENT_PROMPT, CHALLENGE_PROMPT):
         assert "ä" in prompt or "ü" in prompt
         for substitute in ("fuer", "pruef", "ausschliessl", "woertlich"):
             assert substitute not in prompt.lower()

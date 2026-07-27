@@ -47,6 +47,8 @@ from app.schemas.domain import DocumentChunk, DocumentSet, Requirement, Severity
 from app.schemas.requirement_review import (
     EntailmentCheck,
     EntailmentSupport,
+    EvidenceSufficiency,
+    FulfilledChallenge,
     RequirementCoverageReport,
     RequirementGroupOutput,
     RequirementReviewEvidence,
@@ -92,7 +94,47 @@ ASSESSOR_PROMPT = (
     "- Gib für jede übergebene Anforderung genau ein Verdict zurück.\n"
     "- Denke konservativ: Ein möglicher schwerer Verstoß, der nicht widerlegt "
     "ist, gehört als violated oder unclear zur menschlichen Prüfung, nicht "
-    "stillschweigend als fulfilled abgehakt."
+    "stillschweigend als fulfilled abgehakt.\n\n"
+    "Evidenzskepsis für fulfilled:\n"
+    "- Verlangt die Anforderung die DURCHFÜHRUNG einer Tätigkeit (Review, "
+    "Prüfung, Training, Bewertung), dann genügt die nachträgliche Behauptung "
+    "'durchgeführt, keine Auffälligkeiten' nicht. Es braucht Primärevidenz: "
+    "einen Audit-Trail-Auszug, eine Checkliste, Rohdaten, signierte zeitnahe "
+    "Dokumentation oder konkrete referenzierbare Ergebnisse.\n"
+    "- Verlangt die Anforderung lediglich, dass eine bestimmte ERKLÄRUNG oder "
+    "FREIGABE dokumentiert ist, kann die signierte Erklärung selbst die "
+    "Evidenz sein.\n"
+    "- Prüfe Pflichtfelder einzeln: Ein vorhandener Signaturblock heißt nicht, "
+    "dass jede geforderte Unterschrift geleistet ist. Ein leeres Pflichtfeld "
+    "ist ein Befund.\n"
+    "- Vergleiche Messwerte einzeln mit ihren deklarierten Grenzen, bevor du "
+    "einen Bereich als eingehalten wertest.\n\n"
+    "Zusatzfelder für jedes fulfilled-Verdict (sonst null):\n"
+    "- evidence_type: Art des tragenden Nachweises (z. B. 'Audit-Trail-Auszug', "
+    "'signierte Freigabeerklärung', 'Rohdaten').\n"
+    "- evidence_reference: wo der Nachweis steht (Dokument/Abschnitt).\n"
+    "- evidence_sufficiency: sufficient, partial oder insufficient.\n"
+    "- independent_support: true nur, wenn der Nachweis über die bloße "
+    "Selbstauskunft des geprüften Dokuments hinausgeht.\n"
+    "- Ein fulfilled mit evidence_sufficiency=insufficient ist keins: dann "
+    "unclear."
+)
+
+CHALLENGE_PROMPT = (
+    "Du bist ein skeptischer QA-Zweitprüfer. Ein Erstprüfer hat eine "
+    "Anforderung als erfüllt bewertet. Du erhältst die Anforderung, seine "
+    "Begründung und die Belegzitate.\n\n"
+    "Beantworte genau eine Frage: Welche geforderte Evidenz könnte trotz der "
+    "positiven Formulierung fehlen, unvollständig oder nur behauptet sein?\n\n"
+    "- challenge_sustained=true, wenn ein konkreter geforderter Nachweis "
+    "fehlt, nur behauptet statt belegt ist oder ein Pflichtbestandteil "
+    "erkennbar unvollständig ist. Nenne die Lücken in "
+    "missing_or_asserted_evidence.\n"
+    "- challenge_sustained=false, wenn die Belege die Erfüllung tatsächlich "
+    "tragen. Eine Erklärung oder Freigabe, deren Dokumentation selbst die "
+    "Anforderung ist, gilt mit Signatur als belegt -- konstruiere dann keine "
+    "künstlichen Zweifel.\n"
+    "- Antworte auf Deutsch mit korrekten Umlauten ä, ö, ü, ß."
 )
 
 ENTAILMENT_PROMPT = (
@@ -166,7 +208,19 @@ class RequirementReviewEngine:
             verdicts.extend(group_verdicts)
             model_calls.append(call)
 
+        criticality_by_id = {
+            requirement.requirement_id: requirement.criticality.value
+            for requirement in requirements
+        }
         verdicts = [self._verify_entailment(verdict, model_calls) for verdict in verdicts]
+        verdicts = [
+            self._challenge_fulfilled(
+                verdict,
+                model_calls,
+                criticality=criticality_by_id.get(verdict.requirement_id, "medium"),
+            )
+            for verdict in verdicts
+        ]
 
         verdicts.sort(key=lambda v: v.requirement_id)
         status_counts: dict[str, int] = {}
@@ -332,6 +386,83 @@ class RequirementReviewEngine:
             update["published_status"] = RequirementVerdictStatus.UNCLEAR
         return verdict.model_copy(update=update)
 
+    def _challenge_fulfilled(
+        self,
+        verdict: VerifiedRequirementVerdict,
+        model_calls: list[RequirementReviewModelCall],
+        *,
+        criticality: str,
+    ) -> VerifiedRequirementVerdict:
+        """Adversarial second look at FULFILLED verdicts of critical scope.
+
+        All five misses of the 2026-07-27 held-out run were fulfilled verdicts
+        earned by self-attestation -- the QA note asserting its own audit-trail
+        review was taken as proof of that review. A different provider than the
+        assessor asks one question: which required evidence could be missing,
+        incomplete or merely asserted despite the positive wording. Sustained
+        challenge demotes to UNCLEAR; nothing is ever upgraded. Limited to
+        critical and high requirements to keep the extra calls proportionate to
+        what a wrong all-clear would cost.
+        """
+        if verdict.published_status != RequirementVerdictStatus.FULFILLED:
+            return verdict
+        if criticality not in {"critical", "high"}:
+            return verdict
+        if verdict.server_authored:
+            return verdict
+        input_schema = {
+            "requirement_text": verdict.requirement_text,
+            "rationale": verdict.rationale,
+            "quotes": [item.quote for item in verdict.evidence],
+            "evidence_type": verdict.evidence_type,
+            "independent_support": verdict.independent_support,
+        }
+        try:
+            raw = self.entailment_provider.run_structured(
+                CHALLENGE_PROMPT, input_schema, FulfilledChallenge
+            )
+            challenge = FulfilledChallenge.model_validate(raw)
+        except Exception as exc:  # noqa: BLE001 - fail-secure per verdict
+            model_calls.append(
+                _model_call(
+                    self.entailment_provider,
+                    purpose="challenge",
+                    requirement_ids=[verdict.requirement_id],
+                    status="failed",
+                    error=exc,
+                )
+            )
+            return verdict.model_copy(
+                update={
+                    "published_status": RequirementVerdictStatus.UNCLEAR,
+                    "challenge_sustained": None,
+                    "challenge_reason": (
+                        "Zweitprüfung fehlgeschlagen; fulfilled vorsorglich auf "
+                        "unclear gestuft."
+                    ),
+                }
+            )
+        model_calls.append(
+            _model_call(
+                self.entailment_provider,
+                purpose="challenge",
+                requirement_ids=[verdict.requirement_id],
+                status="succeeded",
+            )
+        )
+        update: dict[str, Any] = {
+            "challenge_sustained": challenge.challenge_sustained,
+            "challenge_reason": challenge.reason,
+        }
+        if challenge.challenge_sustained:
+            update["published_status"] = RequirementVerdictStatus.UNCLEAR
+            if challenge.missing_or_asserted_evidence:
+                update["challenge_reason"] = (
+                    f"{challenge.reason} Fehlend oder nur behauptet: "
+                    + "; ".join(challenge.missing_or_asserted_evidence)
+                )
+        return verdict.model_copy(update=update)
+
 
 def _split_by_applicability(
     requirements: list[Requirement], document_set: DocumentSet
@@ -404,6 +535,15 @@ def _check_provenance(
     published_status = verdict.status
     if needs_evidence and not surviving:
         published_status = RequirementVerdictStatus.UNCLEAR
+    if (
+        verdict.status == RequirementVerdictStatus.FULFILLED
+        and verdict.evidence_sufficiency == EvidenceSufficiency.INSUFFICIENT
+    ):
+        # The prompt says an insufficient fulfilled is no fulfilled; enforce it
+        # server-side too, so a model that fills the field honestly but keeps
+        # the status cannot publish a clean row on evidence it itself rates
+        # inadequate.
+        published_status = RequirementVerdictStatus.UNCLEAR
     return VerifiedRequirementVerdict(
         requirement_id=requirement.requirement_id,
         requirement_title=requirement.title,
@@ -417,6 +557,10 @@ def _check_provenance(
         evidence=surviving,
         dropped_evidence_count=dropped,
         provenance_ok=provenance_ok,
+        evidence_type=verdict.evidence_type,
+        evidence_reference=verdict.evidence_reference,
+        evidence_sufficiency=verdict.evidence_sufficiency,
+        independent_support=verdict.independent_support,
     )
 
 
@@ -595,6 +739,10 @@ def _mock_assessor_output(
                         "quote": line,
                     }
                 ],
+                "evidence_type": "Dokumentauszug",
+                "evidence_reference": chunk["chunk_id"],
+                "evidence_sufficiency": "sufficient",
+                "independent_support": False,
             }
         )
     return {"verdicts": verdicts}
@@ -603,4 +751,10 @@ def _mock_assessor_output(
 def _mock_entailment_output(
     prompt: str, input_schema: dict[str, Any], output_schema: type
 ) -> dict[str, Any]:
+    if getattr(output_schema, "__name__", "") == "FulfilledChallenge":
+        return {
+            "challenge_sustained": False,
+            "missing_or_asserted_evidence": [],
+            "reason": "Mock-Zweitprüfung: keine Lücke konstruiert.",
+        }
     return {"support": "supports", "reason": "Mock-Entailment: akzeptiert."}
