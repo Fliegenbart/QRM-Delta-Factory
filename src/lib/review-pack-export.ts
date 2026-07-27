@@ -339,10 +339,31 @@ function wrapPdfText(text: string, fontSize: number, indent: number): string[] {
   return lines.length > 0 ? lines : [""];
 }
 
+// The page fonts declare /WinAnsiEncoding, and WinAnsi has glyphs for the
+// typographic punctuation German QA text actually uses -- they just live in
+// 0x80-0x9F, above Latin-1's printable range. These were previously discarded
+// by the catch-all below, which printed »laut Antrag ?unverändert?« in a
+// customer-facing document. Mapping them to their WinAnsi bytes lets the
+// existing fonts render them; the catch-all stays for genuinely unmappable
+// characters.
+const WINANSI_BYTES: Record<string, string> = {
+  "€": "\x80", // €
+  "‚": "\x82", // ‚
+  "„": "\x84", // „
+  "…": "\x85", // …
+  "‘": "\x91", // '
+  "’": "\x92", // '
+  "“": "\x93", // "
+  "”": "\x94", // "
+  "•": "\x95", // •
+  "–": "\x96", // –
+  "—": "\x97", // —
+  "™": "\x99", // ™
+};
+
 function pdfText(value: string): string {
   return value
-    .replace(/[–—]/g, "-")
-    .replace(/€/g, "EUR")
+    .replace(/[€‚„…‘’“”•–—™]/g, (character) => WINANSI_BYTES[character])
     .replace(/[^\x20-\xFF]/g, "?");
 }
 

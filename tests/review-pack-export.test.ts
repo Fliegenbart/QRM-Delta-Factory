@@ -286,6 +286,32 @@ describe("review pack exports", () => {
     expect(content).not.toContain("NICHT KANONISCH");
   });
 
+  it("renders typographic quotes as WinAnsi glyphs instead of question marks", async () => {
+    // Quotes copied verbatim from source documents reached the PDF as
+    // "?unverändert?" -- the catch-all replaced anything above Latin-1 even
+    // though WinAnsi has these glyphs at 0x82-0x94.
+    const pdf = createReviewPackPdf({
+      ...pack,
+      top_risks: [
+        {
+          ...pack.top_risks[0],
+          risk_statement:
+            "Die Methode bleibt laut Antrag „unverändert“ – der Status ist ‚pending‘ … angeblich.",
+        },
+      ],
+      evidence_table: [],
+    });
+    const content = String.fromCharCode(...new Uint8Array(await pdf.arrayBuffer()));
+
+    // Asserted as fragments because the paragraph wrapper may break the line.
+    expect(content).toContain("\x84unverändert\x93");
+    expect(content).toContain("\x82pending\x91");
+    expect(content).toContain("\x96");
+    expect(content).toContain("\x85");
+    expect(content).not.toContain("?unverändert?");
+    expect(content).not.toContain("?pending?");
+  });
+
   it("wraps combined QA-step reasons and cleans evidence markdown artifacts", async () => {
     const pdf = createReviewPackPdf({
       ...pack,
