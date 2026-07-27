@@ -1,0 +1,3188 @@
+{
+  "CASE_01": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine Chargenliste oder Begründung zur Auswahl der betroffenen Charge QRM-AVR-2603-017. Es gibt keinen Hinweis auf die Prüfung von Vorgänger- oder Folgechargen, obwohl dies für eine vollständige Batch-Impact-Bewertung erforderlich wäre. Der Auslöser für diese Pflicht ist die dokumentierte Abweichung in DEV-2603-041, die eine Bewertung aller potenziell betroffenen Chargen erfordert.",
+      "evidence_items": [
+        {
+          "document_id": "doc_b30aba0af7db485aaa97151555e28368",
+          "chunk_id": "chunk_b30aba0af7db485aaa97151555e28368_p1",
+          "page": 1,
+          "quote": "**Charge:** QRM-AVR-2603-017  \n**Prozessschritt:** Feuchtgranulation und Siebung"
+        },
+        {
+          "document_id": "doc_b30aba0af7db485aaa97151555e28368",
+          "chunk_id": "chunk_b30aba0af7db485aaa97151555e28368_p1",
+          "page": 1,
+          "quote": "Bewertung erfolgt gemäß SOP-QA-DEV-012 Rev.04. Die Abweichung wurde vorläufig als niedrig eingestuft, da kein direkter Kontakt mit offenem Produkt außerhalb des qualifizierten Bereichs stattfand."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die Dispositionsentscheidung für die Charge QRM-AVR-2603-017 ist nicht abschließend dokumentiert. Die Quality Approval Note QA-N-2603-044 bestätigt, dass keine Chargenfreigabe erfolgt ist und die Charge weiterhin im Status 'hold' verbleibt. Es fehlt jedoch eine finale, begründete Dispositionsentscheidung mit Verknüpfung zum Batch Record.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ee06a1949ed4bd2a4e91d001a8e6aff",
+          "chunk_id": "chunk_3ee06a1949ed4bd2a4e91d001a8e6aff_p1",
+          "page": 1,
+          "quote": "Die Charge bleibt bis zur vollständigen Abweichungsbewertung im QA-Status `hold`."
+        },
+        {
+          "document_id": "doc_3ee06a1949ed4bd2a4e91d001a8e6aff",
+          "chunk_id": "chunk_3ee06a1949ed4bd2a4e91d001a8e6aff_p1",
+          "page": 1,
+          "quote": "Keine Chargenfreigabe mit dieser Note. Fortführung der Untersuchung zulässig."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Der CAPA-Plan CAPA-2603-022 sieht eine Wirksamkeitsprüfung vor, jedoch fehlt der dokumentierte Nachweis der Durchführung und des Ergebnisses des Effectiveness Checks. Die Akzeptanzkriterien sind zwar definiert, aber es gibt keine Bestätigung, dass die Prüfung nach Abschluss der nächsten drei Averonid-Granulationen tatsächlich durchgeführt und dokumentiert wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_89dd6ea0ab2e484481d3a5c43e4f2ada",
+          "chunk_id": "chunk_89dd6ea0ab2e484481d3a5c43e4f2ada_p1",
+          "page": 1,
+          "quote": "Wirksamkeitsprüfung vorgesehen nach Abschluss der nächsten drei Averonid-Granulationen. Akzeptanz: keine ungeplante Siebunterbrechung >15 Minuten."
+        },
+        {
+          "document_id": "doc_89dd6ea0ab2e484481d3a5c43e4f2ada",
+          "chunk_id": "chunk_89dd6ea0ab2e484481d3a5c43e4f2ada_p1",
+          "page": 1,
+          "quote": "Wirksamkeitsprüfung vorgesehen nach Abschluss der nächsten drei Averonid-Granulationen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Abweichung DEV-2603-041 beschreibt einen Vorfall während der Siebung, der eine Prozesspause von 11 Minuten verursachte. Es fehlt eine explizite, dokumentierte Bewertung der Auswirkung auf die Produktqualität und Patientensicherheit sowie eine Liste potenziell betroffener Chargen. Die vorläufige Bewertung stuft die Abweichung zwar als 'niedrig' ein, liefert aber keine detaillierte Impact-Assessment-Dokumentation, wie sie gemäß der Anforderung erforderlich wäre.",
+      "evidence_items": [
+        {
+          "document_id": "doc_b30aba0af7db485aaa97151555e28368",
+          "chunk_id": "chunk_b30aba0af7db485aaa97151555e28368_p1",
+          "page": 1,
+          "quote": "Bewertung erfolgt gemäß SOP-QA-DEV-012 Rev.04. Die Abweichung wurde vorläufig als niedrig eingestuft, da kein direkter Kontakt mit offenem Produkt außerhalb des qualifizierten Bereichs stattfand."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Abweichung wurde vorläufig als 'niedrig' eingestuft, jedoch fehlt eine nachvollziehbare Risikobewertung mit belastbaren physikalisch-chemischen oder labortechnischen Daten. Die Einstufung basiert lediglich auf einer visuellen Prüfung und der Annahme, dass kein direkter Produktkontakt stattfand, was der Anforderung nicht genügt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_b30aba0af7db485aaa97151555e28368",
+          "chunk_id": "chunk_b30aba0af7db485aaa97151555e28368_p1",
+          "page": 1,
+          "quote": "Die Abweichung wurde vorläufig als niedrig eingestuft, da kein direkter Kontakt mit offenem Produkt außerhalb des qualifizierten Bereichs stattfand."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Grundursache für den reduzierten Materialdurchsatz während der Siebung wurde nicht dokumentiert untersucht. Es erfolgte lediglich eine visuelle Prüfung des Siebeinsatzes, ohne technische Ursachen (z. B. Equipment, Kalibrierung) auszuschließen. Eine Zuschreibung als 'Bedienerfehler' ist nicht belegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_b30aba0af7db485aaa97151555e28368",
+          "chunk_id": "chunk_b30aba0af7db485aaa97151555e28368_p1",
+          "page": 1,
+          "quote": "Der Siebeinsatz S-18 wurde ausgebaut, visuell geprüft und nach Freigabe durch Produktion wieder eingesetzt. Es wurde kein Fremdmaterial festgestellt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Es gibt keine Hinweise in den bereitgestellten Dokumenten auf einen Audit Trail oder dessen Review für elektronische Daten. Die Anforderung kann daher weder als erfüllt noch als verletzt bewertet werden.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente verweisen auf weitere Nachweise (z. B. IPC-Laborblatt IPC-2603-088), die jedoch nicht in den bereitgestellten Chunks enthalten sind. Es kann daher nicht abschließend beurteilt werden, ob alle Pflichtanhänge vorhanden sind.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ee06a1949ed4bd2a4e91d001a8e6aff",
+          "chunk_id": "chunk_3ee06a1949ed4bd2a4e91d001a8e6aff_p1",
+          "page": 1,
+          "quote": "Geprüfte Dokumente: Deviation Report DEV-2603-041, BMR-AVR-2603-017-A, IPC-Laborblatt IPC-2603-088, CAPA-Plan CAPA-2603-022."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "medium",
+      "risk_statement": "Die kritischen Prozessparameter (z. B. Feuchte nach Trocknung, Korngrößenanteil) liegen innerhalb der spezifizierten Grenzen. Die Prozesspause während der Siebung war mit 11 Minuten ebenfalls innerhalb der zulässigen Grenze von <15 Minuten.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_qa_approval_documented",
+      "severity": "high",
+      "risk_statement": "Die Charge QRM-AVR-2603-017 ist weiterhin gesperrt, und es liegt keine dokumentierte QA-Freigabe vor. Die Quality Approval Note bestätigt explizit, dass keine Chargenfreigabe erfolgt ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ee06a1949ed4bd2a4e91d001a8e6aff",
+          "chunk_id": "chunk_3ee06a1949ed4bd2a4e91d001a8e6aff_p1",
+          "page": 1,
+          "quote": "Keine Chargenfreigabe mit dieser Note. Fortführung der Untersuchung zulässig."
+        },
+        {
+          "document_id": "doc_b30aba0af7db485aaa97151555e28368",
+          "chunk_id": "chunk_b30aba0af7db485aaa97151555e28368_p1",
+          "page": 1,
+          "quote": "Status zum 2026-03-15: Untersuchung in Bearbeitung, Charge weiterhin gesperrt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_qa_approval_documented"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "medium",
+      "risk_statement": "Die SOP-QA-DEV-012 wurde am 2026-02-15 aktualisiert (Rev.05), und die Abweichung DEV-2603-041 wurde am 2026-03-14 gemeldet. Es gibt jedoch keinen Nachweis in den Dokumenten, dass das betroffene Personal (z. B. PR-14) nach der SOP-Änderung geschult wurde. Die CAPA-Maßnahme Nr. 2 sieht eine Kurzunterweisung vor, diese ist jedoch erst für den 2026-03-25 geplant und somit zum Zeitpunkt der Abweichung nicht durchgeführt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_b30aba0af7db485aaa97151555e28368",
+          "chunk_id": "chunk_b30aba0af7db485aaa97151555e28368_p1",
+          "page": 1,
+          "quote": "gültige Referenz laut Dokumentenlenkung im Formular: SOP-QA-DEV-012 Rev.05, gültig ab 2026-02-15"
+        },
+        {
+          "document_id": "doc_89dd6ea0ab2e484481d3a5c43e4f2ada",
+          "chunk_id": "chunk_89dd6ea0ab2e484481d3a5c43e4f2ada_p1",
+          "page": 1,
+          "quote": "Kurzunterweisung Schicht A/B zur Materialabdeckung während ungeplanter Prozesspausen. | TR-02 | 2026-03-25 | Schulungsblatt TR-2603-016"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die Abweichung DEV-2603-041 bezieht sich auf den Siebeinsatz S-18, und es gibt keine Dokumentation, die bestätigt, dass die Validierung des Siebeinsatzes den aktuellen Prozess- oder Equipmentzustand abdeckt. Die CAPA-Maßnahme Nr. 1 sieht eine Sichtkontrolle vor, aber keinen Nachweis der aktuellen Validierung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_89dd6ea0ab2e484481d3a5c43e4f2ada",
+          "chunk_id": "chunk_89dd6ea0ab2e484481d3a5c43e4f2ada_p1",
+          "page": 1,
+          "quote": "Sichtkontrolle des Siebeinsatzes S-18 vor Start jeder Granulation für die nächsten fünf Averonid-Chargen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    }
+  ],
+  "CASE_02": [
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die Dispositionsentscheidung für die Charge QRM-BIR-2604-006 ist nicht abgeschlossen und nicht begründet. Die Charge verbleibt im Sperrstatus ohne Freigabeentscheidung, obwohl die Batch Records vorliegen. Der Auslöser für die Pflicht zur Dispositionsbegründung ist belegt, jedoch fehlt der Nachweis der Verknüpfung mit den Batch Records.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Die Charge bleibt bis zur QA-Bewertung im Sperrstatus. Eine mikrobiologische Endbewertung erfolgt nach Abschluss der Bebrütung."
+        },
+        {
+          "document_id": "doc_8eb270ca8048418faed393aea700ba9f",
+          "chunk_id": "chunk_8eb270ca8048418faed393aea700ba9f_p1",
+          "page": 1,
+          "quote": "Die Charge bleibt bis zur finalen mikrobiologischen Auswertung und QP-Freigabe im Sperrstatus."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die CAPA-Maßnahmen (CAPA-2604-037) sind mit einem Qualitätsrisiko verknüpft, jedoch fehlt eine definierte und dokumentierte Wirksamkeitsprüfung. Die Unterlagen belegen, dass keine Wirksamkeitsprüfung vorgesehen ist, obwohl dies für administrative Maßnahmen mit Risikobezug erforderlich wäre.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d81a058f70d14eae9a2d144dd3e15dd3",
+          "chunk_id": "chunk_d81a058f70d14eae9a2d144dd3e15dd3_p1",
+          "page": 1,
+          "quote": "Wirksamkeitsprüfung: nicht vorgesehen, da Maßnahme administrativ."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine dokumentierte Bewertung der Auswirkung der Partikelüberschreitung auf die Produktqualität oder Patientensicherheit. Der Deviation Report (DEV-2604-058) erwähnt lediglich eine vorläufige Produktbewertung mit Sperrstatus der Charge, aber keine detaillierte Impact Assessment oder Chargenliste. Der Auslöser (Partikelüberschreitung in Klasse-A-Zone) ist jedoch belegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Gemessener Partikelwert: 1,240 Partikel ≥0.5 µm/m³ in Klasse-A-Zone während Eingriff."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die Charge QRM-BIR-2604-006 befindet sich im Sperrstatus, und es gibt keine dokumentierte vollständige Untersuchung oder Bewertung des OOS-Ergebnisses (Partikelüberschreitung) vor einer Dispositionsentscheidung. Die Quality Approval Note (QA-N-2605-012) bestätigt, dass keine Freigabeentscheidung getroffen wurde, aber auch keine abgeschlossene OOS-Untersuchung oder Dispositionsentscheidung vorliegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Die Charge bleibt bis zur QA-Bewertung im Sperrstatus. Eine mikrobiologische Endbewertung erfolgt nach Abschluss der Bebrütung."
+        },
+        {
+          "document_id": "doc_8eb270ca8048418faed393aea700ba9f",
+          "chunk_id": "chunk_8eb270ca8048418faed393aea700ba9f_p1",
+          "page": 1,
+          "quote": "Keine Freigabeentscheidung mit dieser Note."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Einstufung der Abweichung als 'minor' im Deviation Report (DEV-2604-058) basiert lediglich auf einer visuellen Kontrolle und der Aussage, dass keine Produktberührung stattfand. Es fehlen belastbare physikalisch-chemische oder labortechnische Daten, die diese Einstufung stützen. Eine Partikelüberschreitung in der Klasse-A-Zone während eines Eingriffs erfordert eine fundiertere Risikobewertung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Einstufung der Abweichung: minor. Begründung Einstufung: keine sichtbare Produktberührung und anschließend unauffällige Sichtkontrolle."
+        },
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Gemessener Partikelwert: 1,240 Partikel ≥0.5 µm/m³ in Klasse-A-Zone während Eingriff."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Der Deviation Report (DEV-2604-058) nennt als Ursache den Eingriff zur Nadelausrichtung durch OP-19, ohne technische Ursachen (z. B. Equipment, Kalibrierung, Alarme) dokumentiert auszuschließen. Eine Zuschreibung als 'Bedienerfehler' ist daher nicht ausreichend belegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Während der aseptischen Abfüllung wurde im Bereich der Füllnadel N-3 eine erhöhte nichtviable Partikelmessung während eines geplanten Eingriffs zur Nadelausrichtung registriert. Der Eingriff wurde durch OP-19 durchgeführt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "medium",
+      "risk_statement": "Die Aufzeichnungen (z. B. Deviation Report, Batch Manufacturing Record, Environmental Monitoring Report) sind zurechenbar, lesbar, zeitgleich, original und korrekt. Es gibt keine Hinweise auf fehlende oder nachträglich veränderte Originaldaten.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keine Hinweise auf einen Audit Trail oder dessen Review für elektronische Daten. Es gibt keine Belege, dass ein Audit-Trail-Review durchgeführt oder risikobasiert geprüft wurde, obwohl der Vorgang GxP-relevante elektronische Daten (z. B. Prozessdaten im Batch Record) umfasst.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "high",
+      "risk_statement": "Das Datum der Feststellung im Deviation Report (2026-04-31) ist nicht plausibel, da der April nur 30 Tage hat. Dies stellt einen Datenintegritätsbefund dar. Zudem fehlt eine zeitliche Plausibilitätsprüfung der Signaturen in den Dokumenten.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "**Datum der Feststellung:** 2026-04-31"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente listen referenzierte Anhangsdokumente (z. B. Schulungsnachweise, Übergabeformular Rev.02 im CAPA-Plan) auf, es gibt jedoch keine Belege, dass diese tatsächlich vorhanden oder aktuell sind.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d81a058f70d14eae9a2d144dd3e15dd3",
+          "chunk_id": "chunk_d81a058f70d14eae9a2d144dd3e15dd3_p1",
+          "page": 1,
+          "quote": "| 1 | Wiederholung der Nadelausrichtungs-Schulung für OP-19 und OP-21. | TR-01 | 2026-05-10 | Schulungsnachweis |\n| 2 | Ergänzung eines Hinweises zur Partikeltrend-Beobachtung in der Schichtübergabe. | PR-07 | 2026-05-12 | Übergabeformular Rev.02 |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "Das Füllvolumen-IPC (Stichprobe 12) lag mit 4.82 mL außerhalb des Akzeptanzkriteriums (4.90–5.10 mL). Dies stellt eine Überschreitung der spezifizierten Grenzen dar, die als Abweichung zu bewerten ist, auch wenn die Abfüllung fortgesetzt wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_fcac3a28245f46b59e4d78da210a0c4b",
+          "chunk_id": "chunk_fcac3a28245f46b59e4d78da210a0c4b_p1",
+          "page": 1,
+          "quote": "| 15:30 | IPC Füllvolumen Stichprobe 12 | 4.82 mL bei Akzeptanzkriterium 4.90 - 5.10 mL; Abfüllung fortgesetzt; keine Bewertung eingetragen | QC-03 |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_qa_approval_documented",
+      "severity": "high",
+      "risk_statement": "Die Quality Approval Note (QA-N-2605-012) bestätigt, dass keine Freigabeentscheidung getroffen wurde und die Charge im Sperrstatus bleibt. Eine dokumentierte QA-Freigabe liegt somit nicht vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_8eb270ca8048418faed393aea700ba9f",
+          "chunk_id": "chunk_8eb270ca8048418faed393aea700ba9f_p1",
+          "page": 1,
+          "quote": "## Entscheidung\nKeine Freigabeentscheidung mit dieser Note.\n\nQA: QA-12 / Datum: 2026-05-05"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_qa_approval_documented"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Die interne Spezifikation für nichtviable Partikel in der Klasse-A-Zone während eines Eingriffs (Action Limit: 550 Partikel ≥0.5 µm/m³) wurde mit 1.240 Partikeln überschritten. Dies ist im Deviation Report und Environmental Monitoring Report dokumentiert. Allerdings fehlt eine dokumentierte Bewertung des Füllvolumen-IPC-Werts von 4.82 mL (Akzeptanzkriterium 4.90 - 5.10 mL) im Batch Record, obwohl dieser außerhalb der Spezifikation liegt. Die QA-Note gibt diesen Wert zur weiteren Bewertung an Produktion/QC zurück, ohne dass eine abschließende Konformitätsbewertung vorliegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Gemessener Partikelwert: 1,240 Partikel ≥0.5 µm/m³ in Klasse-A-Zone während Eingriff. \nInterner Action Limit für die Klasse-A-Zone während Eingriff: 550 Partikel ≥0.5 µm/m³."
+        },
+        {
+          "document_id": "doc_fcac3a28245f46b59e4d78da210a0c4b",
+          "chunk_id": "chunk_fcac3a28245f46b59e4d78da210a0c4b_p1",
+          "page": 1,
+          "quote": "| 15:30 | IPC Füllvolumen Stichprobe 12 | 4.82 mL bei Akzeptanzkriterium 4.90 - 5.10 mL; Abfüllung fortgesetzt; keine Bewertung eingetragen | QC-03 |"
+        },
+        {
+          "document_id": "doc_8eb270ca8048418faed393aea700ba9f",
+          "chunk_id": "chunk_8eb270ca8048418faed393aea700ba9f_p1",
+          "page": 1,
+          "quote": "Das Füllvolumen-IPC wurde zur weiteren Bewertung an Produktion/QC zurückgegeben."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "medium",
+      "risk_statement": "Der CAPA-Plan sieht eine Wiederholung der Nadelausrichtungs-Schulung für OP-19 und OP-21 vor, da der Eingriff zu einer Partikelüberschreitung führte. Allerdings fehlt der Nachweis, dass die Schulung *vor* der Durchführung der Tätigkeit abgeschlossen und deren Wirksamkeit bestätigt wurde. Die Schulung ist erst für den 10.05.2026 geplant, während der Vorfall bereits am 30.04.2026 stattfand.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Während der aseptischen Abfüllung wurde im Bereich der Füllnadel N-3 eine erhöhte nichtviable Partikelmessung während eines geplanten Eingriffs zur Nadelausrichtung registriert. Der Eingriff wurde durch OP-19 durchgeführt."
+        },
+        {
+          "document_id": "doc_d81a058f70d14eae9a2d144dd3e15dd3",
+          "chunk_id": "chunk_d81a058f70d14eae9a2d144dd3e15dd3_p1",
+          "page": 1,
+          "quote": "| 1 | Wiederholung der Nadelausrichtungs-Schulung für OP-19 und OP-21. | TR-01 | 2026-05-10 | Schulungsnachweis |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_val_cleaning_sterility",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keine explizite Erwähnung einer Reinigungsvalidierung oder Sterilisationsprotokolle für die Füllnadel N-3 oder den aseptischen Abfüllprozess. Die Kontaminationskontrollstrategie wird nicht detailliert beschrieben. Die Partikelüberschreitung deutet auf ein mögliches Risiko hin, jedoch fehlen Nachweise zur Validierung oder Sterilitätssicherung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f138c8daa644a88b2885093f2bac610",
+          "chunk_id": "chunk_6f138c8daa644a88b2885093f2bac610_p1",
+          "page": 1,
+          "quote": "Während der aseptischen Abfüllung wurde im Bereich der Füllnadel N-3 eine erhöhte nichtviable Partikelmessung während eines geplanten Eingriffs zur Nadelausrichtung registriert."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_cleaning_sterility"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Es gibt keine Hinweise in den Dokumenten auf aktuelle Validierungs-, Reinigungsvalidierungs- oder Sterilisationsnachweise, die den aktuellen Prozess-, Equipment- oder Standortzustand abdecken. Die Gültigkeit oder Übertragbarkeit der vorhandenen Nachweise (falls vorhanden) kann nicht beurteilt werden.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    }
+  ],
+  "CASE_03": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keine Chargenliste oder Begründung der Chargenauswahl, die potenziell betroffene Vorgänger- oder Folgechargen umfasst. Es wird lediglich die betroffene Charge QRM-CAN-2603-028 genannt, ohne weitere Chargen zu berücksichtigen (z. B. in chunk_239acea6f4f84d27934ad639a91b8b8b oder chunk_d4263e4ae7974923b850c7d4388de92d).",
+      "evidence_items": [
+        {
+          "document_id": "doc_239acea6f4f84d27934ad639a91b8b8b",
+          "chunk_id": "chunk_239acea6f4f84d27934ad639a91b8b8b_p1",
+          "page": 1,
+          "quote": "**Vorcharge:** QRM-CAN-2603-028"
+        },
+        {
+          "document_id": "doc_d4263e4ae7974923b850c7d4388de92d",
+          "chunk_id": "chunk_d4263e4ae7974923b850c7d4388de92d_p1",
+          "page": 1,
+          "quote": "**Bezug:** CR-2603-014  \n**Anlage:** MB-11  \n**Produkt:** Cantaril 100 mg"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die Dispositionsentscheidung der betroffenen Charge QRM-CAN-2603-028 ist nicht explizit mit einem Batch Record verknüpft oder begründet. Die Freigabe zur Folgeproduktion (chunk_239acea6f4f84d27934ad639a91b8b8b) erfolgt ohne Bezug zu einem Batch Record oder einer detaillierten Begründung der Disposition.",
+      "evidence_items": [
+        {
+          "document_id": "doc_239acea6f4f84d27934ad639a91b8b8b",
+          "chunk_id": "chunk_239acea6f4f84d27934ad639a91b8b8b_p1",
+          "page": 1,
+          "quote": "## Freigabe zur Folgeproduktion\nReinigung geprüft durch Produktion: OP-22 / Datum: 2026-03-22  \nQA-Sichtprüfung: QA-04 / Datum: 2026-03-22"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die Anlage MB-11 wurde am 2026-03-22 zur Folgeproduktion freigegeben (chunk_239acea6f4f84d27934ad639a91b8b8b), obwohl die Abweichungsbewertung (RCA-2603-031) erst am 2026-03-24 abgeschlossen wurde (chunk_d4263e4ae7974923b850c7d4388de92d). Die Freigabe erfolgte somit vor Abschluss der erforderlichen QA-Freigabe und Bewertung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_239acea6f4f84d27934ad639a91b8b8b",
+          "chunk_id": "chunk_239acea6f4f84d27934ad639a91b8b8b_p1",
+          "page": 1,
+          "quote": "## Freigabe zur Folgeproduktion\nReinigung geprüft durch Produktion: OP-22 / Datum: 2026-03-22  \nQA-Sichtprüfung: QA-04 / Datum: 2026-03-22"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die CAPA-Maßnahmen (chunk_fee009a3119a4feeb7ccefbb9f3093fb) sehen eine Wirksamkeitsprüfung vor, jedoch fehlt ein dokumentierter Effectiveness Check Nachweis. Die Akzeptanzkriterien (keine nicht datierte Korrektur) sind nicht ausreichend konkretisiert oder nachweisbar.",
+      "evidence_items": [
+        {
+          "document_id": "doc_fee009a3119a4feeb7ccefbb9f3093fb",
+          "chunk_id": "chunk_fee009a3119a4feeb7ccefbb9f3093fb_p1",
+          "page": 1,
+          "quote": "## Wirksamkeitsprüfung\nReview der nächsten zwei Reinigungseinträge für MB-11. Akzeptanz: keine nicht datierte Korrektur in den Einträgen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine dokumentierte Bewertung der Auswirkung der Abweichung (korrigierter Restproteinwert für Swab B2) auf Produktqualität und Patientensicherheit. Es fehlt eine Chargenliste oder eine explizite Impact-Assessment-Dokumentation. Der Auslöser für diese Pflicht ist der korrigierte Restproteinwert im Reinigungsprotokoll (CR-2603-014).",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die Charge QRM-CAN-2603-028 wurde zur Folgeproduktion freigegeben, obwohl der korrigierte Restproteinwert (Swab B2) zunächst außerhalb der Spezifikation lag (18 µg bei Kriterium NMT 10 µg). Es gibt keine dokumentierte vollständige OOS-Untersuchung oder Dispositionsentscheidung vor der Freigabe.",
+      "evidence_items": [
+        {
+          "document_id": "doc_239acea6f4f84d27934ad639a91b8b8b",
+          "chunk_id": "chunk_239acea6f4f84d27934ad639a91b8b8b_p1",
+          "page": 1,
+          "quote": "QA-Sichtprüfung: QA-04 / Datum: 2026-03-22"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Einstufung der Abweichung als dokumentarische Einzelabweichung (RCA-2603-031) erfolgt ohne nachvollziehbare Risikobewertung oder belastbare Labordaten. Es gibt keine dokumentierte Bewertung, ob die Abweichung als kritisch, major oder minor einzustufen ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d4263e4ae7974923b850c7d4388de92d",
+          "chunk_id": "chunk_d4263e4ae7974923b850c7d4388de92d_p1",
+          "page": 1,
+          "quote": "Die Korrektur des Swab-Werts wird als dokumentarische Einzelabweichung bewertet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Grundursache wird als 'kurzzeitige Unaufmerksamkeit bei Sprühposition B' angegeben, ohne dass technische Ursachen (z. B. Equipment, Kalibrierung, Alarme) dokumentiert ausgeschlossen wurden. Eine Befragung des Reinigungspersonals wurde nicht protokolliert.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d4263e4ae7974923b850c7d4388de92d",
+          "chunk_id": "chunk_d4263e4ae7974923b850c7d4388de92d_p1",
+          "page": 1,
+          "quote": "Root Cause: kurzzeitige Unaufmerksamkeit bei Sprühposition B. Begründende Nachweise: keine zusätzlichen Nachweise erhoben; Befragung nicht protokolliert."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die Originalaufzeichnung für Swab B2 (Restproteinwert) wurde nachträglich korrigiert, ohne dass ein Änderungsgrund oder ein Änderungsdatum dokumentiert wurde. Dies verstößt gegen die ALCOA+-Anforderungen an Vollständigkeit, Konsistenz und Nachvollziehbarkeit.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Es gibt keinen Nachweis über einen durchgeführten Audit-Trail-Review für die Korrektur des Restproteinwerts (Swab B2). Der korrigierte Eintrag im Cleaning Record (CR-2603-014) enthält keine dokumentierte Begründung, Datum oder initiale für die Änderung, was auf fehlende Audit-Trail-Prüfung hindeutet.",
+      "evidence_items": [
+        {
+          "document_id": "doc_239acea6f4f84d27934ad639a91b8b8b",
+          "chunk_id": "chunk_239acea6f4f84d27934ad639a91b8b8b_p1",
+          "page": 1,
+          "quote": "Swab B2 Restprotein: ursprünglicher Eintrag 18 µg; korrigierter Eintrag 8 µg; Änderungsgrund: —; Änderungsdatum: —; Initiale: OP-22."
+        },
+        {
+          "document_id": "doc_d4263e4ae7974923b850c7d4388de92d",
+          "chunk_id": "chunk_d4263e4ae7974923b850c7d4388de92d_p1",
+          "page": 1,
+          "quote": "Root Cause: kurzzeitige Unaufmerksamkeit bei Sprühposition B.  Begründende Nachweise: keine zusätzlichen Nachweise erhoben; Befragung nicht protokolliert."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "high",
+      "risk_statement": "Die Signaturdaten für die Korrektur des Swab-Werts (Swab B2) sind unvollständig und nicht plausibel. Es fehlen das Änderungsdatum und eine nachvollziehbare Begründung, was gegen die Anforderungen an elektronische Unterschriften verstößt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_239acea6f4f84d27934ad639a91b8b8b",
+          "chunk_id": "chunk_239acea6f4f84d27934ad639a91b8b8b_p1",
+          "page": 1,
+          "quote": "Swab B2 Restprotein: ursprünglicher Eintrag 18 µg; korrigierter Eintrag 8 µg; Änderungsgrund: —; Änderungsdatum: —; Initiale: OP-22."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Quality Approval Note verweist auf Anhang 1 (Reinigungsprotokoll), Anhang 2 (Laborfreigabe) und Anhang 3 (Restproteinbewertung). Diese Anhänge sind jedoch in den bereitgestellten Chunks nicht enthalten, sodass die Vollständigkeit nicht überprüft werden kann.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ed71b849d6ab419cb955425aec703f9e",
+          "chunk_id": "chunk_ed71b849d6ab419cb955425aec703f9e_p1",
+          "page": 1,
+          "quote": "Anlagen: Anhang 1 Reinigungsprotokoll, Anhang 2 Laborfreigabe. Restproteinbewertung gemäß Anhang 3."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "medium",
+      "risk_statement": "Die kritischen Prozessparameter (Raumtemperatur, Reinigungsmittelkonzentration, Endspülwasser-Leitfähigkeit) liegen innerhalb der spezifizierten Grenzen. Die visuelle Kontrolle und die Swab-Werte (mit Ausnahme der korrigierten Angabe) erfüllen die Kriterien.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Der korrigierte Restproteinwert für Swab B2 (ursprünglich 18 µg, korrigiert auf 8 µg) überschreitet das interne Akzeptanzkriterium von NMT 10 µg im ursprünglichen Eintrag. Dies stellt eine Verletzung der internen Spezifikation dar, die als Abweichung zu behandeln ist. Die Korrektur wurde ohne dokumentierte Begründung, Datum oder vollständige Initialen vorgenommen, was die Nachvollziehbarkeit weiter beeinträchtigt.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "medium",
+      "risk_statement": "Die Korrektur des Swab-Werts ohne dokumentierte Begründung, Datum oder vollständige Initialen deutet auf eine unzureichende Schulung oder Wirksamkeit der Dokumentationspraxis hin. Die CAPA-Maßnahmen (Sensibilisierung und Erinnerung) bestätigen indirekt, dass kein wirksames Training vorlag, da sonst keine Nachschulung erforderlich wäre.",
+      "evidence_items": [
+        {
+          "document_id": "doc_fee009a3119a4feeb7ccefbb9f3093fb",
+          "chunk_id": "chunk_fee009a3119a4feeb7ccefbb9f3093fb_p1",
+          "page": 1,
+          "quote": "| 1 | Team allgemein sensibilisieren. | PR-03 | 2026-04-30 | Eintrag im Schichtmeeting-Protokoll |\n| 2 | Erinnerung an korrekte Dokumentationspraxis in der nächsten Morgenrunde. | PR-03 | 2026-03-27 | Kurzprotokoll |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_val_cleaning_sterility",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keine explizite Validierung der Reinigungsmethode oder eine Kontaminationskontrollstrategie. Es wird lediglich das Reinigungsverfahren (CLN-SOLID-07 Rev.06) erwähnt, ohne Nachweise zur Validierung oder Sterilitätssicherung. Die visuelle Kontrolle und Swab-Ergebnisse allein sind kein ausreichender Beleg für die Erfüllung dieser Anforderung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_239acea6f4f84d27934ad639a91b8b8b",
+          "chunk_id": "chunk_239acea6f4f84d27934ad639a91b8b8b_p1",
+          "page": 1,
+          "quote": "Reinigungsverfahren: CLN-SOLID-07 Rev.06"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_cleaning_sterility"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Es gibt keine Nachweise in den Dokumenten, dass die Validierung des Reinigungsverfahrens (CLN-SOLID-07 Rev.06) den aktuellen Prozess-, Equipment- oder Standortzustand abdeckt. Die Übertragbarkeit oder Aktualität der Validierung wird nicht belegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_239acea6f4f84d27934ad639a91b8b8b",
+          "chunk_id": "chunk_239acea6f4f84d27934ad639a91b8b8b_p1",
+          "page": 1,
+          "quote": "Reinigungsverfahren: CLN-SOLID-07 Rev.06"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    }
+  ],
+  "CASE_04": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine Auflistung oder Bewertung von Vorgänger- oder Folgechargen der betroffenen Charge QRM-SEL-2604-112. Der Deviation Report (DEV-2604-071) und der CAPA-Plan (CAPA-2604-049) beziehen sich ausschließlich auf die Charge QRM-SEL-2604-112, ohne weitere Chargen zu erwähnen. Dies begründet den Verstoß, da die Anforderung eine vollständige Erfassung aller potenziell betroffenen Chargen fordert.",
+      "evidence_items": [
+        {
+          "document_id": "doc_0838cffc90334d8896d94167cde71184",
+          "chunk_id": "chunk_0838cffc90334d8896d94167cde71184_p1",
+          "page": 1,
+          "quote": "**Charge:** QRM-SEL-2604-112"
+        },
+        {
+          "document_id": "doc_6078e23df5d74feebbc9b9d91c06ca58",
+          "chunk_id": "chunk_6078e23df5d74feebbc9b9d91c06ca58_p1",
+          "page": 1,
+          "quote": "**Bezug:** DEV-2604-071  \n**Produkt/Charge:** Selcorin 20 mg / QRM-SEL-2604-112"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die Charge QRM-SEL-2604-112 wurde vor Abschluss der technischen Sichtprüfung (Maßnahme 2 im CAPA-Plan) freigegeben. Der Quality Approval Note (QA-N-2604-083) empfiehlt die Fortsetzung in die Beschichtung, obwohl die technische Sichtprüfung als 'offen' markiert ist. Dies stellt einen Verstoß gegen die Anforderung dar, da die Freigabe vor Abschluss aller erforderlichen Bewertungen erfolgte.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6078e23df5d74feebbc9b9d91c06ca58",
+          "chunk_id": "chunk_6078e23df5d74feebbc9b9d91c06ca58_p1",
+          "page": 1,
+          "quote": "| 2 | Technische Sichtprüfung TP-402 vor Kampagnenstart ergänzen. | ENG-02 | 2026-04-28 | offen |"
+        },
+        {
+          "document_id": "doc_232dfc07dbfe4ec88637d0a8cb485c1a",
+          "chunk_id": "chunk_232dfc07dbfe4ec88637d0a8cb485c1a_p1",
+          "page": 1,
+          "quote": "QA empfiehlt Fortsetzung in die Beschichtung nach Abschluss der technischen Sichtprüfung."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die Wirksamkeitsprüfung der CAPA-Maßnahme 2 (technische Sichtprüfung TP-402) ist nicht definiert oder dokumentiert. Der CAPA-Plan erwähnt lediglich eine Trendprüfung der nächsten zwei Kompressionsläufe, ohne konkrete Kriterien oder Nachweise für die Wirksamkeit der technischen Sichtprüfung festzulegen. Dies stellt einen Verstoß dar, da CAPA-Maßnahmen mit Qualitätsrisiko eine definierte Wirksamkeitsprüfung erfordern.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6078e23df5d74feebbc9b9d91c06ca58",
+          "chunk_id": "chunk_6078e23df5d74feebbc9b9d91c06ca58_p1",
+          "page": 1,
+          "quote": "Trendprüfung der nächsten zwei Selcorin-Kompressionsläufe auf ungeplante technische Unterbrechungen."
+        },
+        {
+          "document_id": "doc_6078e23df5d74feebbc9b9d91c06ca58",
+          "chunk_id": "chunk_6078e23df5d74feebbc9b9d91c06ca58_p1",
+          "page": 1,
+          "quote": "| 2 | Technische Sichtprüfung TP-402 vor Kampagnenstart ergänzen. | ENG-02 | 2026-04-28 | offen |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine dokumentierte Bewertung der Auswirkung der Abweichung (Motorwechsel während der Tablettenkompression) auf Produktqualität und Patientensicherheit. Der Deviation Report (DEV-2604-071) erwähnt lediglich eine vorläufige Bewertung der Tablettenhärte und des Gewichts nach Wiederanlauf, jedoch keine systematische Impact Assessment oder eine Liste potenziell betroffener Chargen. Der Auslöser für die Pflicht (die Abweichung selbst) ist belegt, aber der geforderte Nachweis fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_0838cffc90334d8896d94167cde71184",
+          "chunk_id": "chunk_0838cffc90334d8896d94167cde71184_p1",
+          "page": 1,
+          "quote": "## Vorläufige Bewertung\nTablettenhärte und Gewicht lagen nach Wiederanlauf im Trend. Staubspur am Kompressionsschirm, außerhalb Produktkontaktbereich, wurde vor Wiederanlauf gereinigt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Es gibt keine nachvollziehbare Risikobewertung oder Einstufung der Abweichung (z. B. Minor/Major/Kritisch) in den Unterlagen. Die vorläufige Bewertung im Deviation Report (DEV-2604-071) enthält keine belastbaren physikalisch-chemischen oder labortechnischen Daten, die eine Einstufung als geringfügig rechtfertigen würden. Der Auslöser (die Abweichung) ist belegt, aber der geforderte Nachweis fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_0838cffc90334d8896d94167cde71184",
+          "chunk_id": "chunk_0838cffc90334d8896d94167cde71184_p1",
+          "page": 1,
+          "quote": "## Vorläufige Bewertung\nTablettenhärte und Gewicht lagen nach Wiederanlauf im Trend. Staubspur am Kompressionsschirm, außerhalb Produktkontaktbereich, wurde vor Wiederanlauf gereinigt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Grundursache der Abweichung (ungewöhnliches Geräusch am Hauptmotor der Presse TP-402) ist nicht durch eine angemessene Untersuchung belegt. Der Deviation Report erwähnt lediglich den Motorwechsel, aber keinen dokumentierten Ausschluss technischer Ursachen (z. B. Equipment, Kalibrierung, Alarme). Eine Zuschreibung als 'Bedienerfehler' liegt nicht vor, aber auch keine systematische Ursachenanalyse.",
+      "evidence_items": [
+        {
+          "document_id": "doc_0838cffc90334d8896d94167cde71184",
+          "chunk_id": "chunk_0838cffc90334d8896d94167cde71184_p1",
+          "page": 1,
+          "quote": "Während der Tablettenkompression wurde ein ungewöhnliches Geräusch am Hauptmotor der Presse TP-402 gemeldet. Der Schichtleiter veranlasste eine technische Prüfung."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die Aufzeichnungen im Batch Manufacturing Record (BMR) sind nicht vollständig und konsistent. Die Raumtemperatur im Kompressionsraum KR-2 wurde um 10:20 Uhr mit 31,2 °C dokumentiert (Grenzwertüberschreitung), während der Deviation Report für denselben Zeitraum eine maximale Raumtemperatur von 24,8 °C angibt. Diese Diskrepanz deutet auf fehlende oder nachträglich veränderte Originaldaten hin, ohne dass dies begründet wird.",
+      "evidence_items": [
+        {
+          "document_id": "doc_da8d5276fcba408e923413fab7056c10",
+          "chunk_id": "chunk_da8d5276fcba408e923413fab7056c10_p1",
+          "page": 1,
+          "quote": "| 10:20 | Raumtemperatur KR-2 | 31.2 °C (Grenze 18.0 - 25.0 °C), Lüftung quittiert | OP-LN |"
+        },
+        {
+          "document_id": "doc_0838cffc90334d8896d94167cde71184",
+          "chunk_id": "chunk_0838cffc90334d8896d94167cde71184_p1",
+          "page": 1,
+          "quote": "Raumtemperatur Kompressionsraum KR-2 am 2026-04-18 zwischen 09:00 und 11:00: max. 24.8 °C, keine Grenzwertüberschreitung."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Es gibt keine dokumentierten Nachweise in den bereitgestellten Chunks, dass ein Audit-Trail-Review für die elektronischen Daten durchgeführt wurde. Weder der Deviation Report, der Batch Record, der CAPA-Plan, das Training Record noch die Quality Approval Note enthalten Hinweise auf einen Audit-Trail oder dessen Prüfung.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "high",
+      "risk_statement": "Im Batch Manufacturing Record (BMR-SEL-2604-112-C) wird eine Raumtemperatur von 31.2 °C dokumentiert, die außerhalb der spezifizierten Grenze von 18.0–25.0 °C liegt. Die Signatur (OP-LN) und der Zeitpunkt (10:20 Uhr) sind zwar vorhanden, aber es gibt keine plausible Erklärung oder Korrekturmaßnahme für diese Grenzwertüberschreitung im Kontext der Signaturdaten. Zudem fehlt eine zeitliche Plausibilitätsprüfung der Signaturen im Zusammenhang mit dem Vorfall.",
+      "evidence_items": [
+        {
+          "document_id": "doc_da8d5276fcba408e923413fab7056c10",
+          "chunk_id": "chunk_da8d5276fcba408e923413fab7056c10_p1",
+          "page": 1,
+          "quote": "| 10:20 | Raumtemperatur KR-2 | 31.2 °C (Grenze 18.0 - 25.0 °C), Lüftung quittiert | OP-LN |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_doc_cross_consistency",
+      "severity": "medium",
+      "risk_statement": "Es gibt Widersprüche in den Angaben zur Raumtemperatur im Kompressionsraum KR-2. Der Deviation Report gibt an, dass die Raumtemperatur zwischen 09:00 und 11:00 Uhr max. 24.8 °C betrug, während der Batch Manufacturing Record eine Raumtemperatur von 31.2 °C um 10:20 Uhr dokumentiert. Diese Inkonsistenz wurde nicht aufgeklärt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_0838cffc90334d8896d94167cde71184",
+          "chunk_id": "chunk_0838cffc90334d8896d94167cde71184_p1",
+          "page": 1,
+          "quote": "Raumtemperatur Kompressionsraum KR-2 am 2026-04-18 zwischen 09:00 und 11:00: max. 24.8 °C, keine Grenzwertüberschreitung."
+        },
+        {
+          "document_id": "doc_da8d5276fcba408e923413fab7056c10",
+          "chunk_id": "chunk_da8d5276fcba408e923413fab7056c10_p1",
+          "page": 1,
+          "quote": "| 10:20 | Raumtemperatur KR-2 | 31.2 °C (Grenze 18.0 - 25.0 °C), Lüftung quittiert | OP-LN |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_cross_consistency"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente verweisen auf Pflichtanhänge (z. B. technische Prüfberichte oder detaillierte Umgebungsprotokolle), die jedoch nicht in den bereitgestellten Chunks enthalten sind. Es ist unklar, ob diese Anhänge tatsächlich vorhanden und aktuell sind.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "Der Batch Manufacturing Record dokumentiert eine Raumtemperatur von 31.2 °C im Kompressionsraum KR-2, die außerhalb der spezifizierten Grenze von 18.0–25.0 °C liegt. Diese Überschreitung wurde nicht als Abweichung bewertet, obwohl sie einen kritischen Prozessparameter betrifft.",
+      "evidence_items": [
+        {
+          "document_id": "doc_da8d5276fcba408e923413fab7056c10",
+          "chunk_id": "chunk_da8d5276fcba408e923413fab7056c10_p1",
+          "page": 1,
+          "quote": "| 10:20 | Raumtemperatur KR-2 | 31.2 °C (Grenze 18.0 - 25.0 °C), Lüftung quittiert | OP-LN |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Die Raumtemperatur im Kompressionsraum KR-2 wurde mit 31.2 °C dokumentiert (Grenzwert 18.0 - 25.0 °C), was eine klare Überschreitung der internen Akzeptanzkriterien darstellt. Diese Überschreitung wurde zwar quittiert, aber nicht als Abweichung behandelt oder bewertet, wie es die Anforderung verlangt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_da8d5276fcba408e923413fab7056c10",
+          "chunk_id": "chunk_da8d5276fcba408e923413fab7056c10_p1",
+          "page": 1,
+          "quote": "| 10:20 | Raumtemperatur KR-2 | 31.2 °C (Grenze 18.0 - 25.0 °C), Lüftung quittiert | OP-LN |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_val_cleaning_sterility",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keine explizite Erwähnung von Reinigungsvalidierung oder Sterilisationsprotokollen im Zusammenhang mit der technischen Unterbrechung oder dem Motorwechsel. Eine Staubspur wurde zwar gereinigt, aber es gibt keinen Nachweis, dass dies im Rahmen einer validierten Reinigungs- oder Kontaminationskontrollstrategie erfolgte.",
+      "evidence_items": [
+        {
+          "document_id": "doc_0838cffc90334d8896d94167cde71184",
+          "chunk_id": "chunk_0838cffc90334d8896d94167cde71184_p1",
+          "page": 1,
+          "quote": "Staubspur am Kompressionsschirm, außerhalb Produktkontaktbereich, wurde vor Wiederanlauf gereinigt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_cleaning_sterility"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Es gibt keine dokumentierten Nachweise, dass die Validierungs-, Reinigungsvalidierungs- oder Sterilisationsnachweise den aktuellen Zustand der Anlage TP-402 nach dem Motorwechsel abdecken. Die technische Sichtprüfung ist zwar geplant, aber noch nicht abgeschlossen, und es gibt keine Hinweise auf eine aktuelle Validierung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6078e23df5d74feebbc9b9d91c06ca58",
+          "chunk_id": "chunk_6078e23df5d74feebbc9b9d91c06ca58_p1",
+          "page": 1,
+          "quote": "| 2 | Technische Sichtprüfung TP-402 vor Kampagnenstart ergänzen. | ENG-02 | 2026-04-28 | offen |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    }
+  ],
+  "CASE_05": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen belegen, dass die Charge RM-SX14-2604-02 für zwei Nivoril-Ansätze (QRM-NIV-2604-031 und QRM-NIV-2604-033) verwendet wurde. Allerdings wird im Material Deviation Report (DEV-2604-063) und in der Quality Approval Note (QA-N-2604-094) nur die Bewertung der Charge QRM-NIV-2604-033 dokumentiert. Die bereits freigegebene Charge QRM-NIV-2604-031 wird nicht in die Impact-Bewertung einbezogen, obwohl sie potenziell betroffen ist. Dies verstößt gegen die Anforderung, alle potenziell betroffenen Chargen zu erfassen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e2be071d25ec462e97d7c50a5a957e2b",
+          "chunk_id": "chunk_e2be071d25ec462e97d7c50a5a957e2b_p1",
+          "page": 1,
+          "quote": "Die laufende QA-Bewertung fokussiert auf QRM-NIV-2604-033. Für freigegebene Chargen ist derzeit keine zusätzliche Maßnahme vorgesehen."
+        },
+        {
+          "document_id": "doc_1645facba00a4dcd9f7e02ebd626bebe",
+          "chunk_id": "chunk_1645facba00a4dcd9f7e02ebd626bebe_p1",
+          "page": 1,
+          "quote": "Die Bewertung beschränkt sich auf QRM-NIV-2604-033; bereits ausgelieferte Chargen nicht betroffen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die Dispositionsentscheidung für die Charge QRM-NIV-2604-033 ist in der Quality Approval Note (QA-N-2604-094) dokumentiert. Allerdings fehlt eine nachvollziehbare Begründung und Verknüpfung mit den Batch Records für die bereits freigegebene Charge QRM-NIV-2604-031. Die Unterlagen enthalten keinen Hinweis auf eine Prüfung oder Verknüpfung der Batch Records für diese Charge, obwohl sie potenziell betroffen ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_1645facba00a4dcd9f7e02ebd626bebe",
+          "chunk_id": "chunk_1645facba00a4dcd9f7e02ebd626bebe_p1",
+          "page": 1,
+          "quote": "QRM-NIV-2604-033 kann nach Abschluss der finalen BMR-Prüfung zur Freigabe vorgeschlagen werden."
+        },
+        {
+          "document_id": "doc_e2be071d25ec462e97d7c50a5a957e2b",
+          "chunk_id": "chunk_e2be071d25ec462e97d7c50a5a957e2b_p1",
+          "page": 1,
+          "quote": "| QRM-NIV-2604-031 | freigegeben am 2026-04-12 | 18.0 kg |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die Charge QRM-NIV-2604-031 wurde am 2026-04-12 freigegeben, obwohl die Abweichungsbewertung (DEV-2604-063) erst am 2026-04-06 eingeleitet und die Impact-Bewertung laut Quality Approval Note (QA-N-2604-094) nicht auf diese Charge ausgeweitet wurde. Die Freigabe erfolgte somit vor Abschluss der erforderlichen QA-Bewertung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e2be071d25ec462e97d7c50a5a957e2b",
+          "chunk_id": "chunk_e2be071d25ec462e97d7c50a5a957e2b_p1",
+          "page": 1,
+          "quote": "| QRM-NIV-2604-031 | freigegeben am 2026-04-12 | 18.0 kg |"
+        },
+        {
+          "document_id": "doc_e2be071d25ec462e97d7c50a5a957e2b",
+          "chunk_id": "chunk_e2be071d25ec462e97d7c50a5a957e2b_p1",
+          "page": 1,
+          "quote": "Datum: 2026-04-06"
+        },
+        {
+          "document_id": "doc_1645facba00a4dcd9f7e02ebd626bebe",
+          "chunk_id": "chunk_1645facba00a4dcd9f7e02ebd626bebe_p1",
+          "page": 1,
+          "quote": "Datum: 2026-04-15"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit ist unvollständig. Es wird zwar im Material Deviation Report (document_04_material_deviation_report.md) und in der Quality Approval Note (document_05_quality_approval_note.md) auf die betroffene Charge QRM-NIV-2604-033 eingegangen, jedoch fehlt eine explizite Bewertung der Auswirkung für die bereits freigegebene Charge QRM-NIV-2604-031. Die Pflicht zur Bewertung aller potenziell betroffenen Chargen ist somit nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e2be071d25ec462e97d7c50a5a957e2b",
+          "chunk_id": "chunk_e2be071d25ec462e97d7c50a5a957e2b_p1",
+          "page": 1,
+          "quote": "Die laufende QA-Bewertung fokussiert auf QRM-NIV-2604-033. Für freigegebene Chargen ist derzeit keine zusätzliche Maßnahme vorgesehen."
+        },
+        {
+          "document_id": "doc_1645facba00a4dcd9f7e02ebd626bebe",
+          "chunk_id": "chunk_1645facba00a4dcd9f7e02ebd626bebe_p1",
+          "page": 1,
+          "quote": "Die Bewertung beschränkt sich auf QRM-NIV-2604-033; bereits ausgelieferte Chargen nicht betroffen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die Abweichung zwischen Lieferantenspezifikation und interner Spezifikation für den Parameter Gehalt Hauptkomponente wurde festgestellt, jedoch fehlt eine vollständige OOS/OOT-Untersuchung vor der Disposition der Charge QRM-NIV-2604-033. Die Charge wurde bereits zur Freigabe vorgeschlagen, obwohl keine dokumentierte Untersuchung der Abweichung vorliegt, die den Anforderungen an eine OOS/OOT-Bewertung entspricht.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e2be071d25ec462e97d7c50a5a957e2b",
+          "chunk_id": "chunk_e2be071d25ec462e97d7c50a5a957e2b_p1",
+          "page": 1,
+          "quote": "Bei der periodischen CoA-Trendprüfung wurde eine Abweichung zwischen Lieferantenspezifikation und interner Spezifikation für den Parameter Gehalt Hauptkomponente festgestellt."
+        },
+        {
+          "document_id": "doc_1645facba00a4dcd9f7e02ebd626bebe",
+          "chunk_id": "chunk_1645facba00a4dcd9f7e02ebd626bebe_p1",
+          "page": 1,
+          "quote": "QRM-NIV-2604-033 kann nach Abschluss der finalen BMR-Prüfung zur Freigabe vorgeschlagen werden."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Einstufung der Abweichung als nicht kritisch für die bereits freigegebene Charge QRM-NIV-2604-031 erfolgt ohne nachvollziehbare Risikobewertung oder belastbare physikalisch-chemische Daten. Die Quality Approval Note (document_05_quality_approval_note.md) enthält keine detaillierte Risikobewertung, die die Einstufung als geringfügig oder unkritisch stützt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_1645facba00a4dcd9f7e02ebd626bebe",
+          "chunk_id": "chunk_1645facba00a4dcd9f7e02ebd626bebe_p1",
+          "page": 1,
+          "quote": "Das Material RM-SX14-2604-02 meets specification. Die Bewertung beschränkt sich auf QRM-NIV-2604-033; bereits ausgelieferte Chargen nicht betroffen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Grundursache der Abweichung zwischen Lieferantenspezifikation und interner Spezifikation für den Parameter Gehalt Hauptkomponente wurde nicht durch eine angemessene Untersuchung belegt. Es gibt keine dokumentierten Ausschlüsse technischer Ursachen oder eine detaillierte Analyse der möglichen Gründe für die Abweichung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e2be071d25ec462e97d7c50a5a957e2b",
+          "chunk_id": "chunk_e2be071d25ec462e97d7c50a5a957e2b_p1",
+          "page": 1,
+          "quote": "Bei der periodischen CoA-Trendprüfung wurde eine Abweichung zwischen Lieferantenspezifikation und interner Spezifikation für den Parameter Gehalt Hauptkomponente festgestellt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Die interne Spezifikation (SPEC-RM-SX14 Rev.07) verlangt für den Gehalt der Hauptkomponente einen Akzeptanzbereich von 98,0 - 102,0 % (chunk_12f036f29213482aa46e45c8e950d647_p1). Das Lieferanten-CoA und das interne QC-Laborergebnis weisen jedoch einen Gehalt von 96,8 % bzw. 96,9 % aus (chunk_fe4dd9644dce4f1ab693dfbc50378726_p1 und chunk_27e07937774740e78d582b0a134128b0_p1), was unterhalb der internen Spezifikation liegt. Obwohl das Material als 'bestanden' bewertet und zur Produktion freigegeben wurde (chunk_27e07937774740e78d582b0a134128b0_p1), verstößt dies gegen die Anforderung, dass Mess- und Prüfergebnisse gegen die gültige interne Spezifikation bewertet werden müssen. Die Abweichung wurde zwar im Material Deviation Report (DEV-2604-063) dokumentiert, aber die Verletzung der internen Akzeptanzkriterien bleibt bestehen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_12f036f29213482aa46e45c8e950d647",
+          "chunk_id": "chunk_12f036f29213482aa46e45c8e950d647_p1",
+          "page": 1,
+          "quote": "| Gehalt Hauptkomponente | 98.0 - 102.0 % | QC-HPLC-144 |"
+        },
+        {
+          "document_id": "doc_fe4dd9644dce4f1ab693dfbc50378726",
+          "chunk_id": "chunk_fe4dd9644dce4f1ab693dfbc50378726_p1",
+          "page": 1,
+          "quote": "| Gehalt Hauptkomponente | 96,8 % | 95,0 - 105,0 % | SUP-M-HPLC-08 |"
+        },
+        {
+          "document_id": "doc_27e07937774740e78d582b0a134128b0",
+          "chunk_id": "chunk_27e07937774740e78d582b0a134128b0_p1",
+          "page": 1,
+          "quote": "| Gehalt Hauptkomponente | 96.9 % | bestanden |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente enthalten keine Nachweise über Schulungen oder die Wirksamkeit von Trainings im Zusammenhang mit der Handhabung der internen Spezifikation oder der Bearbeitung der Abweichung. Es ist unklar, ob das betroffene Personal nachweislich und wirksam geschult wurde.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    }
+  ],
+  "CASE_06": [
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die Dispositionsentscheidung der Charge QRM-ORX-2604-009 ist nicht dokumentiert. Im Deviation Report (DEV-2604-077) wird lediglich festgehalten, dass das Produkt bis zur QA-Abschlussbewertung gesperrt bleibt: \"Produkt bleibt bis zur QA-Abschlussbewertung gesperrt. Keine sichtbaren Partikel im filtrierten Bulk.\" (chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1). Eine Freigabe- oder Dispositionsentscheidung mit Begründung und Verknüpfung zum Batch Record fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d1dcfa40ed9f45438ce165b5d0bd3556",
+          "chunk_id": "chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1",
+          "page": 1,
+          "quote": "Produkt bleibt bis zur QA-Abschlussbewertung gesperrt. Keine sichtbaren Partikel im filtrierten Bulk."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die CAPA-Maßnahme (CAPA-2604-052) sieht zwar eine Wirksamkeitsprüfung vor (\"Review der nächsten Orivex-Sterilfiltration auf vollständige Filterchargendokumentation\"), jedoch fehlt eine *dokumentierte* Wirksamkeitsprüfung (Effectiveness Check) als Voraussetzung für den Abschluss der CAPA. Die Maßnahme ist damit nicht gemäß GMP-Anforderungen abgeschlossen.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_cc_impact_and_validation",
+      "severity": "critical",
+      "risk_statement": "Der Pumpenwechsel von Typ LFP-120 auf LFP-200 wurde ohne dokumentierte Change-Control-Nummer oder technische Vergleichsbewertung durchgeführt. Die Validierungsnotiz (VAL-N-2603-018) fordert für Änderungen an Pumpentyp oder Pulsationscharakteristik eine Change-Control-Referenz und technische Bewertung: \"Änderungen an Pumpentyp oder Pulsationscharakteristik erfordern Change Control und technische Vergleichsbewertung.\" (chunk_2c515b37f86244d583d16cc76bce3969_p1). Die Maintenance Note bestätigt das Fehlen einer Change-Control-Nummer: \"Change-Control-Nummer im Wartungsauftrag: nicht eingetragen.\" (chunk_e84fe12d3a994df7b4fc519a52a4467c_p1).",
+      "evidence_items": [
+        {
+          "document_id": "doc_2c515b37f86244d583d16cc76bce3969",
+          "chunk_id": "chunk_2c515b37f86244d583d16cc76bce3969_p1",
+          "page": 1,
+          "quote": "Änderungen an Pumpentyp oder Pulsationscharakteristik erfordern Change Control und technische Vergleichsbewertung."
+        },
+        {
+          "document_id": "doc_e84fe12d3a994df7b4fc519a52a4467c",
+          "chunk_id": "chunk_e84fe12d3a994df7b4fc519a52a4467c_p1",
+          "page": 1,
+          "quote": "Change-Control-Nummer im Wartungsauftrag: nicht eingetragen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_cc_impact_and_validation"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Abweichung DEV-2604-077 (erhöhter Differenzdruck während der Sterilfiltration) ist belegt, aber es fehlt eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit sowie eine Chargenliste der potenziell betroffenen Chargen. Der Deviation Report erwähnt lediglich, dass das Produkt bis zur QA-Abschlussbewertung gesperrt bleibt und keine sichtbaren Partikel im filtrierten Bulk festgestellt wurden, was keine ausreichende Impact Assessment darstellt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d1dcfa40ed9f45438ce165b5d0bd3556",
+          "chunk_id": "chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1",
+          "page": 1,
+          "quote": "Während der Review des BMR wurde ein erhöhter Differenzdruck-Peak während der Sterilfiltration festgestellt. Der Post-use Integrity Test war bestanden. Als mögliche Ursache wurde pulsierender Förderverlauf nach Pumpenwechsel genannt."
+        },
+        {
+          "document_id": "doc_d1dcfa40ed9f45438ce165b5d0bd3556",
+          "chunk_id": "chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1",
+          "page": 1,
+          "quote": "Produkt bleibt bis zur QA-Abschlussbewertung gesperrt. Keine sichtbaren Partikel im filtrierten Bulk."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Abweichung DEV-2604-077 wurde nicht durch eine nachvollziehbare Risikobewertung mit belastbaren physikalisch-chemischen oder labortechnischen Daten eingestuft. Der Deviation Report nennt lediglich eine mögliche Root Cause (Pumpenpulsation) und eine visuelle Unauffälligkeit des Produkts, was keine ausreichende Risikobewertung darstellt. Eine Einstufung als geringfügig ohne entsprechende Daten ist unzulässig.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d1dcfa40ed9f45438ce165b5d0bd3556",
+          "chunk_id": "chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1",
+          "page": 1,
+          "quote": "Mögliche Root Cause: Pumpenpulsation nach Austausch der Pumpe P-77. Change-Control-Referenz: keine, da Pumpe funktionsgleich eingesetzt."
+        },
+        {
+          "document_id": "doc_d1dcfa40ed9f45438ce165b5d0bd3556",
+          "chunk_id": "chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1",
+          "page": 1,
+          "quote": "Produkt bleibt bis zur QA-Abschlussbewertung gesperrt. Keine sichtbaren Partikel im filtrierten Bulk."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Grundursache der Abweichung (erhöhter Differenzdruck) ist nicht ausreichend belegt. Der Deviation Report nennt zwar eine mögliche Root Cause (Pumpenpulsation), aber technische Ursachen wie Equipment-Probleme (z. B. Kalibrierung, Alarme) wurden nicht dokumentiert ausgeschlossen. Zudem fehlt eine technische Vergleichsbewertung des Pumpenwechsels, obwohl die Validierungsnotiz Änderungen an Pumpentyp oder Pulsationscharakteristik als kritisch einstuft.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d1dcfa40ed9f45438ce165b5d0bd3556",
+          "chunk_id": "chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1",
+          "page": 1,
+          "quote": "Mögliche Root Cause: Pumpenpulsation nach Austausch der Pumpe P-77."
+        },
+        {
+          "document_id": "doc_2c515b37f86244d583d16cc76bce3969",
+          "chunk_id": "chunk_2c515b37f86244d583d16cc76bce3969_p1",
+          "page": 1,
+          "quote": "Änderungen an Pumpentyp oder Pulsationscharakteristik erfordern Change Control und technische Vergleichsbewertung."
+        },
+        {
+          "document_id": "doc_e84fe12d3a994df7b4fc519a52a4467c",
+          "chunk_id": "chunk_e84fe12d3a994df7b4fc519a52a4467c_p1",
+          "page": 1,
+          "quote": "Change-Control-Nummer im Wartungsauftrag: nicht eingetragen. Technische Vergleichsbewertung wird bei Bedarf durch Engineering erstellt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die Aufzeichnungen zur Abweichung sind nicht vollständig im Sinne von ALCOA+. Der Wartungsauftrag (MTN-2604-033) enthält keine Change-Control-Nummer, obwohl eine technische Vergleichsbewertung des Pumpenwechsels erforderlich gewesen wäre. Zudem fehlt eine dokumentierte Impact Assessment und Risikobewertung der Abweichung, was die Vollständigkeit und Konsistenz der Aufzeichnungen infrage stellt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e84fe12d3a994df7b4fc519a52a4467c",
+          "chunk_id": "chunk_e84fe12d3a994df7b4fc519a52a4467c_p1",
+          "page": 1,
+          "quote": "Change-Control-Nummer im Wartungsauftrag: nicht eingetragen. Technische Vergleichsbewertung wird bei Bedarf durch Engineering erstellt."
+        },
+        {
+          "document_id": "doc_d1dcfa40ed9f45438ce165b5d0bd3556",
+          "chunk_id": "chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1",
+          "page": 1,
+          "quote": "Change-Control-Referenz: keine, da Pumpe funktionsgleich eingesetzt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Die bereitgestellten Dokumente enthalten keine Hinweise auf einen Audit Trail oder dessen Review für elektronische Daten im Zusammenhang mit der Sterilfiltration der Charge QRM-ORX-2604-009. Es gibt keinen Beleg dafür, dass sicherheits- oder qualitätsrelevante Eintragungen geprüft wurden.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente listen referenzierte Nachweise wie die Validierungsnotiz (VAL-N-2603-018) und den Deviation Report (DEV-2604-077) auf, aber es gibt keinen Beleg dafür, dass alle Pflichtanhänge (z. B. technische Vergleichsbewertung der Pumpe) tatsächlich vorhanden und aktuell sind.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e84fe12d3a994df7b4fc519a52a4467c",
+          "chunk_id": "chunk_e84fe12d3a994df7b4fc519a52a4467c_p1",
+          "page": 1,
+          "quote": "Change-Control-Nummer im Wartungsauftrag: nicht eingetragen. Technische Vergleichsbewertung wird bei Bedarf durch Engineering erstellt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "Der Differenzdruck während der Sterilfiltration überschritt den validierten maximalen Grenzwert von ≤3,2 bar (Peak 3,6 bar). Dies stellt eine Abweichung von den spezifizierten Prozessparametern dar, auch wenn der Post-use Integrity Test bestanden wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_f5bbc15ae6e34dfca8670adb0bf154e2",
+          "chunk_id": "chunk_f5bbc15ae6e34dfca8670adb0bf154e2_p1",
+          "page": 1,
+          "quote": "Differenzdruck während Filtration: Peak 3.6 bar um 14:12; Bediengerät zeigt Kampagnenlimit 4.0 bar."
+        },
+        {
+          "document_id": "doc_2c515b37f86244d583d16cc76bce3969",
+          "chunk_id": "chunk_2c515b37f86244d583d16cc76bce3969_p1",
+          "page": 1,
+          "quote": "Validierter maximaler Differenzdruck während Produktfiltration: ≤3.2 bar."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_qa_approval_documented",
+      "severity": "high",
+      "risk_statement": "Die Charge QRM-ORX-2604-009 bleibt bis zur QA-Abschlussbewertung gesperrt, und es gibt keinen Beleg für eine dokumentierte QA-Freigabe vor Abschluss des Vorgangs.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d1dcfa40ed9f45438ce165b5d0bd3556",
+          "chunk_id": "chunk_d1dcfa40ed9f45438ce165b5d0bd3556_p1",
+          "page": 1,
+          "quote": "Produkt bleibt bis zur QA-Abschlussbewertung gesperrt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_qa_approval_documented"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Der Differenzdruck während der Sterilfiltration erreichte einen Peak von 3.6 bar (Chunk chunk_f5bbc15ae6e34dfca8670adb0bf154e2_p1), während die validierte Obergrenze bei ≤3.2 bar liegt (Chunk chunk_2c515b37f86244d583d16cc76bce3969_p1). Dies stellt eine Verletzung der internen Akzeptanzkriterien dar, obwohl der Post-use Integrity Test bestanden wurde. Eine explizite Bewertung gegen die interne Spezifikation fehlt in den Dokumenten.",
+      "evidence_items": [
+        {
+          "document_id": "doc_f5bbc15ae6e34dfca8670adb0bf154e2",
+          "chunk_id": "chunk_f5bbc15ae6e34dfca8670adb0bf154e2_p1",
+          "page": 1,
+          "quote": "Differenzdruck während Filtration: Peak 3.6 bar um 14:12; Bediengerät zeigt Kampagnenlimit 4.0 bar."
+        },
+        {
+          "document_id": "doc_2c515b37f86244d583d16cc76bce3969",
+          "chunk_id": "chunk_2c515b37f86244d583d16cc76bce3969_p1",
+          "page": 1,
+          "quote": "Validierter maximaler Differenzdruck während Produktfiltration: ≤3.2 bar."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_supplier_change_impact",
+      "severity": "high",
+      "risk_statement": "Der Austausch der Pumpe P-77 gegen einen anderen Pumpentyp (LFP-200) wurde ohne technische Vergleichsbewertung oder Change Control durchgeführt (Chunk chunk_e84fe12d3a994df7b4fc519a52a4467c_p1). Die Validierungsnotiz verlangt jedoch eine solche Bewertung bei Änderungen am Pumpentyp (Chunk chunk_2c515b37f86244d583d16cc76bce3969_p1). Die Auswirkung auf die Qualität wurde nicht bewertet.",
+      "evidence_items": [
+        {
+          "document_id": "doc_2c515b37f86244d583d16cc76bce3969",
+          "chunk_id": "chunk_2c515b37f86244d583d16cc76bce3969_p1",
+          "page": 1,
+          "quote": "Änderungen an Pumpentyp oder Pulsationscharakteristik erfordern Change Control und technische Vergleichsbewertung."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_supplier_change_impact"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente enthalten keine Nachweise über Schulungen des Personals zu den geänderten Bedingungen nach dem Pumpenwechsel oder zu den aktualisierten BMR-Checklisten (Chunk chunk_c2ec4fae4352421b8fa8ea780e07d93c_p1). Es ist unklar, ob das Personal wirksam geschult wurde, bevor die geänderte Tätigkeit ausgeführt wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_c2ec4fae4352421b8fa8ea780e07d93c",
+          "chunk_id": "chunk_c2ec4fae4352421b8fa8ea780e07d93c_p1",
+          "page": 1,
+          "quote": "Doppelprüfung der Filterchargennummer vor Start der Sterilfiltration einführen. | PR-08 | 2026-04-18 | BMR-Checkliste Rev.02"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die Validierungsnotiz (VAL-ORX-SF Rev.04) deckt nicht den aktuellen Zustand nach dem Pumpenwechsel ab, da der Pumpentyp LFP-200 nicht in der validierten Pumpenkonfiguration (P-77 / Pumpentyp LFP-120) enthalten ist (Chunk chunk_2c515b37f86244d583d16cc76bce3969_p1 und Chunk chunk_e84fe12d3a994df7b4fc519a52a4467c_p1). Eine technische Vergleichsbewertung oder Übertragbarkeitsbegründung fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_2c515b37f86244d583d16cc76bce3969",
+          "chunk_id": "chunk_2c515b37f86244d583d16cc76bce3969_p1",
+          "page": 1,
+          "quote": "Validierte Pumpenkonfiguration: P-77 / Pumpentyp LFP-120."
+        },
+        {
+          "document_id": "doc_e84fe12d3a994df7b4fc519a52a4467c",
+          "chunk_id": "chunk_e84fe12d3a994df7b4fc519a52a4467c_p1",
+          "page": 1,
+          "quote": "Ersatz eingebaut: Pumpentyp LFP-200, Serienkennung P77-LFP200-04."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    }
+  ],
+  "CASE_07": [
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt, dass CAPA-Maßnahmen mit einem Qualitätsrisiko nur mit definierter und dokumentierter Wirksamkeitsprüfung abgeschlossen werden dürfen. Im CAPA-Plan (document_03_capa_plan.md) ist zwar eine Wirksamkeitsprüfung ('Review der nächsten fünf Aufträge auf PK-3 auf Etikettenfund') vorgesehen, jedoch fehlt der Nachweis, dass diese Wirksamkeitsprüfung tatsächlich durchgeführt und dokumentiert wurde. Der Status der Maßnahme Nr. 2 ('Checkliste Line Clearance um Sichtprüfung Abfallbehälter ergänzen') ist zudem als 'offen' gekennzeichnet, was bedeutet, dass die CAPA noch nicht vollständig abgeschlossen ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_b78aff14bb184018b7f55d23f81fe7b2",
+          "chunk_id": "chunk_b78aff14bb184018b7f55d23f81fe7b2_p1",
+          "page": 1,
+          "quote": "| 2 | Checkliste Line Clearance um Sichtprüfung Abfallbehälter ergänzen. | PK-01 | 2026-05-02 | offen |"
+        },
+        {
+          "document_id": "doc_b78aff14bb184018b7f55d23f81fe7b2",
+          "chunk_id": "chunk_b78aff14bb184018b7f55d23f81fe7b2_p1",
+          "page": 1,
+          "quote": "Review der nächsten fünf Aufträge auf PK-3 auf Etikettenfund."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Abweichung DEV-2604-081 beschreibt den Fund loser Etiketten im Abfallbehälter neben der Linie. Eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit fehlt. Insbesondere wird keine Chargenliste oder detaillierte Impact-Assessment-Dokumentation zitiert, obwohl der Vorfall während der Verpackung der Charge QRM-LUM-2604-080 stattfand. Der Auslöser für die Pflicht zur Impact-Assessment ist belegt durch den Fund der Etiketten (Chunk: chunk_5c683dd659c643aa8ecbf9b1437d72c2_p1).",
+      "evidence_items": [
+        {
+          "document_id": "doc_5c683dd659c643aa8ecbf9b1437d72c2",
+          "chunk_id": "chunk_5c683dd659c643aa8ecbf9b1437d72c2_p1",
+          "page": 1,
+          "quote": "Während der Reinigung des Etikettenbereichs wurden zwei lose Etiketten einer Vorauftragsvariante im Abfallbehälter neben der Linie gefunden. Die Etiketten waren nicht beschädigt und trugen keine serialisierten Codes."
+        },
+        {
+          "document_id": "doc_af6bde44cf394b7d91e6800643467724",
+          "chunk_id": "chunk_af6bde44cf394b7d91e6800643467724_p1",
+          "page": 1,
+          "quote": "Packaging Record: PKR-LUM-2604-080  \n**Produkt:** Lumerax 250 mg  \n**Charge:** QRM-LUM-2604-080  \n**Linie:** PK-3  \n**Datum:** 2026-04-22"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Einstufung der Abweichung DEV-2604-081 als 'erstmaliges Ereignis' (Chunk: chunk_5c683dd659c643aa8ecbf9b1437d72c2_p1) erfolgt ohne nachvollziehbare Risikobewertung oder belastbare physikalisch-chemische bzw. labortechnische Daten. Die QA-Note (Chunk: chunk_b13fee49b76d4324b78ecf2474ba1e8b_p1) erwähnt zwar ein ähnliches Ereignis (DEV-2601-019), liefert aber keine detaillierte Risikobewertung für den aktuellen Vorfall. Die Pflicht zur Risikobewertung ist durch den dokumentierten Vorfall belegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_5c683dd659c643aa8ecbf9b1437d72c2",
+          "chunk_id": "chunk_5c683dd659c643aa8ecbf9b1437d72c2_p1",
+          "page": 1,
+          "quote": "Ereignis wird als erstmaliges Ereignis auf Linie PK-3 bewertet."
+        },
+        {
+          "document_id": "doc_b13fee49b76d4324b78ecf2474ba1e8b",
+          "chunk_id": "chunk_b13fee49b76d4324b78ecf2474ba1e8b_p1",
+          "page": 1,
+          "quote": "Deviation History der letzten sechs Monate enthält ähnlichen Etikettenfund DEV-2601-019 auf Linie PK-3 für QRM-LUM-2601-044."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Grundursache der Abweichung DEV-2604-081 wird nicht durch eine angemessene Untersuchung belegt. Der Deviation Report (Chunk: chunk_5c683dd659c643aa8ecbf9b1437d72c2_p1) beschreibt lediglich Sofortmaßnahmen und eine erste Bewertung, ohne technische Ursachen (z. B. Equipment, Kalibrierung, Alarme) dokumentiert auszuschließen. Eine Zuschreibung als 'Bedienerfehler' ist nicht ausreichend belegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_5c683dd659c643aa8ecbf9b1437d72c2",
+          "chunk_id": "chunk_5c683dd659c643aa8ecbf9b1437d72c2_p1",
+          "page": 1,
+          "quote": "Erste Bewertung\nKeine Charge betroffen; Linie zwischen Aufträgen. \nEreignis wird als erstmaliges Ereignis auf Linie PK-3 bewertet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "medium",
+      "risk_statement": "Die Signaturdaten in den Dokumenten (z. B. Packaging Record, Training Record) enthalten Name, Datum und Zeit der Signatur und sind zeitlich plausibel. Beispiel: Im Packaging Record sind die Initialen der Mitarbeiter mit Uhrzeiten dokumentiert (z. B. '08:00 | Line Clearance abgeschlossen | PK-02').",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente verweisen auf Pflichtanhänge (z. B. Fotodokumentation im Training Record), deren Vorhandensein oder Aktualität jedoch nicht belegt ist. Beispiel: Im Training Record wird erwähnt, dass Fotodokumentation 'optional bei Nullbefund' ist, aber es gibt keinen Nachweis, ob diese tatsächlich vorhanden ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_4a2368dbf6fd48a6a1f89a90ed8b4abf",
+          "chunk_id": "chunk_4a2368dbf6fd48a6a1f89a90ed8b4abf_p1",
+          "page": 1,
+          "quote": "Fotodokumentation ist laut lokalem Trainingsprozess optional bei Nullbefund."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    }
+  ],
+  "CASE_08": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die Bewertung der potenziell betroffenen Chargen ist unvollständig. Zwar wird die Charge QRM-MER-2604-052 sowie die vorherige Charge QRM-MER-2604-046 erwähnt, jedoch fehlt eine explizite Bewertung aller Folgechargen oder eine Begründung, warum keine weiteren Chargen betroffen sein könnten. Der Deviation Report (DEV-2604-095) erwähnt, dass freigegebene Chargen erst nach Abschluss der Bewertung betrachtet werden, was impliziert, dass eine vollständige Erfassung noch aussteht.",
+      "evidence_items": [
+        {
+          "document_id": "doc_95c592b244b14e4b946ae7d8e1d14304",
+          "chunk_id": "chunk_95c592b244b14e4b946ae7d8e1d14304_p1",
+          "page": 1,
+          "quote": "Freigegebene Chargen werden nach Abschluss der Bewertung betrachtet, sofern ein bestätigter Sensorfehler vorliegt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "medium",
+      "risk_statement": "Die Freigabeentscheidung für die Charge QRM-MER-2604-052 ist nachvollziehbar dokumentiert und mit dem Batch Record verknüpft. Die Quality Approval Note (QA-N-2604-117) verweist auf den BMR-Auszug und bestätigt die Freigabe.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die Charge QRM-MER-2604-052 wurde freigegeben, obwohl die Abweichungsbewertung (DEV-2604-095) zum Zeitpunkt der Freigabe noch nicht abgeschlossen war. Der Deviation Report erwähnt, dass der Produktimpact noch in Bearbeitung ist, und die Quality Approval Note bestätigt, dass DEV-2604-095 bis zum Abschluss der Sensorbewertung offen bleibt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_95c592b244b14e4b946ae7d8e1d14304",
+          "chunk_id": "chunk_95c592b244b14e4b946ae7d8e1d14304_p1",
+          "page": 1,
+          "quote": "Produktimpactbewertung für QRM-MER-2604-052 in Bearbeitung. Status DEV-2604-095: offen; Produktimpact wartet auf Stabilitätsreview."
+        },
+        {
+          "document_id": "doc_141f0c9fbae3441bbe7c8d8d9ed3bee3",
+          "chunk_id": "chunk_141f0c9fbae3441bbe7c8d8d9ed3bee3_p1",
+          "page": 1,
+          "quote": "DEV-2604-095 bleibt bis Abschluss der Sensorbewertung offen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die CAPA-Wirksamkeitsprüfung ist nicht ausreichend dokumentiert. Zwar wird eine Wirksamkeitsprüfung mit drei Folgechargen bis zum 2026-05-05 erwähnt, jedoch fehlt der Nachweis, dass diese tatsächlich durchgeführt wurde. Zudem ist die nächste geplante Charge erst für den 2026-07-14 terminiert, was die Durchführung der Wirksamkeitsprüfung bis zum genannten Termin infrage stellt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_141f0c9fbae3441bbe7c8d8d9ed3bee3",
+          "chunk_id": "chunk_141f0c9fbae3441bbe7c8d8d9ed3bee3_p1",
+          "page": 1,
+          "quote": "CAPA-Wirksamkeitsprüfung: drei aufeinanderfolgende Folgechargen ohne LOD-Abweichung bis 2026-05-05. Nächste geplante Merquafil-Kapselcharge laut Produktionsplanung: 2026-07-14."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_responsible_timeline",
+      "severity": "medium",
+      "risk_statement": "Die Unterlagen enthalten keinen benannten Maßnahmenverantwortlichen oder einen konkreten, realisierbaren Umsetzungstermin für die CAPA-Maßnahmen. Die Quality Approval Note erwähnt lediglich eine terminierte Wirksamkeitsprüfung, jedoch keine Verantwortlichkeiten oder detaillierte Termine.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_responsible_timeline"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_cc_impact_and_validation",
+      "severity": "high",
+      "risk_statement": "Der Auto-Endpunkt Algorithmus AE-2 wurde für die Charge QRM-MER-2604-052 genutzt, obwohl die Implementierungsfreigabe zum Zeitpunkt der Nutzung noch ausstand. Die Change Control (CC-2604-011) bestätigt, dass die vorläufige Nutzung im Routinebetrieb nicht freigegeben war. Eine dokumentierte Auswirkungsbewertung oder Validierungsabdeckung fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e102a3bb3d9841a09231fe9bc1f4904c",
+          "chunk_id": "chunk_e102a3bb3d9841a09231fe9bc1f4904c_p1",
+          "page": 1,
+          "quote": "Vorläufige Nutzung im Routinebetrieb: nicht freigegeben."
+        },
+        {
+          "document_id": "doc_a7c3d2dbe9214f5fbb9a00e6aa4e6f49",
+          "chunk_id": "chunk_a7c3d2dbe9214f5fbb9a00e6aa4e6f49_p1",
+          "page": 1,
+          "quote": "Endpunktsteuerung: Auto-Endpunkt Algorithmus AE-2"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_cc_impact_and_validation"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen. Zwar gibt es eine Stabilitätsbewertung (STAB-2604-027) für die Charge QRM-MER-2604-052, jedoch fehlt eine explizite Bewertung der potenziell betroffenen vorherigen Charge QRM-MER-2604-046, die im gleichen Zeitraum auf der Anlage D-17 getrocknet wurde. Der Deviation Report (DEV-2604-095) erwähnt zwar die vorherige Charge, aber eine dokumentierte Impact-Bewertung für diese Charge ist nicht vorhanden. Zudem ist der Status der Deviation als 'offen' markiert, was darauf hindeutet, dass die Bewertung noch nicht abgeschlossen ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_95c592b244b14e4b946ae7d8e1d14304",
+          "chunk_id": "chunk_95c592b244b14e4b946ae7d8e1d14304_p1",
+          "page": 1,
+          "quote": "Produktimpactbewertung für QRM-MER-2604-052 in Bearbeitung. Status DEV-2604-095: offen; Produktimpact wartet auf Stabilitätsreview. Freigegebene Chargen werden nach Abschluss der Bewertung betrachtet, sofern ein bestätigter Sensorfehler vorliegt."
+        },
+        {
+          "document_id": "doc_95c592b244b14e4b946ae7d8e1d14304",
+          "chunk_id": "chunk_95c592b244b14e4b946ae7d8e1d14304_p1",
+          "page": 1,
+          "quote": "D-17 wurde im betroffenen Zeitraum für QRM-MER-2604-046 am 2026-04-02 und QRM-MER-2604-052 am 2026-04-15 verwendet."
+        },
+        {
+          "document_id": "doc_a7c3d2dbe9214f5fbb9a00e6aa4e6f49",
+          "chunk_id": "chunk_a7c3d2dbe9214f5fbb9a00e6aa4e6f49_p1",
+          "page": 1,
+          "quote": "Vorherige Merquafil-Charge auf D-17: QRM-MER-2604-046, Trocknung am 2026-04-02. Status vorherige Charge laut Produktionsplanung: freigegeben am 2026-04-10."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die Anforderung verlangt, dass Out-of-Specification- (OOS) oder Out-of-Trend- (OOT) Ergebnisse vollständig untersucht und bewertet sein müssen, bevor eine Chargen- oder Marktware-Disposition erfolgt. Die Charge QRM-MER-2604-052 weist einen LOD-Wert von 2,8 % auf, der über der Spezifikation von NMT 2,5 % liegt. Dieser OOS-Wert wurde zwar im Batch Record akzeptiert, jedoch fehlt eine dokumentierte OOS-Untersuchung oder eine vollständige Bewertung der Ursache und Auswirkungen vor der Freigabeentscheidung. Die Quality Approval Note empfiehlt die Charge zur Freigabe, ohne dass eine abgeschlossene OOS-Untersuchung vorliegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_a7c3d2dbe9214f5fbb9a00e6aa4e6f49",
+          "chunk_id": "chunk_a7c3d2dbe9214f5fbb9a00e6aa4e6f49_p1",
+          "page": 1,
+          "quote": "LOD Intermediate Blend: 2.8 %  \nSpezifikation LOD Intermediate Blend: NMT 2.5 %  \nBedienerkommentar: Wert akzeptiert, da Stabilitätsbewertung mit NMT 3.5 % geplant."
+        },
+        {
+          "document_id": "doc_141f0c9fbae3441bbe7c8d8d9ed3bee3",
+          "chunk_id": "chunk_141f0c9fbae3441bbe7c8d8d9ed3bee3_p1",
+          "page": 1,
+          "quote": "Charge QRM-MER-2604-052 zur Freigabe empfohlen. DEV-2604-095 bleibt bis Abschluss der Sensorbewertung offen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt, dass die Einstufung einer Abweichung durch eine nachvollziehbare Risikobewertung belegt sein muss. Im vorliegenden Fall gibt es keine dokumentierte Risikobewertung, die die Einstufung der Abweichung (z. B. als Minor, Major oder Kritisch) begründet. Der Deviation Report erwähnt lediglich einen 'Driftverdacht' des Feuchtesensors, ohne eine systematische Risikobewertung oder labortechnische Daten zur Untermauerung der Einstufung vorzulegen. Die Stabilitätsbewertung (STAB-2604-027) bezieht sich nur auf die Charge QRM-MER-2604-052, ohne die Risikoklassifizierung der Abweichung selbst zu adressieren.",
+      "evidence_items": [
+        {
+          "document_id": "doc_95c592b244b14e4b946ae7d8e1d14304",
+          "chunk_id": "chunk_95c592b244b14e4b946ae7d8e1d14304_p1",
+          "page": 1,
+          "quote": "Bei der Review der Prozesskurven wurde festgestellt, dass der Feuchtesensor RH-D17 einen Driftverdacht zeigte."
+        },
+        {
+          "document_id": "doc_8a97858db7ba45f2ae51b52a051392c7",
+          "chunk_id": "chunk_8a97858db7ba45f2ae51b52a051392c7_p1",
+          "page": 1,
+          "quote": "Auf Basis der geplanten Stabilitätsüberwachung wird kein unmittelbares Stabilitätsrisiko für QRM-MER-2604-052 erwartet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt, dass die Grundursache einer Abweichung durch eine angemessene Untersuchung belegt sein muss. Im vorliegenden Fall gibt es keinen dokumentierten Ausschluss technischer Ursachen (z. B. Equipment, Kalibrierung, Alarme) für den Driftverdacht des Feuchtesensors RH-D17. Der Deviation Report erwähnt lediglich den Driftverdacht, ohne eine systematische Untersuchung oder den Ausschluss technischer Ursachen zu dokumentieren. Die Kalibrierung des Sensors ist zudem erst für den 2026-05-31 fällig, was eine mögliche technische Ursache nicht ausschließt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_95c592b244b14e4b946ae7d8e1d14304",
+          "chunk_id": "chunk_95c592b244b14e4b946ae7d8e1d14304_p1",
+          "page": 1,
+          "quote": "Bei der Review der Prozesskurven wurde festgestellt, dass der Feuchtesensor RH-D17 einen Driftverdacht zeigte."
+        },
+        {
+          "document_id": "doc_a7c3d2dbe9214f5fbb9a00e6aa4e6f49",
+          "chunk_id": "chunk_a7c3d2dbe9214f5fbb9a00e6aa4e6f49_p1",
+          "page": 1,
+          "quote": "RH-D17 Kalibrierung fällig: 2026-05-31."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt, dass Aufzeichnungen vollständig, konsistent, original und verfügbar sein müssen (ALCOA+). Im vorliegenden Fall fehlt eine vollständige und konsistente Dokumentation der OOS-Untersuchung für den LOD-Wert von 2,8 %, der über der Spezifikation von NMT 2,5 % liegt. Der Bedienerkommentar im Batch Record akzeptiert den Wert ohne dokumentierte Begründung oder Autorisierung, was gegen die Vollständigkeit und Konsistenz der Aufzeichnungen verstößt. Zudem ist die Deviation (DEV-2604-095) zum Zeitpunkt der Freigabeentscheidung noch offen, was die Verfügbarkeit vollständiger Originalaufzeichnungen infrage stellt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_a7c3d2dbe9214f5fbb9a00e6aa4e6f49",
+          "chunk_id": "chunk_a7c3d2dbe9214f5fbb9a00e6aa4e6f49_p1",
+          "page": 1,
+          "quote": "LOD Intermediate Blend: 2.8 %  \nSpezifikation LOD Intermediate Blend: NMT 2.5 %  \nBedienerkommentar: Wert akzeptiert, da Stabilitätsbewertung mit NMT 3.5 % geplant."
+        },
+        {
+          "document_id": "doc_141f0c9fbae3441bbe7c8d8d9ed3bee3",
+          "chunk_id": "chunk_141f0c9fbae3441bbe7c8d8d9ed3bee3_p1",
+          "page": 1,
+          "quote": "DEV-2604-095 bleibt bis Abschluss der Sensorbewertung offen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keinen Hinweis auf einen Audit Trail oder dessen Review für den Feuchtesensor RH-D17 oder den Auto-Endpunkt Algorithmus AE-2. Es gibt keine Belege, dass ein risikobasierter Audit-Trail-Review durchgeführt wurde, obwohl der Driftverdacht des Sensors ein sicherheits- oder qualitätsrelevantes Ereignis darstellt.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Es wird in den Dokumenten auf Pflichtanhänge wie den BMR-Auszug oder Prozesskurven referenziert, jedoch fehlt der Nachweis, dass diese Anhänge tatsächlich vorhanden und aktuell sind. Beispielsweise wird im Deviation Report auf Prozesskurven verwiesen, die nicht als Anhang bereitgestellt wurden.",
+      "evidence_items": [
+        {
+          "document_id": "doc_95c592b244b14e4b946ae7d8e1d14304",
+          "chunk_id": "chunk_95c592b244b14e4b946ae7d8e1d14304_p1",
+          "page": 1,
+          "quote": "Bei der Review der Prozesskurven wurde festgestellt, dass der Feuchtesensor RH-D17 einen Driftverdacht zeigte."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "Der kritische Prozessparameter LOD Intermediate Blend (2,8 %) überschreitet die spezifizierte Grenze von NMT 2,5 %. Dies wird im Batch Record explizit dokumentiert, jedoch nicht als Abweichung bewertet, obwohl die Überschreitung als solche zu behandeln ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_a7c3d2dbe9214f5fbb9a00e6aa4e6f49",
+          "chunk_id": "chunk_a7c3d2dbe9214f5fbb9a00e6aa4e6f49_p1",
+          "page": 1,
+          "quote": "LOD Intermediate Blend: 2.8 %  \nSpezifikation LOD Intermediate Blend: NMT 2.5 %  \nBedienerkommentar: Wert akzeptiert, da Stabilitätsbewertung mit NMT 3.5 % geplant."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_qa_approval_documented",
+      "severity": "medium",
+      "risk_statement": "Die QA-Freigabe für die Charge QRM-MER-2604-052 ist dokumentiert und liegt vor Abschluss des Vorgangs vor. Dies wird in der Quality Approval Note bestätigt.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_qa_approval_documented"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Die interne Spezifikation für den LOD (Loss on Drying) des Intermediate Blend beträgt NMT 2.5 %. Der gemessene Wert von 2.8 % überschreitet diese Spezifikation, wurde jedoch mit dem Kommentar 'Wert akzeptiert, da Stabilitätsbewertung mit NMT 3.5 % geplant' akzeptiert. Dies stellt eine Verletzung der internen Akzeptanzkriterien dar, da die Spezifikation nicht eingehalten wurde und keine ausreichende Begründung für die Abweichung vorliegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_a7c3d2dbe9214f5fbb9a00e6aa4e6f49",
+          "chunk_id": "chunk_a7c3d2dbe9214f5fbb9a00e6aa4e6f49_p1",
+          "page": 1,
+          "quote": "LOD Intermediate Blend: 2.8 %  \nSpezifikation LOD Intermediate Blend: NMT 2.5 %  \nBedienerkommentar: Wert akzeptiert, da Stabilitätsbewertung mit NMT 3.5 % geplant."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente enthalten keine Nachweise über Schulungen oder die Wirksamkeit von Trainings im Zusammenhang mit der Einführung des Auto-Endpunkt-Algorithmus AE-2. Obwohl die Aktualisierung der BMR-Checkliste als offener Punkt im Change Control erwähnt wird, fehlt ein konkreter Schulungsnachweis.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e102a3bb3d9841a09231fe9bc1f4904c",
+          "chunk_id": "chunk_e102a3bb3d9841a09231fe9bc1f4904c_p1",
+          "page": 1,
+          "quote": "- Aktualisierung BMR-Checkliste"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Der Auto-Endpunkt-Algorithmus AE-2 wurde für die Charge QRM-MER-2604-052 verwendet, obwohl die Implementierungsfreigabe aussteht und der PPQ-Lauf 3 noch nicht abgeschlossen ist. Dies stellt eine Nutzung im Routinebetrieb dar, die nicht durch eine aktuelle Validierung abgedeckt ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_a7c3d2dbe9214f5fbb9a00e6aa4e6f49",
+          "chunk_id": "chunk_a7c3d2dbe9214f5fbb9a00e6aa4e6f49_p1",
+          "page": 1,
+          "quote": "Endpunktsteuerung: Auto-Endpunkt Algorithmus AE-2"
+        },
+        {
+          "document_id": "doc_e102a3bb3d9841a09231fe9bc1f4904c",
+          "chunk_id": "chunk_e102a3bb3d9841a09231fe9bc1f4904c_p1",
+          "page": 1,
+          "quote": "Status zum 2026-04-16: Implementierungsfreigabe ausstehend; PPQ-Lauf 3 geplant 2026-04-29.  \nVorläufige Nutzung im Routinebetrieb: nicht freigegeben."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    }
+  ],
+  "CASE_09": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keine Chargenliste oder Begründung der Chargenauswahl, insbesondere keine Erwähnung von Vorgänger- oder Folgechargen. Es gibt keinen Nachweis, dass alle potenziell betroffenen Chargen erfasst wurden.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Es gibt keine dokumentierte Freigabe- oder Dispositionsentscheidung für die betroffene Charge QRM-TER-2603-067. Der Batch Record (BMR-TER-2603-067-F) ist vorhanden, aber ohne Verknüpfung zu einer Dispositionsentscheidung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_0c97c0d44e07409a829e671da593bd22",
+          "chunk_id": "chunk_0c97c0d44e07409a829e671da593bd22_p1",
+          "page": 1,
+          "quote": "**BMR-ID:** BMR-TER-2603-067-F  \n**Produkt:** Teralvon 20 mg/mL  \n**Charge:** QRM-TER-2603-067"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die Reinigung der Anlage FB-22/TL-22 wurde am 2026-03-12 durchgeführt, und die nächste geplante Nutzung war für den 2026-03-13 vorgesehen. Es gibt jedoch keine dokumentierte abgeschlossene Abweichungsbewertung oder QA-Freigabe vor der nächsten Nutzung. Die RCA/CAPA (RCA-CAPA-2603-057) wurde erst am 2026-03-13 erstellt, also *nach* der nächsten geplanten Nutzung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_0c97c0d44e07409a829e671da593bd22",
+          "chunk_id": "chunk_0c97c0d44e07409a829e671da593bd22_p1",
+          "page": 1,
+          "quote": "Nächste geplante Nutzung der Anlage: 2026-03-13."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die CAPA-Maßnahme Nr. 1 (Retraining OP-44) sieht als Wirksamkeitsprüfung lediglich den \"Review der nächsten Reinigung\" vor. Dies ist keine definierte und dokumentierte Wirksamkeitsprüfung (Effectiveness Check) im Sinne von GMP-Anforderungen, da kein klares Kriterium oder Verfahren für die Überprüfung der Wirksamkeit festgelegt ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3422a1aa3be145c48e8bee9e5c8f4551",
+          "chunk_id": "chunk_3422a1aa3be145c48e8bee9e5c8f4551_p1",
+          "page": 1,
+          "quote": "| 1 | Retraining OP-44 auf Einrasten der Sprühlanze. | TR-06 | 2026-03-20 | Review der nächsten Reinigung |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Dokumente belegen eine Abweichung (verspätete Reinigungsdokumentation und technische Bemerkung zur Sprühverteilung in CR-2603-041), jedoch fehlt eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit sowie eine Chargenliste. Der RCA/CAPA-Bericht (RCA-CAPA-2603-057) erwähnt lediglich, dass alle analytischen Endwerte innerhalb der Reinigungsgrenzen lagen, ohne eine formale Impact Assessment durchzuführen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3422a1aa3be145c48e8bee9e5c8f4551",
+          "chunk_id": "chunk_3422a1aa3be145c48e8bee9e5c8f4551_p1",
+          "page": 1,
+          "quote": "Alle analytischen Endwerte lagen innerhalb der Reinigungsgrenzen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Abweichung (Sprühverteilung und verspätete Dokumentation) wurde im RCA/CAPA-Bericht nicht durch eine nachvollziehbare Risikobewertung eingestuft. Es fehlen belastbare physikalisch-chemische oder labortechnische Daten zur Begründung der Einstufung. Die Aussage, dass alle analytischen Endwerte innerhalb der Grenzen lagen, ersetzt keine formale Risikobewertung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3422a1aa3be145c48e8bee9e5c8f4551",
+          "chunk_id": "chunk_3422a1aa3be145c48e8bee9e5c8f4551_p1",
+          "page": 1,
+          "quote": "Root Cause: Operator hat Sprühlanze N-4 nicht vollständig in Reinigungsposition eingerastet. Begründung: Abweichende Sprühverteilung wurde im Schichtgespräch als wahrscheinlich angesehen."
+        },
+        {
+          "document_id": "doc_3422a1aa3be145c48e8bee9e5c8f4551",
+          "chunk_id": "chunk_3422a1aa3be145c48e8bee9e5c8f4551_p1",
+          "page": 1,
+          "quote": "Alle analytischen Endwerte lagen innerhalb der Reinigungsgrenzen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Grundursache der Abweichung (Sprühlanze nicht vollständig eingerastet) wurde als 'Bedienerfehler' klassifiziert, ohne dass technische Ursachen (z. B. Equipment, Kalibrierung, Alarme) dokumentiert ausgeschlossen wurden. Die Maintenance Note (MTN-2603-049) belegt eine partielle Blockade der Sprühdüse, die nicht als mögliche technische Ursache bewertet wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3422a1aa3be145c48e8bee9e5c8f4551",
+          "chunk_id": "chunk_3422a1aa3be145c48e8bee9e5c8f4551_p1",
+          "page": 1,
+          "quote": "Root Cause: Operator hat Sprühlanze N-4 nicht vollständig in Reinigungsposition eingerastet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die Reinigungsdokumentation (CR-2603-041) wurde verspätet erstellt, was gegen das ALCOA+-Prinzip der Zeitgleichheit verstößt. Zudem fehlt eine lückenlose Nachvollziehbarkeit der Abweichung, da die technische Ursache (partielle Blockade der Sprühdüse) nicht in der Reinigungsaufzeichnung, sondern erst in der Maintenance Note dokumentiert wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3422a1aa3be145c48e8bee9e5c8f4551",
+          "chunk_id": "chunk_3422a1aa3be145c48e8bee9e5c8f4551_p1",
+          "page": 1,
+          "quote": "QA stellte im Review eine verspätete Reinigungsdokumentation und eine technische Bemerkung zur Sprühverteilung fest."
+        },
+        {
+          "document_id": "doc_68d82e219bb541a8a4ca9575b6c696c6",
+          "chunk_id": "chunk_68d82e219bb541a8a4ca9575b6c696c6_p1",
+          "page": 1,
+          "quote": "Bei der Funktionsprüfung nach Reinigung wurde Sprühdüse N-4 mit partieller Blockade gefunden."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keine Hinweise auf einen Audit Trail oder dessen Review für elektronische Daten im Zusammenhang mit dem Reinigungsvorgang oder der Chargendokumentation. Es gibt keinen Beleg dafür, dass ein Audit-Trail-Review durchgeführt oder risikobasiert geprüft wurde.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "medium",
+      "risk_statement": "Die elektronischen Unterschriften im Cleaning Record enthalten Name, Datum und Zeit der Signatur sowie deren Bedeutung. Die Zeitangaben sind plausibel und konsistent mit dem Vorgang (Reinigung am 2026-03-12).",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_doc_cross_consistency",
+      "severity": "medium",
+      "risk_statement": "Es besteht ein Widerspruch zwischen der validierten Detergentkonzentration (1,0 % ±0,1 % laut Cleaning Validation Note) und der tatsächlich verwendeten Konzentration (0,5 % laut Cleaning Record). Dies wurde im RCA/CAPA-Report als nicht change-control-relevant bewertet, obwohl die Cleaning Validation Note eine Änderung der Detergentkonzentration als change-control-pflichtig einstuft.",
+      "evidence_items": [
+        {
+          "document_id": "doc_714221a55e6d49b6b9ddd789cf2c46f3",
+          "chunk_id": "chunk_714221a55e6d49b6b9ddd789cf2c46f3_p1",
+          "page": 1,
+          "quote": "Detergent: Cleansol-M 0.5 %  \nZielkonzentration laut Reinigungsblatt: 0.5 %"
+        },
+        {
+          "document_id": "doc_3422a1aa3be145c48e8bee9e5c8f4551",
+          "chunk_id": "chunk_3422a1aa3be145c48e8bee9e5c8f4551_p1",
+          "page": 1,
+          "quote": "Change Control für Detergentkonzentration: nicht anwendbar, da Endwerte bestanden."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_doc_cross_consistency"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente enthalten keine explizite Auflistung aller Pflichtanhänge oder Nachweise, die für den Reinigungsvorgang oder die Chargendokumentation referenziert werden. Es ist unklar, ob alle Pflichtanhänge vorhanden und aktuell sind.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "Die Hauptspültemperatur lag mit 58 °C außerhalb der spezifizierten Grenzen von 60 °C ±5 °C (d. h. 55–65 °C). Obwohl die Endwerte (z. B. TOC) innerhalb der Spezifikationen lagen, stellt dies eine Abweichung von den validierten Prozessparametern dar.",
+      "evidence_items": [
+        {
+          "document_id": "doc_714221a55e6d49b6b9ddd789cf2c46f3",
+          "chunk_id": "chunk_714221a55e6d49b6b9ddd789cf2c46f3_p1",
+          "page": 1,
+          "quote": "Hauptspülung Temperatur: 58 °C bei Ziel 60 °C ±5 °C"
+        },
+        {
+          "document_id": "doc_567f1d603dfb446397841c450fd1bf1b",
+          "chunk_id": "chunk_567f1d603dfb446397841c450fd1bf1b_p1",
+          "page": 1,
+          "quote": "Hauptspülung Temperatur: 60 °C ±5 °C."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "medium",
+      "risk_statement": "Die Reinigungsparameter im Cleaning Record (CR-2603-041) wurden gegen interne Akzeptanzkriterien bewertet. Beispielsweise wurde der TOC-Wert von 315 ppb mit dem Kriterium 'NMT 500 ppb' verglichen und als konform befunden. Zudem wurde die Temperatur der Hauptspülung (58 °C) gegen das Ziel von 60 °C ±5 °C geprüft.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "high",
+      "risk_statement": "Im RCA/CAPA-Report (RCA-CAPA-2603-057) wird eine Maßnahme zur Nachschulung des Operators (OP-44) aufgrund einer nicht vollständig eingerasteten Sprühlanze dokumentiert. Dies belegt, dass das Training nicht wirksam war, bevor die Tätigkeit ausgeführt wurde. Zudem fehlt ein Nachweis der Wirksamkeit des Retrainings vor der nächsten Reinigung.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_cleaning_sterility",
+      "severity": "high",
+      "risk_statement": "Die Reinigungsvalidierung (VAL-CLN-FB22 Rev.05) schreibt eine Detergentkonzentration von 1.0 % ±0.1 % vor, während im Cleaning Record (CR-2603-041) nur 0.5 % Cleansol-M verwendet wurde. Dies stellt eine Abweichung von der validierten Bedingung dar, ohne dass eine dokumentierte Brückenbewertung oder ein Change Control vorliegt. Zudem wurde im Maintenance Note (MTN-2603-049) eine partielle Blockade der Sprühdüse N-4 festgestellt, die die Sprühverteilung beeinträchtigt haben könnte. Dies wurde nicht als Risiko für die Reinigungsvalidierung bewertet.",
+      "evidence_items": [
+        {
+          "document_id": "doc_714221a55e6d49b6b9ddd789cf2c46f3",
+          "chunk_id": "chunk_714221a55e6d49b6b9ddd789cf2c46f3_p1",
+          "page": 1,
+          "quote": "Detergent: Cleansol-M 0.5 %\nZielkonzentration laut Reinigungsblatt: 0.5 %"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_val_cleaning_sterility"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die Reinigungsvalidierung (VAL-CLN-FB22 Rev.05) wurde mit einer Detergentkonzentration von 1.0 % ±0.1 % durchgeführt, während im Cleaning Record (CR-2603-041) nur 0.5 % Cleansol-M verwendet wurde. Dies stellt eine Abweichung vom validierten Zustand dar, ohne dass eine dokumentierte Brückenbewertung oder ein Change Control vorliegt. Zudem wurde im Maintenance Note (MTN-2603-049) eine technische Einschränkung der Sprühverteilung festgestellt, die nicht durch die aktuelle Validierung abgedeckt ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_714221a55e6d49b6b9ddd789cf2c46f3",
+          "chunk_id": "chunk_714221a55e6d49b6b9ddd789cf2c46f3_p1",
+          "page": 1,
+          "quote": "Detergent: Cleansol-M 0.5 %"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    }
+  ],
+  "CASE_10": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine Chargenliste oder Begründung zur Auswahl der betroffenen Charge QRM-ZEP-2604-014. Es gibt keinen Nachweis über die Erfassung von Vorgänger- oder Folgechargen.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die Charge QRM-ZEP-2604-014 wurde zur Freigabe empfohlen, obwohl die Abweichungsbewertung (DEV-2604-074) und das APS-Bridging für den Change Control (CC-2604-019) nicht abgeschlossen waren. Die EM-Abweichung DEV-2604-074 blieb offen, und die QA-Freigabe für die Implementierung des Change Control stand aus.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ebdd3df34e754a3ea81cddc76758b279",
+          "chunk_id": "chunk_ebdd3df34e754a3ea81cddc76758b279_p1",
+          "page": 1,
+          "quote": "DEV-2604-074 bleibt offen bis QA-Abschlussbewertung."
+        },
+        {
+          "document_id": "doc_8ae278442e5d44fb88641e3739b8760f",
+          "chunk_id": "chunk_8ae278442e5d44fb88641e3739b8760f_p1",
+          "page": 1,
+          "quote": "Status zum 2026-04-20: APS-Bridging in Erstellung, QA-Freigabe ausstehend."
+        },
+        {
+          "document_id": "doc_f6e25d4165354390bad4b92ec706d5af",
+          "chunk_id": "chunk_f6e25d4165354390bad4b92ec706d5af_p1",
+          "page": 1,
+          "quote": "Charge QRM-ZEP-2604-014 zur Freigabe empfohlen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine Informationen zu CAPA-Maßnahmen oder einer dokumentierten Wirksamkeitsprüfung für die EM-Abweichung DEV-2604-074.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_capa_responsible_timeline",
+      "severity": "medium",
+      "risk_statement": "Es gibt keine dokumentierten CAPA-Maßnahmen, daher fehlen auch ein benannter Maßnahmenverantwortlicher und ein Umsetzungstermin.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_responsible_timeline"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_cc_impact_and_validation",
+      "severity": "high",
+      "risk_statement": "Der Change Control CC-2604-019 (Erhöhung der Füllgeschwindigkeit und Austausch des Stopfentrichters) wurde ohne abgeschlossenes APS-Bridging und ohne QA-Freigabe in der Routine eingesetzt. Eine dokumentierte Auswirkungsbewertung oder Validierungsaktualisierung fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_8ae278442e5d44fb88641e3739b8760f",
+          "chunk_id": "chunk_8ae278442e5d44fb88641e3739b8760f_p1",
+          "page": 1,
+          "quote": "Routineeinsatz erst nach APS-Bridging-Bewertung und QA-Freigabe zulässig.  \nStatus zum 2026-04-20: APS-Bridging in Erstellung, QA-Freigabe ausstehend."
+        },
+        {
+          "document_id": "doc_ffb9bbc98c414d22b8a3b57298c113ef",
+          "chunk_id": "chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1",
+          "page": 1,
+          "quote": "Füllgeschwindigkeit Routine: 165 Vials/min  \nStopfentrichter-Konfiguration: Bowl-Typ SB-9"
+        },
+        {
+          "document_id": "doc_b25ad84d31804e25a36db581a034472e",
+          "chunk_id": "chunk_b25ad84d31804e25a36db581a034472e_p1",
+          "page": 1,
+          "quote": "Abgedeckte Füllgeschwindigkeit: 120 Vials/min.  \nAbgedeckte Stopfentrichter-Konfiguration: Bowl-Typ SB-7."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_cc_impact_and_validation"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Abweichung DEV-2604-074 (EM-Abweichung) ist belegt (Chunk chunk_ebdd3df34e754a3ea81cddc76758b279_p1), jedoch fehlt eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit sowie eine Chargenliste der potenziell betroffenen Chargen. Die QA-Note (Chunk chunk_f6e25d4165354390bad4b92ec706d5af_p1) bestätigt lediglich die Einstufung als 'low' ohne detaillierte Impact-Assessment-Dokumentation.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ebdd3df34e754a3ea81cddc76758b279",
+          "chunk_id": "chunk_ebdd3df34e754a3ea81cddc76758b279_p1",
+          "page": 1,
+          "quote": "EM-Abweichung DEV-2604-074 eröffnet. Initiale Einstufung: low, da Wiederholungsprobe nach Desinfektion 0 KBE zeigte."
+        },
+        {
+          "document_id": "doc_f6e25d4165354390bad4b92ec706d5af",
+          "chunk_id": "chunk_f6e25d4165354390bad4b92ec706d5af_p1",
+          "page": 1,
+          "quote": "Die EM-Abweichung wurde als low bestätigt. Die Verwendung von SB-9 und 165 Vials/min wird als prozessnah zur vorhandenen APS-Bewertung angesehen. DEV-2604-074 bleibt administrativ offen bis zur finalen CAPA-Zuordnung."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Einstufung der EM-Abweichung DEV-2604-074 als 'low' ist nicht durch eine nachvollziehbare Risikobewertung mit belastbaren physikalisch-chemischen oder labortechnischen Daten belegt. Die Begründung stützt sich lediglich auf eine Wiederholungsprobe mit 0 KBE (Chunk chunk_ebdd3df34e754a3ea81cddc76758b279_p1), ohne weitere Risikoanalyse.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ebdd3df34e754a3ea81cddc76758b279",
+          "chunk_id": "chunk_ebdd3df34e754a3ea81cddc76758b279_p1",
+          "page": 1,
+          "quote": "EM-Abweichung DEV-2604-074 eröffnet. Initiale Einstufung: low, da Wiederholungsprobe nach Desinfektion 0 KBE zeigte."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Grundursache der EM-Abweichung DEV-2604-074 (2 KBE im Stopfentrichter SB-9) ist nicht durch eine angemessene Untersuchung belegt. Es gibt keine Dokumentation, die technische Ursachen (z. B. Equipment, Kalibrierung) ausschließt. Der aseptische Eingriff zur Entfernung eines verklemmten Stopfens (Chunk chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1) könnte eine mögliche Ursache sein, wurde aber nicht als solche untersucht.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ffb9bbc98c414d22b8a3b57298c113ef",
+          "chunk_id": "chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1",
+          "page": 1,
+          "quote": "11:42 Uhr: OP-SG führt aseptischen Eingriff zur Entfernung eines verklemmten Stopfens an SB-9 durch."
+        },
+        {
+          "document_id": "doc_ebdd3df34e754a3ea81cddc76758b279",
+          "chunk_id": "chunk_ebdd3df34e754a3ea81cddc76758b279_p1",
+          "page": 1,
+          "quote": "| A-SP-22 | Klasse A, Stopfentrichter SB-9 | 11:40-12:10 | 2 KBE | 0 KBE | EM-02 |"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_access_override_control",
+      "severity": "high",
+      "risk_statement": "Der aseptische Eingriff zur Entfernung eines verklemmten Stopfens (Chunk chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1) stellt einen manuellen Override dar. Es gibt jedoch keine Dokumentation, die eine Autorisierung, Begründung oder Nachvollziehbarkeit im Audit Trail belegt. Die Anforderung kann daher nicht als erfüllt oder verletzt bewertet werden.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ffb9bbc98c414d22b8a3b57298c113ef",
+          "chunk_id": "chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1",
+          "page": 1,
+          "quote": "11:42 Uhr: OP-SG führt aseptischen Eingriff zur Entfernung eines verklemmten Stopfens an SB-9 durch."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_access_override_control"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die Aufzeichnungen zur EM-Abweichung DEV-2604-074 und zum aseptischen Eingriff sind nicht vollständig im Sinne von ALCOA+. Es fehlt eine lückenlose Dokumentation der Grundursachenuntersuchung, der Risikobewertung und der Autorisierung des manuellen Eingriffs. Die QA-Note (Chunk chunk_f6e25d4165354390bad4b92ec706d5af_p1) bestätigt lediglich die Freigabeempfehlung, ohne die Vollständigkeit der Originalaufzeichnungen zu belegen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_f6e25d4165354390bad4b92ec706d5af",
+          "chunk_id": "chunk_f6e25d4165354390bad4b92ec706d5af_p1",
+          "page": 1,
+          "quote": "Geprüft wurden BMR-Auszug, EM-Bericht, Media-Fill-Referenz, Change Control und Anhang MF-3: Abgleich APS vs Routine. Vollständige Prüfung abgeschlossen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Die Dokumente enthalten keine Hinweise auf einen Audit Trail oder dessen Review für elektronische GxP-relevante Daten. Es gibt keinen Beleg, dass ein Audit-Trail-Review durchgeführt oder risikobasiert geprüft wurde.",
+      "evidence_items": [],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Der Change Control verweist auf ausstehende Nachweise (APS-Bridging Bericht, QA-Freigabe Implementierung, aktualisierte Interventionsbewertung), die nicht als vorhanden oder aktuell belegt sind. Die Quality Approval Note bestätigt lediglich die Prüfung eines Anhangs (MF-3), aber nicht die Vollständigkeit aller referenzierten Pflichtanhänge.",
+      "evidence_items": [
+        {
+          "document_id": "doc_8ae278442e5d44fb88641e3739b8760f",
+          "chunk_id": "chunk_8ae278442e5d44fb88641e3739b8760f_p1",
+          "page": 1,
+          "quote": "- APS-Bridging Bericht\n- QA-Freigabe Implementierung\n- Aktualisierte Interventionsbewertung"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "Die Media Fill Validation Note belegt, dass die verwendete Stopfentrichter-Konfiguration SB-9 und die erhöhte Füllgeschwindigkeit von 165 Vials/min nicht durch die vorhandene APS abgedeckt sind. Die Implementierungsbedingung des Change Control (APS-Bridging-Bewertung und QA-Freigabe vor Routineeinsatz) wurde nicht erfüllt, obwohl die Charge bereits produziert wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_8ae278442e5d44fb88641e3739b8760f",
+          "chunk_id": "chunk_8ae278442e5d44fb88641e3739b8760f_p1",
+          "page": 1,
+          "quote": "Routineeinsatz erst nach APS-Bridging-Bewertung und QA-Freigabe zulässig.\nStatus zum 2026-04-20: APS-Bridging in Erstellung, QA-Freigabe ausstehend."
+        },
+        {
+          "document_id": "doc_ffb9bbc98c414d22b8a3b57298c113ef",
+          "chunk_id": "chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1",
+          "page": 1,
+          "quote": "Füllgeschwindigkeit Routine: 165 Vials/min\nStopfentrichter-Konfiguration: Bowl-Typ SB-9"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine explizite interne Spezifikation oder Akzeptanzkriterien für die Füllvolumen- und Gewichtstrendprüfung. Zwar wird im Batch Manufacturing Record (chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1) erwähnt, dass diese 'innerhalb Spezifikation' lagen, jedoch fehlt der Nachweis der konkreten Spezifikationsgrenzen oder deren Einhaltung. Ohne diese ist eine Bewertung gegen interne Akzeptanzkriterien nicht möglich.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ffb9bbc98c414d22b8a3b57298c113ef",
+          "chunk_id": "chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1",
+          "page": 1,
+          "quote": "Füllvolumen und Gewichtstrend innerhalb Spezifikation. Sichtkontrolle vor Lyophilisation ohne Auffälligkeit."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_supplier_change_impact",
+      "severity": "high",
+      "risk_statement": "Die Änderung der Füllgeschwindigkeit und des Stopfentrichters (SB-7 auf SB-9) wurde im Change Control (chunk_8ae278442e5d44fb88641e3739b8760f_p1) dokumentiert. Allerdings fehlt der Nachweis einer vollständigen Impact-Bewertung, insbesondere des APS-Bridging-Berichts und der QA-Freigabe vor Routineeinsatz. Die Charge QRM-ZEP-2604-014 wurde bereits mit den geänderten Parametern (165 Vials/min, SB-9) produziert, obwohl die Implementierungsbedingung ('Routineeinsatz erst nach APS-Bridging-Bewertung und QA-Freigabe zulässig') nicht erfüllt war.",
+      "evidence_items": [
+        {
+          "document_id": "doc_8ae278442e5d44fb88641e3739b8760f",
+          "chunk_id": "chunk_8ae278442e5d44fb88641e3739b8760f_p1",
+          "page": 1,
+          "quote": "Routineeinsatz erst nach APS-Bridging-Bewertung und QA-Freigabe zulässig. \nStatus zum 2026-04-20: APS-Bridging in Erstellung, QA-Freigabe ausstehend."
+        },
+        {
+          "document_id": "doc_ffb9bbc98c414d22b8a3b57298c113ef",
+          "chunk_id": "chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1",
+          "page": 1,
+          "quote": "Füllgeschwindigkeit Routine: 165 Vials/min \nStopfentrichter-Konfiguration: Bowl-Typ SB-9"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_supplier_change_impact"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "medium",
+      "risk_statement": "Die Unterlagen enthalten keinen Nachweis über Schulungen oder die Wirksamkeit des Trainings für das Personal nach der Änderung der Füllgeschwindigkeit und des Stopfentrichters. Zwar wird im Batch Manufacturing Record (chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1) eine manuelle Intervention durch OP-SG dokumentiert, jedoch fehlt der Beleg, dass das Personal für die geänderten Prozessparameter (z. B. SB-9) geschult wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ffb9bbc98c414d22b8a3b57298c113ef",
+          "chunk_id": "chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1",
+          "page": 1,
+          "quote": "11:42 Uhr: OP-SG führt aseptischen Eingriff zur Entfernung eines verklemmten Stopfens an SB-9 durch."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_cleaning_sterility",
+      "severity": "high",
+      "risk_statement": "Die Unterlagen enthalten keine explizite Validierung oder Protokolle zur Reinigungs- und Sterilitätskontrolle für den Stopfentrichter SB-9 oder die Handschuhdesinfektion. Zwar wird im Environmental Monitoring Report (chunk_ebdd3df34e754a3ea81cddc76758b279_p1) eine Handschuhdesinfektion dokumentiert, jedoch fehlt der Nachweis einer validierten Kontaminationskontrollstrategie oder Sterilisationsvalidierung für die neuen Prozessbedingungen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ebdd3df34e754a3ea81cddc76758b279",
+          "chunk_id": "chunk_ebdd3df34e754a3ea81cddc76758b279_p1",
+          "page": 1,
+          "quote": "GLOVE-SG-1 | Handschuh OP-SG nach Desinfektion | 12:05 | 0 KBE | 1 KBE | EM-02"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_cleaning_sterility"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die Media Fill Validation (APS-ZEP-2602-004) deckt nicht die aktuellen Prozessparameter (Füllgeschwindigkeit 165 Vials/min, Stopfentrichter SB-9) ab. Die APS wurde mit 120 Vials/min und SB-7 durchgeführt, während die Charge QRM-ZEP-2604-014 mit 165 Vials/min und SB-9 produziert wurde. Die Quality Approval Note (chunk_f6e25d4165354390bad4b92ec706d5af_p1) erwähnt zwar einen 'Abgleich APS vs Routine', jedoch fehlt der Nachweis einer gültigen Übertragbarkeitsbegründung oder eines APS-Bridging-Berichts.",
+      "evidence_items": [
+        {
+          "document_id": "doc_b25ad84d31804e25a36db581a034472e",
+          "chunk_id": "chunk_b25ad84d31804e25a36db581a034472e_p1",
+          "page": 1,
+          "quote": "Abgedeckte Füllgeschwindigkeit: 120 Vials/min. \nAbgedeckte Stopfentrichter-Konfiguration: Bowl-Typ SB-7."
+        },
+        {
+          "document_id": "doc_ffb9bbc98c414d22b8a3b57298c113ef",
+          "chunk_id": "chunk_ffb9bbc98c414d22b8a3b57298c113ef_p1",
+          "page": 1,
+          "quote": "Füllgeschwindigkeit Routine: 165 Vials/min \nStopfentrichter-Konfiguration: Bowl-Typ SB-9"
+        },
+        {
+          "document_id": "doc_f6e25d4165354390bad4b92ec706d5af",
+          "chunk_id": "chunk_f6e25d4165354390bad4b92ec706d5af_p1",
+          "page": 1,
+          "quote": "Die Verwendung von SB-9 und 165 Vials/min wird als prozessnah zur vorhandenen APS-Bewertung angesehen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    }
+  ]
+}
