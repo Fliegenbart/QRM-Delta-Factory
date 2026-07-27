@@ -68,6 +68,18 @@ class Settings(BaseSettings):
         description="Force a single provider for all reviewer agents and claim extraction"
         " (e.g. 'mistral' for an EU-only stack). Empty keeps the per-role default mix.",
     )
+    requirement_review_assessor_provider: str = Field(
+        default="mistral",
+        description="Provider for the requirement-centric review path's assessor calls."
+        " Mistral by default: it carried 31 of 34 credited detections on the held-out"
+        " corpus and is the cheapest of the three.",
+    )
+    requirement_review_entailment_provider: str = Field(
+        default="anthropic",
+        description="Provider for the requirement path's entailment verification."
+        " Deliberately a different provider than the assessor, so the checker does"
+        " not share the assessor's blind spots.",
+    )
     critic_providers: str = Field(
         default="",
         description="Comma-separated providers that run an additional broad-scope red-team"

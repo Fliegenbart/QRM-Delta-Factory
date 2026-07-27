@@ -725,6 +725,7 @@ def run_case(
     case_dir: Path,
     *,
     pipeline_timeout_seconds: float = 300.0,
+    engine: str = "finding",
 ) -> dict[str, Any]:
     case_id = case_dir.name.upper()
     oracle_path = _oracle_path(case_dir)
@@ -754,6 +755,16 @@ def run_case(
         if upload.status_code != 201:
             raise RuntimeError(f"{case_id}: upload of {doc_path.name} failed: {upload.text}")
         uploaded.append(doc_path.name)
+
+    if engine == "requirement":
+        return _run_requirement_engine_case(
+            repository=repository,
+            audit_log=audit_log,
+            case_id=case_id,
+            document_set_id=document_set_id,
+            uploaded=uploaded,
+            oracle_path=oracle_path,
+        )
 
     pipeline_response = client.post(f"/document-sets/{document_set_id}/pipeline-runs")
     if pipeline_response.status_code != 202:
@@ -932,6 +943,178 @@ def run_case(
             findings=findings,
             matched=matched,
             risk_decision=decision,
+        ),
+    }
+
+
+def _run_requirement_engine_case(
+    *,
+    repository: Any,
+    audit_log: Any,
+    case_id: str,
+    document_set_id: str,
+    uploaded: list[str],
+    oracle_path: Path,
+) -> dict[str, Any]:
+    """Run the requirement-centric engine and score it with the same matcher.
+
+    Chunks exist after upload (ingestion chunks on upload, not in the
+    pipeline), so this path never starts the finding pipeline: no claim
+    ledger, no ten agents, no fusion. Verdicts published as violated or
+    unclear are converted into finding-shaped dicts so sensitivity, decoys
+    and quality metrics come from exactly the code paths the finding engine
+    is scored with -- the two paths must stay comparable on one ruler.
+    """
+    from app.services.requirement_review import default_requirement_review_engine
+
+    engine = default_requirement_review_engine(
+        repository=repository, audit_log=audit_log
+    )
+    report = engine.run(document_set_id)
+
+    findings = []
+    for verdict in report.verdicts:
+        if verdict.published_status.value not in {"violated", "unclear"}:
+            continue
+        if verdict.server_authored and not verdict.evidence:
+            # Inapplicable requirements never appear; failed-group UNCLEAR
+            # rows carry no evidence and cannot match a gold error anyway,
+            # but they stay countable as list length via verdict counts.
+            continue
+        findings.append(
+            {
+                "finding_id": f"req::{verdict.requirement_id}",
+                "severity": verdict.severity.value if verdict.severity else "medium",
+                "risk_statement": verdict.rationale,
+                "evidence_items": [
+                    {
+                        "document_id": item.document_id,
+                        "chunk_id": item.chunk_id,
+                        "page": item.page,
+                        "quote": item.quote,
+                    }
+                    for item in verdict.evidence
+                ],
+                "verification_result": {
+                    "quote_matches_chunk": verdict.provenance_ok,
+                },
+                "requirement_references": [verdict.requirement_id],
+                "published_status": verdict.published_status.value,
+                "entailment": verdict.entailment.value if verdict.entailment else None,
+            }
+        )
+
+    answer_key = _load_post_run_oracle(oracle_path)
+    matched, missed = _score_errors(answer_key, findings)
+    review_pack_matched, review_pack_missed = _score_visible_review_pack_errors(
+        answer_key, findings
+    )
+
+    decoy_hits: list[dict[str, Any]] = []
+    decoys_passed: list[dict[str, Any]] = []
+    for decoy in answer_key.get("non_error_decoys", []):
+        hit = _match_decoy(decoy, findings)
+        record = {
+            "decoy_id": decoy["decoy_id"],
+            "evidence_text": decoy.get("evidence_text"),
+            "hit": hit,
+        }
+        (decoy_hits if hit else decoys_passed).append(record)
+
+    matched_finding_ids = {
+        record["match"]["finding_id"] for record in matched if record["match"]
+    }
+    gold_related_finding_ids = _gold_related_finding_ids(
+        answer_key.get("errors", []), findings
+    )
+
+    def _summarize(finding: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "finding_id": finding.get("finding_id"),
+            "severity": finding.get("severity"),
+            "risk_statement": finding.get("risk_statement"),
+        }
+
+    redundant_findings = [
+        _summarize(finding)
+        for finding in findings
+        if finding.get("finding_id") in gold_related_finding_ids
+        and finding.get("finding_id") not in matched_finding_ids
+    ]
+    unmatched_findings = [
+        _summarize(finding)
+        for finding in findings
+        if finding.get("finding_id") not in gold_related_finding_ids
+    ]
+    verified = [
+        finding
+        for finding in findings
+        if (finding.get("verification_result") or {}).get("quote_matches_chunk")
+    ]
+
+    tokens_by_provider: dict[str, dict[str, int]] = {}
+    for call in report.model_calls:
+        bucket = tokens_by_provider.setdefault(
+            call.provider,
+            {"input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "calls": 0},
+        )
+        bucket["input_tokens"] += call.input_tokens
+        bucket["output_tokens"] += call.output_tokens
+        bucket["total_tokens"] += call.input_tokens + call.output_tokens
+        bucket["calls"] += 1
+
+    model_statuses = {
+        f"{call.purpose}:{index}": call.status
+        for index, call in enumerate(report.model_calls)
+    }
+    model_failures = {
+        f"{call.purpose}:{index}": {
+            "error_type": call.error_type,
+            "error_summary": call.error_summary,
+        }
+        for index, call in enumerate(report.model_calls)
+        if call.status != "succeeded"
+    }
+
+    return {
+        "case_id": case_id,
+        "document_set_id": document_set_id,
+        "documents_uploaded": uploaded,
+        "pipeline_status": (
+            "completed"
+            if report.failed_model_call_count == 0
+            else "completed_with_model_failures"
+        ),
+        "failed_step": None,
+        "error_summary": None,
+        "tokens_by_provider": tokens_by_provider,
+        "model_statuses": model_statuses,
+        "failed_model_roles": sorted(model_failures),
+        "model_failures": model_failures,
+        "claim_count": 0,
+        "finding_count": len(findings),
+        "review_pack_finding_count": len(findings),
+        "citation_verified_finding_count": len(verified),
+        "risk_decision": None,
+        "auto_clear_allowed": None,
+        "gold_error_count": len(answer_key.get("errors", [])),
+        "matched_errors": matched,
+        "missed_errors": missed,
+        "review_pack_matched_errors": review_pack_matched,
+        "review_pack_missed_errors": review_pack_missed,
+        "review_pack_error": None,
+        "decoy_count": len(answer_key.get("non_error_decoys", [])),
+        "decoy_false_alarms": decoy_hits,
+        "decoys_passed": decoys_passed,
+        "redundant_findings": redundant_findings,
+        "unmatched_findings": unmatched_findings,
+        "findings": findings,
+        "requirement_report": report.model_dump(mode="json"),
+        "quality_metrics": _quality_metrics(
+            answer_key=answer_key,
+            findings=findings,
+            matched=matched,
+            risk_decision=None,
         ),
     }
 
@@ -1153,7 +1336,8 @@ def _render_markdown(
     lines = [
         "# Ringversuch-Report: Goldstandard PharmaQRM",
         "",
-        f"- Modus: `{run_meta['mode']}` | Stack: `{run_meta.get('stack') or '-'}`",
+        f"- Modus: `{run_meta['mode']}` | Stack: `{run_meta.get('stack') or '-'}`"
+        f" | Engine: `{run_meta.get('engine') or 'finding'}`",
         f"- Zeitpunkt: {run_meta['started_at']}",
         f"- Anthropic-Modell: `{run_meta.get('anthropic_model') or '-'}`",
         f"- OpenAI-Modell: `{run_meta.get('openai_model') or '-'}`",
@@ -1362,6 +1546,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Run goldstandard cases through the pipeline.")
     parser.add_argument("--mode", choices=["mock", "live"], default="mock")
     parser.add_argument(
+        "--engine",
+        choices=["finding", "requirement"],
+        default="finding",
+        help="finding = existing ten-agent pipeline; requirement = requirement-centric"
+        " engine (one verdict per requirement, entailment-verified). Same corpus, same"
+        " matcher, so the two paths score on one ruler.",
+    )
+    parser.add_argument(
         "--stack",
         choices=["frontier", "eu", "hybrid"],
         default="frontier",
@@ -1435,6 +1627,7 @@ def main(argv: list[str] | None = None) -> int:
     uses_mistral = live and args.stack in ("eu", "hybrid")
     run_meta = {
         "mode": args.mode,
+        "engine": args.engine,
         "stack": args.stack if live else None,
         "started_at": started_at.isoformat(timespec="seconds"),
         "anthropic_model": args.anthropic_model if uses_anthropic_openai else None,
@@ -1455,6 +1648,7 @@ def main(argv: list[str] | None = None) -> int:
                 audit_log,
                 case_dir,
                 pipeline_timeout_seconds=args.pipeline_timeout_seconds,
+                engine=args.engine,
             )
         except Exception as exc:  # noqa: BLE001 - report per-case failure, keep going
             result = {
@@ -1493,6 +1687,8 @@ def main(argv: list[str] | None = None) -> int:
     aggregate = _aggregate(case_results)
     package_release_gate = _package_release_gate(case_results) if args.package_dir else None
     run_label = args.mode if args.mode == "mock" else f"{args.mode}_{args.stack}"
+    if args.engine != "finding":
+        run_label = f"{run_label}_{args.engine}"
     output_dir = Path(args.output_dir) / started_at.strftime(f"%Y%m%d_%H%M%S_{run_label}")
     output_dir.mkdir(parents=True, exist_ok=True)
     # The raw findings are what a rescore needs and they dwarf everything else,
