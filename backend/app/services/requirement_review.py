@@ -58,6 +58,11 @@ from app.schemas.requirement_review import (
     VerifiedRequirementVerdict,
 )
 
+# The quote-reconciliation machinery is deliberately shared with the finding
+# path rather than reimplemented: both engines must resolve model quotes to
+# exact source spans by the same rules, or their evidence trails drift apart.
+from app.services.review_orchestrator import _matching_source_quote
+
 ENGINE_VERSION = "requirement-review-v0.1"
 
 #: Requirements per assessor call. Small enough that each verdict gets real
@@ -410,6 +415,15 @@ class RequirementReviewEngine:
             return verdict
         if verdict.server_authored:
             return verdict
+        if verdict.independent_support is True:
+            # The challenge exists to catch fulfilled-by-self-attestation. Where
+            # the assessor already names support beyond the document's own
+            # say-so, a second look sustained 17 of 19 objections on the
+            # regression corpus -- a rubber stamp in the sceptical direction
+            # that would flood a mostly-clean package with precautionary
+            # unclear rows. The assessor's independent_support claim is itself
+            # checkable later against the named evidence_reference.
+            return verdict
         input_schema = {
             "requirement_text": verdict.requirement_text,
             "rationale": verdict.rationale,
@@ -500,12 +514,30 @@ def _chunk_payload(
     return payload
 
 
+#: Ellipsis markers a model uses when it stitches two passages into one quote.
+#: Bracketed forms first: splitting on "..." before "[...]" would leave the
+#: brackets behind as unfindable fragment debris.
+_ELLIPSIS_MARKERS = ("[...]", "(...)", "[…]", "(…)", "...", "…")
+
+
 def _check_provenance(
     requirement: Requirement,
     verdict: RequirementVerdict,
     chunks: list[DocumentChunk],
 ) -> VerifiedRequirementVerdict:
-    """Keep only quotes that verifiably appear in their cited chunk.
+    """Ground every quote in its cited chunk, repairing before rejecting.
+
+    Strict substring matching alone taxed the engine about one evidence-bearing
+    verdict in ten: near-miss quotes -- markdown drift, typographic quote
+    variants, umlaut transliteration, stitched fragments -- were dropped
+    outright, and in the 2026-07-27 regression run five previously-found errors
+    demoted to UNCLEAR solely because their quotes lost that lottery. The
+    finding path repairs such variants deterministically with its
+    quote-reconciliation layer; this uses the same machinery. An ellipsis
+    quote is split and each fragment must ground individually, becoming its
+    own evidence item -- honest exact spans instead of one unverifiable
+    stitch. Repair never invents text: a quote that cannot be resolved to an
+    exact source span is still dropped, now with a recorded reason.
 
     A VIOLATED or FULFILLED verdict that loses all its evidence is published
     as UNCLEAR: the model's conclusion may be right, but a verdict the pack
@@ -514,24 +546,41 @@ def _check_provenance(
     chunks_by_id = {chunk.chunk_id: chunk for chunk in chunks}
     surviving: list[RequirementReviewEvidence] = []
     dropped = 0
+    dropped_reasons: list[str] = []
     for item in verdict.evidence:
         chunk = chunks_by_id.get(item.chunk_id)
         if chunk is None or chunk.document_id != item.document_id:
             dropped += 1
-            continue
-        if _normalize(item.quote) not in _normalize(chunk.text):
-            dropped += 1
+            dropped_reasons.append(
+                f"Zitat verworfen ({item.chunk_id}): Chunk existiert nicht oder "
+                f"gehört nicht zu {item.document_id}."
+            )
             continue
         if not chunk.page_start <= item.page <= chunk.page_end:
             dropped += 1
+            dropped_reasons.append(
+                f"Zitat verworfen ({item.chunk_id}): Seite {item.page} liegt "
+                f"außerhalb von {chunk.page_start}-{chunk.page_end}."
+            )
             continue
-        surviving.append(item)
+        grounded = _ground_quote(item.quote, chunk.text)
+        if grounded is None:
+            dropped += 1
+            dropped_reasons.append(
+                f"Zitat verworfen ({item.chunk_id}): nicht im Chunk auffindbar, "
+                f"auch nicht nach Reparatur: „{item.quote[:120]}“"
+            )
+            continue
+        surviving.extend(
+            item.model_copy(update={"quote": fragment}) for fragment in grounded
+        )
 
     needs_evidence = verdict.status in {
         RequirementVerdictStatus.VIOLATED,
         RequirementVerdictStatus.FULFILLED,
     }
     provenance_ok = dropped == 0 and (bool(surviving) or not needs_evidence)
+    del dropped_reasons[8:]  # cap the report payload; the count stays exact
     published_status = verdict.status
     if needs_evidence and not surviving:
         published_status = RequirementVerdictStatus.UNCLEAR
@@ -556,12 +605,50 @@ def _check_provenance(
         rationale=verdict.rationale,
         evidence=surviving,
         dropped_evidence_count=dropped,
+        dropped_evidence_reasons=dropped_reasons,
         provenance_ok=provenance_ok,
         evidence_type=verdict.evidence_type,
         evidence_reference=verdict.evidence_reference,
         evidence_sufficiency=verdict.evidence_sufficiency,
         independent_support=verdict.independent_support,
     )
+
+
+def _ground_quote(quote: str, chunk_text: str) -> list[str] | None:
+    """Resolve a model quote to exact source spans, or refuse.
+
+    Returns the list of exact chunk substrings the quote resolves to: one
+    entry for a plain quote, several for an ellipsis-stitched quote whose
+    fragments each ground individually. None when any part cannot be found.
+    The reconciliation itself is the finding path's: token-sequence matching
+    that forgives markdown markers, typographic quote variants, whitespace
+    and umlaut transliteration, but never fuzzy-matches content.
+    """
+    # A quote that is already an exact substring stays as it is.
+    if quote in chunk_text:
+        return [quote]
+
+    fragments = [quote]
+    for marker in _ELLIPSIS_MARKERS:
+        fragments = [
+            piece for fragment in fragments for piece in fragment.split(marker)
+        ]
+    fragments = [fragment.strip() for fragment in fragments if fragment.strip()]
+    if not fragments:
+        return None
+
+    grounded: list[str] = []
+    for fragment in fragments:
+        if fragment in chunk_text:
+            grounded.append(fragment)
+            continue
+        repaired = _matching_source_quote(fragment, chunk_text)
+        if repaired is None:
+            return None
+        # Edge whitespace from span extension is not part of the quote; the
+        # stripped text remains an exact chunk substring.
+        grounded.append(repaired.strip())
+    return grounded
 
 
 def _server_verdict(

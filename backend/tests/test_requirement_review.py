@@ -448,3 +448,99 @@ def test_report_counts_and_audit_event() -> None:
         if event.event_type == "requirement_review_completed"
     ]
     assert events and events[-1].payload["verdict_count"] == 2
+
+
+def test_presentation_variant_quote_is_repaired_not_dropped() -> None:
+    """Markdown and typographic drift must not cost a verdict its evidence.
+
+    One in ten evidence-bearing verdicts lost all quotes to exactly this in
+    the regression runs, demoting found violations to unclear.
+    """
+    _setup()
+    # Chunk text says "senkt den AVI-Schwellwert" -- the model quotes it with
+    # markdown emphasis that does not exist in the source.
+    report = _engine(
+        _assessor([_violated_verdict("Change Control CC-2026-014 senkt den **AVI-Schwellwert**.")]),
+        _entailment("supports"),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.dropped_evidence_count == 0
+    assert verdict.evidence[0].quote == "Change Control CC-2026-014 senkt den AVI-Schwellwert."
+
+
+def test_ellipsis_quote_grounds_as_one_item_per_fragment() -> None:
+    _setup()
+    report = _engine(
+        _assessor(
+            [
+                _violated_verdict(
+                    "Change Control CC-2026-014 senkt den AVI-Schwellwert. [...] "
+                    "Die QA-Freigabe ist als pending markiert."
+                )
+            ]
+        ),
+        _entailment("supports"),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    quotes = [item.quote for item in verdict.evidence]
+    assert quotes == [
+        "Change Control CC-2026-014 senkt den AVI-Schwellwert.",
+        "Die QA-Freigabe ist als pending markiert.",
+    ]
+
+
+def test_unrepairable_quote_is_dropped_with_a_recorded_reason() -> None:
+    _setup()
+    report = _engine(
+        _assessor([_violated_verdict("Dieses Zitat steht nirgends im Dokument.")]),
+        _entailment("supports"),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert verdict.dropped_evidence_count == 1
+    assert len(verdict.dropped_evidence_reasons) == 1
+    assert "nicht im Chunk auffindbar" in verdict.dropped_evidence_reasons[0]
+    assert "Dieses Zitat steht nirgends" in verdict.dropped_evidence_reasons[0]
+
+
+def test_challenge_skips_fulfilled_with_independent_support() -> None:
+    """The second look targets self-attestation, not independently backed rows."""
+    _setup()
+    calls: list[str] = []
+
+    def _tracking(prompt: str, input_schema: Any, output_schema: Any) -> dict:
+        calls.append(getattr(output_schema, "__name__", ""))
+        return {
+            "challenge_sustained": True,
+            "missing_or_asserted_evidence": [],
+            "reason": "Sollte nie gefragt werden.",
+        }
+
+    report = _engine(
+        _assessor(
+            [
+                _fulfilled_verdict(
+                    "Die QA-Freigabe ist als pending markiert.",
+                    independent_support=True,
+                )
+            ]
+        ),
+        MockProvider(output_factory=_tracking),
+    ).run("ds_req_review_demo")
+
+    assert "FulfilledChallenge" not in calls
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.FULFILLED

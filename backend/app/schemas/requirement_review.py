@@ -116,6 +116,11 @@ class VerifiedRequirementVerdict(StrictSchema):
     rationale: str = Field(min_length=1)
     evidence: list[RequirementReviewEvidence] = Field(default_factory=list)
     dropped_evidence_count: int = Field(default=0, ge=0)
+    #: One entry per dropped quote, naming why it was dropped. The 2026-07-27
+    #: regression run lost five previously-found errors to dropped quotes and
+    #: the report could not say what the quotes had been -- diagnosing it took
+    #: a run-to-run diff. Never again.
+    dropped_evidence_reasons: list[str] = Field(default_factory=list)
     provenance_ok: bool
     entailment: EntailmentSupport | None = None
     entailment_reason: str | None = None
