@@ -39,6 +39,7 @@ from app.agents.providers import (
     MockProvider,
     OpenAIProvider,
     ProviderRuntimeOptions,
+    ProviderStructuredOutputError,
 )
 from app.audit.events import InMemoryAuditLog
 from app.core.config import Settings, get_settings
@@ -298,33 +299,32 @@ class RequirementReviewEngine:
             for requirement in applicable
         ]
         assert self.extraction_provider is not None
-        try:
-            evidence = EvidenceExtractor(provider=self.extraction_provider).extract(
-                chunk_payload=chunk_payload,
-                requirement_index=requirement_index,
-                chunks=chunks,
-            )
-        except Exception as exc:  # noqa: BLE001 - additive layer, record and skip
+        outcome = EvidenceExtractor(provider=self.extraction_provider).extract(
+            chunk_payload=chunk_payload,
+            requirement_index=requirement_index,
+            chunks=chunks,
+        )
+        for document_id in outcome.succeeded_document_ids:
             model_calls.append(
                 _model_call(
                     self.extraction_provider,
-                    purpose="extract",
+                    purpose=f"extract[{document_id}]",
                     requirement_ids=[r.requirement_id for r in applicable],
-                    status="failed",
-                    error=exc,
+                    status="succeeded",
                 )
             )
-            return verdicts, []
-        model_calls.append(
-            _model_call(
-                self.extraction_provider,
-                purpose="extract",
-                requirement_ids=[r.requirement_id for r in applicable],
-                status="succeeded",
+        for document_id, error in outcome.failures:
+            model_calls.append(
+                _model_call(
+                    self.extraction_provider,
+                    purpose=f"extract[{document_id}]",
+                    requirement_ids=[r.requirement_id for r in applicable],
+                    status="failed",
+                    error=error,
+                )
             )
-        )
 
-        findings = run_validators(evidence)
+        findings = run_validators(outcome.evidence)
         applicable_ids = {requirement.requirement_id for requirement in applicable}
         verdicts_by_id = {verdict.requirement_id: verdict for verdict in verdicts}
         for finding in findings:
@@ -370,9 +370,18 @@ class RequirementReviewEngine:
             "chunks": chunk_payload,
         }
         try:
-            raw = self.assessor_provider.run_structured(
-                ASSESSOR_PROMPT, input_schema, RequirementGroupOutput
-            )
+            try:
+                raw = self.assessor_provider.run_structured(
+                    ASSESSOR_PROMPT, input_schema, RequirementGroupOutput
+                )
+            except ProviderStructuredOutputError:
+                # Transport retries live in the provider; schema failures are
+                # explicitly the caller's to bound (see base.py). One fresh
+                # sample usually parses -- the blind run lost two whole groups
+                # to single malformed responses that were never re-asked.
+                raw = self.assessor_provider.run_structured(
+                    ASSESSOR_PROMPT, input_schema, RequirementGroupOutput
+                )
         except Exception as exc:  # noqa: BLE001 - fail-secure per group
             call = _model_call(
                 self.assessor_provider,

@@ -658,4 +658,166 @@ def test_failed_extraction_keeps_assessed_verdicts_intact() -> None:
     )
     assert verdict.published_status == RequirementVerdictStatus.VIOLATED
     failed = [c for c in report.model_calls if c.status == "failed"]
-    assert [c.purpose for c in failed] == ["extract"]
+    assert [c.purpose for c in failed] == ["extract[doc_req_change]"]
+
+
+def test_extraction_failure_is_contained_to_its_document() -> None:
+    """One truncated document must not silence the validators for the case.
+
+    The blind run's two zero-detection cases were exactly this: a single
+    whole-case extraction call hit the output cap, and with it every
+    mechanical check died. Per-document calls make the failure a named gap.
+    """
+    _setup()
+    second_text = "Freigabefeld Produktionsleitung: ________ (Unterschrift ausstehend)"
+    repository.add_document(
+        document=Document(
+            document_id="doc_req_capa",
+            document_set_id="ds_req_review_demo",
+            filename="capa-plan.md",
+            file_hash_sha256=sha256(b"capa-plan.md").hexdigest(),
+            mime_type="text/markdown",
+            page_count=1,
+            storage_uri="local://req/capa-plan.md",
+            parser_version="test-parser",
+            parsing_status="parsed",
+            parsing_quality_score=0.95,
+            language="de",
+            metadata={},
+        ),
+        chunks=[
+            DocumentChunk(
+                chunk_id="chunk_req_capa_p1",
+                document_id="doc_req_capa",
+                page_start=1,
+                page_end=1,
+                text=second_text,
+                token_count=len(second_text.split()),
+                extraction_confidence=0.95,
+                bbox=None,
+                source_hash=sha256(second_text.encode()).hexdigest(),
+            )
+        ],
+    )
+
+    def _per_document_factory(
+        prompt: str, input_schema: dict[str, Any], output_schema: Any
+    ) -> dict[str, Any]:
+        chunks = input_schema.get("chunks", [])
+        document_id = chunks[0]["document_id"] if chunks else ""
+        if document_id == "doc_req_change":
+            raise ProviderCallError("mistral provider output was truncated")
+        return {
+            "signatures": [
+                {
+                    "field_label": "Freigabefeld Produktionsleitung",
+                    "is_empty": True,
+                    "requirement_ids": ["req_threshold_validation"],
+                    "location": {
+                        "document_id": "doc_req_capa",
+                        "chunk_id": "chunk_req_capa_p1",
+                        "page": 1,
+                        "quote": "Freigabefeld Produktionsleitung: ________",
+                    },
+                }
+            ],
+            "measurements": [],
+            "specifications": [],
+            "action_items": [],
+            "events": [],
+        }
+
+    engine = RequirementReviewEngine(
+        repository=repository,
+        audit_log=audit_log,
+        assessor_provider=_assessor([]),
+        entailment_provider=_entailment("supports"),
+        extraction_provider=MockProvider(output_factory=_per_document_factory),
+    )
+    report = engine.run("ds_req_review_demo")
+
+    assert len(report.validator_findings) == 1
+    statuses = {c.purpose: c.status for c in report.model_calls if "extract" in c.purpose}
+    assert statuses == {
+        "extract[doc_req_change]": "failed",
+        "extract[doc_req_capa]": "succeeded",
+    }
+
+
+def test_group_payload_normalization_repairs_shape_drift() -> None:
+    """Extra keys and enum-adjacent spellings must not kill a verdict group.
+
+    The blind run lost one group to extra keys in verdict objects and another
+    to a status value outside the enum -- both mechanically recoverable, and
+    both now repaired at the provider's normalization hook.
+    """
+    from app.schemas.requirement_review import RequirementGroupOutput
+
+    messy = {
+        "verdicts": [
+            {
+                "requirement_id": "req_threshold_validation",
+                "status": "Nicht anwendbar",
+                "severity": "hoch",
+                "rationale": "Begründung.",
+                "evidence": [
+                    {
+                        "document_id": "doc_req_change",
+                        "chunk_id": "chunk_req_change_p1",
+                        "page": 1,
+                        "quote": "Zitat.",
+                        "confidence": 0.9,
+                    }
+                ],
+                "evidence_sufficiency": "ausreichend",
+                "independent_support": "ja",
+                "assessment_notes": "extra key the schema forbids",
+            }
+        ]
+    }
+    provider = MockProvider(output_factory=lambda *_: messy)
+    result = provider.run_structured("prompt", {}, RequirementGroupOutput)
+
+    verdict = result["verdicts"][0]
+    assert verdict["status"] == "not_applicable"
+    assert verdict["severity"] == "high"
+    assert verdict["evidence_sufficiency"] == "sufficient"
+    assert verdict["independent_support"] is True
+    assert "assessment_notes" not in verdict
+    assert "confidence" not in verdict["evidence"][0]
+
+
+def test_assessor_retries_once_on_a_malformed_response() -> None:
+    """A single unparseable sample must not publish a whole group as unclear."""
+    _setup()
+    attempts: list[int] = []
+
+    def _flaky(prompt: str, input_schema: Any, output_schema: Any) -> dict[str, Any]:
+        attempts.append(1)
+        if len(attempts) == 1:
+            return {
+                "verdicts": [
+                    {
+                        "requirement_id": "req_threshold_validation",
+                        "status": "banana",
+                        "rationale": "kaputt",
+                        "evidence": [],
+                    }
+                ]
+            }
+        return {
+            "verdicts": [
+                _violated_verdict("Die QA-Freigabe ist als pending markiert.")
+            ]
+        }
+
+    report = _engine(
+        MockProvider(output_factory=_flaky), _entailment("supports")
+    ).run("ds_req_review_demo")
+
+    assert len(attempts) == 2
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert all(c.status == "succeeded" for c in report.model_calls if c.purpose == "assess")

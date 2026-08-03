@@ -11,6 +11,7 @@ touching prose.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 from app.agents.providers import BaseModelProvider
@@ -48,6 +49,14 @@ EXTRACTION_PROMPT = (
 )
 
 
+@dataclass
+class ExtractionOutcome:
+    evidence: StructuredEvidence
+    #: (document_id, exception) per failed per-document call.
+    failures: list[tuple[str, Exception]]
+    succeeded_document_ids: list[str]
+
+
 class EvidenceExtractor:
     def __init__(self, *, provider: BaseModelProvider) -> None:
         self.provider = provider
@@ -58,14 +67,53 @@ class EvidenceExtractor:
         chunk_payload: list[dict[str, Any]],
         requirement_index: list[dict[str, str]],
         chunks: list[DocumentChunk],
-    ) -> StructuredEvidence:
-        raw = self.provider.run_structured(
-            EXTRACTION_PROMPT,
-            {"requirements": requirement_index, "chunks": chunk_payload},
-            StructuredEvidence,
+    ) -> ExtractionOutcome:
+        """Extract per document, so one bad call costs one document.
+
+        The blind run showed why the single whole-case call was wrong twice
+        over: extracting every row of five or six documents in one response
+        ran into the output token cap on mistral (truncated, retried,
+        truncated again -- truncation is deterministic at this size), and the
+        one dead call silenced the entire validator layer for the case. Both
+        of the corpus's zero-detection cases were exactly this. Per-document
+        calls bound the output to what one document can produce, and a
+        failure surfaces as a named per-document gap instead of a silent
+        whole-case blackout.
+        """
+        by_document: dict[str, list[dict[str, Any]]] = {}
+        for chunk in chunk_payload:
+            by_document.setdefault(str(chunk.get("document_id")), []).append(chunk)
+
+        merged = StructuredEvidence()
+        failures: list[tuple[str, Exception]] = []
+        succeeded: list[str] = []
+        for document_id in sorted(by_document):
+            try:
+                raw = self.provider.run_structured(
+                    EXTRACTION_PROMPT,
+                    {
+                        "requirements": requirement_index,
+                        "chunks": by_document[document_id],
+                    },
+                    StructuredEvidence,
+                )
+                evidence = StructuredEvidence.model_validate(raw)
+            except Exception as exc:  # noqa: BLE001 - recorded per document
+                failures.append((document_id, exc))
+                continue
+            succeeded.append(document_id)
+            merged = StructuredEvidence(
+                signatures=[*merged.signatures, *evidence.signatures],
+                measurements=[*merged.measurements, *evidence.measurements],
+                specifications=[*merged.specifications, *evidence.specifications],
+                action_items=[*merged.action_items, *evidence.action_items],
+                events=[*merged.events, *evidence.events],
+            )
+        return ExtractionOutcome(
+            evidence=_ground_locations(merged, chunks),
+            failures=failures,
+            succeeded_document_ids=succeeded,
         )
-        evidence = StructuredEvidence.model_validate(raw)
-        return _ground_locations(evidence, chunks)
 
 
 def _ground_locations(

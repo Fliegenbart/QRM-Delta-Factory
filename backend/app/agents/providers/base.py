@@ -349,6 +349,8 @@ def _normalize_structured_payload(
     *,
     output_schema: type[BaseModel],
 ) -> dict[str, Any]:
+    if output_schema.__name__ == "RequirementGroupOutput":
+        return _normalize_requirement_group_payload(payload)
     if output_schema.__name__ != "ReviewerAgentOutput":
         return payload
 
@@ -367,6 +369,121 @@ def _normalize_structured_payload(
 
     normalized["findings"] = normalized_findings
     return normalized
+
+
+_REQUIREMENT_VERDICT_KEYS = {
+    "requirement_id",
+    "status",
+    "severity",
+    "rationale",
+    "evidence",
+    "evidence_type",
+    "evidence_reference",
+    "evidence_sufficiency",
+    "independent_support",
+}
+
+_REQUIREMENT_EVIDENCE_KEYS = {"document_id", "chunk_id", "page", "quote"}
+
+_REQUIREMENT_STATUS_SYNONYMS = {
+    "fulfilled": "fulfilled",
+    "erfüllt": "fulfilled",
+    "erfuellt": "fulfilled",
+    "compliant": "fulfilled",
+    "violated": "violated",
+    "violation": "violated",
+    "verletzt": "violated",
+    "non_compliant": "violated",
+    "unclear": "unclear",
+    "unklar": "unclear",
+    "not_applicable": "not_applicable",
+    "not applicable": "not_applicable",
+    "nicht anwendbar": "not_applicable",
+    "nicht_anwendbar": "not_applicable",
+    "n/a": "not_applicable",
+    "na": "not_applicable",
+}
+
+_REQUIREMENT_SEVERITY_SYNONYMS = {
+    "critical": "critical",
+    "kritisch": "critical",
+    "high": "high",
+    "hoch": "high",
+    "medium": "medium",
+    "mittel": "medium",
+    "low": "low",
+    "niedrig": "low",
+    "informational": "informational",
+}
+
+_REQUIREMENT_SUFFICIENCY_SYNONYMS = {
+    "sufficient": "sufficient",
+    "ausreichend": "sufficient",
+    "partial": "partial",
+    "teilweise": "partial",
+    "insufficient": "insufficient",
+    "unzureichend": "insufficient",
+}
+
+
+def _normalize_requirement_group_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Repair the shape drift the blind run showed, without touching content.
+
+    Two assessor groups died on schema strictness there: one model attached
+    extra keys to its verdict objects, another wrote a status value outside the
+    enum. Both are recoverable mechanically -- unknown keys are dropped, and
+    enum-adjacent spellings (German words, spacing variants) map onto their
+    canonical values. Anything genuinely unmappable is left as-is so validation
+    still fails rather than guessing: normalization here repairs spelling, it
+    never invents a verdict.
+    """
+    verdicts = payload.get("verdicts")
+    if not isinstance(verdicts, list):
+        return payload
+    normalized_verdicts = []
+    for verdict in verdicts:
+        if not isinstance(verdict, dict):
+            normalized_verdicts.append(verdict)
+            continue
+        entry = {
+            key: value
+            for key, value in verdict.items()
+            if key in _REQUIREMENT_VERDICT_KEYS
+        }
+        status = entry.get("status")
+        if isinstance(status, str):
+            entry["status"] = _REQUIREMENT_STATUS_SYNONYMS.get(
+                " ".join(status.lower().split()), status
+            )
+        severity = entry.get("severity")
+        if isinstance(severity, str):
+            entry["severity"] = _REQUIREMENT_SEVERITY_SYNONYMS.get(severity.lower().strip())
+        sufficiency = entry.get("evidence_sufficiency")
+        if isinstance(sufficiency, str):
+            entry["evidence_sufficiency"] = _REQUIREMENT_SUFFICIENCY_SYNONYMS.get(
+                sufficiency.lower().strip()
+            )
+        support = entry.get("independent_support")
+        if isinstance(support, str):
+            entry["independent_support"] = support.lower().strip() in {
+                "yes",
+                "ja",
+                "true",
+            }
+        evidence = entry.get("evidence")
+        if isinstance(evidence, list):
+            entry["evidence"] = [
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key in _REQUIREMENT_EVIDENCE_KEYS
+                }
+                if isinstance(item, dict)
+                else item
+                for item in evidence
+            ]
+        normalized_verdicts.append(entry)
+    return {"verdicts": normalized_verdicts}
 
 
 def _parse_reviewer_findings(value: str) -> list[dict[str, Any]]:
