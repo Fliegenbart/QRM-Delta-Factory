@@ -172,6 +172,7 @@ class RequirementReviewEngine:
         entailment_provider: BaseModelProvider,
         extraction_provider: BaseModelProvider | None = None,
         group_size: int = REQUIREMENT_GROUP_SIZE,
+        assessor_samples: int = 2,
     ) -> None:
         self.repository = repository
         self.audit_log = audit_log
@@ -180,6 +181,9 @@ class RequirementReviewEngine:
         #: None disables the structured-evidence/validator layer entirely.
         self.extraction_provider = extraction_provider
         self.group_size = max(1, group_size)
+        #: Independent assessor samples per group, merged by alarm-side
+        #: precedence. Two by default; one restores single-sample behaviour.
+        self.assessor_samples = max(1, assessor_samples)
 
     def run(self, document_set_id: str) -> RequirementCoverageReport:
         document_set = self.repository.get_document_set(document_set_id)
@@ -211,11 +215,11 @@ class RequirementReviewEngine:
 
         chunk_payload = _chunk_payload(chunks, self.repository)
         for group in _grouped(applicable, self.group_size):
-            group_verdicts, call = self._assess_group(
+            group_verdicts, group_calls = self._assess_group(
                 group=group, chunk_payload=chunk_payload, chunks=chunks
             )
             verdicts.extend(group_verdicts)
-            model_calls.append(call)
+            model_calls.extend(group_calls)
 
         criticality_by_id = {
             requirement.requirement_id: requirement.criticality.value
@@ -354,39 +358,78 @@ class RequirementReviewEngine:
         group: list[Requirement],
         chunk_payload: list[dict[str, Any]],
         chunks: list[DocumentChunk],
-    ) -> tuple[list[VerifiedRequirementVerdict], RequirementReviewModelCall]:
+    ) -> tuple[list[VerifiedRequirementVerdict], list[RequirementReviewModelCall]]:
+        """Sample the assessor N times and merge by conservative precedence.
+
+        Nine of thirty-four errors flipped between two runs on identical
+        inputs -- the assessor's judgment is broader than any single sample of
+        it (the union of two runs stood at 30 of 34 against 25 and 26 alone).
+        Sampling twice and taking the alarm-side union buys that breadth: a
+        violation seen by either sample becomes a candidate, and the existing
+        provenance, entailment and challenge gates keep the standard of proof
+        exactly where it was. The second sample sees the same content with
+        requirements and chunks in reverse order, because providers pinned to
+        temperature 0 tend to repeat themselves verbatim on identical input.
+        """
         requirement_ids = [requirement.requirement_id for requirement in group]
-        input_schema = {
-            "requirements": [
-                {
-                    "requirement_id": requirement.requirement_id,
-                    "title": requirement.title,
-                    "requirement_text": requirement.requirement_text,
-                    "required_evidence": requirement.required_evidence,
-                    "criticality": requirement.criticality.value,
-                }
-                for requirement in group
-            ],
-            "chunks": chunk_payload,
-        }
-        discarded_usage: list[Any] = []
-        try:
-            raw = _run_with_one_reask(
-                self.assessor_provider,
-                ASSESSOR_PROMPT,
-                input_schema,
-                RequirementGroupOutput,
-                discarded_usage=discarded_usage,
+        requirement_payload = [
+            {
+                "requirement_id": requirement.requirement_id,
+                "title": requirement.title,
+                "requirement_text": requirement.requirement_text,
+                "required_evidence": requirement.required_evidence,
+                "criticality": requirement.criticality.value,
+            }
+            for requirement in group
+        ]
+        samples: list[dict[str, RequirementVerdict]] = []
+        calls: list[RequirementReviewModelCall] = []
+        for sample_index in range(max(1, self.assessor_samples)):
+            reverse = sample_index % 2 == 1
+            input_schema = {
+                "requirements": list(reversed(requirement_payload))
+                if reverse
+                else requirement_payload,
+                "chunks": list(reversed(chunk_payload)) if reverse else chunk_payload,
+            }
+            discarded_usage: list[Any] = []
+            try:
+                raw = _run_with_one_reask(
+                    self.assessor_provider,
+                    ASSESSOR_PROMPT,
+                    input_schema,
+                    RequirementGroupOutput,
+                    discarded_usage=discarded_usage,
+                )
+                output = RequirementGroupOutput.model_validate(
+                    {"verdicts": raw.get("verdicts", [])}
+                )
+            except Exception as exc:  # noqa: BLE001 - fail-secure per sample
+                calls.append(
+                    _model_call(
+                        self.assessor_provider,
+                        purpose="assess",
+                        requirement_ids=requirement_ids,
+                        status="failed",
+                        error=exc,
+                        discarded_usage=discarded_usage,
+                    )
+                )
+                continue
+            samples.append(
+                {verdict.requirement_id: verdict for verdict in output.verdicts}
             )
-        except Exception as exc:  # noqa: BLE001 - fail-secure per group
-            call = _model_call(
-                self.assessor_provider,
-                purpose="assess",
-                requirement_ids=requirement_ids,
-                status="failed",
-                error=exc,
-                discarded_usage=discarded_usage,
+            calls.append(
+                _model_call(
+                    self.assessor_provider,
+                    purpose="assess",
+                    requirement_ids=requirement_ids,
+                    status="succeeded",
+                    discarded_usage=discarded_usage,
+                )
             )
+
+        if not samples:
             return [
                 _server_verdict(
                     requirement,
@@ -398,16 +441,16 @@ class RequirementReviewEngine:
                     ),
                 )
                 for requirement in group
-            ], call
+            ], calls
 
-        output = RequirementGroupOutput.model_validate(
-            {"verdicts": raw.get("verdicts", [])}
-        )
-        by_id = {verdict.requirement_id: verdict for verdict in output.verdicts}
         verified = []
         for requirement in group:
-            verdict = by_id.get(requirement.requirement_id)
-            if verdict is None:
+            candidates = [
+                sample[requirement.requirement_id]
+                for sample in samples
+                if requirement.requirement_id in sample
+            ]
+            if not candidates:
                 verified.append(
                     _server_verdict(
                         requirement,
@@ -419,15 +462,12 @@ class RequirementReviewEngine:
                     )
                 )
                 continue
-            verified.append(_check_provenance(requirement, verdict, chunks))
-        call = _model_call(
-            self.assessor_provider,
-            purpose="assess",
-            requirement_ids=requirement_ids,
-            status="succeeded",
-            discarded_usage=discarded_usage,
-        )
-        return verified, call
+            merged, disagreement = _merge_sample_verdicts(candidates)
+            checked = _check_provenance(requirement, merged, chunks)
+            if disagreement:
+                checked = checked.model_copy(update={"sample_disagreement": True})
+            verified.append(checked)
+        return verified, calls
 
     def _verify_entailment(
         self,
@@ -577,6 +617,35 @@ class RequirementReviewEngine:
                     + "; ".join(challenge.missing_or_asserted_evidence)
                 )
         return verdict.model_copy(update=update)
+
+
+#: Alarm-side precedence for merging assessor samples: the merged verdict is
+#: the most cautious status any sample produced. A violation seen once is a
+#: candidate (the gates still have to sustain it); a fulfilled requires every
+#: sample to agree, because an all-clear is the verdict a wrong version of
+#: costs the most.
+_MERGE_PRECEDENCE = {
+    RequirementVerdictStatus.VIOLATED: 0,
+    RequirementVerdictStatus.UNCLEAR: 1,
+    RequirementVerdictStatus.FULFILLED: 2,
+    RequirementVerdictStatus.NOT_APPLICABLE: 3,
+}
+
+
+def _merge_sample_verdicts(
+    candidates: list[RequirementVerdict],
+) -> tuple[RequirementVerdict, bool]:
+    """Pick one verdict from N samples; report whether they disagreed.
+
+    Ties on status prefer the sample with more evidence, so the chosen verdict
+    enters provenance checking with the most material to ground.
+    """
+    chosen = min(
+        candidates,
+        key=lambda v: (_MERGE_PRECEDENCE.get(v.status, 1), -len(v.evidence)),
+    )
+    disagreement = len({candidate.status for candidate in candidates}) > 1
+    return chosen, disagreement
 
 
 def _run_with_one_reask(
@@ -890,6 +959,7 @@ def default_requirement_review_engine(
             assessor_provider=mock,
             entailment_provider=MockProvider(output_factory=_mock_entailment_output),
             extraction_provider=MockProvider(output_factory=_mock_extraction_output),
+            assessor_samples=settings.requirement_review_assessor_samples,
         )
     runtime_options = _runtime_options(settings)
     return RequirementReviewEngine(
@@ -906,6 +976,7 @@ def default_requirement_review_engine(
         extraction_provider=_provider(
             settings.requirement_review_assessor_provider, settings, runtime_options
         ),
+        assessor_samples=settings.requirement_review_assessor_samples,
     )
 
 

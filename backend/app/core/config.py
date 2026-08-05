@@ -80,6 +80,15 @@ class Settings(BaseSettings):
         " Deliberately a different provider than the assessor, so the checker does"
         " not share the assessor's blind spots.",
     )
+    requirement_review_assessor_samples: int = Field(
+        default=2,
+        ge=1,
+        le=3,
+        description="Independent assessor samples per requirement group, merged by"
+        " alarm-side precedence. Nine of 34 planted errors flipped between two"
+        " single-sample runs on identical inputs; the union stood at 30. Set 1 to"
+        " restore single-sample behaviour.",
+    )
     critic_providers: str = Field(
         default="",
         description="Comma-separated providers that run an additional broad-scope red-team"

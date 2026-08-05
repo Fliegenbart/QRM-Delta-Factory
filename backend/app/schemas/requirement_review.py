@@ -131,6 +131,9 @@ class VerifiedRequirementVerdict(StrictSchema):
     #: Set when the adversarial second look ran on a FULFILLED verdict.
     challenge_sustained: bool | None = None
     challenge_reason: str | None = None
+    #: True when independent assessor samples returned different statuses for
+    #: this requirement -- the merged verdict is the most cautious of them.
+    sample_disagreement: bool = False
     #: Validator ids whose deterministic findings escalated or corroborated
     #: this verdict. Deterministic evidence of a breach overrides a model
     #: all-clear -- the one path that raises alarm instead of lowering it,

@@ -184,7 +184,10 @@ def test_inapplicable_requirement_is_answered_by_the_server() -> None:
         MockProvider(output_factory=_capture), _entailment("supports")
     ).run("ds_req_review_demo")
 
-    assert seen_requirement_ids == ["req_threshold_validation"]
+    # Two assessor samples see the group (the second in reverse order); the
+    # inapplicable requirement reaches neither.
+    assert set(seen_requirement_ids) == {"req_threshold_validation"}
+    assert len(seen_requirement_ids) == 2
     warehouse = next(
         v for v in report.verdicts if v.requirement_id == "req_warehouse_only"
     )
@@ -260,7 +263,8 @@ def test_failed_assessor_group_fails_secure_to_unclear() -> None:
     )
     assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
     assert verdict.server_authored is True
-    assert report.failed_model_call_count == 1
+    # Both samples died; both are on the record.
+    assert report.failed_model_call_count == 2
     failed = [call for call in report.model_calls if call.status == "failed"]
     assert failed and failed[0].error_type == "ProviderCallError"
 
@@ -935,6 +939,131 @@ def test_reasked_call_accounts_for_the_discarded_sample() -> None:
     assert assess.output_tokens == 450
 
 
+def _two_sample_assessor(
+    first: list[dict[str, Any]], second: list[dict[str, Any]]
+) -> MockProvider:
+    calls: list[int] = []
+
+    def _factory(prompt: str, input_schema: Any, output_schema: Any) -> dict[str, Any]:
+        calls.append(1)
+        return {"verdicts": first if len(calls) == 1 else second}
+
+    return MockProvider(output_factory=_factory)
+
+
+def test_violation_seen_by_one_sample_survives_the_merge() -> None:
+    """Nine errors flipped between single-sample runs; the union keeps them.
+
+    A violation only one sample saw becomes the merged candidate and still has
+    to pass provenance and entailment -- the gates, not the merge, set the
+    standard of proof.
+    """
+    _setup()
+    report = _engine(
+        _two_sample_assessor(
+            [_fulfilled_verdict("Die QA-Freigabe ist als pending markiert.")],
+            [_violated_verdict("Die QA-Freigabe ist als pending markiert.")],
+        ),
+        _entailment("supports"),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.sample_disagreement is True
+    assert verdict.entailment == EntailmentSupport.SUPPORTS
+
+
+def test_agreeing_samples_report_no_disagreement() -> None:
+    _setup()
+    verdict_payload = _violated_verdict("Die QA-Freigabe ist als pending markiert.")
+    report = _engine(
+        _two_sample_assessor([verdict_payload], [verdict_payload]),
+        _entailment("supports"),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.sample_disagreement is False
+
+
+def test_unclear_sample_blocks_a_lone_fulfilled() -> None:
+    """Disagreement between unclear and fulfilled must not settle as fulfilled."""
+    _setup()
+    unclear_payload = {
+        "requirement_id": "req_threshold_validation",
+        "status": "unclear",
+        "severity": "medium",
+        "rationale": "Die Unterlagen reichen nicht für eine Entscheidung.",
+        "evidence": [],
+    }
+    report = _engine(
+        _two_sample_assessor(
+            [_fulfilled_verdict("Die QA-Freigabe ist als pending markiert.")],
+            [unclear_payload],
+        ),
+        _entailment("supports", challenge_sustained=False),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert verdict.sample_disagreement is True
+
+
+def test_second_sample_sees_reversed_input_order() -> None:
+    """Temperature-zero providers repeat themselves; the reorder decorrelates."""
+    _setup()
+    seen_chunk_orders: list[list[str]] = []
+
+    def _capture(prompt: str, input_schema: Any, output_schema: Any) -> dict[str, Any]:
+        seen_chunk_orders.append(
+            [chunk["chunk_id"] for chunk in input_schema["chunks"]]
+        )
+        return {"verdicts": []}
+
+    second_text = "Zweiter Chunk für die Reihenfolgeprüfung."
+    repository.add_document(
+        document=Document(
+            document_id="doc_req_order",
+            document_set_id="ds_req_review_demo",
+            filename="order.md",
+            file_hash_sha256=sha256(b"order.md").hexdigest(),
+            mime_type="text/markdown",
+            page_count=1,
+            storage_uri="local://req/order.md",
+            parser_version="test-parser",
+            parsing_status="parsed",
+            parsing_quality_score=0.95,
+            language="de",
+            metadata={},
+        ),
+        chunks=[
+            DocumentChunk(
+                chunk_id="chunk_req_order_p1",
+                document_id="doc_req_order",
+                page_start=1,
+                page_end=1,
+                text=second_text,
+                token_count=len(second_text.split()),
+                extraction_confidence=0.95,
+                bbox=None,
+                source_hash=sha256(second_text.encode()).hexdigest(),
+            )
+        ],
+    )
+    _engine(
+        MockProvider(output_factory=_capture), _entailment("supports")
+    ).run("ds_req_review_demo")
+
+    assert len(seen_chunk_orders) == 2
+    assert seen_chunk_orders[1] == list(reversed(seen_chunk_orders[0]))
+
+
 def test_assessor_retries_once_on_a_malformed_response() -> None:
     """A single unparseable sample must not publish a whole group as unclear."""
     _setup()
@@ -963,7 +1092,8 @@ def test_assessor_retries_once_on_a_malformed_response() -> None:
         MockProvider(output_factory=_flaky), _entailment("supports")
     ).run("ds_req_review_demo")
 
-    assert len(attempts) == 2
+    # Sample 1: malformed then re-asked (2 attempts); sample 2: clean (1).
+    assert len(attempts) == 3
     verdict = next(
         v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
     )
