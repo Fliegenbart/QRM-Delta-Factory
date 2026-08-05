@@ -197,6 +197,23 @@ class BaseModelProvider(ABC):
                     self._clear_failures()
                     return structured_output
                 except (ValidationError, _StructuredPayloadNormalizationError) as exc:
+                    # The attempt was paid for even though its shape failed:
+                    # record its token usage before raising, so a caller that
+                    # re-asks can account for both samples instead of letting
+                    # the first vanish from every cost and audit total.
+                    self.last_run_metadata = ProviderRunMetadata(
+                        provider=self.provider_name,
+                        model_name=self.model_name,
+                        model_version=self.model_version,
+                        configured_model_id=self.configured_model_id,
+                        prompt_version=self.prompt_version,
+                        request_hash=request_hash,
+                        response_hash=_hash_json({"unparsed": True}),
+                        latency_ms=int((time.perf_counter() - started) * 1000),
+                        retry_count=retry_count,
+                        retry_delay_ms=retry_delay_ms,
+                        token_usage=token_usage,
+                    )
                     raise ProviderStructuredOutputError(str(exc)) from exc
                 except ProviderStructuredOutputError:
                     # Schema/model-output failures are not provider transport failures.
@@ -351,6 +368,8 @@ def _normalize_structured_payload(
 ) -> dict[str, Any]:
     if output_schema.__name__ == "RequirementGroupOutput":
         return _normalize_requirement_group_payload(payload)
+    if output_schema.__name__ == "FulfilledChallenge":
+        return _normalize_fulfilled_challenge_payload(payload)
     if output_schema.__name__ != "ReviewerAgentOutput":
         return payload
 
@@ -426,6 +445,50 @@ _REQUIREMENT_SUFFICIENCY_SYNONYMS = {
 }
 
 
+#: Strings that unambiguously mean true/false for coerced booleans. Anything
+#: outside both sets stays a string so validation fails and the call is
+#: re-asked -- mapping the unknown to False would silently take the one
+#: direction the challenge is never allowed to take (keeping a FULFILLED
+#: published because the sustained objection arrived as a sentence).
+_UNAMBIGUOUS_TRUE = {"yes", "ja", "true", "wahr", "1"}
+_UNAMBIGUOUS_FALSE = {"no", "nein", "false", "falsch", "0"}
+
+
+def _coerce_unambiguous_bool(value: Any) -> Any:
+    if not isinstance(value, str):
+        return value
+    folded = value.lower().strip().rstrip(".")
+    if folded in _UNAMBIGUOUS_TRUE:
+        return True
+    if folded in _UNAMBIGUOUS_FALSE:
+        return False
+    return value
+
+
+def _normalize_fulfilled_challenge_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Repair shape drift in the second-look verdict.
+
+    One challenge call died in the blind regression because the model returned
+    missing_or_asserted_evidence as a string instead of a list. Same contract
+    as the other branches: spelling and shape only, no invented content -- an
+    ambiguous challenge_sustained stays unmapped so validation fails and the
+    call is re-asked instead of quietly resolving in either direction.
+    """
+    entry = {
+        key: value
+        for key, value in payload.items()
+        if key in {"challenge_sustained", "missing_or_asserted_evidence", "reason"}
+    }
+    if "challenge_sustained" in entry:
+        entry["challenge_sustained"] = _coerce_unambiguous_bool(
+            entry["challenge_sustained"]
+        )
+    evidence = entry.get("missing_or_asserted_evidence")
+    if isinstance(evidence, str):
+        entry["missing_or_asserted_evidence"] = [evidence] if evidence.strip() else []
+    return entry
+
+
 def _normalize_requirement_group_payload(payload: dict[str, Any]) -> dict[str, Any]:
     """Repair the shape drift the blind run showed, without touching content.
 
@@ -455,21 +518,26 @@ def _normalize_requirement_group_payload(payload: dict[str, Any]) -> dict[str, A
             entry["status"] = _REQUIREMENT_STATUS_SYNONYMS.get(
                 " ".join(status.lower().split()), status
             )
+        # Unmappable values keep their original spelling so validation fails
+        # and the group is re-asked. Mapping the unknown to None would pass
+        # validation and silently bypass every rule keyed on the value: a
+        # "nicht ausreichend" sufficiency would no longer trigger the
+        # insufficient-downgrade, a "schwerwiegend" severity would publish a
+        # violation with no rank. Repair spelling, never absorb meaning.
         severity = entry.get("severity")
         if isinstance(severity, str):
-            entry["severity"] = _REQUIREMENT_SEVERITY_SYNONYMS.get(severity.lower().strip())
+            entry["severity"] = _REQUIREMENT_SEVERITY_SYNONYMS.get(
+                severity.lower().strip().rstrip("."), severity
+            )
         sufficiency = entry.get("evidence_sufficiency")
         if isinstance(sufficiency, str):
             entry["evidence_sufficiency"] = _REQUIREMENT_SUFFICIENCY_SYNONYMS.get(
-                sufficiency.lower().strip()
+                sufficiency.lower().strip().rstrip("."), sufficiency
             )
-        support = entry.get("independent_support")
-        if isinstance(support, str):
-            entry["independent_support"] = support.lower().strip() in {
-                "yes",
-                "ja",
-                "true",
-            }
+        if "independent_support" in entry:
+            entry["independent_support"] = _coerce_unambiguous_bool(
+                entry["independent_support"]
+            )
         evidence = entry.get("evidence")
         if isinstance(evidence, list):
             entry["evidence"] = [

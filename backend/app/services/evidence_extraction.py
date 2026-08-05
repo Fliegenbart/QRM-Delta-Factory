@@ -24,20 +24,30 @@ EXTRACTION_PROMPT = (
     "strukturiert, ohne zu bewerten:\n\n"
     "1. signatures: Jedes Signatur-, Prüf- oder Freigabefeld. field_label ist "
     "die Feldbezeichnung im Dokument. is_empty=true, wenn das Feld existiert, "
-    "aber keinen Unterzeichner trägt (leer, nur Datum, 'siehe oben', 'N/A' ohne "
-    "Begründung). Ein leeres Pflichtfeld ist ein eigener Eintrag, kein "
+    "aber keinen Unterzeichner trägt -- also leer ist, NUR ein Datum ohne "
+    "Namen oder Kürzel enthält, 'siehe oben' sagt oder 'N/A' ohne Begründung. "
+    "Ein Datum ist kein Unterzeichner. Gehe Signaturblöcke Feld für Feld "
+    "durch; ein leeres Pflichtfeld ist ein eigener Eintrag, kein "
     "Auslassungsgrund.\n"
     "2. measurements: Jeder konkrete Messwert mit Parameter, Wert (wörtlich, "
     "inklusive Komma- oder Punktschreibweise) und Einheit.\n"
     "3. specifications: Jede deklarierte Grenze (NMT, NLT, ≤, ≥, Bereich). "
     "Benutze für parameter DENSELBEN Namen wie bei der zugehörigen Messung, "
     "damit beide zusammenfinden.\n"
-    "4. action_items: Jede Position einer Maßnahmen- oder Aufgabenliste "
-    "(CAPA-Maßnahmen, Aufgaben) einzeln, mit responsible und due_date, sofern "
-    "genannt -- fehlend heißt null, nicht raten.\n"
+    "4. action_items: NUR Positionen von Listen mit Handlungscharakter -- "
+    "CAPA-Maßnahmen, Aufgaben, Korrekturmaßnahmen, also Dinge, die jemand tun "
+    "muss -- einzeln, mit responsible und due_date, sofern genannt; fehlend "
+    "heißt null, nicht raten. Dokumentlisten, Inhaltsverzeichnisse, "
+    "Anlagenverzeichnisse, Verteilerlisten und Aufzählungen vorhandener "
+    "Unterlagen sind KEINE action_items -- ein Dokument hat keinen "
+    "Verantwortlichen und keine Frist.\n"
     "5. events: Datierte Handlungen (Review, Freigabe, Prüfung, Eingriff) mit "
-    "timestamp, actor (Name oder Kürzel) und activity_key: Einträge, die "
-    "dieselbe reale Tätigkeit beschreiben, bekommen denselben activity_key.\n\n"
+    "timestamp, actor (Name oder Kürzel) und activity_key. Denselben "
+    "activity_key bekommen nur Einträge, die dieselbe Handlung am SELBEN "
+    "Objekt beschreiben -- gleiche Charge, gleiches Gerät, gleiche Probe. "
+    "Nimm die Objektkennung in den Schlüssel auf (z. B. "
+    "'filterintegritaetstest_OP-24-0501'); dieselbe Tätigkeit an zwei "
+    "Chargen sind zwei Aktivitäten.\n\n"
     "Harte Regeln:\n"
     "- quote ist wortwörtlich und zusammenhängend aus dem genannten Chunk, mit "
     "document_id, chunk_id und page aus den Eingaben.\n"
@@ -89,7 +99,10 @@ class EvidenceExtractor:
         succeeded: list[str] = []
         for document_id in sorted(by_document):
             try:
-                raw = self.provider.run_structured(
+                from app.services.requirement_review import _run_with_one_reask
+
+                raw = _run_with_one_reask(
+                    self.provider,
                     EXTRACTION_PROMPT,
                     {
                         "requirements": requirement_index,

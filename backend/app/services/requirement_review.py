@@ -369,19 +369,15 @@ class RequirementReviewEngine:
             ],
             "chunks": chunk_payload,
         }
+        discarded_usage: list[Any] = []
         try:
-            try:
-                raw = self.assessor_provider.run_structured(
-                    ASSESSOR_PROMPT, input_schema, RequirementGroupOutput
-                )
-            except ProviderStructuredOutputError:
-                # Transport retries live in the provider; schema failures are
-                # explicitly the caller's to bound (see base.py). One fresh
-                # sample usually parses -- the blind run lost two whole groups
-                # to single malformed responses that were never re-asked.
-                raw = self.assessor_provider.run_structured(
-                    ASSESSOR_PROMPT, input_schema, RequirementGroupOutput
-                )
+            raw = _run_with_one_reask(
+                self.assessor_provider,
+                ASSESSOR_PROMPT,
+                input_schema,
+                RequirementGroupOutput,
+                discarded_usage=discarded_usage,
+            )
         except Exception as exc:  # noqa: BLE001 - fail-secure per group
             call = _model_call(
                 self.assessor_provider,
@@ -389,6 +385,7 @@ class RequirementReviewEngine:
                 requirement_ids=requirement_ids,
                 status="failed",
                 error=exc,
+                discarded_usage=discarded_usage,
             )
             return [
                 _server_verdict(
@@ -428,6 +425,7 @@ class RequirementReviewEngine:
             purpose="assess",
             requirement_ids=requirement_ids,
             status="succeeded",
+            discarded_usage=discarded_usage,
         )
         return verified, call
 
@@ -454,8 +452,8 @@ class RequirementReviewEngine:
             "quotes": [item.quote for item in verdict.evidence],
         }
         try:
-            raw = self.entailment_provider.run_structured(
-                ENTAILMENT_PROMPT, input_schema, EntailmentCheck
+            raw = _run_with_one_reask(
+                self.entailment_provider, ENTAILMENT_PROMPT, input_schema, EntailmentCheck
             )
             check = EntailmentCheck.model_validate(raw)
         except Exception as exc:  # noqa: BLE001 - fail-secure per verdict
@@ -535,8 +533,8 @@ class RequirementReviewEngine:
             "independent_support": verdict.independent_support,
         }
         try:
-            raw = self.entailment_provider.run_structured(
-                CHALLENGE_PROMPT, input_schema, FulfilledChallenge
+            raw = _run_with_one_reask(
+                self.entailment_provider, CHALLENGE_PROMPT, input_schema, FulfilledChallenge
             )
             challenge = FulfilledChallenge.model_validate(raw)
         except Exception as exc:  # noqa: BLE001 - fail-secure per verdict
@@ -579,6 +577,34 @@ class RequirementReviewEngine:
                     + "; ".join(challenge.missing_or_asserted_evidence)
                 )
         return verdict.model_copy(update=update)
+
+
+def _run_with_one_reask(
+    provider: BaseModelProvider,
+    prompt: str,
+    input_schema: dict[str, Any],
+    output_schema: type,
+    *,
+    discarded_usage: list[Any] | None = None,
+) -> dict[str, Any]:
+    """Re-ask once when a response fails the schema after normalization.
+
+    Transport retries live in the provider; schema failures are explicitly the
+    caller's to bound (see base.py). A malformed sample is usually a one-off --
+    the blind runs lost two assessor groups and one challenge to single
+    responses that were never re-asked. One fresh sample, then fail-secure.
+
+    The discarded first sample was still paid for; its token usage (recorded
+    by the provider even on schema failure) is appended to ``discarded_usage``
+    so the call record can carry the real spend instead of half of it.
+    """
+    try:
+        return provider.run_structured(prompt, input_schema, output_schema)
+    except ProviderStructuredOutputError:
+        metadata = provider.last_run_metadata
+        if discarded_usage is not None and metadata and metadata.token_usage:
+            discarded_usage.append(metadata.token_usage)
+        return provider.run_structured(prompt, input_schema, output_schema)
 
 
 def _split_by_applicability(
@@ -813,9 +839,18 @@ def _model_call(
     requirement_ids: list[str],
     status: str,
     error: Exception | None = None,
+    discarded_usage: list[Any] | None = None,
 ) -> RequirementReviewModelCall:
     metadata = provider.last_run_metadata if status == "succeeded" else None
     token_usage = metadata.token_usage if metadata else None
+    input_tokens = token_usage.input_tokens if token_usage else 0
+    output_tokens = token_usage.output_tokens if token_usage else 0
+    # Samples discarded by a re-ask were billed all the same; without them the
+    # call record understates spend by a full call exactly on the paths that
+    # needed a second sample.
+    for usage in discarded_usage or []:
+        input_tokens += usage.input_tokens
+        output_tokens += usage.output_tokens
     return RequirementReviewModelCall(
         purpose=purpose,
         provider=provider.provider_name,
@@ -824,8 +859,8 @@ def _model_call(
         status=status,
         error_type=type(error).__name__ if error else None,
         error_summary=_safe_error_summary(error) if error else None,
-        input_tokens=token_usage.input_tokens if token_usage else 0,
-        output_tokens=token_usage.output_tokens if token_usage else 0,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
     )
 
 

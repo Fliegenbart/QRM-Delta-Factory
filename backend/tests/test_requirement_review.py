@@ -787,6 +787,154 @@ def test_group_payload_normalization_repairs_shape_drift() -> None:
     assert "confidence" not in verdict["evidence"][0]
 
 
+def test_challenge_payload_normalization_repairs_string_list() -> None:
+    """The blind regression lost one challenge to a string where a list belongs."""
+    from app.schemas.requirement_review import FulfilledChallenge
+
+    messy = {
+        "challenge_sustained": "ja",
+        "missing_or_asserted_evidence": "Audit-Trail-Auszug fehlt",
+        "reason": "Nur behauptet.",
+        "confidence": "hoch",
+    }
+    provider = MockProvider(output_factory=lambda *_: messy)
+    result = provider.run_structured("prompt", {}, FulfilledChallenge)
+
+    assert result["challenge_sustained"] is True
+    assert result["missing_or_asserted_evidence"] == ["Audit-Trail-Auszug fehlt"]
+    assert "confidence" not in result
+
+
+def test_extraction_prompt_types_lists_and_binds_activities_to_objects() -> None:
+    """The two decoy-hit classes of the blind regression, pinned as prompt rules.
+
+    A document inventory typed as an action list turned two correct fulfilled
+    verdicts into violations; an activity_key spanning two batches turned two
+    rightful signers into a contradiction.
+    """
+    from app.services.evidence_extraction import EXTRACTION_PROMPT
+
+    assert "KEINE action_items" in EXTRACTION_PROMPT
+    assert "Dokumentlisten" in EXTRACTION_PROMPT
+    assert "Verteilerlisten" in EXTRACTION_PROMPT
+    assert "SELBEN Objekt" in EXTRACTION_PROMPT
+    assert "gleiche Charge" in EXTRACTION_PROMPT
+    assert "zwei Aktivitäten" in EXTRACTION_PROMPT
+    assert "Ein Datum ist kein Unterzeichner" in EXTRACTION_PROMPT
+
+
+def test_ambiguous_challenge_sustained_string_fails_validation_not_false() -> None:
+    """A sentence-form sustained challenge must never silently become False.
+
+    Mapping the unknown to False would keep a FULFILLED published although the
+    second look confirmed the objection -- the one direction the challenge is
+    forbidden to take. Ambiguity has to fail validation so the call is
+    re-asked and, failing twice, the verdict drops to UNCLEAR.
+    """
+    from app.agents.providers import ProviderStructuredOutputError as SchemaError
+    from app.schemas.requirement_review import FulfilledChallenge
+
+    ambiguous = {
+        "challenge_sustained": "Ja, der Audit-Trail-Nachweis ist nur behauptet",
+        "missing_or_asserted_evidence": [],
+        "reason": "Begründung.",
+    }
+    provider = MockProvider(output_factory=lambda *_: ambiguous)
+    try:
+        provider.run_structured("prompt", {}, FulfilledChallenge)
+        raise AssertionError("ambiguous string must not validate")
+    except SchemaError:
+        pass
+
+    # Unambiguous German forms map in both directions.
+    for text, expected in (("wahr", True), ("Ja.", True), ("nein", False)):
+        payload = {**ambiguous, "challenge_sustained": text}
+        provider = MockProvider(output_factory=lambda *_, p=payload: p)
+        result = provider.run_structured("prompt", {}, FulfilledChallenge)
+        assert result["challenge_sustained"] is expected, text
+
+
+def test_unmappable_enum_values_fail_validation_instead_of_becoming_none() -> None:
+    """"nicht ausreichend" must not vanish into None and bypass the downgrade."""
+    from app.agents.providers import ProviderStructuredOutputError as SchemaError
+    from app.schemas.requirement_review import RequirementGroupOutput
+
+    def _verdict_with(**fields: Any) -> dict[str, Any]:
+        return {
+            "verdicts": [
+                {
+                    "requirement_id": "req_x",
+                    "status": "fulfilled",
+                    "rationale": "Begründung.",
+                    "evidence": [],
+                    **fields,
+                }
+            ]
+        }
+
+    for bad in (
+        _verdict_with(evidence_sufficiency="nicht ausreichend"),
+        _verdict_with(severity="schwerwiegend"),
+    ):
+        provider = MockProvider(output_factory=lambda *_, p=bad: p)
+        try:
+            provider.run_structured("prompt", {}, RequirementGroupOutput)
+            raise AssertionError("unmappable enum value must not validate")
+        except SchemaError:
+            pass
+
+    # Punctuation variants of known values still repair.
+    ok = _verdict_with(evidence_sufficiency="unzureichend.", severity="kritisch")
+    provider = MockProvider(output_factory=lambda *_: ok)
+    result = provider.run_structured("prompt", {}, RequirementGroupOutput)
+    assert result["verdicts"][0]["evidence_sufficiency"] == "insufficient"
+    assert result["verdicts"][0]["severity"] == "critical"
+
+
+def test_reasked_call_accounts_for_the_discarded_sample() -> None:
+    """The first, malformed sample was billed; the call record must carry it."""
+    _setup()
+    attempts: list[int] = []
+
+    def _flaky(prompt: str, input_schema: Any, output_schema: Any) -> dict[str, Any]:
+        attempts.append(1)
+        if len(attempts) == 1:
+            return {
+                "verdicts": [
+                    {
+                        "requirement_id": "req_threshold_validation",
+                        "status": "banana",
+                        "rationale": "kaputt",
+                        "evidence": [],
+                    }
+                ],
+                "token_usage": {
+                    "input_tokens": 1000,
+                    "output_tokens": 50,
+                    "total_tokens": 1050,
+                },
+            }
+        return {
+            "verdicts": [
+                _violated_verdict("Die QA-Freigabe ist als pending markiert.")
+            ],
+            "token_usage": {
+                "input_tokens": 1000,
+                "output_tokens": 400,
+                "total_tokens": 1400,
+            },
+        }
+
+    report = _engine(
+        MockProvider(output_factory=_flaky), _entailment("supports")
+    ).run("ds_req_review_demo")
+
+    assess = next(c for c in report.model_calls if c.purpose == "assess")
+    assert assess.status == "succeeded"
+    assert assess.input_tokens == 2000
+    assert assess.output_tokens == 450
+
+
 def test_assessor_retries_once_on_a_malformed_response() -> None:
     """A single unparseable sample must not publish a whole group as unclear."""
     _setup()
