@@ -62,9 +62,51 @@ EXTRACTION_PROMPT = (
 @dataclass
 class ExtractionOutcome:
     evidence: StructuredEvidence
-    #: (document_id, exception) per failed per-document call.
+    #: ("document_id:pass", exception) per failed per-document category pass.
     failures: list[tuple[str, Exception]]
+    #: "document_id:pass" per succeeded category pass.
     succeeded_document_ids: list[str]
+
+
+#: The extraction task split into disjoint category passes per document. Eight
+#: dense, table-heavy documents of the second blind corpus individually
+#: exceeded mistral's output cap: splitting the input further was impossible
+#: (one page is one chunk), so the TASK splits instead. Each pass extracts
+#: only its categories and is asked to leave the others empty; the server
+#: enforces the scope regardless of what the model returns. A truncation now
+#: costs one category group of one document, and the two passes carry roughly
+#: even output weight (tables drive measurements/specifications, prose drives
+#: the rest).
+EXTRACTION_PASSES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("felder", ("signatures", "action_items", "events")),
+    ("werte", ("measurements", "specifications")),
+)
+
+_CATEGORY_LABELS_DE = {
+    "signatures": "signatures (Signatur-/Prüf-/Freigabefelder)",
+    "action_items": "action_items (Maßnahmen-/Aufgabenlisten)",
+    "events": "events (datierte Handlungen)",
+    "measurements": "measurements (Messwerte)",
+    "specifications": "specifications (deklarierte Grenzen)",
+}
+
+
+def _scoped_prompt(categories: tuple[str, ...]) -> str:
+    listed = ", ".join(_CATEGORY_LABELS_DE[category] for category in categories)
+    return (
+        f"{EXTRACTION_PROMPT}\n\n"
+        f"DURCHGANGS-SCOPE: Extrahiere in diesem Durchgang AUSSCHLIESSLICH "
+        f"die Kategorien {listed}. Gib alle übrigen Kategorien als leere "
+        f"Listen zurück; sie werden in einem separaten Durchgang erhoben."
+    )
+
+
+def _scoped_to(evidence: StructuredEvidence, categories: tuple[str, ...]) -> dict:
+    """Keep only the pass's categories, whatever the model returned."""
+    return {
+        category: getattr(evidence, category)
+        for category in categories
+    }
 
 
 class EvidenceExtractor:
@@ -78,17 +120,15 @@ class EvidenceExtractor:
         requirement_index: list[dict[str, str]],
         chunks: list[DocumentChunk],
     ) -> ExtractionOutcome:
-        """Extract per document, so one bad call costs one document.
+        """Extract per document and per category pass.
 
-        The blind run showed why the single whole-case call was wrong twice
-        over: extracting every row of five or six documents in one response
-        ran into the output token cap on mistral (truncated, retried,
-        truncated again -- truncation is deterministic at this size), and the
-        one dead call silenced the entire validator layer for the case. Both
-        of the corpus's zero-detection cases were exactly this. Per-document
-        calls bound the output to what one document can produce, and a
-        failure surfaces as a named per-document gap instead of a silent
-        whole-case blackout.
+        Two containment stages, each answering a measured failure. Per
+        document, because the first blind corpus lost whole cases to one
+        truncated whole-case call. Per category pass, because the second
+        blind corpus truncated on eight single documents whose row count
+        alone exceeded the output cap -- the input could not be split any
+        further, so the task is. A failure surfaces as a named
+        document-and-pass gap; everything else survives.
         """
         by_document: dict[str, list[dict[str, Any]]] = {}
         for chunk in chunk_payload:
@@ -98,30 +138,31 @@ class EvidenceExtractor:
         failures: list[tuple[str, Exception]] = []
         succeeded: list[str] = []
         for document_id in sorted(by_document):
-            try:
-                from app.services.requirement_review import _run_with_one_reask
+            for pass_label, categories in EXTRACTION_PASSES:
+                try:
+                    from app.services.requirement_review import _run_with_one_reask
 
-                raw = _run_with_one_reask(
-                    self.provider,
-                    EXTRACTION_PROMPT,
-                    {
-                        "requirements": requirement_index,
-                        "chunks": by_document[document_id],
-                    },
-                    StructuredEvidence,
+                    raw = _run_with_one_reask(
+                        self.provider,
+                        _scoped_prompt(categories),
+                        {
+                            "requirements": requirement_index,
+                            "chunks": by_document[document_id],
+                        },
+                        StructuredEvidence,
+                    )
+                    evidence = StructuredEvidence.model_validate(raw)
+                except Exception as exc:  # noqa: BLE001 - recorded per pass
+                    failures.append((f"{document_id}:{pass_label}", exc))
+                    continue
+                succeeded.append(f"{document_id}:{pass_label}")
+                scoped = _scoped_to(evidence, categories)
+                merged = merged.model_copy(
+                    update={
+                        category: [*getattr(merged, category), *rows]
+                        for category, rows in scoped.items()
+                    }
                 )
-                evidence = StructuredEvidence.model_validate(raw)
-            except Exception as exc:  # noqa: BLE001 - recorded per document
-                failures.append((document_id, exc))
-                continue
-            succeeded.append(document_id)
-            merged = StructuredEvidence(
-                signatures=[*merged.signatures, *evidence.signatures],
-                measurements=[*merged.measurements, *evidence.measurements],
-                specifications=[*merged.specifications, *evidence.specifications],
-                action_items=[*merged.action_items, *evidence.action_items],
-                events=[*merged.events, *evidence.events],
-            )
         return ExtractionOutcome(
             evidence=_ground_locations(merged, chunks),
             failures=failures,

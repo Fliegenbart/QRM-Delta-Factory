@@ -662,7 +662,79 @@ def test_failed_extraction_keeps_assessed_verdicts_intact() -> None:
     )
     assert verdict.published_status == RequirementVerdictStatus.VIOLATED
     failed = [c for c in report.model_calls if c.status == "failed"]
-    assert [c.purpose for c in failed] == ["extract[doc_req_change]"]
+    # Both category passes of the document die with the same transport error.
+    assert [c.purpose for c in failed] == [
+        "extract[doc_req_change:felder]",
+        "extract[doc_req_change:werte]",
+    ]
+
+
+def test_pass_scope_is_enforced_server_side_against_scope_ignoring_models() -> None:
+    """A model returning every category in every pass must not double the rows.
+
+    The category split only bounds output size if each pass's result is
+    filtered to its categories on the server -- trusting the model to honour
+    the scope instruction would turn scope drift into duplicated evidence.
+    """
+    from app.services.evidence_extraction import EvidenceExtractor
+
+    full_payload = {
+        "signatures": [
+            {
+                "field_label": "Freigabe QA",
+                "is_empty": True,
+                "requirement_ids": ["req_threshold_validation"],
+                "location": {
+                    "document_id": "doc_req_change",
+                    "chunk_id": "chunk_req_change_p1",
+                    "page": 1,
+                    "quote": "Die QA-Freigabe ist als pending markiert.",
+                },
+            }
+        ],
+        "measurements": [
+            {
+                "parameter": "Schwellwert",
+                "value": "42",
+                "unit": "N",
+                "requirement_ids": [],
+                "location": {
+                    "document_id": "doc_req_change",
+                    "chunk_id": "chunk_req_change_p1",
+                    "page": 1,
+                    "quote": "Change Control CC-2026-014 senkt den AVI-Schwellwert.",
+                },
+            }
+        ],
+        "specifications": [],
+        "action_items": [],
+        "events": [],
+    }
+    _setup()
+    chunks = repository.list_chunks_for_document_set("ds_req_review_demo")
+    outcome = EvidenceExtractor(
+        provider=MockProvider(output_factory=lambda *_: full_payload)
+    ).extract(
+        chunk_payload=[
+            {
+                "document_id": "doc_req_change",
+                "document_name": "change-control.md",
+                "chunk_id": "chunk_req_change_p1",
+                "page": 1,
+                "text": CHUNK_TEXT,
+            }
+        ],
+        requirement_index=[],
+        chunks=chunks,
+    )
+
+    # Both passes returned both categories; the scope filter keeps each row once.
+    assert len(outcome.evidence.signatures) == 1
+    assert len(outcome.evidence.measurements) == 1
+    assert outcome.succeeded_document_ids == [
+        "doc_req_change:felder",
+        "doc_req_change:werte",
+    ]
 
 
 def test_extraction_failure_is_contained_to_its_document() -> None:
@@ -743,8 +815,10 @@ def test_extraction_failure_is_contained_to_its_document() -> None:
     assert len(report.validator_findings) == 1
     statuses = {c.purpose: c.status for c in report.model_calls if "extract" in c.purpose}
     assert statuses == {
-        "extract[doc_req_change]": "failed",
-        "extract[doc_req_capa]": "succeeded",
+        "extract[doc_req_change:felder]": "failed",
+        "extract[doc_req_change:werte]": "failed",
+        "extract[doc_req_capa:felder]": "succeeded",
+        "extract[doc_req_capa:werte]": "succeeded",
     }
 
 
