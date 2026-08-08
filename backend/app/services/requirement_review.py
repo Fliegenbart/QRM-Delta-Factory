@@ -244,6 +244,15 @@ class RequirementReviewEngine:
                 chunks=chunks,
                 model_calls=model_calls,
             )
+        # Arithmetic runs on chunk text and needs no extraction, so it must not
+        # sit behind the extraction provider: surviving a truncated extraction
+        # is the reason it reads raw text in the first place.
+        verdicts, arithmetic_findings = _apply_arithmetic_validators(
+            verdicts=verdicts,
+            applicable=applicable,
+            chunks=chunks,
+        )
+        validator_findings = [*validator_findings, *arithmetic_findings]
 
         verdicts.sort(key=lambda v: v.requirement_id)
         status_counts: dict[str, int] = {}
@@ -747,11 +756,44 @@ def _check_provenance(
     dropped_reasons: list[str] = []
     for item in verdict.evidence:
         chunk = chunks_by_id.get(item.chunk_id)
-        if chunk is None or chunk.document_id != item.document_id:
+        if chunk is not None and chunk.document_id != item.document_id:
+            # An existing chunk id paired with a different document is the
+            # strongest hallucination signal there is -- the model named a real
+            # passage and the wrong source for it. Relocating would search the
+            # claimed document for the same words and, on boilerplate, find
+            # them, publishing a citation into a document the finding was never
+            # about. This one keeps failing.
             dropped += 1
             dropped_reasons.append(
-                f"Zitat verworfen ({item.chunk_id}): Chunk existiert nicht oder "
-                f"gehört nicht zu {item.document_id}."
+                f"Zitat verworfen ({item.chunk_id}): Chunk gehört zu einem "
+                f"anderen Dokument als {item.document_id}."
+            )
+            continue
+        if chunk is None:
+            # An invented chunk id is bookkeeping drift, not a wrong source: a
+            # verdict naming the right document lost both quotes this way and
+            # demoted to unclear although it had found its planted error.
+            # Relocate within the cited document; the text still has to ground
+            # exactly, so provenance is unchanged.
+            relocated = _relocate_quote(item, chunks)
+            if relocated is None:
+                dropped += 1
+                dropped_reasons.append(
+                    f"Zitat verworfen ({item.chunk_id}): Chunk existiert nicht "
+                    f"oder gehört nicht zu {item.document_id}, und der Wortlaut "
+                    f"findet sich in keinem Chunk des Dokuments."
+                )
+                continue
+            chunk, grounded_fragments = relocated
+            surviving.extend(
+                item.model_copy(
+                    update={
+                        "chunk_id": chunk.chunk_id,
+                        "page": chunk.page_start,
+                        "quote": fragment,
+                    }
+                )
+                for fragment in grounded_fragments
             )
             continue
         if not chunk.page_start <= item.page <= chunk.page_end:
@@ -812,6 +854,122 @@ def _check_provenance(
     )
 
 
+def _apply_arithmetic_validators(
+    *,
+    verdicts: list[VerifiedRequirementVerdict],
+    applicable: list[Requirement],
+    chunks: list[DocumentChunk],
+) -> tuple[list[VerifiedRequirementVerdict], list[dict[str, Any]]]:
+    """Run the text-level arithmetic checks and annotate co-citing verdicts.
+
+    Deliberately non-escalating. The check knows a document contradicts its own
+    arithmetic; it cannot know which obligation that breaches, and a wrong
+    escalation would cost the decoy specificity that is the engine's strongest
+    measured result. The findings publish as their own rows instead.
+    """
+    from app.services.arithmetic_validators import run_arithmetic_validators
+
+    findings = run_arithmetic_validators(chunks)
+    if not findings:
+        return verdicts, []
+    applicable_ids = {requirement.requirement_id for requirement in applicable}
+    verdicts_by_id = {verdict.requirement_id: verdict for verdict in verdicts}
+    for finding in findings:
+        finding_chunks = {location.chunk_id for location in finding.locations}
+        for verdict in verdicts:
+            if verdict.requirement_id not in applicable_ids:
+                continue
+            current = verdicts_by_id[verdict.requirement_id]
+            if not (finding_chunks & {item.chunk_id for item in current.evidence}):
+                continue
+            verdicts_by_id[verdict.requirement_id] = current.model_copy(
+                update={
+                    "validator_flags": [*current.validator_flags, finding.validator_id],
+                    "validator_statements": [
+                        *current.validator_statements,
+                        finding.statement,
+                    ],
+                }
+            )
+    merged = [verdicts_by_id[verdict.requirement_id] for verdict in verdicts]
+    return merged, [finding.model_dump(mode="json") for finding in findings]
+
+
+def _relocate_quote(
+    item: RequirementReviewEvidence, chunks: list[DocumentChunk]
+) -> tuple[DocumentChunk, list[str]] | None:
+    """Find the cited document's chunk that actually carries the quote.
+
+    Only the chunk id moves; the document the model named stays binding and
+    the text must still ground exactly. Two constraints keep this from turning
+    a citation into a guess. The page the model gave decides between chunks --
+    without it, a sentence appearing twice in a document would relocate to
+    whichever copy comes first and the published page would look precise while
+    being invented. And a quote that grounds in several chunks with no page to
+    choose between them is refused outright rather than resolved arbitrarily.
+    """
+    matches: list[tuple[DocumentChunk, list[str]]] = []
+    for candidate in chunks:
+        if candidate.document_id != item.document_id:
+            continue
+        grounded = _ground_quote(item.quote, candidate.text)
+        if grounded is None:
+            continue
+        if candidate.page_start <= item.page <= candidate.page_end:
+            return candidate, grounded
+        matches.append((candidate, grounded))
+    return matches[0] if len(matches) == 1 else None
+
+
+#: Latin-1 codepoints this repair is willing to restore. Restricted to German
+#: orthography on purpose: the repair must fix an encoding accident, never
+#: reconstruct arbitrary characters the model may have meant.
+_REPAIRABLE_CODEPOINTS = frozenset("äöüÄÖÜß")
+
+#: Only the two lead bytes actually observed. Accepting every C0 control
+#: character would eat the ones documents legitimately contain: U+000C is the
+#: page break of PDF-extracted text and U+000D a carriage return, and both have
+#: low nibbles that map into the German range -- "\x0c4. Quartal" would become
+#: "Ä. Quartal", destroying text that grounds perfectly well on its own.
+_MOJIBAKE_LEADS = frozenset("\x0e\x0f")
+
+
+def _repair_mojibake(value: str) -> str:
+    """Undo the control-character umlaut corruption seen in model quotes.
+
+    A quote came back with U+000E followed by "4" where "ä" belonged, and
+    U+000F followed by "c" for "ü": the codepoint's high hex nibble had
+    become a C0 control character and the low nibble stayed a hex digit.
+    The verdict describing that finding lost its only quote at provenance
+    and, with it, the blind corpus scored a correct detection as a miss.
+
+    Reversing it is mechanical -- (control & 0x0F) << 4 | int(digit, 16) --
+    and safe, because the result still has to match the chunk exactly; the
+    chunk text remains the authority for what the evidence says.
+    """
+    if not any(character in _MOJIBAKE_LEADS for character in value):
+        return value
+    repaired: list[str] = []
+    index = 0
+    while index < len(value):
+        character = value[index]
+        if character in _MOJIBAKE_LEADS and index + 1 < len(value):
+            try:
+                low = int(value[index + 1], 16)
+            except ValueError:
+                repaired.append(character)
+                index += 1
+                continue
+            candidate = chr(((ord(character) & 0x0F) << 4) | low)
+            if candidate in _REPAIRABLE_CODEPOINTS:
+                repaired.append(candidate)
+                index += 2
+                continue
+        repaired.append(character)
+        index += 1
+    return "".join(repaired)
+
+
 def _ground_quote(quote: str, chunk_text: str) -> list[str] | None:
     """Resolve a model quote to exact source spans, or refuse.
 
@@ -825,6 +983,18 @@ def _ground_quote(quote: str, chunk_text: str) -> list[str] | None:
     # A quote that is already an exact substring stays as it is.
     if quote in chunk_text:
         return [quote]
+
+    repaired_quote = _repair_mojibake(quote)
+    if repaired_quote != quote:
+        if repaired_quote in chunk_text:
+            return [repaired_quote]
+        # The repair is an attempt, not a commitment: if it did not produce a
+        # match, the original text goes on to the fragment and reconciliation
+        # paths, which treat control characters as separators and may well
+        # ground it as it stands.
+        repaired = _ground_quote(repaired_quote, chunk_text)
+        if repaired is not None:
+            return repaired
 
     fragments = [quote]
     for marker in _ELLIPSIS_MARKERS:

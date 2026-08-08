@@ -669,6 +669,268 @@ def test_failed_extraction_keeps_assessed_verdicts_intact() -> None:
     ]
 
 
+def test_mojibake_umlauts_in_a_quote_are_repaired_before_provenance() -> None:
+    """A correct detection was scored as a miss over a broken encoding.
+
+    The quote came back with U+000E followed by "4" where "ä" belonged. It
+    grounded nowhere, the verdict lost its only evidence and demoted, and the
+    blind corpus counted an error the engine had described almost verbatim.
+    """
+    _setup()
+    corrupted = CHUNK_TEXT[: CHUNK_TEXT.index("Validierungsnachweis")] + (
+        "Validierungsnachweis f\x0fcr den neuen Schwellwert liegt nicht bei."
+    )
+    report = _engine(
+        _assessor([_violated_verdict(corrupted[corrupted.index("Ein Valid") :])]
+                  if "Ein Valid" in corrupted
+                  else [_violated_verdict("Ein Validierungsnachweis f\x0fcr den "
+                                          "neuen Schwellwert liegt nicht bei.")]),
+        _entailment("supports"),
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.dropped_evidence_count == 0
+    assert verdict.evidence[0].quote == (
+        "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei."
+    )
+
+
+def test_hallucinated_chunk_id_is_relocated_within_the_cited_document() -> None:
+    """The chunk id is bookkeeping; the document is the claim.
+
+    A verdict naming the right document with an invented chunk id lost both
+    quotes and demoted to unclear, although it had found its planted error.
+    """
+    _setup()
+    verdict_payload = _violated_verdict("Die QA-Freigabe ist als pending markiert.")
+    verdict_payload["evidence"][0]["chunk_id"] = "chunk_erfunden_p9"
+    report = _engine(
+        _assessor([verdict_payload]), _entailment("supports")
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.dropped_evidence_count == 0
+    assert verdict.evidence[0].chunk_id == "chunk_req_change_p1"
+    assert verdict.provenance_ok is True
+
+
+def test_existing_chunk_id_with_a_different_document_is_never_relocated() -> None:
+    """A real chunk paired with the wrong document is the hallucination signal.
+
+    Relocating would search the claimed document for the same words and, on
+    boilerplate, find them -- publishing a citation into a document the
+    finding was never about, with provenance_ok intact.
+    """
+    _setup()
+    boilerplate = "Die QA-Freigabe ist als pending markiert."
+    repository.add_document(
+        document=Document(
+            document_id="doc_req_other",
+            document_set_id="ds_req_review_demo",
+            filename="sop.md",
+            file_hash_sha256=sha256(b"sop.md").hexdigest(),
+            mime_type="text/markdown",
+            page_count=1,
+            storage_uri="local://req/sop.md",
+            parser_version="test-parser",
+            parsing_status="parsed",
+            parsing_quality_score=0.95,
+            language="de",
+            metadata={},
+        ),
+        chunks=[
+            DocumentChunk(
+                chunk_id="chunk_req_other_p1",
+                document_id="doc_req_other",
+                page_start=1,
+                page_end=1,
+                text=boilerplate,
+                token_count=len(boilerplate.split()),
+                extraction_confidence=0.95,
+                bbox=None,
+                source_hash=sha256(boilerplate.encode()).hexdigest(),
+            )
+        ],
+    )
+    verdict_payload = _violated_verdict(boilerplate)
+    # Real chunk from the change-control document, claimed for the SOP.
+    verdict_payload["evidence"][0]["document_id"] = "doc_req_other"
+    verdict_payload["evidence"][0]["chunk_id"] = "chunk_req_change_p1"
+    report = _engine(
+        _assessor([verdict_payload]), _entailment("supports")
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert verdict.dropped_evidence_count == 1
+    assert "anderen Dokument" in verdict.dropped_evidence_reasons[0]
+
+
+def test_repair_leaves_legitimate_control_characters_alone() -> None:
+    """U+000C is the page break of PDF text, not a broken umlaut.
+
+    Accepting every C0 lead turned "\\x0c4. Quartal" into "Ä. Quartal" and, by
+    overwriting the quote unconditionally, destroyed text that would have
+    grounded through reconciliation on its own.
+    """
+    from app.services.requirement_review import _repair_mojibake
+
+    assert _repair_mojibake("\x0c4. Quartal") == "\x0c4. Quartal"
+    assert _repair_mojibake("Abschnitt\r6.2") == "Abschnitt\r6.2"
+    assert _repair_mojibake("Integrit\x0e4t") == "Integrität"
+    assert _repair_mojibake("f\x0fcr") == "für"
+
+
+def test_relocation_refuses_an_ambiguous_passage_without_a_page_anchor() -> None:
+    """A sentence appearing twice may not be relocated by document order.
+
+    Taking the first match published a precise-looking page the model never
+    named, pointing the reviewer at a different occurrence than the rationale
+    describes.
+    """
+    _setup()
+    repeated = "Der Nachweis liegt nicht vor."
+    for index in (1, 2):
+        repository.add_document(
+            document=Document(
+                document_id=f"doc_req_rep{index}",
+                document_set_id="ds_req_review_demo",
+                filename=f"bericht{index}.md",
+                file_hash_sha256=sha256(f"bericht{index}".encode()).hexdigest(),
+                mime_type="text/markdown",
+                page_count=1,
+                storage_uri=f"local://req/bericht{index}.md",
+                parser_version="test-parser",
+                parsing_status="parsed",
+                parsing_quality_score=0.95,
+                language="de",
+                metadata={},
+            ),
+            chunks=[],
+        )
+    # Two chunks of one document, both carrying the sentence, neither on the
+    # page the model named.
+    repository.chunks_by_document["doc_req_rep1"] = [
+        DocumentChunk(
+            chunk_id=f"chunk_req_rep_p{page}",
+            document_id="doc_req_rep1",
+            page_start=page,
+            page_end=page,
+            text=repeated,
+            token_count=len(repeated.split()),
+            extraction_confidence=0.95,
+            bbox=None,
+            source_hash=sha256(f"{repeated}{page}".encode()).hexdigest(),
+        )
+        for page in (4, 9)
+    ]
+    verdict_payload = _violated_verdict(repeated)
+    verdict_payload["evidence"][0]["document_id"] = "doc_req_rep1"
+    verdict_payload["evidence"][0]["chunk_id"] = "chunk_erfunden_p31"
+    verdict_payload["evidence"][0]["page"] = 31
+    report = _engine(
+        _assessor([verdict_payload]), _entailment("supports")
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert verdict.dropped_evidence_count == 1
+
+
+def test_relocation_refuses_a_quote_absent_from_the_cited_document() -> None:
+    """Relocation moves the index, never the standard of proof."""
+    _setup()
+    verdict_payload = _violated_verdict("Diesen Satz enthält kein Dokument.")
+    verdict_payload["evidence"][0]["chunk_id"] = "chunk_erfunden_p9"
+    report = _engine(
+        _assessor([verdict_payload]), _entailment("supports")
+    ).run("ds_req_review_demo")
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert verdict.dropped_evidence_count == 1
+    assert verdict.evidence == []
+
+
+def test_arithmetic_contradiction_publishes_without_escalating_a_verdict() -> None:
+    """The check reports a fact about the document, not a requirement breach.
+
+    Escalating someone else's verdict would risk the decoy specificity that is
+    the engine's strongest measured result, and the check cannot know which
+    obligation a miscalculation breaches.
+    """
+    _setup()
+    text = "An 14 von 320 Ampullen (2,8 %) wurden Eintritte festgestellt."
+    repository.add_document(
+        document=Document(
+            document_id="doc_req_numbers",
+            document_set_id="ds_req_review_demo",
+            filename="pruefprotokoll.md",
+            file_hash_sha256=sha256(b"pruefprotokoll.md").hexdigest(),
+            mime_type="text/markdown",
+            page_count=1,
+            storage_uri="local://req/pruefprotokoll.md",
+            parser_version="test-parser",
+            parsing_status="parsed",
+            parsing_quality_score=0.95,
+            language="de",
+            metadata={},
+        ),
+        chunks=[
+            DocumentChunk(
+                chunk_id="chunk_req_numbers_p1",
+                document_id="doc_req_numbers",
+                page_start=1,
+                page_end=1,
+                text=text,
+                token_count=len(text.split()),
+                extraction_confidence=0.95,
+                bbox=None,
+                source_hash=sha256(text.encode()).hexdigest(),
+            )
+        ],
+    )
+    fulfilled = _fulfilled_verdict("Die QA-Freigabe ist als pending markiert.")
+    fulfilled["evidence"].append(
+        {
+            "document_id": "doc_req_numbers",
+            "chunk_id": "chunk_req_numbers_p1",
+            "page": 1,
+            "quote": text,
+        }
+    )
+    report = _engine(
+        _assessor([fulfilled]), _entailment("supports", challenge_sustained=False)
+    ).run("ds_req_review_demo")
+
+    arithmetic = [
+        f
+        for f in report.validator_findings
+        if f["validator_id"] == "share_contradicts_fraction"
+    ]
+    assert len(arithmetic) == 1
+    assert arithmetic[0]["requirement_ids"] == []
+
+    verdict = next(
+        v for v in report.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    # Annotated, because it cites the same chunk -- but not escalated.
+    assert verdict.published_status == RequirementVerdictStatus.FULFILLED
+    assert "share_contradicts_fraction" in verdict.validator_flags
+
+
 def test_pass_scope_is_enforced_server_side_against_scope_ignoring_models() -> None:
     """A model returning every category in every pass must not double the rows.
 
