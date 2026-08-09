@@ -91,8 +91,8 @@ def _run_pipeline(client: TestClient) -> str:
         files={
             "file": (
                 "change-control.txt",
-                "Change Control CC-2026-014 senkt den AVI-Schwellwert. "
-                "Ein Validierungsnachweis liegt nicht bei.".encode(),
+                b"Change Control CC-2026-014 senkt den AVI-Schwellwert. "
+                b"Ein Validierungsnachweis liegt nicht bei.",
                 "text/plain",
             )
         },
