@@ -28,7 +28,7 @@
       "source_name": "EU GMP Annex 11",
       "source_version": "2011",
       "section": "9",
-      "requirement_text": "GxP-relevante elektronische Daten muessen einen Audit Trail besitzen, der regelmaessig und risikobasiert geprueft wird; sicherheits- oder qualitaetsrelevante Eintraege duerfen dabei nicht ausgeschlossen werden.",
+      "requirement_text": "GxP-relevante elektronische Daten müssen einen Audit Trail besitzen, der regelmäßig und risikobasiert geprüft wird; sicherheits- oder qualitätsrelevante Eintraege duerfen dabei nicht ausgeschlossen werden.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -90,7 +90,7 @@
       "source_name": "21 CFR Part 11",
       "source_version": "1997",
       "section": "11.50",
-      "requirement_text": "Elektronische Unterschriften muessen Name, Datum und Zeit der Signatur sowie deren Bedeutung enthalten; Datums- und Zeitangaben muessen zeitlich plausibel und konsistent mit dem Vorgang sein. In der Zukunft liegende oder widerspruechliche Signaturdaten sind Datenintegritaetsbefunde.",
+      "requirement_text": "Elektronische Unterschriften müssen Name, Datum und Zeit der Signatur sowie deren Bedeutung enthalten; Datums- und Zeitangaben müssen zeitlich plausibel und konsistent mit dem Vorgang sein. In der Zukunft liegende oder widerspruechliche Signaturdaten sind Datenintegritaetsbefunde.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -133,7 +133,7 @@
     },
     {
       "requirement_id": "req_di_alcoa_completeness",
-      "title": "ALCOA+ Vollstaendigkeit der Aufzeichnungen",
+      "title": "ALCOA+ Vollständigkeit der Aufzeichnungen",
       "domain": "data_integrity",
       "knowledge_packs": [
         "universal_gmp_qrm_base"
@@ -152,7 +152,7 @@
       "source_name": "PIC/S PI 041 (Data Integrity)",
       "source_version": "2021",
       "section": "8",
-      "requirement_text": "Aufzeichnungen muessen zurechenbar, lesbar, zeitgleich, original und korrekt sowie vollstaendig, konsistent, dauerhaft und verfuegbar sein (ALCOA+). Fehlende oder nachtraeglich veraenderte Originaldaten sind zu begruenden.",
+      "requirement_text": "Aufzeichnungen müssen zurechenbar, lesbar, zeitgleich, original und korrekt sowie vollständig, konsistent, dauerhaft und verfuegbar sein (ALCOA+). Fehlende oder nachtraeglich veraenderte Originaldaten sind zu begründen.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -213,7 +213,7 @@
       "source_name": "EU GMP Annex 11",
       "source_version": "2011",
       "section": "12",
-      "requirement_text": "Zugriffsrechte muessen rollenbasiert vergeben sein; manuelle Override- oder Admin-Eingriffe in GxP-Systeme muessen begruendet, autorisiert und im Audit Trail nachvollziehbar sein.",
+      "requirement_text": "Zugriffsrechte müssen rollenbasiert vergeben sein; manuelle Override- oder Admin-Eingriffe in GxP-Systeme müssen begründet, autorisiert und im Audit Trail nachvollziehbar sein.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -275,7 +275,7 @@
       "source_name": "ICH Q9(R1)",
       "source_version": "2023",
       "section": "5",
-      "requirement_text": "Jede Abweichung erfordert eine dokumentierte Bewertung der Auswirkung auf Produktqualitaet und Patientensicherheit, einschliesslich aller potenziell betroffenen Chargen.",
+      "requirement_text": "Jede Abweichung erfordert eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -319,7 +319,7 @@
     },
     {
       "requirement_id": "req_dev_risk_classification",
-      "title": "Begruendete Risiko- und Schweregradeinstufung",
+      "title": "Begründete Risiko- und Schweregradeinstufung",
       "domain": "deviation_management",
       "knowledge_packs": [
         "universal_gmp_qrm_base"
@@ -338,7 +338,7 @@
       "source_name": "ICH Q9(R1)",
       "source_version": "2023",
       "section": "5.1",
-      "requirement_text": "Die Einstufung einer Abweichung (z.B. Minor/Major/Kritisch) muss durch eine nachvollziehbare Risikobewertung belegt sein. Eine Einstufung als geringfuegig ohne belastbare physikalisch-chemische oder labortechnische Daten ist unzulaessig, auch wenn das Produkt visuell unauffaellig ist.",
+      "requirement_text": "Die Einstufung einer Abweichung (z.B. Minor/Major/Kritisch) muss durch eine nachvollziehbare Risikobewertung belegt sein. Eine Einstufung als geringfuegig ohne belastbare physikalisch-chemische oder labortechnische Daten ist unzulässig, auch wenn das Produkt visuell unauffaellig ist.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -462,7 +462,7 @@
       "source_name": "EU GMP Kapitel 6",
       "source_version": "2014",
       "section": "6.35",
-      "requirement_text": "Out-of-Specification- und Out-of-Trend-Ergebnisse muessen vollstaendig untersucht und bewertet sein, bevor eine Chargen- oder Marktware-Disposition erfolgt; Folgemassnahmen duerfen nicht unzulaessig aufgeschoben werden.",
+      "requirement_text": "Out-of-Specification- und Out-of-Trend-Ergebnisse müssen vollständig untersucht und bewertet sein, bevor eine Chargen- oder Marktware-Disposition erfolgt; Folgemaßnahmen duerfen nicht unzulässig aufgeschoben werden.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -505,7 +505,7 @@
     },
     {
       "requirement_id": "req_capa_effectiveness",
-      "title": "Wirksamkeitspruefung der CAPA",
+      "title": "Wirksamkeitsprüfung der CAPA",
       "domain": "capa",
       "knowledge_packs": [
         "universal_gmp_qrm_base"
@@ -524,7 +524,7 @@
       "source_name": "ICH Q10",
       "source_version": "2008",
       "section": "3.2.2",
-      "requirement_text": "CAPA-Massnahmen, die mit einem Qualitaetsrisiko verknuepft sind, duerfen nur mit definierter und dokumentierter Wirksamkeitspruefung (Effectiveness Check) abgeschlossen werden.",
+      "requirement_text": "CAPA-Maßnahmen, die mit einem Qualitätsrisiko verknüpft sind, duerfen nur mit definierter und dokumentierter Wirksamkeitsprüfung (Effectiveness Check) abgeschlossen werden.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -587,7 +587,7 @@
       "source_name": "ICH Q10",
       "source_version": "2008",
       "section": "3",
-      "requirement_text": "Jede CAPA-Massnahme muss einen benannten Massnahmenverantwortlichen und einen plausiblen, realisierbaren Umsetzungstermin haben.",
+      "requirement_text": "Jede CAPA-Maßnahme muss einen benannten Maßnahmenverantwortlichen und einen plausiblen, realisierbaren Umsetzungstermin haben.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -630,7 +630,7 @@
     },
     {
       "requirement_id": "req_batch_affected_completeness",
-      "title": "Vollstaendige Erfassung betroffener Chargen",
+      "title": "Vollständige Erfassung betroffener Chargen",
       "domain": "batch_impact_assessment",
       "knowledge_packs": [
         "universal_gmp_qrm_base"
@@ -649,7 +649,7 @@
       "source_name": "EU GMP Kapitel 5",
       "source_version": "2014",
       "section": "5.x",
-      "requirement_text": "Batch-Impact-Bewertungen muessen alle potenziell betroffenen Chargen einschliesslich Vorgaenger- und Folgechargen erfassen.",
+      "requirement_text": "Batch-Impact-Bewertungen müssen alle potenziell betroffenen Chargen einschließlich Vorgänger- und Folgechargen erfassen.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -692,7 +692,7 @@
     },
     {
       "requirement_id": "req_batch_disposition_trace",
-      "title": "Nachvollziehbare Disposition mit Batch-Record-Verknuepfung",
+      "title": "Nachvollziehbare Disposition mit Batch-Record-Verknüpfung",
       "domain": "batch_impact_assessment",
       "knowledge_packs": [
         "universal_gmp_qrm_base"
@@ -711,7 +711,7 @@
       "source_name": "EU GMP Kapitel 6",
       "source_version": "2014",
       "section": "6",
-      "requirement_text": "Die Freigabe- bzw. Dispositionsentscheidung jeder betroffenen Charge muss begruendet und mit den zugehoerigen Batch Records verknuepft sein.",
+      "requirement_text": "Die Freigabe- bzw. Dispositionsentscheidung jeder betroffenen Charge muss begründet und mit den zugehörigen Batch Records verknüpft sein.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -835,7 +835,7 @@
       "source_name": "EU GMP Kapitel 1",
       "source_version": "2013",
       "section": "1.4(xv)",
-      "requirement_text": "QA-Freigaben und Genehmigungen muessen vor Abschluss dokumentiert vorliegen. Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend.",
+      "requirement_text": "QA-Freigaben und Genehmigungen müssen vor Abschluss dokumentiert vorliegen. Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -897,7 +897,7 @@
       "source_name": "EU GMP Annex 15",
       "source_version": "2015",
       "section": "Validierung",
-      "requirement_text": "Validierungs-, Reinigungsvalidierungs- und Sterilisationsnachweise muessen den aktuellen Prozess-, Equipment- und Standortzustand abdecken. Veraltete oder nicht uebertragbare Evidenz (anderes Equipment, anderer Standort, abgelaufene Version) ist kein gueltiger Nachweis.",
+      "requirement_text": "Validierungs-, Reinigungsvalidierungs- und Sterilisationsnachweise müssen den aktuellen Prozess-, Equipment- und Standortzustand abdecken. Veraltete oder nicht übertragbare Evidenz (anderes Equipment, anderer Standort, abgelaufene Version) ist kein gueltiger Nachweis.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -959,7 +959,7 @@
       "source_name": "EU GMP Annex 1",
       "source_version": "2022",
       "section": "Kontaminationskontrolle",
-      "requirement_text": "Reinigungs- und Sterilitaetsrisiken muessen explizit adressiert und durch geeignete Validierung und Kontaminationskontrollstrategie belegt sein; eine nur indirekte Erwaehnung ist nicht ausreichend.",
+      "requirement_text": "Reinigungs- und Sterilitaetsrisiken müssen explizit adressiert und durch geeignete Validierung und Kontaminationskontrollstrategie belegt sein; eine nur indirekte Erwaehnung ist nicht ausreichend.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -1021,7 +1021,7 @@
       "source_name": "ICH Q10",
       "source_version": "2008",
       "section": "3.2.3",
-      "requirement_text": "Aenderungen muessen einer dokumentierten Auswirkungsbewertung unterzogen werden; betroffene Validierungen sind zu pruefen und gegebenenfalls zu aktualisieren. Eine 'no impact'-Bewertung muss begruendet sein.",
+      "requirement_text": "Änderungen müssen einer dokumentierten Auswirkungsbewertung unterzogen werden; betroffene Validierungen sind zu prüfen und gegebenenfalls zu aktualisieren. Eine 'no impact'-Bewertung muss begründet sein.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -1083,7 +1083,7 @@
       "source_name": "EU GMP Kapitel 4",
       "source_version": "2011",
       "section": "4.1",
-      "requirement_text": "Angaben zu Chargen, Daten, Mengen, Temperaturen, Ergebnissen und Status muessen ueber alle Dokumente eines Vorgangs (Bericht, Batch Record, Anhaenge, Freigabenotiz) konsistent sein; Widersprueche muessen aufgeklaert werden.",
+      "requirement_text": "Angaben zu Chargen, Daten, Mengen, Temperaturen, Ergebnissen und Status müssen ueber alle Dokumente eines Vorgangs (Bericht, Batch Record, Anhaenge, Freigabenotiz) konsistent sein; Widersprueche müssen aufgeklaert werden.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -1125,7 +1125,7 @@
     },
     {
       "requirement_id": "req_doc_mandatory_attachments",
-      "title": "Vollstaendigkeit der Pflichtanhaenge",
+      "title": "Vollständigkeit der Pflichtanhaenge",
       "domain": "documentation",
       "knowledge_packs": [
         "universal_gmp_qrm_base"
@@ -1144,7 +1144,7 @@
       "source_name": "EU GMP Kapitel 4",
       "source_version": "2011",
       "section": "4.x",
-      "requirement_text": "Alle in einem Vorgang referenzierten Pflichtanhaenge und Nachweise muessen tatsaechlich vorhanden und aktuell sein.",
+      "requirement_text": "Alle in einem Vorgang referenzierten Pflichtanhaenge und Nachweise müssen tatsaechlich vorhanden und aktuell sein.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -1186,7 +1186,7 @@
     },
     {
       "requirement_id": "req_supplier_change_impact",
-      "title": "Bewertung von Lieferanten- und Materialaenderungen",
+      "title": "Bewertung von Lieferanten- und Materialänderungen",
       "domain": "supplier_quality",
       "knowledge_packs": [
         "universal_gmp_qrm_base"
@@ -1205,7 +1205,7 @@
       "source_name": "EU GMP Kapitel 5",
       "source_version": "2014",
       "section": "5.27",
-      "requirement_text": "Aenderungen an Lieferant, Material, Spezifikation, Methode oder Quelle duerfen nicht ohne Begruendung als 'no impact' gewertet werden; die Auswirkung auf Qualitaet und Validierung ist zu bewerten.",
+      "requirement_text": "Änderungen an Lieferant, Material, Spezifikation, Methode oder Quelle duerfen nicht ohne Begründung als 'no impact' gewertet werden; die Auswirkung auf Qualität und Validierung ist zu bewerten.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -1267,7 +1267,7 @@
       "source_name": "EU GMP Kapitel 6",
       "source_version": "2014",
       "section": "6",
-      "requirement_text": "Mess- und Pruefergebnisse muessen gegen die gueltige interne Spezifikation bewertet werden. Eine Verletzung interner Akzeptanzkriterien ist auch dann als Abweichung zu behandeln, wenn ein Lieferanten-Zertifikat Konformitaet ausweist.",
+      "requirement_text": "Mess- und Prüfergebnisse müssen gegen die gueltige interne Spezifikation bewertet werden. Eine Verletzung interner Akzeptanzkriterien ist auch dann als Abweichung zu behandeln, wenn ein Lieferanten-Zertifikat Konformitaet ausweist.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -1329,7 +1329,7 @@
       "source_name": "EU GMP Kapitel 5",
       "source_version": "2014",
       "section": "5.x",
-      "requirement_text": "Kritische Prozessparameter muessen innerhalb der spezifizierten Grenzen liegen. Eine Ueber- oder Unterschreitung ist als Abweichung zu bewerten, auch wenn das Produkt visuell unauffaellig erscheint.",
+      "requirement_text": "Kritische Prozessparameter müssen innerhalb der spezifizierten Grenzen liegen. Eine Ueber- oder Unterschreitung ist als Abweichung zu bewerten, auch wenn das Produkt visuell unauffaellig erscheint.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -1372,7 +1372,7 @@
     },
     {
       "requirement_id": "req_training_effectiveness",
-      "title": "Wirksames Training nach SOP-Aenderung",
+      "title": "Wirksames Training nach SOP-Änderung",
       "domain": "training",
       "knowledge_packs": [
         "universal_gmp_qrm_base"
@@ -1391,7 +1391,7 @@
       "source_name": "EU GMP Kapitel 2",
       "source_version": "2013",
       "section": "2.x",
-      "requirement_text": "Wird eine SOP aktualisiert, muss das betroffene Personal nachweislich und wirksam geschult sein, bevor die geaenderte Taetigkeit ausgefuehrt wird.",
+      "requirement_text": "Wird eine SOP aktualisiert, muss das betroffene Personal nachweislich und wirksam geschult sein, bevor die geänderte Taetigkeit ausgeführt wird.",
       "applies_to_document_types": [
         "deviation",
         "deviation_record",
@@ -1472,7 +1472,7 @@
       "source_name": "ICH Q2(R2) / EU GMP Kapitel 6",
       "source_version": "2023",
       "section": "fitness-for-intended-use",
-      "requirement_text": "Wenn ein quantitativer QC-Grenzwert verschaerft wird, muss die Methodenfitness fuer die Entscheidung am neuen Grenzwert belegt sein. Historische Validierung fuer einen weniger strengen Grenzwert reicht nur aus, wenn Genauigkeit, Praezision, Linearitaet und Reporting Capability am neuen Grenzwert oder darunter nachvollziehbar abgedeckt sind.",
+      "requirement_text": "Wenn ein quantitativer QC-Grenzwert verschaerft wird, muss die Methodenfitness für die Entscheidung am neuen Grenzwert belegt sein. Historische Validierung für einen weniger strengen Grenzwert reicht nur aus, wenn Genauigkeit, Präzision, Linearitaet und Reporting Capability am neuen Grenzwert oder darunter nachvollziehbar abgedeckt sind.",
       "applies_to_document_types": [
         "change_control_package"
       ],
@@ -1492,7 +1492,7 @@
     },
     {
       "requirement_id": "req_qc_equipment_site_bridge_for_comparator_evidence",
-      "title": "Geraete- und Standort-Bridging fuer Vergleichsevidenz",
+      "title": "Geraete- und Standort-Bridging für Vergleichsevidenz",
       "domain": "method_validation",
       "knowledge_packs": [
         "universal_gmp_qrm_base",
@@ -1528,7 +1528,7 @@
       "source_name": "EU GMP Kapitel 6 / ICH Q2(R2)",
       "source_version": "2023",
       "section": "method-transfer-bridging",
-      "requirement_text": "Vergleichsdaten von anderem Standort oder anderer Geraeteplattform duerfen eine QC-Methodenentscheidung nur stuetzen, wenn eine dokumentierte Geraeteaequivalenz, ein Transfer- oder Bridging-Nachweis oder eine genehmigte fachliche Begruendung vorliegt.",
+      "requirement_text": "Vergleichsdaten von anderem Standort oder anderer Geraeteplattform duerfen eine QC-Methodenentscheidung nur stuetzen, wenn eine dokumentierte Geraeteaequivalenz, ein Transfer- oder Bridging-Nachweis oder eine genehmigte fachliche Begründung vorliegt.",
       "applies_to_document_types": [
         "change_control_package"
       ],
@@ -1587,7 +1587,7 @@
       "source_name": "EU GMP Kapitel 1 und 4",
       "source_version": "2024",
       "section": "change-approval-before-use",
-      "requirement_text": "Eine geaenderte QC-Spezifikation oder Methode darf fuer GMP-Freigabeentscheidungen erst verwendet werden, wenn die erforderliche QA-Genehmigung dokumentiert ist. Geplante oder ausstehende Freigaben reichen vor der ersten Chargenfreigabe nicht aus.",
+      "requirement_text": "Eine geänderte QC-Spezifikation oder Methode darf für GMP-Freigabeentscheidungen erst verwendet werden, wenn die erforderliche QA-Genehmigung dokumentiert ist. Geplante oder ausstehende Freigaben reichen vor der ersten Chargenfreigabe nicht aus.",
       "applies_to_document_types": [
         "change_control_package"
       ],
@@ -1643,7 +1643,7 @@
       "source_name": "EU GMP Kapitel 2 und 4",
       "source_version": "2024",
       "section": "training-before-effective-use",
-      "requirement_text": "Wenn eine SOP-Version oder Spezifikationsanweisung fuer eine QC-Freigabeentscheidung verbindlich ist, muss das betroffene Personal vor der Anwendung geschult sein. Eine Einstufung als nicht trainingsrelevant ist zu begruenden und darf nicht im Widerspruch zur gueltigen SOP oder zum Batch Record stehen.",
+      "requirement_text": "Wenn eine SOP-Version oder Spezifikationsanweisung für eine QC-Freigabeentscheidung verbindlich ist, muss das betroffene Personal vor der Anwendung geschult sein. Eine Einstufung als nicht trainingsrelevant ist zu begründen und darf nicht im Widerspruch zur gueltigen SOP oder zum Batch Record stehen.",
       "applies_to_document_types": [
         "change_control_package"
       ],
@@ -1663,7 +1663,7 @@
     },
     {
       "requirement_id": "req_qc_affected_batch_scope_includes_retests",
-      "title": "Betroffene Chargen inklusive Retests und Rueckstellmuster",
+      "title": "Betroffene Chargen inklusive Retests und Rückstellmuster",
       "domain": "batch_impact_assessment",
       "knowledge_packs": [
         "universal_gmp_qrm_base",
@@ -1702,7 +1702,7 @@
       "source_name": "GMP Change-Control Batch-Impact Checklist",
       "source_version": "2026.1",
       "section": "affected-batch-scope",
-      "requirement_text": "Die Batch-Impact-Bewertung eines QC-Change-Control-Pakets muss alle betroffenen Chargen, Retests und Rueckstellmuster enthalten. Eine Charge oder ein Retest im Execution Record darf nicht als ausserhalb des Scopes behandelt werden, wenn neuer Grenzwert, neues Berechnungssheet oder geaenderte Spezifikation verwendet werden.",
+      "requirement_text": "Die Batch-Impact-Bewertung eines QC-Change-Control-Pakets muss alle betroffenen Chargen, Retests und Rückstellmuster enthalten. Eine Charge oder ein Retest im Execution Record darf nicht als ausserhalb des Scopes behandelt werden, wenn neuer Grenzwert, neues Berechnungssheet oder geänderte Spezifikation verwendet werden.",
       "applies_to_document_types": [
         "change_control_package"
       ],

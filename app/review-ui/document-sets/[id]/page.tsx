@@ -43,13 +43,24 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
           <ReviewPanel
             title={consultantReviewCopy.detail.title}
             action={reviewPackReady ? (
-              <Link
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-[var(--brand)] px-3 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
-                href={`/review-ui/document-sets/${id}/review-pack`}
-              >
-                {consultantReviewCopy.detail.openReviewPack}
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {/* The coverage report leads: it answers the question a QA
+                    reviewer actually asks -- is every obligation met, and where
+                    is the proof -- while the pack lists what was noticed. */}
+                <Link
+                  className="inline-flex h-9 items-center gap-2 rounded-md bg-[var(--brand)] px-3 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
+                  href={`/review-ui/document-sets/${id}/anforderungen`}
+                >
+                  Anforderungsabdeckung öffnen
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+                <Link
+                  className="inline-flex h-9 items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--brand)] hover:bg-[var(--brand-soft)]"
+                  href={`/review-ui/document-sets/${id}/review-pack`}
+                >
+                  {consultantReviewCopy.detail.openReviewPack}
+                </Link>
+              </div>
             ) : undefined}
           >
             {pipelineRun ? (

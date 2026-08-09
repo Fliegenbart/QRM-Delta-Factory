@@ -1137,3 +1137,154 @@ export function normalizeReviewDecisionPayload(input: {
     rationale: input.rationale.trim()
   };
 }
+
+/**
+ * The requirement coverage report: one verdict per obligation.
+ *
+ * Deliberately not folded into ReviewPack. The pack is organised around a
+ * risk decision with findings as rows; this report is organised around the
+ * requirements themselves, which is the question a QA reviewer actually
+ * asks -- is every obligation met, and where is the proof. Mixing them would
+ * blur exactly that distinction.
+ */
+export type RequirementVerdictStatus =
+  | "fulfilled"
+  | "violated"
+  | "unclear"
+  | "not_applicable";
+
+export type RequirementReportEvidence = {
+  document_id: string;
+  chunk_id: string;
+  page: number;
+  quote: string;
+};
+
+export type RequirementVerdictRow = {
+  requirement_id: string;
+  requirement_title: string | null;
+  requirement_text: string;
+  source_name: string;
+  section: string;
+  model_status: RequirementVerdictStatus;
+  published_status: RequirementVerdictStatus;
+  severity: string | null;
+  rationale: string;
+  evidence: RequirementReportEvidence[];
+  dropped_evidence_count: number;
+  dropped_evidence_reasons: string[];
+  provenance_ok: boolean;
+  entailment: "supports" | "partial" | "none" | null;
+  entailment_reason: string | null;
+  evidence_type: string | null;
+  evidence_reference: string | null;
+  evidence_sufficiency: "sufficient" | "partial" | "insufficient" | null;
+  independent_support: boolean | null;
+  challenge_sustained: boolean | null;
+  challenge_reason: string | null;
+  sample_disagreement: boolean;
+  validator_flags: string[];
+  validator_statements: string[];
+  server_authored: boolean;
+};
+
+export type RequirementCoverageReport = {
+  document_set_id: string;
+  engine_version: string;
+  created_at: string;
+  verdicts: RequirementVerdictRow[];
+  status_counts: Record<string, number>;
+  model_calls: {
+    purpose: string;
+    provider: string;
+    model_id: string;
+    requirement_ids: string[];
+    status: string;
+    error_type: string | null;
+    error_summary: string | null;
+    input_tokens: number;
+    output_tokens: number;
+  }[];
+  failed_model_call_count: number;
+  validator_findings: Record<string, unknown>[];
+};
+
+export const REQUIREMENT_STATUS_LABELS: Record<RequirementVerdictStatus, string> = {
+  violated: "Verletzt",
+  unclear: "Unklar",
+  fulfilled: "Erfüllt",
+  not_applicable: "Nicht anwendbar"
+};
+
+/** Reviewer order: what needs action first, what needs nothing last. */
+export const REQUIREMENT_STATUS_ORDER: RequirementVerdictStatus[] = [
+  "violated",
+  "unclear",
+  "fulfilled",
+  "not_applicable"
+];
+
+/**
+ * What a reviewer can lean on, and where they must look themselves.
+ *
+ * Derived only from recorded facts -- provenance, entailment, the adversarial
+ * second look, sample disagreement -- never from the model's own confidence.
+ */
+export function requirementConfidenceNotes(row: RequirementVerdictRow): string[] {
+  const notes: string[] = [];
+  if (row.server_authored) {
+    notes.push("Vom Server beantwortet, ohne Modellaufruf");
+  }
+  if (!row.provenance_ok && !row.server_authored) {
+    notes.push(
+      row.dropped_evidence_count > 0
+        ? `${row.dropped_evidence_count} Zitat(e) nicht im Quelltext auffindbar`
+        : "Belegprüfung nicht vollständig bestanden"
+    );
+  }
+  if (row.entailment === "partial") {
+    notes.push("Zweitmodell: Belege tragen die Aussage nur teilweise");
+  }
+  if (row.entailment === "supports") {
+    notes.push("Zweitmodell bestätigt: Belege tragen die Aussage");
+  }
+  if (row.challenge_sustained === true) {
+    notes.push("Skeptische Zweitprüfung hat Einwände bestätigt");
+  }
+  if (row.challenge_sustained === false) {
+    notes.push("Skeptische Zweitprüfung ohne Einwand");
+  }
+  if (row.sample_disagreement) {
+    notes.push("Unabhängige Durchgänge waren uneins — vorsichtigere Bewertung gewählt");
+  }
+  if (row.independent_support === false && row.published_status === "fulfilled") {
+    notes.push("Nachweis stützt sich auf Selbstauskunft des Vorgangs");
+  }
+  if (row.evidence_sufficiency === "partial") {
+    notes.push("Nachweis nur teilweise ausreichend");
+  }
+  for (const statement of row.validator_statements) {
+    notes.push(`Deterministische Prüfung: ${statement}`);
+  }
+  return notes;
+}
+
+/** Coverage in one line: how much of the obligation set is settled. */
+export function requirementCoverageProgress(report: RequirementCoverageReport): {
+  answered: number;
+  total: number;
+  needsAttention: number;
+  percent: number;
+} {
+  const total = report.verdicts.length;
+  const needsAttention = report.verdicts.filter(
+    (row) => row.published_status === "violated" || row.published_status === "unclear"
+  ).length;
+  const answered = total - needsAttention;
+  return {
+    answered,
+    total,
+    needsAttention,
+    percent: total === 0 ? 0 : Math.round((answered / total) * 100)
+  };
+}

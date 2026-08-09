@@ -10,6 +10,7 @@ import type {
   RequirementLibraryOverview,
   ReviewCalibrationReport,
   RequirementSet,
+  RequirementCoverageReport,
   ReviewDecisionValue,
   ReviewPack
 } from "@/src/lib/review-ui";
@@ -97,6 +98,14 @@ export async function getLatestPipelineRun(documentSetId: string): Promise<Pipel
 export async function getReviewPack(documentSetId: string): Promise<ReviewPack> {
   return backendFetch<ReviewPack>(
     `/document-sets/${encodeURIComponent(documentSetId)}/review-pack`
+  );
+}
+
+export async function getRequirementReport(
+  documentSetId: string
+): Promise<RequirementCoverageReport> {
+  return backendFetch<RequirementCoverageReport>(
+    `/document-sets/${encodeURIComponent(documentSetId)}/requirement-report`
   );
 }
 

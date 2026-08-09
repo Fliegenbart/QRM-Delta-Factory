@@ -66,7 +66,7 @@ export function buildReviewPackCsv(pack: ReviewPack): string {
     ]);
   }
 
-  return `\ufeff${[csvHeaders, ...rows].map((row) => row.map(csvCell).join(";")).join("\r\n")}\r\n`;
+  return csvDocument(csvHeaders, rows);
 }
 
 export function createReviewPackPdf(pack: ReviewPack): Blob {
@@ -150,7 +150,7 @@ export function createReviewPackPdf(pack: ReviewPack): Blob {
   }
   for (const evidence of pack.evidence_table) {
     pages.paragraph(
-      `Quelle ${sourceName(evidence)}, Seite ${evidence.page}: ${cleanPdfSnippet(evidence.quote)}`,
+      `Quelle ${sourceName(evidence)}, Seite ${evidence.page}: ${cleanExportSnippet(evidence.quote)}`,
       9,
       0
     );
@@ -176,7 +176,7 @@ function addEvidencePreview(pages: PdfPageBuilder, evidenceRows: ExportEvidenceP
   if (rows.length === 0) return;
   pages.text("Beleg", 9);
   rows.forEach((row) => {
-    pages.paragraph(`Quelle ${sourceName(row)}, Seite ${row.page}: ${cleanPdfSnippet(row.quote)}`, 8, 8);
+    pages.paragraph(`Quelle ${sourceName(row)}, Seite ${row.page}: ${cleanExportSnippet(row.quote)}`, 8, 8);
   });
 }
 
@@ -211,12 +211,20 @@ function sourceName(evidence: { document_name?: string | null; document_id: stri
   return evidence.document_name?.trim() || evidence.document_id;
 }
 
+/**
+ * CSV with BOM and semicolons -- the dialect Excel opens without a wizard.
+ * Shared so a second report cannot drift into a different one.
+ */
+export function csvDocument(headers: string[], rows: string[][]): string {
+  return `\ufeff${[headers, ...rows].map((row) => row.map(csvCell).join(";")).join("\r\n")}\r\n`;
+}
+
 function csvCell(value: string): string {
   const safeValue = value.replace(/^([=+\-@])/, "'$1").replace(/"/g, '""');
   return /[;"\r\n]/.test(safeValue) || /\s/.test(safeValue) ? `"${safeValue}"` : safeValue;
 }
 
-function safeFilePart(value: string): string {
+export function safeFilePart(value: string): string {
   return value.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "case";
 }
 
@@ -236,7 +244,8 @@ function displayHumanReviewReasons(reason: string | null | undefined): string[] 
   return displayReviewReasons(reason);
 }
 
-function cleanPdfSnippet(value: string): string {
+/** Strip markdown artefacts and collapse whitespace for export surfaces. */
+export function cleanExportSnippet(value: string): string {
   return value
     .replace(/\*\*([^*]+)\*\*/g, "$1")
     .replace(/\?+\s*(Datum|Dokumenttyp|Prozessbereich|Seiten-\/Abschnittsplatzhalter|Status):/g, "$1:")
@@ -248,7 +257,7 @@ type PdfLine =
   | { kind: "text"; text: string; fontSize: number; indent: number; gapAfter: number; font: "regular" | "bold" }
   | { kind: "rule"; gapAfter: number };
 
-class PdfPageBuilder {
+export class PdfPageBuilder {
   private readonly pages: PdfLine[][] = [[]];
   private y = 800;
 
@@ -365,6 +374,11 @@ function pdfText(value: string): string {
   return value
     .replace(/[€‚„…‘’“”•–—™]/g, (character) => WINANSI_BYTES[character])
     .replace(/[^\x20-\xFF]/g, "?");
+}
+
+/** Render prepared pages into a downloadable PDF blob. */
+export function buildPdfDocument(pages: PdfLine[][]): Blob {
+  return new Blob([new Uint8Array(buildPdf(pages))], { type: "application/pdf" });
 }
 
 function buildPdf(pages: PdfLine[][]): Uint8Array {
