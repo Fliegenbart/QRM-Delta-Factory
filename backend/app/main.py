@@ -9,6 +9,7 @@ from app.api.health import router as health_router
 from app.api.pipeline_runs import document_set_router as pipeline_document_set_router
 from app.api.pipeline_runs import pipeline_run_router
 from app.api.primary_review import router as primary_review_router
+from app.api.requirement_report import router as requirement_report_router
 from app.api.requirement_sets import router as requirement_sets_router
 from app.api.review_pack import document_set_router as review_pack_document_set_router
 from app.api.review_pack import finding_router as review_pack_finding_router
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
     application.include_router(primary_review_router)
     application.include_router(adversarial_review_router)
     application.include_router(risk_fusion_router)
+    application.include_router(requirement_report_router)
     application.include_router(review_pack_document_set_router)
     application.include_router(review_pack_finding_router)
     application.include_router(pipeline_document_set_router)

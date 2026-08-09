@@ -34,6 +34,7 @@ from app.schemas.domain import (
     RiskFinding,
 )
 from app.schemas.pipeline import PipelineRun
+from app.schemas.requirement_review import RequirementCoverageReport
 from app.schemas.review import CoverageSummary
 from app.schemas.risk import RiskDecision
 
@@ -54,6 +55,12 @@ class InMemoryDocumentRepository:
         self.adversarial_challenges_by_document_set: dict[str, list[AdversarialChallenge]] = {}
         self.coverage_summaries_by_document_set: dict[str, list[CoverageSummary]] = {}
         self.risk_decisions_by_document_set: dict[str, list[RiskDecision]] = {}
+        #: One coverage report per document set, replaced by each run. The
+        #: requirement engine publishes a complete picture every time, so
+        #: history lives in the audit log rather than in a growing list.
+        self.requirement_reports_by_document_set: dict[
+            str, RequirementCoverageReport
+        ] = {}
         self.pipeline_runs: dict[str, PipelineRun] = {}
         self.review_decisions_by_finding: dict[str, list[ReviewDecision]] = {}
         self.verification_results_by_document_set: dict[str, list[FindingVerificationResult]] = {}
@@ -73,6 +80,7 @@ class InMemoryDocumentRepository:
         self.adversarial_challenges_by_document_set.clear()
         self.coverage_summaries_by_document_set.clear()
         self.risk_decisions_by_document_set.clear()
+        self.requirement_reports_by_document_set.clear()
         self.pipeline_runs.clear()
         self.review_decisions_by_finding.clear()
         self.verification_results_by_document_set.clear()
@@ -143,6 +151,7 @@ class InMemoryDocumentRepository:
         self.adversarial_challenges_by_document_set.pop(document_set_id, None)
         self.coverage_summaries_by_document_set.pop(document_set_id, None)
         self.risk_decisions_by_document_set.pop(document_set_id, None)
+        self.requirement_reports_by_document_set.pop(document_set_id, None)
         self.verification_results_by_document_set.pop(document_set_id, None)
         self.model_runs_by_document_set.pop(document_set_id, None)
         self.pipeline_runs = {
@@ -278,6 +287,20 @@ class InMemoryDocumentRepository:
     def get_latest_risk_decision(self, document_set_id: str) -> RiskDecision | None:
         decisions = self.risk_decisions_by_document_set.get(document_set_id, [])
         return decisions[-1] if decisions else None
+
+    def replace_requirement_report(
+        self,
+        *,
+        document_set_id: str,
+        report: RequirementCoverageReport,
+    ) -> RequirementCoverageReport:
+        self.requirement_reports_by_document_set[document_set_id] = report
+        return report
+
+    def get_requirement_report(
+        self, document_set_id: str
+    ) -> RequirementCoverageReport | None:
+        return self.requirement_reports_by_document_set.get(document_set_id)
 
     def add_pipeline_run(self, pipeline_run: PipelineRun) -> PipelineRun:
         self.pipeline_runs[pipeline_run.pipeline_run_id] = pipeline_run
@@ -592,6 +615,20 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             )
         )
 
+    def replace_requirement_report(
+        self,
+        *,
+        document_set_id: str,
+        report: RequirementCoverageReport,
+    ) -> RequirementCoverageReport:
+        self.requirement_reports_by_document_set[document_set_id] = report
+        return report
+
+    def get_requirement_report(
+        self, document_set_id: str
+    ) -> RequirementCoverageReport | None:
+        return self.requirement_reports_by_document_set.get(document_set_id)
+
     def add_pipeline_run(self, pipeline_run: PipelineRun) -> PipelineRun:
         return self._persist_after(
             lambda: super(PersistentSnapshotRepository, self).add_pipeline_run(pipeline_run)
@@ -780,6 +817,12 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
                 "risk_decisions_by_document_set",
                 RiskDecision,
             )
+            self.requirement_reports_by_document_set = {
+                key: RequirementCoverageReport.model_validate(value)
+                for key, value in (
+                    payload.get("requirement_reports_by_document_set") or {}
+                ).items()
+            }
             self.pipeline_runs = _model_dict(payload, "pipeline_runs", PipelineRun)
             self.review_decisions_by_finding = _model_list_dict(
                 payload,
@@ -891,6 +934,10 @@ class PersistentSnapshotRepository(InMemoryDocumentRepository):
             "risk_decisions_by_document_set": _dump_model_list_dict(
                 self.risk_decisions_by_document_set
             ),
+            "requirement_reports_by_document_set": {
+                key: value.model_dump(mode="json")
+                for key, value in self.requirement_reports_by_document_set.items()
+            },
             "pipeline_runs": _dump_model_dict(self.pipeline_runs),
             "review_decisions_by_finding": _dump_model_list_dict(
                 self.review_decisions_by_finding

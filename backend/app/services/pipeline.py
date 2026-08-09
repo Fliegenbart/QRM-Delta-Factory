@@ -149,6 +149,7 @@ class PipelineService:
                 ("adversarial_evidence_verification", self._adversarial_evidence_verification),
                 ("risk_fusion", self._risk_fusion),
                 ("review_pack_generation", self._review_pack_generation),
+                ("requirement_coverage_review", self._requirement_coverage_review),
                 ("audit_trail_completion", self._audit_trail_completion),
             ]
             for step_name, step in steps:
@@ -500,6 +501,46 @@ class PipelineService:
             "top_risk_count": len(review_pack.top_risks),
             "evidence_row_count": len(review_pack.evidence_table),
         }
+
+    def _requirement_coverage_review(self, document_set_id: str) -> dict[str, Any]:
+        """Answer the coverage question alongside the finding question.
+
+        A reviewer does not ask "what did you notice", they ask "is every
+        obligation met, and where is the proof". The requirement engine
+        answers that directly, one verdict per requirement, and on the blind
+        corpus it does so at 79% sensitivity with 98% decoy specificity and
+        half the list length -- but until now it was reachable only from the
+        eval harness, so no customer could see it.
+
+        Deliberately non-fatal and last but for the audit step: the finding
+        pack is a complete result on its own, and a coverage report that
+        fails must not take a valid run down with it.
+        """
+        if not get_settings().requirement_review_enabled:
+            return {"skipped": "requirement_review_enabled=false"}
+        from app.services.requirement_review import (
+            default_requirement_review_engine,
+        )
+
+        try:
+            engine = default_requirement_review_engine(
+                repository=self.repository, audit_log=self.audit_log
+            )
+            report = engine.run(document_set_id)
+        except Exception as exc:  # noqa: BLE001 - additive report, never fatal
+            self.audit_log.append(
+                event_type="requirement_review_failed",
+                actor_id="service_requirement_review",
+                actor_type="service",
+                entity_type="DocumentSet",
+                entity_id=document_set_id,
+                payload={"error_type": type(exc).__name__, "error": str(exc)[:200]},
+            )
+            return {"failed": type(exc).__name__}
+        self.repository.replace_requirement_report(
+            document_set_id=document_set_id, report=report
+        )
+        return report.summary()
 
     def _audit_trail_completion(self, document_set_id: str) -> dict[str, Any]:
         document_set = self._document_set(document_set_id)

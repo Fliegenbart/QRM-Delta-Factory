@@ -80,6 +80,14 @@ class Settings(BaseSettings):
         " Deliberately a different provider than the assessor, so the checker does"
         " not share the assessor's blind spots.",
     )
+    requirement_review_enabled: bool = Field(
+        default=True,
+        description="Run the requirement-centric coverage review as part of the"
+        " pipeline. It answers the question a QA reviewer actually asks -- is every"
+        " obligation met, and where is the proof -- and publishes one verdict per"
+        " requirement instead of a findings feed. Additive: the finding pack is"
+        " produced either way, and a failing coverage review never fails the run.",
+    )
     requirement_review_assessor_samples: int = Field(
         default=2,
         ge=1,
