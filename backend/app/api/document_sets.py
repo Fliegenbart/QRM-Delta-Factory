@@ -14,7 +14,11 @@ from app.core.security import (
 )
 from app.db.in_memory import repository
 from app.schemas.domain import DocumentSet
-from app.schemas.ingestion import CreateDocumentSetRequest, DocumentUploadResponse
+from app.schemas.ingestion import (
+    CreateDocumentSetRequest,
+    DocumentSummary,
+    DocumentUploadResponse,
+)
 from app.services.document_parser import ParserRegistry
 from app.services.identifiers import InvalidIdentifierError
 from app.services.ingestion import (
@@ -49,6 +53,43 @@ def get_document_set(document_set_id: str, http_request: Request) -> DocumentSet
         document_set_id=document_set_id,
         request=http_request,
     )
+
+
+@router.get("/{document_set_id}/documents", response_model=list[DocumentSummary])
+def list_document_set_documents(
+    document_set_id: str, http_request: Request
+) -> list[DocumentSummary]:
+    """List the uploaded documents of a set, in upload order.
+
+    The case view previously had only document_ids to show, so a reviewer saw
+    four indistinguishable hashes where they had uploaded four named files and
+    could not tell the deviation report from the batch record.
+    """
+    document_set = require_document_set_for_tenant(
+        repository=repository,
+        document_set_id=document_set_id,
+        request=http_request,
+    )
+    summaries = []
+    for document_id in document_set.document_ids:
+        document = repository.get_document(document_id)
+        if document is None:
+            # A set may reference a document whose row is gone (partial delete,
+            # restored snapshot). Skipping keeps the rest of the case readable
+            # instead of failing the whole view on one dangling id.
+            continue
+        summaries.append(
+            DocumentSummary(
+                document_id=document.document_id,
+                filename=document.filename,
+                mime_type=document.mime_type,
+                page_count=document.page_count,
+                parsing_status=document.parsing_status,
+                parsing_quality_score=document.parsing_quality_score,
+                language=document.language,
+            )
+        )
+    return summaries
 
 
 @router.delete("/{document_set_id}", status_code=status.HTTP_204_NO_CONTENT)

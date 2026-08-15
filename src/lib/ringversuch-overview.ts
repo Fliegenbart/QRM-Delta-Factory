@@ -4,11 +4,22 @@ export type LandingProofStats = {
   falseAlarmLabel: string;
   citationValue: string;
   standLabel: string;
+  /**
+   * True when the run behind these figures used a model stack the product no
+   * longer ships. The numbers were really measured, so hiding them would be
+   * its own distortion -- but presenting them unqualified would claim current
+   * performance for a build that has not been measured. The landing page must
+   * say which of the two it is.
+   */
+  measuredOnFormerStack: boolean;
 };
+
+/** Stacks the shipped system can still run. Mirrors the Ringversuch dashboard. */
+const CURRENT_STACKS = new Set(["mixed", "anthropic", "openai"]);
 
 type RingversuchRun = {
   id: string;
-  run: { mode?: string };
+  run: { mode?: string; stack?: string | null };
   aggregate: {
     sensitivity?: { found: number; total: number; rate: number | null };
     specificity_decoys?: { passed: number; total: number; rate: number | null };
@@ -31,6 +42,7 @@ export function deriveLandingProofStats(runs?: RingversuchRun[]): LandingProofSt
     citationValue: citation.rate == null ? "–" : `${Math.round(citation.rate * 100)} %`,
     standLabel: dateMatch
       ? `Stand ${dateMatch[3]}.${dateMatch[2]}.${dateMatch[1]}`
-      : "Jüngster veröffentlichter Lauf"
+      : "Jüngster veröffentlichter Lauf",
+    measuredOnFormerStack: !CURRENT_STACKS.has(latestLive.run.stack ?? "")
   };
 }

@@ -82,6 +82,18 @@ class DocxPlaceholderParser:
         )
 
 
+#: Extensions the plain-text parser handles. Markdown belongs here because the
+#: entire evaluation corpus is Markdown -- and until August 2026 it was NOT
+#: here, which made the harness and the product disagree about what can be
+#: ingested at all: the harness uploads .md with an explicit "text/markdown"
+#: content type and parsed fine, while the same file dragged into the browser
+#: arrives as "application/octet-stream" and was rejected outright. The case
+#: still ran and still produced a review pack -- one assembled from four
+#: documents whose text was never read.
+_TEXT_SUFFIXES = frozenset({".txt", ".md", ".markdown", ".text"})
+_DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+
 class ParserRegistry:
     def __init__(self) -> None:
         self.txt_parser = TxtDocumentParser()
@@ -89,15 +101,22 @@ class ParserRegistry:
         self.docx_parser = DocxPlaceholderParser()
 
     def for_filename(self, filename: str, mime_type: str) -> DocumentParser:
+        # The suffix decides first. A client-supplied content type is a hint,
+        # not evidence: browsers report "application/octet-stream" (or nothing)
+        # for plenty of formats they have no entry for, and no upload should
+        # fail because of what the sender guessed about its own file.
         suffix = Path(filename).suffix.lower()
-        if suffix == ".pdf" or mime_type == "application/pdf":
+        if suffix == ".pdf":
             return self.pdf_parser
-        if suffix == ".txt" or mime_type.startswith("text/"):
+        if suffix in _TEXT_SUFFIXES:
             return self.txt_parser
-        if (
-            suffix == ".docx"
-            or mime_type
-            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        ):
+        if suffix == ".docx":
+            return self.docx_parser
+
+        if mime_type == "application/pdf":
+            return self.pdf_parser
+        if mime_type.startswith("text/"):
+            return self.txt_parser
+        if mime_type == _DOCX_MIME:
             return self.docx_parser
         raise ParserError(f"Unsupported file type for {filename} ({mime_type})")

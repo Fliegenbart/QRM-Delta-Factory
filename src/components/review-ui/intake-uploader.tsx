@@ -11,25 +11,16 @@ import {
   X
 } from "lucide-react";
 import { PipelineRunStatus } from "@/src/components/review-ui/pipeline-run-status";
-import type { PipelineRun } from "@/src/lib/review-ui";
+import {
+  intakeDocumentTypes,
+  intakeProcessAreas,
+  type PipelineRun
+} from "@/src/lib/review-ui";
 
-const documentTypes = [
-  { value: "change_control_package", label: "Change Control" },
-  { value: "deviation_package", label: "Abweichung" },
-  { value: "capa_package", label: "CAPA" },
-  { value: "audit_finding_package", label: "Audit-Finding" },
-  { value: "periodic_review_package", label: "Periodic Review" }
-];
-
-const processAreas = [
-  { value: "aseptic_filling", label: "Aseptische Abfüllung" },
-  { value: "automated_visual_inspection", label: "Automatische Sichtprüfung" },
-  { value: "cleaning_validation", label: "Reinigung" },
-  { value: "qc_lab", label: "QC-Labor" },
-  { value: "data_integrity", label: "Datenintegrität" },
-  { value: "supplier_quality", label: "Lieferant/Material" },
-  { value: "computerized_system", label: "Computergestütztes System" }
-];
+// Shared with the case view via review-ui, so a value picked here always has
+// a German label when the backend hands it back.
+const documentTypes = intakeDocumentTypes;
+const processAreas = intakeProcessAreas;
 
 type IntakeStatus = "idle" | "creating" | "uploading" | "running" | "done" | "error";
 
@@ -61,8 +52,14 @@ function FieldLabel({
 }
 
 export function IntakeUploader() {
-  const [declaredDocumentType, setDeclaredDocumentType] = useState(documentTypes[0].value);
-  const [declaredProcessArea, setDeclaredProcessArea] = useState(processAreas[0].value);
+  // Explicit string: the shared vocabulary is `as const`, which would narrow
+  // the state to the first option's literal type.
+  const [declaredDocumentType, setDeclaredDocumentType] = useState<string>(
+    documentTypes[0].value
+  );
+  const [declaredProcessArea, setDeclaredProcessArea] = useState<string>(
+    processAreas[0].value
+  );
   const [uploadedBy, setUploadedBy] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [status, setStatus] = useState<IntakeStatus>("idle");

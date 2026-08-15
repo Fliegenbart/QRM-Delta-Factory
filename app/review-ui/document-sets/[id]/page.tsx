@@ -1,13 +1,20 @@
 import Link from "next/link";
-import { ArrowRight, FileText } from "lucide-react";
+import { ArrowRight, FileText, FileWarning } from "lucide-react";
 import { PipelineRunStatus } from "@/src/components/review-ui/pipeline-run-status";
-import { getDocumentSet, getLatestPipelineRun, ReviewApiError } from "@/src/lib/review-api";
+import {
+  getDocumentSet,
+  getLatestPipelineRun,
+  listDocumentSetDocuments,
+  ReviewApiError
+} from "@/src/lib/review-api";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
 import {
   consultantReviewCopy,
   displayReviewValue,
   isHiddenDemoDocumentSetId,
-  userFacingReviewLoadError
+  unreadableDocuments,
+  userFacingReviewLoadError,
+  type DocumentSummary
 } from "@/src/lib/review-ui";
 
 export const dynamic = "force-dynamic";
@@ -28,14 +35,18 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
   }
 
   try {
-    const [documentSet, pipelineRun] = await Promise.all([
+    const [documentSet, pipelineRun, documents] = await Promise.all([
       getDocumentSet(id),
       getLatestPipelineRun(id).catch((error) => {
         if (error instanceof ReviewApiError && error.status === 404) return null;
         throw error;
-      })
+      }),
+      // The listing is additive: an older backend without this endpoint should
+      // cost the reviewer the filenames, not the whole case view.
+      listDocumentSetDocuments(id).catch(() => [] as DocumentSummary[])
     ]);
     const reviewPackReady = !pipelineRun || ["completed", "needs_human_review"].includes(pipelineRun.status);
+    const unreadable = unreadableDocuments(documents);
 
     return (
       <ReviewShell>
@@ -63,6 +74,24 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
               </div>
             ) : undefined}
           >
+            {unreadable.length > 0 ? (
+              <div className="mb-4 rounded-md border border-[#b42318] bg-[#fef3f2] px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <FileWarning className="h-4 w-4 shrink-0 text-[#b42318]" aria-hidden />
+                  <p className="text-sm font-semibold text-[#912018]">
+                    {unreadable.length === documents.length
+                      ? "Keine der hochgeladenen Unterlagen konnte gelesen werden."
+                      : `${unreadable.length} von ${documents.length} Unterlagen konnten nicht gelesen werden.`}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm leading-6 text-[#912018]">
+                  {unreadable.length === documents.length
+                    ? "Diese Prüfmappe stützt sich auf keinen einzigen gelesenen Text. Ihr Ergebnis ist kein Prüfergebnis. Bitte laden Sie die Unterlagen als PDF, Word oder Text erneut hoch."
+                    : "Die betroffenen Dokumente sind nicht in die Prüfung eingegangen. Was in der Prüfmappe fehlt, kann daran liegen — nicht am Inhalt der Unterlagen."}
+                </p>
+              </div>
+            ) : null}
+
             {pipelineRun ? (
               <PipelineRunStatus documentSetId={id} initialPipelineRun={pipelineRun} />
             ) : (
@@ -100,12 +129,42 @@ export default async function DocumentSetDetailPage({ params }: PageProps) {
               <EmptyState message={consultantReviewCopy.detail.noSources} />
             ) : (
               <ul className="space-y-2">
-                {documentSet.document_ids.map((documentId) => (
-                  <li key={documentId} className="flex items-center gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2 text-xs text-[var(--text-secondary)]">
-                    <FileText className="h-4 w-4 shrink-0 text-[var(--brand)]" aria-hidden />
-                    <span className="min-w-0 truncate font-mono">{documentId}</span>
-                  </li>
-                ))}
+                {/* Fall back to the ids only if the listing was unavailable --
+                    a hash is still better than an empty panel. */}
+                {(documents.length > 0
+                  ? documents
+                  : documentSet.document_ids.map((documentId) => ({
+                      document_id: documentId,
+                      filename: documentId,
+                      parsing_status: "unknown",
+                      page_count: 0
+                    }))
+                ).map((document) => {
+                  const readable = document.parsing_status === "parsed";
+                  return (
+                    <li
+                      key={document.document_id}
+                      className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                        {readable ? (
+                          <FileText className="h-4 w-4 shrink-0 text-[var(--brand)]" aria-hidden />
+                        ) : (
+                          <FileWarning className="h-4 w-4 shrink-0 text-[var(--danger, #b42318)]" aria-hidden />
+                        )}
+                        <span className="min-w-0 truncate" title={document.filename}>
+                          {document.filename}
+                        </span>
+                      </div>
+                      {readable ? null : (
+                        <p className="mt-1 pl-6 text-[11px] leading-5 text-[var(--text-tertiary)]">
+                          Text konnte nicht gelesen werden — dieses Dokument ist
+                          nicht in die Prüfung eingegangen.
+                        </p>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </ReviewPanel>

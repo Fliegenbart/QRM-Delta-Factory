@@ -33,6 +33,7 @@ const fallbackProofStats: LandingProofStats = {
   falseAlarmLabel: "noch keine veröffentlichte Live-Messung",
   citationValue: "–",
   standLabel: "Noch kein veröffentlichter Ringversuch",
+  measuredOnFormerStack: false,
 };
 
 export function OverviewLanding({ proofStats }: { proofStats?: LandingProofStats }) {
@@ -78,6 +79,18 @@ export function OverviewLanding({ proofStats }: { proofStats?: LandingProofStats
               Umschlag geöffnet. So lässt sich nachvollziehen, was es fand, was es übersah
               und wie es auf fehlerfreie Unterlagen reagierte.
             </p>
+            {stats.measuredOnFormerStack ? (
+              <p className="mt-8 rounded-xl border border-[var(--border-default)] px-4 py-3 text-[13px] leading-6 text-[var(--text-secondary)]">
+                <strong className="font-semibold text-[var(--text-primary)]">
+                  Gemessen mit dem vorherigen Modellaufbau.
+                </strong>{" "}
+                Das lesende Modell wurde im August 2026 ausgetauscht, weil der
+                Anbieter es nicht weiterverfolgt. Prüfweg, Regelwerke und
+                Belegprüfung sind unverändert — die Zahlen unten gelten aber für
+                den alten Aufbau. Die Wiederholung mit demselben Korpus steht
+                aus; sie wird hier veröffentlicht, wie jeder Lauf zuvor.
+              </p>
+            ) : null}
             <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[var(--border-default)] sm:grid-cols-3">
               <BigStat value={stats.foundValue} label="versteckte Fehler gefunden" />
               <BigStat value={stats.falseAlarmValue} label={stats.falseAlarmLabel} />

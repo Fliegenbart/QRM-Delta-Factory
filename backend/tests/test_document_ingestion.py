@@ -93,6 +93,70 @@ def test_upload_txt_document_creates_chunks_and_audit_events() -> None:
     ]
 
 
+def test_markdown_upload_parses_whatever_content_type_the_client_claims() -> None:
+    """The eval corpus is Markdown; the product must ingest it from a browser.
+
+    Until August 2026 the goldstandard harness uploaded .md with an explicit
+    "text/markdown" content type and parsed fine, while the same file dragged
+    into the browser arrives as "application/octet-stream" and was rejected --
+    so every measured number came from an ingestion path no customer uses. The
+    case did not fail loudly either: it went on to produce a review pack from
+    documents whose text had never been read.
+    """
+    for content_type in ("text/markdown", "application/octet-stream", ""):
+        repository.reset()
+        audit_log.clear()
+        repository.create_requirement_set(_active_requirement_set())
+        client = TestClient(app)
+        document_set_id = _create_document_set(client)
+
+        response = client.post(
+            f"/document-sets/{document_set_id}/documents",
+            files={
+                "file": (
+                    "abweichungsbericht.md",
+                    b"# Abweichung\n\nDie QA-Freigabe ist als pending markiert.",
+                    content_type,
+                )
+            },
+            data={"uploaded_by": "user_qrm_author"},
+        )
+
+        assert response.status_code == 201, content_type
+        payload = response.json()
+        assert payload["document"]["parsing_status"] == "parsed", content_type
+        assert payload["chunks"], content_type
+
+
+def test_document_listing_names_the_uploaded_files() -> None:
+    """A reviewer must be able to tell one uploaded document from another.
+
+    The case view had only document_ids, so four uploads showed as four
+    indistinguishable hashes.
+    """
+    client = TestClient(app)
+    document_set_id = _create_document_set(client)
+    for name in ("abweichung.md", "chargenprotokoll.txt"):
+        client.post(
+            f"/document-sets/{document_set_id}/documents",
+            files={"file": (name, b"Die QA-Freigabe ist als pending markiert.", "")},
+            data={"uploaded_by": "user_qrm_author"},
+        )
+
+    response = client.get(f"/document-sets/{document_set_id}/documents")
+
+    assert response.status_code == 200
+    listed = response.json()
+    assert [entry["filename"] for entry in listed] == [
+        "abweichung.md",
+        "chargenprotokoll.txt",
+    ]
+    assert all(entry["parsing_status"] == "parsed" for entry in listed)
+    # Internal storage details must not cross the API boundary.
+    assert "storage_uri" not in listed[0]
+    assert "file_hash_sha256" not in listed[0]
+
+
 def test_upload_document_trims_uploaded_by_for_audit_actor() -> None:
     client = TestClient(app)
     document_set_id = _create_document_set(client)

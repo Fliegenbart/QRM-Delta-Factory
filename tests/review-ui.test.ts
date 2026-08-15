@@ -17,6 +17,8 @@ import {
   reviewPackRiskPresentation,
   displayRiskStatement,
   displayReviewValue,
+  intakeDocumentTypes,
+  intakeProcessAreas,
   displayFeedbackOutcome,
   displayFeedbackCount,
   displayCalibrationStatus,
@@ -131,9 +133,12 @@ describe("review UI helpers", () => {
     expect(intakeUploader).toContain("Was ist der Auslöser?");
     expect(intakeUploader).toContain("Wo passiert es?");
     expect(intakeUploader).toContain("optional, fürs Protokoll");
-    expect(intakeUploader).toContain("Audit-Finding");
-    expect(intakeUploader).toContain("QC-Labor");
-    expect(intakeUploader).toContain("Lieferant/Material");
+    // The option wording now lives in the shared vocabulary, so assert it
+    // there rather than grepping the component's source text.
+    const optionLabels = [...intakeDocumentTypes, ...intakeProcessAreas].map((o) => o.label);
+    expect(optionLabels).toContain("Audit-Finding");
+    expect(optionLabels).toContain("QC-Labor");
+    expect(optionLabels).toContain("Lieferant/Material");
   });
 
   it("explains which rule sources belong in the rule library import", () => {
@@ -189,10 +194,44 @@ describe("review UI helpers", () => {
     expect(isVisibleReviewDocumentSet({ ...demoCase, document_set_id: "ds_real_case" })).toBe(true);
   });
 
+  it("has a German label for every decision class and coverage status", () => {
+    // displayReviewValue falls back to the raw code with underscores stripped,
+    // so a value nobody mapped reaches the customer's Prüfmappe as English --
+    // "insufficient document quality" and "complete" both shipped that way.
+    // These lists mirror RiskDecisionClass and _model_coverage_status in the
+    // backend; adding a value there without a label here fails this test.
+    const backendDecisionClasses = [
+      "human_review_required",
+      "auto_clear_candidate",
+      "insufficient_document_quality",
+      "out_of_scope",
+      "blocked_due_to_model_failure",
+      "blocked_due_to_unverified_high_risk",
+      "needs_more_information"
+    ];
+    const backendCoverageStatuses = ["complete", "incomplete"];
+
+    for (const code of [...backendDecisionClasses, ...backendCoverageStatuses]) {
+      const label = displayReviewValue(code);
+      expect(label, `${code} has no German label`).not.toBe(code.replaceAll("_", " "));
+      expect(label).not.toMatch(/[a-z]+_[a-z]+/);
+    }
+  });
+
+  it("renders every intake option back as the German label the user picked", () => {
+    // The dropdown said "Abweichung" and the case view read back "deviation
+    // package": seven of the twelve intake values had no label at all, because
+    // the option list and the label map lived in different files. This test is
+    // what keeps them married.
+    for (const option of [...intakeDocumentTypes, ...intakeProcessAreas]) {
+      expect(displayReviewValue(option.value), option.value).toBe(option.label);
+    }
+  });
+
   it("shows backend codes as plain German labels", () => {
     expect(displayReviewValue("needs_human_review")).toBe("Menschliche Prüfung nötig");
     expect(displayReviewValue("ready_for_orchestration")).toBe("Bereit zur Analyse");
-    expect(displayReviewValue("change_control_package")).toBe("Change-Control-Paket");
+    expect(displayReviewValue("change_control_package")).toBe("Change Control");
     expect(displayReviewValue("change_control")).toBe("Geplante Änderung");
     expect(displayReviewValue("blocked_due_to_model_failure")).toBe("Prüfung notwendig");
     expect(displayReviewReason("human review required for high/critical risk")).toContain("Mensch");

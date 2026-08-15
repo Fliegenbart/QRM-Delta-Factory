@@ -69,7 +69,8 @@ export default async function ReviewPackPage({ params }: PageProps) {
                   Kernrisiken
                 </div>
                 <p className="mt-1 text-sm leading-6 text-[var(--text-primary)]">
-                  {presentation.rootRisks.length} Kernrisiko{presentation.rootRisks.length === 1 ? "" : "en"}
+                  {presentation.rootRisks.length}{" "}
+                  {presentation.rootRisks.length === 1 ? "Kernrisiko" : "Kernrisiken"}
                   {presentation.supportingFindingCount > 0
                     ? ` · ${presentation.supportingFindingCount} unterstützende${presentation.supportingFindingCount === 1 ? "s" : ""} Signal${presentation.supportingFindingCount === 1 ? "" : "e"}`
                     : ""}
@@ -94,7 +95,7 @@ export default async function ReviewPackPage({ params }: PageProps) {
             </div>
           </ReviewPanel>
 
-          <ReviewPanel title="Kanonische Risikobefunde und QA-Hinweise mit unvollständiger Evidenz">
+          <ReviewPanel title="Prüfpunkte mit Beleg und offene Nachweislücken">
             {presentation.rootRisks.length === 0 ? (
               <EmptyState message={consultantReviewCopy.pack.emptyFindings} />
             ) : (

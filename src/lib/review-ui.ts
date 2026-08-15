@@ -473,6 +473,53 @@ export type DocumentSet = {
   status: string;
 };
 
+/**
+ * The intake vocabulary: what a reviewer can pick when creating a case.
+ *
+ * It lives here rather than in the uploader because the same values come back
+ * out of the backend and have to be rendered as German on the case view. When
+ * the two lists lived apart, seven of the twelve options had no label at all
+ * and a case created as "Abweichung" read back as "deviation package".
+ */
+export const intakeDocumentTypes = [
+  { value: "change_control_package", label: "Change Control" },
+  { value: "deviation_package", label: "Abweichung" },
+  { value: "capa_package", label: "CAPA" },
+  { value: "audit_finding_package", label: "Audit-Finding" },
+  { value: "periodic_review_package", label: "Periodic Review" }
+] as const;
+
+export const intakeProcessAreas = [
+  { value: "aseptic_filling", label: "Aseptische Abfüllung" },
+  { value: "automated_visual_inspection", label: "Automatische Sichtprüfung" },
+  { value: "cleaning_validation", label: "Reinigung" },
+  { value: "qc_lab", label: "QC-Labor" },
+  { value: "data_integrity", label: "Datenintegrität" },
+  { value: "supplier_quality", label: "Lieferant/Material" },
+  { value: "computerized_system", label: "Computergestütztes System" }
+] as const;
+
+export type DocumentSummary = {
+  document_id: string;
+  filename: string;
+  mime_type: string;
+  page_count: number;
+  parsing_status: string;
+  parsing_quality_score: number;
+  language: string;
+};
+
+/**
+ * Documents whose text was never read.
+ *
+ * A case can complete and publish a review pack while every one of its
+ * documents failed to parse -- the pack is then assembled from nothing. The
+ * case view must say so instead of showing a green "Analyse abgeschlossen".
+ */
+export function unreadableDocuments(documents: DocumentSummary[]): DocumentSummary[] {
+  return documents.filter((document) => document.parsing_status !== "parsed");
+}
+
 export type Requirement = {
   requirement_id: string;
   source_type: string;
@@ -761,8 +808,8 @@ const plainGermanLabels: Record<string, string> = {
   blocked_due_to_unverified_high_risk: "Blockiert: hohes Risiko noch nicht geprüft",
   capa: "CAPA / Korrekturmaßnahme",
   capa_plan: "CAPA-Plan",
-  change_control_package: "Change-Control-Paket",
   change_control: "Geplante Änderung",
+  complete: "Vollständig",
   completed: "Analyse abgeschlossen",
   confirm: "Befund bestätigt",
   critical: "Kritisch",
@@ -772,8 +819,13 @@ const plainGermanLabels: Record<string, string> = {
   escalate_to_qa: "An QA eskaliert",
   failed: "Fehlgeschlagen",
   high: "Hoch",
+  deviation: "Abweichung",
   human_review_required: "Menschliche Prüfung nötig",
+  incomplete: "Unvollständig",
   informational: "Informativ",
+  // RiskDecisionClass.INSUFFICIENT_DOCUMENT_QUALITY. Without this entry the raw
+  // English enum was rendered as a badge on the customer's Prüfmappe.
+  insufficient_document_quality: "Unterlagen zu unvollständig für ein Urteil",
   medium: "Mittel",
   missed_critical_risk: "Mögliches übersehenes Risiko",
   missing_required_evidence: "Pflichtnachweis fehlt",
@@ -833,9 +885,21 @@ const reasonLabels: Record<string, string> = {
     "Die automatische Quellenprüfung konnte nicht alles sicher bestätigen."
 };
 
+/**
+ * The wording the reviewer chose at intake, keyed by the value the backend
+ * stores. Derived rather than hand-copied so a case can never read back in
+ * different words than the dropdown offered.
+ */
+const intakeLabels: Record<string, string> = Object.fromEntries(
+  [...intakeDocumentTypes, ...intakeProcessAreas].map((option) => [
+    option.value,
+    option.label
+  ])
+);
+
 export function displayReviewValue(value?: string | null): string {
   if (!value) return "nicht angegeben";
-  return plainGermanLabels[value] ?? value.replaceAll("_", " ");
+  return intakeLabels[value] ?? plainGermanLabels[value] ?? value.replaceAll("_", " ");
 }
 
 export function displayReviewReason(reason: string): string {

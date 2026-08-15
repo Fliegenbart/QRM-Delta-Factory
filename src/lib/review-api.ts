@@ -2,6 +2,7 @@ import "server-only";
 
 import type {
   DocumentSet,
+  DocumentSummary,
   CalibrationExample,
   CalibrationRegressionGateReport,
   HumanFeedbackRegistryReport,
@@ -59,6 +60,14 @@ export async function createDocumentSet(input: {
 
 export async function getDocumentSet(documentSetId: string): Promise<DocumentSet> {
   return backendFetch<DocumentSet>(`/document-sets/${encodeURIComponent(documentSetId)}`);
+}
+
+export async function listDocumentSetDocuments(
+  documentSetId: string
+): Promise<DocumentSummary[]> {
+  return backendFetch<DocumentSummary[]>(
+    `/document-sets/${encodeURIComponent(documentSetId)}/documents`
+  );
 }
 
 export async function deleteDocumentSet(documentSetId: string): Promise<void> {

@@ -72,14 +72,36 @@ export type RingversuchRun = {
 /* ----- Hilfsfunktionen ----- */
 
 const stackLabels: Record<string, string> = {
+  // Current stacks, as shipped since August 2026.
+  mixed: "Zwei-Anbieter-Stack (Claude + GPT)",
+  anthropic: "Ein-Anbieter-Ablation (nur Claude)",
+  openai: "Ein-Anbieter-Ablation (nur GPT)",
+  // Historical stacks. Kept so old runs stay readable, but they no longer
+  // describe the shipped system: Mistral was removed in August 2026.
   frontier: "Frontier-Stack (Claude + GPT)",
   eu: "EU-Stack (nur Mistral)",
   hybrid: "Hybrid-Stack (Mistral + KI-Kritiker)",
 };
 
+/**
+ * Stacks the shipped system can still run today.
+ *
+ * Everything else is a historical configuration. This distinction is not
+ * cosmetic: the entire published run history was produced on the Mistral
+ * hybrid stack, which the product no longer uses. Presenting those numbers
+ * as current evidence would be exactly the kind of unbacked claim this page
+ * exists to rule out.
+ */
+const currentStacks = new Set(["mixed", "anthropic", "openai"]);
+
+function isCurrentStack(run: RunMeta): boolean {
+  return run.mode !== "mock" && currentStacks.has(run.stack ?? "");
+}
+
 function stackLabel(run: RunMeta): string {
   if (run.mode === "mock") return "Baseline ohne KI (Regex)";
-  return stackLabels[run.stack ?? ""] ?? run.stack ?? "Früher KI-Lauf";
+  const label = stackLabels[run.stack ?? ""] ?? run.stack ?? "Früher KI-Lauf";
+  return isCurrentStack(run) ? label : `${label} — historisch`;
 }
 
 function percent(rate: number | null | undefined): string {
@@ -214,6 +236,7 @@ export function RingversuchDashboard({ initialRuns }: { initialRuns?: Ringversuc
             }
             description={`System-Aufbau: ${stackLabel(selected.run)}.`}
           />
+          {isCurrentStack(selected.run) ? null : <HistoricalStackNotice />}
           <KpiRow run={selected} />
         </section>
       ) : null}
@@ -324,6 +347,27 @@ function ReproducibilitySection() {
         Live-Lauf — nicht der beste ausgewählte.
       </p>
     </section>
+  );
+}
+
+/* ----- Hinweis auf einen historischen System-Aufbau ----- */
+
+function HistoricalStackNotice() {
+  return (
+    <div className="mb-4 rounded-md border border-[var(--border-strong)] bg-[var(--surface-secondary)] px-4 py-3">
+      <p className="text-[13px] font-semibold text-[var(--text-primary)]">
+        Diese Zahlen stammen aus einem früheren System-Aufbau.
+      </p>
+      <p className="mt-1 max-w-3xl text-[13px] leading-6 text-[var(--text-secondary)]">
+        Das Tool lief bis August 2026 mit einem Modell, das der Anbieter nicht
+        weiterverfolgt. Es wurde durch einen Zwei-Anbieter-Stack ersetzt. Der
+        Prüfweg, die Regelwerke und die Belegprüfung sind unverändert, das
+        lesende Modell ist es nicht — und dieser Lauf misst das alte. Für den
+        aktuellen Aufbau steht noch kein abgeschlossener Ringversuch. Er wird
+        hier veröffentlicht, sobald er gelaufen ist, mit demselben Korpus und
+        derselben Auswertung.
+      </p>
+    </div>
   );
 }
 
