@@ -44,10 +44,16 @@ docker compose -f docker-compose.hetzner.yml up -d --build
 ```
 POSTGRES_PASSWORD=<openssl rand -hex 24>
 QRM_API_KEYS=tenant_gruenewald=<openssl rand -hex 24>
-MISTRAL_API_KEY=...
 ANTHROPIC_API_KEY=...
 OPENAI_API_KEY=...
 ```
+
+`MISTRAL_API_KEY` wird seit August 2026 nicht mehr gebraucht — die Zeile kann
+aus einer bestehenden `.env` auf dem Server entfernt und der Schlüssel beim
+Anbieter widerrufen werden. Falls dort noch
+`QRM_REVIEWER_PROVIDER_OVERRIDE=mistral` steht: ebenfalls löschen. Der Wert
+wird nicht mehr erkannt und fällt bewusst auf die Rollenverteilung zurück,
+statt stillschweigend jeden Prüfer auf Mock-Ausgaben zu setzen.
 
 ## Wiederkehrende Handgriffe
 

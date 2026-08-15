@@ -14,7 +14,6 @@ from app.agents.prompt_templates import PromptTemplate, PromptTemplateLoader
 from app.agents.providers import (
     AnthropicProvider,
     BaseModelProvider,
-    MistralProvider,
     MockProvider,
     OpenAIProvider,
     ProviderCallError,
@@ -111,7 +110,7 @@ class KnowledgeRetrievalProfile:
 # Die Umlautregel steht hier, weil dieser Text selbst in ASCII-Ersatzschreibung
 # verfasst war ("Uebernimm woertliche Zitate unveraendert"). Modelle folgen dem
 # Register ihrer Anweisung: die OpenAI-Reviewer lieferten durchgängig "Fuer",
-# "waehrend" und "gemaess", während Mistral und Anthropic korrekt schrieben. In
+# "waehrend" und "gemaess", während die anderen Provider korrekt schrieben. In
 # einer Prüfmappe, die beim Kunden landet, liest sich das wie ein Defekt.
 OUTPUT_LANGUAGE_DIRECTIVE = (
     "AUSGABESPRACHE: Formuliere risk_statement, recommended_action, "
@@ -963,16 +962,26 @@ CRITIC_RISK_CATEGORIES = [
     "contradiction",
 ]
 
+#: Providers this build can actually construct. Anything outside this set --
+#: a decommissioned provider, a typo in an env file -- must not be treated as a
+#: live routing target.
+LIVE_PROVIDER_NAMES = frozenset({"anthropic", "openai"})
+
 CRITIC_ROLES_BY_PROVIDER = {
     "anthropic": "RedTeamCriticAnthropic",
     "openai": "RedTeamCriticOpenAI",
-    "mistral": "RedTeamCriticMistral",
 }
 
+# Two providers, seven roles. The split is a deliberate load balance, not a
+# measured per-role specialisation: no eval has ever compared the two families
+# role by role, and claiming otherwise in a comment would invent evidence. What
+# it does buy is that neither provider owns a whole risk domain alone -- the
+# document-reading roles and the cross-checking roles are split across both
+# families, so one provider's blind spot cannot silently clear a case.
 PRIMARY_PROVIDER_BY_ROLE = {
-    "GMPDataIntegrityReviewer": "mistral",
-    "DeviationReviewer": "mistral",
-    "CAPAReviewer": "mistral",
+    "GMPDataIntegrityReviewer": "anthropic",
+    "DeviationReviewer": "openai",
+    "CAPAReviewer": "anthropic",
     "BatchImpactReviewer": "openai",
     "ValidationAndSterilityReviewer": "anthropic",
     "RegulatoryConsistencyReviewer": "anthropic",
@@ -1055,9 +1064,15 @@ def _provider_for_role(role: str) -> BaseModelProvider:
             settings=settings,
             runtime_options=runtime_options,
         )
-    if settings.reviewer_provider_override == "mistral":
+    # Honour the override only for a provider we can actually construct. A
+    # stale value (a "mistral" left over in a deployed env file, a typo) must
+    # fall through to the per-role mix: _provider_for_name answers anything it
+    # does not know with the mock provider, so an unguarded override would
+    # silently reduce every reviewer to canned output on a live run.
+    override = settings.reviewer_provider_override.strip().lower()
+    if override in LIVE_PROVIDER_NAMES:
         return _provider_for_name(
-            "mistral",
+            override,
             settings=settings,
             runtime_options=runtime_options,
         )
@@ -1085,11 +1100,6 @@ def _provider_for_name(
     if provider_name == "openai":
         return OpenAIProvider(
             configured_model_id=settings.openai_model_id,
-            runtime_options=runtime_options,
-        )
-    if provider_name == "mistral":
-        return MistralProvider(
-            configured_model_id=settings.mistral_model_id,
             runtime_options=runtime_options,
         )
     return MockModelProvider()
@@ -1324,10 +1334,6 @@ AGENT_RETRIEVAL_PROFILES: dict[str, KnowledgeRetrievalProfile] = {
         broad_scope=True,
     ),
     "RedTeamCriticOpenAI": KnowledgeRetrievalProfile(
-        required_packs=("universal_gmp_qrm_base",),
-        broad_scope=True,
-    ),
-    "RedTeamCriticMistral": KnowledgeRetrievalProfile(
         required_packs=("universal_gmp_qrm_base",),
         broad_scope=True,
     ),

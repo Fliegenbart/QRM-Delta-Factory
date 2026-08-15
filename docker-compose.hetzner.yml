@@ -46,26 +46,29 @@ services:
       QRM_ALLOW_MODEL_LIVE_INTERNET: "false"
       # Mandanten-Auth: "tenant_id=api-key" (kommagetrennt), siehe .env
       QRM_API_KEYS: ${QRM_API_KEYS:?QRM_API_KEYS fehlt in .env}
-      # High-quality live stack: role-specialized primary reviewers plus all
-      # three independent critic providers.
+      # Live stack: two independent providers, split across the primary
+      # reviewer roles and both red-team critics. Mistral was removed in
+      # August 2026 -- it is no longer being pursued as a platform, and a
+      # GMP tool must not depend on a model line with an unclear future.
       QRM_EXTERNAL_MODEL_CALLS_ENABLED: "true"
       # Keep source indexing deterministic for demo reliability; the primary
       # review and critic layers below still use live model providers.
       QRM_LLM_CLAIM_EXTRACTION_ENABLED: "false"
-      QRM_ALLOWED_MODEL_PROVIDERS: "mistral,anthropic,openai,mock"
-      QRM_CRITIC_PROVIDERS: "anthropic,openai,mistral"
-      QRM_MISTRAL_MODEL_ID: "mistral-large-latest"
+      QRM_ALLOWED_MODEL_PROVIDERS: "anthropic,openai,mock"
+      QRM_CRITIC_PROVIDERS: "anthropic,openai"
       QRM_ANTHROPIC_MODEL_ID: "claude-sonnet-4-6"
       QRM_OPENAI_MODEL_ID: "gpt-5.4"
       QRM_MODEL_PROVIDER_TIMEOUT_SECONDS: "240"
       QRM_MODEL_PROVIDER_MAX_RETRIES: "2"
-      QRM_MODEL_PROVIDER_RETRY_DEADLINE_SECONDS: "300"
+      # Must exceed one full attempt plus backoff at the 240s timeout above,
+      # otherwise a slow first attempt can never be retried at all. 300 was
+      # too tight and killed entailment calls in the 2026-07-27 run.
+      QRM_MODEL_PROVIDER_RETRY_DEADLINE_SECONDS: "600"
       QRM_MODEL_PROVIDER_MAX_CONCURRENCY: "2"
       QRM_MODEL_PROVIDER_MAX_OUTPUT_TOKENS: "8192"
       QRM_REVIEWER_MAX_CLAIMS_PER_AGENT: "20"
       QRM_PIPELINE_RUN_LEASE_SECONDS: "1800"
       QRM_RETAIN_RAW_MODEL_OUTPUTS: "false"
-      QRM_MISTRAL_API_KEY: ${MISTRAL_API_KEY:?MISTRAL_API_KEY fehlt in .env}
       QRM_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY fehlt in .env}
       QRM_OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY fehlt in .env}
     ports:

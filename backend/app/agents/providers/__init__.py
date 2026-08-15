@@ -12,7 +12,6 @@ from app.agents.providers.base import (
 )
 from app.agents.providers.external_base import ExternalProviderBase
 from app.agents.providers.gemini_provider import GeminiProvider
-from app.agents.providers.mistral_provider import MistralProvider
 from app.agents.providers.mock_provider import MockProvider
 from app.agents.providers.openai_provider import OpenAIProvider
 
@@ -42,7 +41,6 @@ __all__ = [
     "ExternalModelCallsDisabledError",
     "ExternalModelProviderStub",
     "GeminiProvider",
-    "MistralProvider",
     "MockProvider",
     "ModelProviderNotAllowedError",
     "OpenAIProvider",

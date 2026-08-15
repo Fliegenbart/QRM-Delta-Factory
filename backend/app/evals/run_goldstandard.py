@@ -147,7 +147,6 @@ def _load_dotenv_keys() -> None:
         ("ANTHROPIC_API_KEY", "QRM_ANTHROPIC_API_KEY"),
         ("OPENAI_API_KEY", "QRM_OPENAI_API_KEY"),
         ("GEMINI_API_KEY", "QRM_GEMINI_API_KEY"),
-        ("MISTRAL_API_KEY", "QRM_MISTRAL_API_KEY"),
     ]:
         if target not in os.environ:
             value = os.environ.get(source) or values.get(source, "")
@@ -160,7 +159,6 @@ def _configure_environment(
     stack: str,
     anthropic_model: str,
     openai_model: str,
-    mistral_model: str,
 ) -> None:
     # The harness must never read, clear, or append the production snapshot.
     # It calls the ASGI app in a dedicated process, so an in-memory repository
@@ -173,24 +171,23 @@ def _configure_environment(
         os.environ["QRM_EXTERNAL_MODEL_CALLS_ENABLED"] = "true"
         os.environ.setdefault("QRM_MODEL_PROVIDER_TIMEOUT_SECONDS", "240")
         os.environ.setdefault("QRM_MODEL_PROVIDER_MAX_RETRIES", "2")
-        if stack == "eu":
-            os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "mistral,mock"
-            os.environ["QRM_REVIEWER_PROVIDER_OVERRIDE"] = "mistral"
-            os.environ["QRM_MISTRAL_MODEL_ID"] = mistral_model
-            os.environ.pop("QRM_CRITIC_PROVIDERS", None)
-        elif stack == "hybrid":
-            os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "mistral,anthropic,openai,mock"
-            os.environ["QRM_REVIEWER_PROVIDER_OVERRIDE"] = "mistral"
-            os.environ["QRM_CRITIC_PROVIDERS"] = "anthropic,openai"
-            os.environ["QRM_MISTRAL_MODEL_ID"] = mistral_model
-            os.environ["QRM_ANTHROPIC_MODEL_ID"] = anthropic_model
-            os.environ["QRM_OPENAI_MODEL_ID"] = openai_model
+        os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "anthropic,openai,mock"
+        os.environ["QRM_ANTHROPIC_MODEL_ID"] = anthropic_model
+        os.environ["QRM_OPENAI_MODEL_ID"] = openai_model
+        os.environ.pop("QRM_CRITIC_PROVIDERS", None)
+        # The single-provider stacks are the ablation: run the same corpus with
+        # one family doing both the assessing and the checking, and the drop
+        # against `mixed` is what the second, independent provider is buying.
+        # Note this also collapses assessor and entailment onto one provider,
+        # so the cross-family verification is deliberately disabled here.
+        if stack in ("anthropic", "openai"):
+            os.environ["QRM_REVIEWER_PROVIDER_OVERRIDE"] = stack
+            os.environ["QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER"] = stack
+            os.environ["QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER"] = stack
         else:
-            os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "anthropic,openai,mock"
             os.environ.pop("QRM_REVIEWER_PROVIDER_OVERRIDE", None)
-            os.environ.pop("QRM_CRITIC_PROVIDERS", None)
-            os.environ["QRM_ANTHROPIC_MODEL_ID"] = anthropic_model
-            os.environ["QRM_OPENAI_MODEL_ID"] = openai_model
+            os.environ.pop("QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER", None)
+            os.environ.pop("QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER", None)
     else:
         os.environ["QRM_EXTERNAL_MODEL_CALLS_ENABLED"] = "false"
         os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "mock"
@@ -1373,7 +1370,6 @@ def _render_markdown(
         f"- Zeitpunkt: {run_meta['started_at']}",
         f"- Anthropic-Modell: `{run_meta.get('anthropic_model') or '-'}`",
         f"- OpenAI-Modell: `{run_meta.get('openai_model') or '-'}`",
-        f"- Mistral-Modell: `{run_meta.get('mistral_model') or '-'}`",
         "",
     ]
     # A case that never reached the pipeline scores nothing, and nothing scores
@@ -1587,10 +1583,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--stack",
-        choices=["frontier", "eu", "hybrid"],
-        default="frontier",
-        help="frontier = Anthropic+OpenAI per role mix; eu = Mistral for everything;"
-        " hybrid = Mistral main reviewers + Anthropic/OpenAI red-team critics.",
+        choices=["mixed", "anthropic", "openai"],
+        default="mixed",
+        help="mixed = the production routing (roles split across Anthropic and"
+        " OpenAI, assessor and entailment on different families). anthropic /"
+        " openai = single-provider ablation: one family does everything,"
+        " including checking its own work. The delta against `mixed` is what"
+        " the second provider buys.",
     )
     parser.add_argument("--cases", nargs="*", help="Subset of case dir names, e.g. case_01")
     parser.add_argument("--cases-dir", default=str(DEFAULT_CASES_DIR))
@@ -1602,11 +1601,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pipeline-timeout-seconds", type=float, default=300.0)
     parser.add_argument("--anthropic-model", default="claude-sonnet-4-6")
     parser.add_argument("--openai-model", default="gpt-5.4")
-    parser.add_argument("--mistral-model", default="mistral-large-latest")
     args = parser.parse_args(argv)
 
     _configure_environment(
-        args.mode, args.stack, args.anthropic_model, args.openai_model, args.mistral_model
+        args.mode, args.stack, args.anthropic_model, args.openai_model
     )
 
     # Imports happen after env setup because get_settings() is lru_cached.
@@ -1655,16 +1653,15 @@ def main(argv: list[str] | None = None) -> int:
 
     started_at = datetime.now(UTC)
     live = args.mode == "live"
-    uses_anthropic_openai = live and args.stack in ("frontier", "hybrid")
-    uses_mistral = live and args.stack in ("eu", "hybrid")
+    uses_anthropic = live and args.stack in ("mixed", "anthropic")
+    uses_openai = live and args.stack in ("mixed", "openai")
     run_meta = {
         "mode": args.mode,
         "engine": args.engine,
         "stack": args.stack if live else None,
         "started_at": started_at.isoformat(timespec="seconds"),
-        "anthropic_model": args.anthropic_model if uses_anthropic_openai else None,
-        "openai_model": args.openai_model if uses_anthropic_openai else None,
-        "mistral_model": args.mistral_model if uses_mistral else None,
+        "anthropic_model": args.anthropic_model if uses_anthropic else None,
+        "openai_model": args.openai_model if uses_openai else None,
         "case_count": len(case_dirs),
     }
 

@@ -62,23 +62,27 @@ class Settings(BaseSettings):
     openai_model_id: str = Field(default="")
     anthropic_model_id: str = Field(default="")
     gemini_model_id: str = Field(default="")
-    mistral_model_id: str = Field(default="")
     reviewer_provider_override: str = Field(
         default="",
         description="Force a single provider for all reviewer agents and claim extraction"
-        " (e.g. 'mistral' for an EU-only stack). Empty keeps the per-role default mix.",
+        " (e.g. 'anthropic' to take OpenAI out of the loop for one run). Empty keeps"
+        " the per-role default mix.",
     )
     requirement_review_assessor_provider: str = Field(
-        default="mistral",
+        default="anthropic",
         description="Provider for the requirement-centric review path's assessor calls."
-        " Mistral by default: it carried 31 of 34 credited detections on the held-out"
-        " corpus and is the cheapest of the three.",
+        " This is the reading component and carries ~90% of the token volume, so it"
+        " is the single biggest lever on both detection rate and cost."
+        " WARNING: the 30-of-38 (79%) held-out figure was measured with Mistral in"
+        " this slot and does NOT transfer. Treat the current rate as unmeasured"
+        " until a fresh blind corpus has been run.",
     )
     requirement_review_entailment_provider: str = Field(
-        default="anthropic",
+        default="openai",
         description="Provider for the requirement path's entailment verification."
         " Deliberately a different provider than the assessor, so the checker does"
-        " not share the assessor's blind spots.",
+        " not share the assessor's blind spots. Flip both settings together if you"
+        " swap the assessor -- checker == assessor silently removes the check.",
     )
     requirement_review_enabled: bool = Field(
         default=True,
@@ -119,7 +123,7 @@ class Settings(BaseSettings):
     # Reviewers emit JSON with a finding list and verbatim evidence quotes, so a
     # cut-off response is not a shorter answer but a dead role: the provider
     # raises "output was truncated" and the agent produces nothing. The last
-    # healthy run averaged 2,814 output tokens per Mistral call and 6,502 per
+    # healthy run averaged 2,814 output tokens per assessor call and 6,502 per
     # Anthropic call, so a 1,600 cap truncated nearly every reviewer.
     model_provider_max_output_tokens: int = Field(default=8192, ge=256, le=8192)
     model_provider_circuit_breaker_threshold: int = Field(default=3, gt=0)

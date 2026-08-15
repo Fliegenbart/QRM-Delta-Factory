@@ -10,7 +10,6 @@ from pydantic import BaseModel, Field, ValidationError
 from app.agents.providers import (
     AnthropicProvider,
     BaseModelProvider,
-    MistralProvider,
     ProviderRuntimeOptions,
 )
 from app.audit.events import InMemoryAuditLog
@@ -492,13 +491,6 @@ def default_claim_extractor() -> ClaimExtractor:
         circuit_breaker_failure_threshold=settings.model_provider_circuit_breaker_threshold,
     )
     allowed = settings.allowed_model_provider_set()
-    if settings.reviewer_provider_override == "mistral" and "mistral" in allowed:
-        return LLMClaimExtractor(
-            provider=MistralProvider(
-                configured_model_id=settings.mistral_model_id,
-                runtime_options=runtime_options,
-            )
-        )
     if "anthropic" in allowed:
         return LLMClaimExtractor(
             provider=AnthropicProvider(

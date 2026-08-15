@@ -16,7 +16,6 @@ from app.agents.providers import (
     BaseModelProvider,
     ExternalModelCallsDisabledError,
     GeminiProvider,
-    MistralProvider,
     MockProvider,
     ModelProviderNotAllowedError,
     OpenAIProvider,
@@ -449,7 +448,6 @@ def test_reviewer_findings_reject_wrapper_with_extra_keys() -> None:
         OpenAIProvider(configured_model_id="gpt-test"),
         AnthropicProvider(configured_model_id="claude-test"),
         GeminiProvider(configured_model_id="gemini-test"),
-        MistralProvider(configured_model_id="mistral-test"),
     ],
 )
 def test_external_providers_fail_closed_when_disabled(provider: Any) -> None:
@@ -633,7 +631,7 @@ def test_anthropic_tool_input_rejects_arbitrary_findings_dict(
             },
         ),
         (
-            "mistral",
+            "openai",
             {
                 "choices": [
                     {
@@ -657,7 +655,7 @@ def test_provider_truncation_is_sanitized_and_retryable(
     provider = (
         AnthropicProvider(configured_model_id="claude-truncation-test")
         if provider_name == "anthropic"
-        else MistralProvider(configured_model_id="mistral-truncation-test")
+        else OpenAIProvider(configured_model_id="gpt-truncation-test")
     )
     monkeypatch.setattr(provider, "_post_json", lambda **_: response)
 
@@ -728,7 +726,7 @@ def test_unsupported_protocol_stays_non_retryable(monkeypatch: pytest.MonkeyPatc
     "provider",
     [
         AnthropicProvider(configured_model_id="claude-output-cap-test"),
-        MistralProvider(configured_model_id="mistral-output-cap-test"),
+        OpenAIProvider(configured_model_id="gpt-output-cap-test"),
     ],
 )
 def test_structured_provider_output_tokens_are_capped(
@@ -812,28 +810,28 @@ def test_default_agents_use_mixed_primary_provider_routing_and_all_critics(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral,anthropic,openai")
-    monkeypatch.setenv("QRM_MISTRAL_MODEL_ID", "mistral-test")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic,openai")
     monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
     monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
-    monkeypatch.setenv("QRM_CRITIC_PROVIDERS", "anthropic,openai,mistral")
+    monkeypatch.setenv("QRM_CRITIC_PROVIDERS", "anthropic,openai")
     get_settings.cache_clear()
 
     agents = default_reviewer_agents()
     providers_by_role = {agent.role: agent.provider.provider_name for agent in agents}
 
     assert providers_by_role == {
-        "GMPDataIntegrityReviewer": "mistral",
-        "DeviationReviewer": "mistral",
-        "CAPAReviewer": "mistral",
+        "GMPDataIntegrityReviewer": "anthropic",
+        "DeviationReviewer": "openai",
+        "CAPAReviewer": "anthropic",
         "BatchImpactReviewer": "openai",
         "ValidationAndSterilityReviewer": "anthropic",
         "RegulatoryConsistencyReviewer": "anthropic",
         "ContradictionHunter": "openai",
         "RedTeamCriticAnthropic": "anthropic",
         "RedTeamCriticOpenAI": "openai",
-        "RedTeamCriticMistral": "mistral",
     }
+    # No reviewer role may silently fall back to canned output on a live run.
+    assert "mock" not in set(providers_by_role.values())
     assert len(agents) == len({agent.agent_id for agent in agents})
     assert len(agents) == len({agent.role for agent in agents})
 
@@ -842,12 +840,11 @@ def test_critic_provider_configuration_is_deduplicated(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral,anthropic,openai")
-    monkeypatch.setenv("QRM_MISTRAL_MODEL_ID", "mistral-test")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic,openai")
     monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
     monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
     monkeypatch.setenv(
-        "QRM_CRITIC_PROVIDERS", "anthropic,openai,anthropic,mistral,openai"
+        "QRM_CRITIC_PROVIDERS", "anthropic,openai,anthropic,openai"
     )
     get_settings.cache_clear()
 
@@ -858,17 +855,40 @@ def test_critic_provider_configuration_is_deduplicated(
     assert [agent.provider.provider_name for agent in critics] == [
         "anthropic",
         "openai",
-        "mistral",
     ]
     assert len(critics) == len({agent.agent_id for agent in critics})
 
 
-def test_reviewer_provider_override_still_routes_primary_roles_to_mistral(
+def test_reviewer_provider_override_routes_every_primary_role_to_one_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral,anthropic,openai")
-    monkeypatch.setenv("QRM_MISTRAL_MODEL_ID", "mistral-test")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic,openai")
+    monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
+    monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
+    monkeypatch.setenv("QRM_REVIEWER_PROVIDER_OVERRIDE", "anthropic")
+    get_settings.cache_clear()
+
+    primary_agents = [
+        agent
+        for agent in default_reviewer_agents()
+        if not agent.role.startswith("RedTeamCritic")
+    ]
+
+    assert {agent.provider.provider_name for agent in primary_agents} == {"anthropic"}
+
+
+def test_unknown_reviewer_provider_override_falls_back_to_the_role_mix(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A decommissioned provider left in a deployed env file must not mock the run.
+
+    _provider_for_name answers an unknown name with the mock provider, so an
+    unguarded override would turn every reviewer into canned output while the
+    run still reported success -- the worst possible failure for a GMP tool.
+    """
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic,openai")
     monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
     monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
     monkeypatch.setenv("QRM_REVIEWER_PROVIDER_OVERRIDE", "mistral")
@@ -880,7 +900,10 @@ def test_reviewer_provider_override_still_routes_primary_roles_to_mistral(
         if not agent.role.startswith("RedTeamCritic")
     ]
 
-    assert {agent.provider.provider_name for agent in primary_agents} == {"mistral"}
+    assert {agent.provider.provider_name for agent in primary_agents} == {
+        "anthropic",
+        "openai",
+    }
 
 
 def test_provider_error_reaches_risk_fusion_as_coverage_risk() -> None:
@@ -1011,11 +1034,11 @@ def test_malformed_provider_json_is_retried_then_succeeds_without_payload_leak(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral")
-    monkeypatch.setenv("QRM_MISTRAL_API_KEY", "test-mistral-key")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai")
+    monkeypatch.setenv("QRM_OPENAI_API_KEY", "test-openai-key")
     get_settings.cache_clear()
-    provider = MistralProvider(
-        configured_model_id="mistral-json-retry-test",
+    provider = OpenAIProvider(
+        configured_model_id="gpt-json-retry-test",
         runtime_options=ProviderRuntimeOptions(max_retries=1, retry_deadline_seconds=5),
     )
     responses = iter(
@@ -1308,41 +1331,3 @@ def _requirement_set() -> RequirementSet:
             }
         ],
     )
-
-
-def test_mistral_provider_runs_structured_call_with_mocked_http(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral")
-    monkeypatch.setenv("QRM_MISTRAL_API_KEY", "test-mistral-key")
-    get_settings.cache_clear()
-    provider = MistralProvider(configured_model_id="mistral-test")
-
-    def fake_post_json(
-        *,
-        url: str,
-        headers: dict[str, str],
-        json_body: dict[str, Any],
-    ) -> dict[str, Any]:
-        assert url.endswith("/v1/chat/completions")
-        assert "mistral.ai" in url
-        assert headers["Authorization"] == "Bearer test-mistral-key"
-        assert json_body["model"] == "mistral-test"
-        assert json_body["response_format"]["type"] == "json_schema"
-        assert json_body["response_format"]["json_schema"]["name"] == "simpleoutput"
-        assert json_body["response_format"]["json_schema"]["schema"]["type"] == "object"
-        assert "output_schema" not in json_body["messages"][1]["content"]
-        return {
-            "choices": [{"message": {"content": '{"value": "ok-mistral"}'}}],
-            "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
-        }
-
-    monkeypatch.setattr(provider, "_post_json", fake_post_json)
-
-    output = provider.run_structured("Return JSON.", {}, SimpleOutput)
-
-    assert output == {"value": "ok-mistral"}
-    assert provider.last_run_metadata is not None
-    assert provider.last_run_metadata.token_usage is not None
-    assert provider.last_run_metadata.token_usage.total_tokens == 15

@@ -7,9 +7,9 @@ def test_claim_extraction_defaults_to_deterministic_source_indexing(
 ) -> None:  # type: ignore[no-untyped-def]
     monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
     monkeypatch.setenv("QRM_LLM_CLAIM_EXTRACTION_ENABLED", "false")
-    monkeypatch.setenv("QRM_REVIEWER_PROVIDER_OVERRIDE", "mistral")
-    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "mistral,mock")
-    monkeypatch.setenv("QRM_MISTRAL_MODEL_ID", "mistral-large-latest")
+    monkeypatch.setenv("QRM_REVIEWER_PROVIDER_OVERRIDE", "anthropic")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic,mock")
+    monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-sonnet-4-6")
     get_settings.cache_clear()
 
     try:

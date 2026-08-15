@@ -145,7 +145,7 @@ def test_language_directive_demands_umlauts_over_ascii_substitutes() -> None:
     It previously read "Uebernimm woertliche Zitate unveraendert" -- an instruction
     to write German, written without German orthography. Models follow the register
     of their instructions: every finding from the OpenAI-routed reviewers came back
-    with "Fuer", "waehrend" and "gemaess", while Mistral and Anthropic wrote
+    with "Fuer", "waehrend" and "gemaess", while the other providers wrote
     correctly. In a review pack sent to a customer that reads as a defect.
     """
     directive = OUTPUT_LANGUAGE_DIRECTIVE

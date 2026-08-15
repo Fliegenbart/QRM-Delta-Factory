@@ -51,10 +51,9 @@ def test_goldstandard_harness_isolates_storage_and_auth_from_production(monkeypa
 
     run_goldstandard._configure_environment(
         "mock",
-        "frontier",
+        "mixed",
         "claude-sonnet-4-6",
         "gpt-5.4",
-        "mistral-large-latest",
     )
 
     assert run_goldstandard.os.environ["QRM_PERSISTENCE_ENABLED"] == "false"

@@ -70,7 +70,7 @@ class ExtractionOutcome:
 
 #: The extraction task split into disjoint category passes per document. Eight
 #: dense, table-heavy documents of the second blind corpus individually
-#: exceeded mistral's output cap: splitting the input further was impossible
+#: exceeded the provider's output cap: splitting the input further was impossible
 #: (one page is one chunk), so the TASK splits instead. Each pass extracts
 #: only its categories and is asked to leave the others empty; the server
 #: enforces the scope regardless of what the model returns. A truncation now

@@ -6,6 +6,9 @@ from pydantic import BaseModel
 
 from app.agents.providers.base import ProviderRuntimeOptions
 from app.agents.providers.external_base import ExternalProviderBase
+from app.core.config import get_settings
+
+_OPENAI_STRUCTURED_OUTPUT_TOKEN_LIMIT = 8192
 
 
 class OpenAIProvider(ExternalProviderBase):
@@ -41,6 +44,14 @@ class OpenAIProvider(ExternalProviderBase):
         payload = {
             "model": self.configured_model_id,
             "temperature": 0,
+            # The other two adapters have always bounded their output; this one
+            # did not, so model_provider_max_output_tokens quietly did not apply
+            # to OpenAI at all. That was survivable while OpenAI carried two of
+            # seven reviewer roles and no verification work. It is not now.
+            "max_tokens": self._bounded_max_output_tokens(
+                get_settings().model_provider_max_output_tokens,
+                provider_max_tokens=_OPENAI_STRUCTURED_OUTPUT_TOKEN_LIMIT,
+            ),
             "response_format": {"type": "json_object"},
             "messages": [
                 {
@@ -68,7 +79,18 @@ class OpenAIProvider(ExternalProviderBase):
             },
             json_body=payload,
         )
-        content = response["choices"][0]["message"]["content"]
+        # A cut-off completion is not a shorter answer, it is a dead role: the
+        # JSON is unclosed and the reviewer produces nothing. Detect it from
+        # finish_reason and raise the shared sanitized, retryable error instead
+        # of letting the parser fail on a half-written payload -- otherwise the
+        # operator sees a JSON error and looks for a prompt bug that isn't there.
+        choice = response["choices"][0]
+        if isinstance(choice, dict) and choice.get("finish_reason") in {
+            "length",
+            "max_tokens",
+        }:
+            raise self._truncated_output_error()
+        content = choice["message"]["content"]
         output = self._parse_json_object_from_text(str(content))
         usage = response.get("usage")
         if isinstance(usage, dict):

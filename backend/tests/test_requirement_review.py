@@ -1044,7 +1044,7 @@ def test_extraction_failure_is_contained_to_its_document() -> None:
         chunks = input_schema.get("chunks", [])
         document_id = chunks[0]["document_id"] if chunks else ""
         if document_id == "doc_req_change":
-            raise ProviderCallError("mistral provider output was truncated")
+            raise ProviderCallError("anthropic provider output was truncated")
         return {
             "signatures": [
                 {

@@ -35,7 +35,6 @@ from typing import Any
 from app.agents.providers import (
     AnthropicProvider,
     BaseModelProvider,
-    MistralProvider,
     MockProvider,
     OpenAIProvider,
     ProviderRuntimeOptions,
@@ -1161,11 +1160,6 @@ def _provider(
     if name == "openai":
         return OpenAIProvider(
             configured_model_id=settings.openai_model_id,
-            runtime_options=runtime_options,
-        )
-    if name == "mistral":
-        return MistralProvider(
-            configured_model_id=settings.mistral_model_id,
             runtime_options=runtime_options,
         )
     return MockProvider(output_factory=_mock_assessor_output)
