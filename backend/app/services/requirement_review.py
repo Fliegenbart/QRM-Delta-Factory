@@ -362,6 +362,66 @@ class RequirementReviewEngine:
         merged = [verdicts_by_id[v.requirement_id] for v in verdicts]
         return merged, [finding.model_dump(mode="json") for finding in findings]
 
+    def _insist_on_quotes(
+        self,
+        output: RequirementGroupOutput,
+        input_schema: dict[str, Any],
+        *,
+        discarded_usage: list[Any],
+    ) -> RequirementGroupOutput:
+        """Give a sample that decided without quoting one explicit second chance.
+
+        A fulfilled or violated verdict with no evidence is schema-valid, and
+        downstream it is demoted to UNCLEAR because there is nothing to check.
+        The 2026-08-22 Hetzner ablation lost 154 of 280 verdicts that way --
+        136 of them VIOLATED with a sound rationale and no quote -- without a
+        single re-ask, because the prompt's quote obligation was never enforced.
+
+        Enforcing it in the schema was tried and was worse: a model that still
+        refused on the re-ask failed the whole group, discarding the verdicts
+        that did quote. So the obligation lives here. One more ask, naming the
+        breach; then keep whichever answer left fewer decided verdicts without
+        a quote, and let the usual provenance demotion handle the rest, verdict
+        by verdict. A group is never lost to this rule.
+        """
+        missing = _decided_without_quote(output)
+        if not missing:
+            return output
+        # Both answers were paid for; the call record carries the kept one via
+        # the provider's last_run_metadata and the other via discarded_usage.
+        first_metadata = self.assessor_provider.last_run_metadata
+        first_usage = first_metadata.token_usage if first_metadata else None
+        try:
+            raw = self.assessor_provider.run_structured(
+                ASSESSOR_PROMPT + REASK_CONTRACT_NOTE, input_schema, RequirementGroupOutput
+            )
+            second = RequirementGroupOutput.model_validate(
+                {"verdicts": raw.get("verdicts", [])}
+            )
+        except ProviderStructuredOutputError:
+            return self._keep_first(output, first_metadata, discarded_usage)
+        if len(_decided_without_quote(second)) < len(missing):
+            if first_usage:
+                discarded_usage.append(first_usage)
+            return second
+        return self._keep_first(output, first_metadata, discarded_usage)
+
+    def _keep_first(
+        self,
+        output: RequirementGroupOutput,
+        first_metadata: Any,
+        discarded_usage: list[Any],
+    ) -> RequirementGroupOutput:
+        # The call record reads the kept call's spend from last_run_metadata,
+        # which the second ask has just overwritten. Put the first call's
+        # metadata back and book the second as discarded, so neither is lost
+        # nor counted twice.
+        second_metadata = self.assessor_provider.last_run_metadata
+        if second_metadata and second_metadata.token_usage:
+            discarded_usage.append(second_metadata.token_usage)
+        self.assessor_provider.last_run_metadata = first_metadata
+        return output
+
     def _assess_group(
         self,
         *,
@@ -413,6 +473,9 @@ class RequirementReviewEngine:
                 )
                 output = RequirementGroupOutput.model_validate(
                     {"verdicts": raw.get("verdicts", [])}
+                )
+                output = self._insist_on_quotes(
+                    output, input_schema, discarded_usage=discarded_usage
                 )
             except Exception as exc:  # noqa: BLE001 - fail-secure per sample
                 calls.append(
@@ -658,6 +721,27 @@ def _merge_sample_verdicts(
     return chosen, disagreement
 
 
+REASK_CONTRACT_NOTE = (
+    "\n\nHINWEIS ZUR WIEDERHOLUNG: Die vorige Antwort hat den Ausgabevertrag "
+    "verletzt. Häufigste Ursache: ein Verdict mit status fulfilled oder "
+    "violated ohne Zitat. Jedes solche Verdict braucht mindestens einen "
+    "evidence-Eintrag mit document_id, chunk_id, page und einem wörtlichen, "
+    "zusammenhängenden quote aus genau diesem Chunk. Kannst du keinen Beleg "
+    "zitieren, ist der Status unclear."
+)
+
+
+def _decided_without_quote(output: RequirementGroupOutput) -> list[str]:
+    """Requirement ids of fulfilled/violated verdicts that cite nothing."""
+    return [
+        verdict.requirement_id
+        for verdict in output.verdicts
+        if verdict.status
+        in (RequirementVerdictStatus.FULFILLED, RequirementVerdictStatus.VIOLATED)
+        and not verdict.evidence
+    ]
+
+
 def _run_with_one_reask(
     provider: BaseModelProvider,
     prompt: str,
@@ -683,7 +767,14 @@ def _run_with_one_reask(
         metadata = provider.last_run_metadata
         if discarded_usage is not None and metadata and metadata.token_usage:
             discarded_usage.append(metadata.token_usage)
-        return provider.run_structured(prompt, input_schema, output_schema)
+        # The second ask is told that the first answer broke the contract.
+        # Re-sending an identical prompt mostly reproduces an identical
+        # mistake; naming the most common breach gives the model something
+        # to correct. The error text itself is deliberately not echoed -- it
+        # can carry fragments of the rejected payload.
+        return provider.run_structured(
+            prompt + REASK_CONTRACT_NOTE, input_schema, output_schema
+        )
 
 
 def _split_by_applicability(

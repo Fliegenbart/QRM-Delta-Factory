@@ -1206,7 +1206,16 @@ def test_unmappable_enum_values_fail_validation_instead_of_becoming_none() -> No
                     "requirement_id": "req_x",
                     "status": "fulfilled",
                     "rationale": "Begründung.",
-                    "evidence": [],
+                    # A decided verdict needs a quote; this test is about the
+                    # enum fields, so give it one that is not under test.
+                    "evidence": [
+                        {
+                            "document_id": "doc_x",
+                            "chunk_id": "chunk_x",
+                            "page": 1,
+                            "quote": "Die QA-Freigabe ist dokumentiert.",
+                        }
+                    ],
                     **fields,
                 }
             ]
@@ -1229,6 +1238,66 @@ def test_unmappable_enum_values_fail_validation_instead_of_becoming_none() -> No
     result = provider.run_structured("prompt", {}, RequirementGroupOutput)
     assert result["verdicts"][0]["evidence_sufficiency"] == "insufficient"
     assert result["verdicts"][0]["severity"] == "critical"
+
+
+def test_decided_verdict_without_quote_gets_one_explicit_second_chance() -> None:
+    """A violated verdict with no quote is re-asked once, never lost as a group.
+
+    The 2026-08-22 Hetzner ablation demoted 136 quote-less VIOLATED verdicts to
+    UNCLEAR without a second ask. Enforcing the quote in the schema was tried
+    and lost whole groups when the model refused twice; the engine rule keeps
+    the better of the two answers and leaves demotion to provenance.
+    """
+    from app.schemas.requirement_review import RequirementGroupOutput
+    from app.services.requirement_review import (
+        REASK_CONTRACT_NOTE,
+        RequirementReviewEngine,
+    )
+
+    quote = {"document_id": "doc_x", "chunk_id": "chunk_x", "page": 1, "quote": "R-02."}
+
+    def _group(evidence_for_a: list[dict[str, Any]]) -> dict[str, Any]:
+        return {
+            "verdicts": [
+                {"requirement_id": "req_a", "status": "violated", "severity": "high",
+                 "rationale": "Chargenliste fehlt.", "evidence": evidence_for_a},
+                {"requirement_id": "req_b", "status": "violated", "severity": "high",
+                 "rationale": "Belegt.", "evidence": [quote]},
+            ]
+        }
+
+    prompts: list[str] = []
+
+    # The provider is only called for the second chance; the first answer is
+    # handed in directly below, so the learned answer carries the quote.
+    def _learns(prompt: str, *_: Any) -> dict[str, Any]:
+        prompts.append(prompt)
+        return _group([quote])
+
+    engine = RequirementReviewEngine.__new__(RequirementReviewEngine)
+    engine.assessor_provider = MockProvider(output_factory=_learns)
+    first = RequirementGroupOutput.model_validate(_group([]))
+    discarded: list[Any] = []
+
+    kept = engine._insist_on_quotes(first, {}, discarded_usage=discarded)
+
+    assert len(prompts) == 1 and prompts[0].endswith(REASK_CONTRACT_NOTE)
+    assert "ohne Zitat" in REASK_CONTRACT_NOTE
+    assert kept.verdicts[0].evidence[0].quote == "R-02."
+
+    # A model that refuses twice keeps the first answer -- req_b's quote is
+    # not thrown away with req_a's missing one.
+    engine.assessor_provider = MockProvider(output_factory=lambda *_: _group([]))
+    kept = engine._insist_on_quotes(first, {}, discarded_usage=[])
+    assert [v.requirement_id for v in kept.verdicts] == ["req_a", "req_b"]
+    assert kept.verdicts[1].evidence[0].quote == "R-02."
+
+    # Nothing to insist on: no extra call.
+    calls: list[int] = []
+    engine.assessor_provider = MockProvider(output_factory=lambda *_: calls.append(1) or _group([quote]))
+    complete = RequirementGroupOutput.model_validate(_group([quote]))
+    assert engine._insist_on_quotes(complete, {}, discarded_usage=[]) is complete
+    assert calls == []
 
 
 def test_reasked_call_accounts_for_the_discarded_sample() -> None:
