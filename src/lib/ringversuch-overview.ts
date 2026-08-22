@@ -15,7 +15,7 @@ export type LandingProofStats = {
 };
 
 /** Stacks the shipped system can still run. Mirrors the Ringversuch dashboard. */
-const CURRENT_STACKS = new Set(["mixed", "anthropic", "openai"]);
+const CURRENT_STACKS = new Set(["mixed", "anthropic", "openai", "hetzner", "hetzner-cascade"]);
 
 type RingversuchRun = {
   id: string;

@@ -35,11 +35,13 @@ from typing import Any
 from app.agents.providers import (
     AnthropicProvider,
     BaseModelProvider,
+    HetznerProvider,
     MockProvider,
     OpenAIProvider,
     ProviderRuntimeOptions,
     ProviderStructuredOutputError,
 )
+from app.agents.providers.hetzner_provider import hetzner_runtime_options
 from app.audit.events import InMemoryAuditLog
 from app.core.config import Settings, get_settings
 from app.db.in_memory import InMemoryDocumentRepository
@@ -1161,6 +1163,14 @@ def _provider(
         return OpenAIProvider(
             configured_model_id=settings.openai_model_id,
             runtime_options=runtime_options,
+        )
+    if name == "hetzner":
+        return HetznerProvider(
+            configured_model_id=settings.hetzner_model_id,
+            runtime_options=hetzner_runtime_options(
+                runtime_options,
+                timeout_seconds=settings.hetzner_model_provider_timeout_seconds,
+            ),
         )
     return MockProvider(output_factory=_mock_assessor_output)
 

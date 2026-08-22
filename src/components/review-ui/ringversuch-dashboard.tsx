@@ -76,6 +76,8 @@ const stackLabels: Record<string, string> = {
   mixed: "Zwei-Anbieter-Stack (Claude + GPT)",
   anthropic: "Ein-Anbieter-Ablation (nur Claude)",
   openai: "Ein-Anbieter-Ablation (nur GPT)",
+  hetzner: "EU-Stack (nur Qwen auf Hetzner)",
+  "hetzner-cascade": "EU-Kaskade (Qwen liest, Claude prüft)",
   // Historical stacks. Kept so old runs stay readable, but they no longer
   // describe the shipped system: Mistral was removed in August 2026.
   frontier: "Frontier-Stack (Claude + GPT)",
@@ -92,7 +94,7 @@ const stackLabels: Record<string, string> = {
  * as current evidence would be exactly the kind of unbacked claim this page
  * exists to rule out.
  */
-const currentStacks = new Set(["mixed", "anthropic", "openai"]);
+const currentStacks = new Set(["mixed", "anthropic", "openai", "hetzner", "hetzner-cascade"]);
 
 function isCurrentStack(run: RunMeta): boolean {
   return run.mode !== "mock" && currentStacks.has(run.stack ?? "");
@@ -158,6 +160,9 @@ const providerLabels: Record<string, string> = {
   openai: "GPT – KI-Kritiker",
   "extraction:mistral": "Mistral – Aussagen-Extraktion",
   "extraction:anthropic": "Claude – Aussagen-Extraktion",
+  hetzner: "Qwen (Hetzner) – Fach-Reviewer",
+  "extraction:hetzner": "Qwen (Hetzner) – Aussagen-Extraktion",
+  "extraction:openai": "GPT – Aussagen-Extraktion",
 };
 
 /* ----- Hauptkomponente ----- */

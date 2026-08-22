@@ -16,6 +16,7 @@ from app.agents.providers import (
     BaseModelProvider,
     ExternalModelCallsDisabledError,
     GeminiProvider,
+    HetznerProvider,
     MockProvider,
     ModelProviderNotAllowedError,
     OpenAIProvider,
@@ -448,6 +449,7 @@ def test_reviewer_findings_reject_wrapper_with_extra_keys() -> None:
         OpenAIProvider(configured_model_id="gpt-test"),
         AnthropicProvider(configured_model_id="claude-test"),
         GeminiProvider(configured_model_id="gemini-test"),
+        HetznerProvider(configured_model_id="qwen-test"),
     ],
 )
 def test_external_providers_fail_closed_when_disabled(provider: Any) -> None:
@@ -727,6 +729,7 @@ def test_unsupported_protocol_stays_non_retryable(monkeypatch: pytest.MonkeyPatc
     [
         AnthropicProvider(configured_model_id="claude-output-cap-test"),
         OpenAIProvider(configured_model_id="gpt-output-cap-test"),
+        HetznerProvider(configured_model_id="qwen-output-cap-test"),
     ],
 )
 def test_structured_provider_output_tokens_are_capped(
@@ -1331,3 +1334,119 @@ def _requirement_set() -> RequirementSet:
             }
         ],
     )
+
+
+def test_hetzner_provider_disables_thinking_and_enforces_the_schema(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Two request fields this host cannot do without.
+
+    Probed live on 2026-08-22: without chat_template_kwargs.enable_thinking=false
+    Qwen3.8 spends the whole output budget in reasoning_content and returns an
+    empty content with finish_reason=length -- every call a dead role. And
+    json_schema/strict is what made every probe answer schema-exact.
+    """
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "hetzner")
+    monkeypatch.setenv("QRM_HETZNER_API_KEY", "test-hetzner-key")
+    get_settings.cache_clear()
+    provider = HetznerProvider(configured_model_id="Qwen3.8-27B")
+
+    def fake_post_json(
+        *, url: str, headers: dict[str, str], json_body: dict[str, Any]
+    ) -> dict[str, Any]:
+        assert url == "https://inference.hetzner.com/api/v1/chat/completions"
+        assert headers["Authorization"] == "Bearer test-hetzner-key"
+        assert json_body["model"] == "Qwen3.8-27B"
+        assert json_body["chat_template_kwargs"] == {"enable_thinking": False}
+        assert json_body["response_format"]["type"] == "json_schema"
+        assert json_body["response_format"]["json_schema"]["strict"] is True
+        assert json_body["response_format"]["json_schema"]["schema"]["type"] == "object"
+        assert "max_tokens" in json_body
+        return {
+            "choices": [
+                {"finish_reason": "stop", "message": {"content": '{"value": "ok-qwen"}'}}
+            ],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
+        }
+
+    monkeypatch.setattr(provider, "_post_json", fake_post_json)
+
+    assert provider.run_structured("Return JSON.", {}, SimpleOutput) == {"value": "ok-qwen"}
+    assert provider.last_run_metadata is not None
+    assert provider.last_run_metadata.token_usage is not None
+    assert provider.last_run_metadata.token_usage.total_tokens == 15
+
+
+def test_hetzner_provider_treats_an_empty_reasoning_only_answer_as_truncation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The exact shape the live probe returned when thinking was left on."""
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "hetzner")
+    monkeypatch.setenv("QRM_HETZNER_API_KEY", "test-hetzner-key")
+    get_settings.cache_clear()
+    provider = HetznerProvider(configured_model_id="Qwen3.8-27B")
+    monkeypatch.setattr(
+        provider,
+        "_post_json",
+        lambda **_: {
+            "choices": [
+                {
+                    "finish_reason": "length",
+                    "message": {"content": None, "reasoning_content": "Let me think..."},
+                }
+            ]
+        },
+    )
+
+    with pytest.raises(ProviderCallError) as raised:
+        provider.run_structured("Return JSON.", {}, SimpleOutput)
+
+    assert raised.value.retryable is True
+    assert "Let me think" not in str(raised.value)
+
+
+def test_hetzner_runtime_options_widen_timeout_and_deadline_together() -> None:
+    from app.agents.providers.hetzner_provider import hetzner_runtime_options
+
+    base = ProviderRuntimeOptions(timeout_seconds=240, retry_deadline_seconds=600)
+    widened = hetzner_runtime_options(base, timeout_seconds=480)
+
+    assert widened.timeout_seconds == 480
+    # A deadline shorter than two attempts means a slow first attempt can never
+    # be retried -- the failure the 600s production deadline exists to prevent.
+    assert widened.retry_deadline_seconds >= 2 * 480
+    assert widened.max_concurrent_calls == base.max_concurrent_calls
+
+
+def test_hetzner_routes_through_both_engines_with_its_own_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.audit.events import InMemoryAuditLog
+    from app.db.in_memory import InMemoryDocumentRepository
+    from app.services.requirement_review import default_requirement_review_engine
+
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "anthropic,openai,hetzner")
+    monkeypatch.setenv("QRM_ANTHROPIC_MODEL_ID", "claude-test")
+    monkeypatch.setenv("QRM_OPENAI_MODEL_ID", "gpt-test")
+    monkeypatch.setenv("QRM_MODEL_PROVIDER_TIMEOUT_SECONDS", "240")
+    monkeypatch.setenv("QRM_REVIEWER_PROVIDER_OVERRIDE", "hetzner")
+    monkeypatch.setenv("QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER", "hetzner")
+    monkeypatch.setenv("QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER", "anthropic")
+    get_settings.cache_clear()
+
+    primary = [a for a in default_reviewer_agents() if not a.role.startswith("RedTeamCritic")]
+    assert {a.provider.provider_name for a in primary} == {"hetzner"}
+    assert all(a.provider.runtime_options.timeout_seconds == 480 for a in primary)
+
+    engine = default_requirement_review_engine(
+        repository=InMemoryDocumentRepository(), audit_log=InMemoryAuditLog()
+    )
+    assert engine.assessor_provider.provider_name == "hetzner"
+    assert engine.assessor_provider.configured_model_id == "Qwen3.8-27B"
+    assert engine.assessor_provider.runtime_options.timeout_seconds == 480
+    assert engine.entailment_provider.provider_name == "anthropic"
+    assert engine.entailment_provider.runtime_options.timeout_seconds == 240
+

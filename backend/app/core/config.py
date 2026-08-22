@@ -62,6 +62,20 @@ class Settings(BaseSettings):
     openai_model_id: str = Field(default="")
     anthropic_model_id: str = Field(default="")
     gemini_model_id: str = Field(default="")
+    hetzner_model_id: str = Field(
+        default="Qwen3.8-27B",
+        description="Model on the Hetzner Inference API -- the EU-residency option."
+        " Probed 2026-08-22: structured output, verbatim quotes and umlauts all"
+        " fine with thinking disabled; 13-23 tokens/s. Unmeasured on any blind"
+        " corpus until the ablation run says otherwise.",
+    )
+    hetzner_model_provider_timeout_seconds: float = Field(
+        default=480.0,
+        gt=0,
+        description="Per-call timeout for the Hetzner provider only. At ~20 tokens/s"
+        " the shared 240s timeout caps an answer at ~4,800 tokens, below what"
+        " extraction passes on dense documents have needed.",
+    )
     reviewer_provider_override: str = Field(
         default="",
         description="Force a single provider for all reviewer agents and claim extraction"

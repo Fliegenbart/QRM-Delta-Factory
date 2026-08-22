@@ -11,9 +11,11 @@ from hashlib import sha256
 from typing import Any
 
 from app.agents.prompt_templates import PromptTemplate, PromptTemplateLoader
+from app.agents.providers.hetzner_provider import hetzner_runtime_options
 from app.agents.providers import (
     AnthropicProvider,
     BaseModelProvider,
+    HetznerProvider,
     MockProvider,
     OpenAIProvider,
     ProviderCallError,
@@ -965,11 +967,12 @@ CRITIC_RISK_CATEGORIES = [
 #: Providers this build can actually construct. Anything outside this set --
 #: a decommissioned provider, a typo in an env file -- must not be treated as a
 #: live routing target.
-LIVE_PROVIDER_NAMES = frozenset({"anthropic", "openai"})
+LIVE_PROVIDER_NAMES = frozenset({"anthropic", "openai", "hetzner"})
 
 CRITIC_ROLES_BY_PROVIDER = {
     "anthropic": "RedTeamCriticAnthropic",
     "openai": "RedTeamCriticOpenAI",
+    "hetzner": "RedTeamCriticHetzner",
 }
 
 # Two providers, seven roles. The split is a deliberate load balance, not a
@@ -1101,6 +1104,14 @@ def _provider_for_name(
         return OpenAIProvider(
             configured_model_id=settings.openai_model_id,
             runtime_options=runtime_options,
+        )
+    if provider_name == "hetzner":
+        return HetznerProvider(
+            configured_model_id=settings.hetzner_model_id,
+            runtime_options=hetzner_runtime_options(
+                runtime_options,
+                timeout_seconds=settings.hetzner_model_provider_timeout_seconds,
+            ),
         )
     return MockModelProvider()
 
@@ -1334,6 +1345,10 @@ AGENT_RETRIEVAL_PROFILES: dict[str, KnowledgeRetrievalProfile] = {
         broad_scope=True,
     ),
     "RedTeamCriticOpenAI": KnowledgeRetrievalProfile(
+        required_packs=("universal_gmp_qrm_base",),
+        broad_scope=True,
+    ),
+    "RedTeamCriticHetzner": KnowledgeRetrievalProfile(
         required_packs=("universal_gmp_qrm_base",),
         broad_scope=True,
     ),

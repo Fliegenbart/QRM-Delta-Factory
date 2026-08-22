@@ -147,6 +147,7 @@ def _load_dotenv_keys() -> None:
         ("ANTHROPIC_API_KEY", "QRM_ANTHROPIC_API_KEY"),
         ("OPENAI_API_KEY", "QRM_OPENAI_API_KEY"),
         ("GEMINI_API_KEY", "QRM_GEMINI_API_KEY"),
+        ("HETZNER_API_KEY", "QRM_HETZNER_API_KEY"),
     ]:
         if target not in os.environ:
             value = os.environ.get(source) or values.get(source, "")
@@ -171,7 +172,7 @@ def _configure_environment(
         os.environ["QRM_EXTERNAL_MODEL_CALLS_ENABLED"] = "true"
         os.environ.setdefault("QRM_MODEL_PROVIDER_TIMEOUT_SECONDS", "240")
         os.environ.setdefault("QRM_MODEL_PROVIDER_MAX_RETRIES", "2")
-        os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "anthropic,openai,mock"
+        os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "anthropic,openai,hetzner,mock"
         os.environ["QRM_ANTHROPIC_MODEL_ID"] = anthropic_model
         os.environ["QRM_OPENAI_MODEL_ID"] = openai_model
         os.environ.pop("QRM_CRITIC_PROVIDERS", None)
@@ -180,10 +181,17 @@ def _configure_environment(
         # against `mixed` is what the second, independent provider is buying.
         # Note this also collapses assessor and entailment onto one provider,
         # so the cross-family verification is deliberately disabled here.
-        if stack in ("anthropic", "openai"):
+        if stack in ("anthropic", "openai", "hetzner"):
             os.environ["QRM_REVIEWER_PROVIDER_OVERRIDE"] = stack
             os.environ["QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER"] = stack
             os.environ["QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER"] = stack
+        elif stack == "hetzner-cascade":
+            # The EU-residency shape: the documents are read in Germany, and
+            # only the verdicts that matter (quote + rationale, not the
+            # document) are cross-checked by a different model family.
+            os.environ["QRM_REVIEWER_PROVIDER_OVERRIDE"] = "hetzner"
+            os.environ["QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER"] = "hetzner"
+            os.environ["QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER"] = "anthropic"
         else:
             os.environ.pop("QRM_REVIEWER_PROVIDER_OVERRIDE", None)
             os.environ.pop("QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER", None)
@@ -1370,6 +1378,7 @@ def _render_markdown(
         f"- Zeitpunkt: {run_meta['started_at']}",
         f"- Anthropic-Modell: `{run_meta.get('anthropic_model') or '-'}`",
         f"- OpenAI-Modell: `{run_meta.get('openai_model') or '-'}`",
+        f"- Hetzner-Modell: `{run_meta.get('hetzner_model') or '-'}`",
         "",
     ]
     # A case that never reached the pipeline scores nothing, and nothing scores
@@ -1583,13 +1592,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--stack",
-        choices=["mixed", "anthropic", "openai"],
+        choices=["mixed", "anthropic", "openai", "hetzner", "hetzner-cascade"],
         default="mixed",
         help="mixed = the production routing (roles split across Anthropic and"
         " OpenAI, assessor and entailment on different families). anthropic /"
-        " openai = single-provider ablation: one family does everything,"
-        " including checking its own work. The delta against `mixed` is what"
-        " the second provider buys.",
+        " openai / hetzner = single-provider ablation: one family does"
+        " everything, including checking its own work. hetzner-cascade = Qwen"
+        " on Hetzner reads the documents, Anthropic verifies the verdicts --"
+        " the EU-residency shape. The delta against `mixed` is what each"
+        " arrangement buys.",
     )
     parser.add_argument("--cases", nargs="*", help="Subset of case dir names, e.g. case_01")
     parser.add_argument("--cases-dir", default=str(DEFAULT_CASES_DIR))
@@ -1601,11 +1612,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pipeline-timeout-seconds", type=float, default=300.0)
     parser.add_argument("--anthropic-model", default="claude-sonnet-4-6")
     parser.add_argument("--openai-model", default="gpt-5.4")
+    parser.add_argument("--hetzner-model", default="Qwen3.8-27B")
     args = parser.parse_args(argv)
 
     _configure_environment(
         args.mode, args.stack, args.anthropic_model, args.openai_model
     )
+    if args.mode == "live":
+        os.environ["QRM_HETZNER_MODEL_ID"] = args.hetzner_model
 
     # Imports happen after env setup because get_settings() is lru_cached.
     from fastapi.testclient import TestClient
@@ -1653,8 +1667,9 @@ def main(argv: list[str] | None = None) -> int:
 
     started_at = datetime.now(UTC)
     live = args.mode == "live"
-    uses_anthropic = live and args.stack in ("mixed", "anthropic")
+    uses_anthropic = live and args.stack in ("mixed", "anthropic", "hetzner-cascade")
     uses_openai = live and args.stack in ("mixed", "openai")
+    uses_hetzner = live and args.stack in ("hetzner", "hetzner-cascade")
     run_meta = {
         "mode": args.mode,
         "engine": args.engine,
@@ -1662,6 +1677,7 @@ def main(argv: list[str] | None = None) -> int:
         "started_at": started_at.isoformat(timespec="seconds"),
         "anthropic_model": args.anthropic_model if uses_anthropic else None,
         "openai_model": args.openai_model if uses_openai else None,
+        "hetzner_model": args.hetzner_model if uses_hetzner else None,
         "case_count": len(case_dirs),
     }
 

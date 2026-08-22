@@ -33,6 +33,15 @@ class OpenAIProvider(ExternalProviderBase):
             external_calls_required=True,
         )
 
+    def _response_format(self, output_schema: type[BaseModel]) -> dict[str, Any]:
+        """How the endpoint is asked for JSON. OpenAI proper takes json_object;
+        OpenAI-compatible servers that enforce a schema override this."""
+        return {"type": "json_object"}
+
+    def _payload_extras(self) -> dict[str, Any]:
+        """Endpoint-specific request fields merged into the payload last."""
+        return {}
+
     def _call_external_structured(
         self,
         *,
@@ -52,7 +61,7 @@ class OpenAIProvider(ExternalProviderBase):
                 get_settings().model_provider_max_output_tokens,
                 provider_max_tokens=_OPENAI_STRUCTURED_OUTPUT_TOKEN_LIMIT,
             ),
-            "response_format": {"type": "json_object"},
+            "response_format": self._response_format(output_schema),
             "messages": [
                 {
                     "role": "system",
@@ -71,6 +80,7 @@ class OpenAIProvider(ExternalProviderBase):
                 },
             ],
         }
+        payload.update(self._payload_extras())
         response = self._post_json(
             url=self.endpoint,
             headers={
