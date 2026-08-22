@@ -65,7 +65,7 @@ from app.schemas.requirement_review import (
 # exact source spans by the same rules, or their evidence trails drift apart.
 from app.services.review_orchestrator import _matching_source_quote
 
-ENGINE_VERSION = "requirement-review-v0.1"
+ENGINE_VERSION = "requirement-review-v0.2"  # v0.2: quote second chance (2026-08-23)
 
 #: Requirements per assessor call. Small enough that each verdict gets real
 #: attention and the output fits comfortably in the token budget, large enough
