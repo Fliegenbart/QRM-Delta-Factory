@@ -14,6 +14,12 @@ _OPENAI_STRUCTURED_OUTPUT_TOKEN_LIMIT = 8192
 class OpenAIProvider(ExternalProviderBase):
     api_key_env_var = "QRM_OPENAI_API_KEY"
     endpoint = "https://api.openai.com/v1/chat/completions"
+    #: OpenAI proper rejects the classic field on current models with HTTP 400
+    #: ("'max_tokens' is not supported with this model. Use
+    #: 'max_completion_tokens' instead"). Shipping max_tokens on 2026-08-22
+    #: tripped the circuit breaker on every OpenAI role in production for most
+    #: of a day. OpenAI-compatible hosts still speak the classic name.
+    max_output_tokens_field = "max_completion_tokens"
 
     def __init__(
         self,
@@ -57,7 +63,7 @@ class OpenAIProvider(ExternalProviderBase):
             # did not, so model_provider_max_output_tokens quietly did not apply
             # to OpenAI at all. That was survivable while OpenAI carried two of
             # seven reviewer roles and no verification work. It is not now.
-            "max_tokens": self._bounded_max_output_tokens(
+            self.max_output_tokens_field: self._bounded_max_output_tokens(
                 get_settings().model_provider_max_output_tokens,
                 provider_max_tokens=_OPENAI_STRUCTURED_OUTPUT_TOKEN_LIMIT,
             ),

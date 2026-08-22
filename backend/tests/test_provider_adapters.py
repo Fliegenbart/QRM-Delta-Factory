@@ -753,7 +753,15 @@ def test_structured_provider_output_tokens_are_capped(
     monkeypatch.setattr(provider, "_post_json", fake_post_json)
 
     assert provider.run_structured("Return JSON.", {}, SimpleOutput) == {"value": "ok"}
-    assert captured["max_tokens"] == 8192
+    # The field name is part of the contract, not a detail: OpenAI proper 400s
+    # on "max_tokens" for current models, OpenAI-compatible hosts expect it.
+    expected_field = {
+        "anthropic": "max_tokens",
+        "openai": "max_completion_tokens",
+        "hetzner": "max_tokens",
+    }[provider_name]
+    assert captured[expected_field] == 8192
+    assert not ({"max_tokens", "max_completion_tokens"} - {expected_field}) & captured.keys()
 
 
 def test_gemini_provider_runs_structured_call_with_mocked_http(
@@ -1359,10 +1367,10 @@ def test_hetzner_provider_disables_thinking_and_enforces_the_schema(
         assert headers["Authorization"] == "Bearer test-hetzner-key"
         assert json_body["model"] == "Qwen3.8-27B"
         assert json_body["chat_template_kwargs"] == {"enable_thinking": False}
+        assert "max_tokens" in json_body and "max_completion_tokens" not in json_body
         assert json_body["response_format"]["type"] == "json_schema"
         assert json_body["response_format"]["json_schema"]["strict"] is True
         assert json_body["response_format"]["json_schema"]["schema"]["type"] == "object"
-        assert "max_tokens" in json_body
         return {
             "choices": [
                 {"finish_reason": "stop", "message": {"content": '{"value": "ok-qwen"}'}}

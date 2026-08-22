@@ -30,6 +30,7 @@ class HetznerProvider(OpenAIProvider):
 
     api_key_env_var = "QRM_HETZNER_API_KEY"
     endpoint = "https://inference.hetzner.com/api/v1/chat/completions"
+    max_output_tokens_field = "max_tokens"
 
     def __init__(
         self,
