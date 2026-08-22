@@ -28,6 +28,11 @@ ENV HOSTNAME=0.0.0.0
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/.next ./.next
+# The Ringversuch pages read goldstandard_pharmaqrm/runs/*/results.json from
+# disk at request time. Without this line the live proof page answered
+# {"runs": []} and the landing page said "noch keine veröffentlichte
+# Live-Messung" -- the numbers we pitch with were never visible to a customer.
+COPY --from=build /app/goldstandard_pharmaqrm ./goldstandard_pharmaqrm
 
 EXPOSE 3000
 

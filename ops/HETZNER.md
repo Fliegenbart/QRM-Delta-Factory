@@ -2,11 +2,21 @@
 
 Das QRM-Backend läuft als isoliertes Docker-Compose-Projekt unter `/opt/qrm-delta`,
 erreichbar über `https://compliance.labpulse.ai` (zentraler Proxy: Container
-`voxdrop-nginx-1`). Das Vercel-Frontend spricht das Backend über
-`QRM_BACKEND_URL` an; der Browser sieht den API-Key nie.
+`voxdrop-nginx-1`). Das Frontend (`https://qrm.labpulse.ai`) läuft **auf demselben
+Server** als eigenes Compose-Projekt unter `/opt/qrm-delta-frontend`
+(Container `qrm-delta-frontend`, Port 172.17.0.1:3105) — nicht auf Vercel; die
+Vercel-Instanz `qrm-delta-factory.vercel.app` ist nur eine Vorschau. Das Frontend
+spricht das Backend über `QRM_BACKEND_URL` an; der Browser sieht den API-Key nie.
+
+Frontend-Update:
+
+```bash
+cd /opt/qrm-delta-frontend && git fetch -q origin && git checkout -q <commit> \
+  && ./ops/deploy-frontend-hetzner.sh
+```
 
 ```
-Vercel (Next.js)  ──HTTPS──▶  compliance.labpulse.ai (voxdrop-nginx-1)
+qrm.labpulse.ai (Next.js, /opt/qrm-delta-frontend) ──▶ compliance.labpulse.ai (voxdrop-nginx-1)
                                   │  proxy_pass http://172.17.0.1:8100
                                   ▼
                       /opt/qrm-delta  (eigenes Compose-Projekt)
