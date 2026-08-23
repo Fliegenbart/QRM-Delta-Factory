@@ -49,8 +49,11 @@ from app.schemas.domain import DocumentChunk, DocumentSet, Requirement, Severity
 from app.schemas.requirement_review import (
     EntailmentCheck,
     EntailmentSupport,
+    EvidenceLocation,
     EvidenceSufficiency,
     FulfilledChallenge,
+    NarrowVerdict,
+    RequirementApplicability,
     RequirementCoverageReport,
     RequirementGroupOutput,
     RequirementReviewEvidence,
@@ -144,6 +147,70 @@ CHALLENGE_PROMPT = (
     "- Antworte auf Deutsch mit korrekten Umlauten ä, ö, ü, ß."
 )
 
+#: The narrow assessor's prompts. Written for a model that follows short,
+#: concrete instructions and loses the thread in long rule lists: one
+#: requirement, one question, one flat answer. Status semantics are spelled
+#: out because an undefined enum produced a not_applicable under a rationale
+#: that said "violated" in the first live probe.
+LOCATE_PROMPT = (
+    "Du bist ein pharmazeutischer QA-Reviewer. Du erhältst GENAU EINE "
+    "Anforderung und die Dokumentauszüge (chunks) eines GMP-Vorgangs.\n\n"
+    "Aufgabe: Finde jede Stelle, die für diese Anforderung relevant ist -- "
+    "sowohl Stellen, die ihre Erfüllung belegen, als auch Stellen, die einen "
+    "Verstoß belegen oder den Vorgang zeigen, der die Pflicht auslöst.\n\n"
+    "Regeln:\n"
+    "- quote muss WÖRTLICH und zusammenhängend aus dem genannten Chunk "
+    "kopiert sein, unverändert, ohne Auslassungen. Lieber ein kurzes exaktes "
+    "Zitat als ein langes ungenaues.\n"
+    "- chunk_id exakt aus den Eingaben übernehmen.\n"
+    "- Höchstens fünf Zitate; die aussagekräftigsten zuerst.\n"
+    "- applicability: applies, wenn der Vorgang diese Pflicht auslöst; "
+    "does_not_apply, wenn die Anforderung diesen Vorgang erkennbar nicht "
+    "betrifft; cannot_tell, wenn die Auszüge das nicht hergeben.\n"
+    "- reason: ein Satz auf Deutsch mit korrekten Umlauten ä, ö, ü, ß."
+)
+
+JUDGE_PROMPT = (
+    "Du bist ein pharmazeutischer QA-Reviewer. Du erhältst GENAU EINE "
+    "Anforderung, die dafür gefundenen wörtlichen Zitate (quotes, nummeriert "
+    "ab 0) und den vollständigen Text der Chunks, aus denen sie stammen.\n\n"
+    "Beurteile die Anforderung:\n"
+    "- fulfilled: Die Zitate belegen die Erfüllung.\n"
+    "- violated: Die Zitate belegen einen Verstoß, ODER sie belegen den "
+    "auslösenden Vorgang, während der geforderte Nachweis in den Auszügen "
+    "fehlt.\n"
+    "- unclear: Die Auszüge reichen für keine der beiden Aussagen.\n"
+    "- not_applicable: Die Anforderung betrifft diesen Vorgang erkennbar "
+    "nicht.\n\n"
+    "Regeln:\n"
+    "- supporting_quote_indices: die Nummern der Zitate, die dein Urteil "
+    "tragen. Für fulfilled und violated ist mindestens eine Nummer Pflicht; "
+    "bei einem fehlenden Nachweis nenne das Zitat, das den Auslöser belegt.\n"
+    "- severity nur bei violated oder unclear: critical, high, medium, low "
+    "oder informational.\n"
+    "- rationale auf Deutsch mit korrekten Umlauten ä, ö, ü, ß; niemals ae, "
+    "oe, ue, ss.\n"
+    "- Sei konservativ: Ein möglicher schwerer Verstoß, der nicht widerlegt "
+    "ist, ist violated oder unclear, nie stillschweigend fulfilled.\n"
+    "- Eine nachträgliche Behauptung 'durchgeführt, keine Auffälligkeiten' "
+    "belegt keine Durchführung. Dafür braucht es Primärevidenz: Auszug, "
+    "Checkliste, Rohdaten, signierte zeitnahe Dokumentation.\n"
+    "- Ein leeres Pflichtfeld ist ein Befund. Vergleiche Messwerte einzeln "
+    "mit ihren Grenzen.\n\n"
+    "Nur bei fulfilled (sonst null): evidence_type (Art des Nachweises), "
+    "evidence_reference (wo er steht), evidence_sufficiency (sufficient, "
+    "partial, insufficient), independent_support (true nur, wenn der Nachweis "
+    "über die Selbstauskunft des geprüften Dokuments hinausgeht). Ein "
+    "fulfilled mit insufficient ist keins: dann unclear."
+)
+
+JUDGE_REASK_NOTE = (
+    "\n\nHINWEIS ZUR WIEDERHOLUNG: Die vorige Antwort war fulfilled oder "
+    "violated ohne eine einzige Zitatnummer in supporting_quote_indices. "
+    "Nenne die Nummern der tragenden Zitate. Trägt kein Zitat das Urteil, "
+    "ist der Status unclear."
+)
+
 ENTAILMENT_PROMPT = (
     "Du prüfst einen einzelnen QA-Befund. Gegeben sind eine Behauptung "
     "(rationale) und die wörtlichen Belegzitate aus den Quelldokumenten.\n\n"
@@ -174,6 +241,7 @@ class RequirementReviewEngine:
         extraction_provider: BaseModelProvider | None = None,
         group_size: int = REQUIREMENT_GROUP_SIZE,
         assessor_samples: int = 2,
+        assessor_mode: str = "grouped",
     ) -> None:
         self.repository = repository
         self.audit_log = audit_log
@@ -185,6 +253,11 @@ class RequirementReviewEngine:
         #: Independent assessor samples per group, merged by alarm-side
         #: precedence. Two by default; one restores single-sample behaviour.
         self.assessor_samples = max(1, assessor_samples)
+        #: "grouped": six requirements per call with all chunks and the whole
+        #: rulebook -- the shape a frontier model handles. "narrow": per
+        #: requirement, locate the evidence first, then judge over those quotes
+        #: alone -- the shape a local 27B model handles. See _assess_narrow.
+        self.assessor_mode = assessor_mode
 
     def run(self, document_set_id: str) -> RequirementCoverageReport:
         document_set = self.repository.get_document_set(document_set_id)
@@ -215,12 +288,20 @@ class RequirementReviewEngine:
         model_calls: list[RequirementReviewModelCall] = []
 
         chunk_payload = _chunk_payload(chunks, self.repository)
-        for group in _grouped(applicable, self.group_size):
-            group_verdicts, group_calls = self._assess_group(
-                group=group, chunk_payload=chunk_payload, chunks=chunks
-            )
-            verdicts.extend(group_verdicts)
-            model_calls.extend(group_calls)
+        if self.assessor_mode == "narrow":
+            for requirement in applicable:
+                verdict, calls = self._assess_narrow(
+                    requirement=requirement, chunk_payload=chunk_payload, chunks=chunks
+                )
+                verdicts.append(verdict)
+                model_calls.extend(calls)
+        else:
+            for group in _grouped(applicable, self.group_size):
+                group_verdicts, group_calls = self._assess_group(
+                    group=group, chunk_payload=chunk_payload, chunks=chunks
+                )
+                verdicts.extend(group_verdicts)
+                model_calls.extend(group_calls)
 
         criticality_by_id = {
             requirement.requirement_id: requirement.criticality.value
@@ -542,6 +623,199 @@ class RequirementReviewEngine:
             verified.append(checked)
         return verified, calls
 
+    def _assess_narrow(
+        self,
+        *,
+        requirement: Requirement,
+        chunk_payload: list[dict[str, Any]],
+        chunks: list[DocumentChunk],
+    ) -> tuple[VerifiedRequirementVerdict, list[RequirementReviewModelCall]]:
+        """Two small calls per requirement: locate the evidence, then judge it.
+
+        Built for a model that cannot carry the grouped call. On the same
+        corpus Qwen3.8-27B scored 12/25 grouped -- it judged acceptably but
+        left the evidence list empty in two thirds of its decided verdicts --
+        while answering one flat question with a verbatim quote four times out
+        of four. So the shape is the probe's: one requirement, all chunks,
+        "where is the evidence?" with a flat answer; then the judgment over
+        those quotes alone, pointing at them by index. A decided verdict
+        cannot exist without a quote because the judge never sees anything
+        else, and the model never copies a document id or page number.
+
+        The judge is sampled assessor_samples times over the same quotes
+        (reversed on odd samples) and merged by the same alarm-side precedence
+        as the grouped path, so the gates downstream see the same shape.
+        """
+        requirement_payload = {
+            "requirement_id": requirement.requirement_id,
+            "title": requirement.title,
+            "requirement_text": requirement.requirement_text,
+            "required_evidence": requirement.required_evidence,
+            "criticality": requirement.criticality.value,
+        }
+        calls: list[RequirementReviewModelCall] = []
+        rid = [requirement.requirement_id]
+
+        # --- call 1: locate -------------------------------------------------
+        discarded: list[Any] = []
+        try:
+            raw = _run_with_one_reask(
+                self.assessor_provider,
+                LOCATE_PROMPT,
+                {"requirement": requirement_payload, "chunks": chunk_payload},
+                EvidenceLocation,
+                discarded_usage=discarded,
+            )
+            location = EvidenceLocation.model_validate(raw)
+        except Exception as exc:  # noqa: BLE001 - fail-secure per requirement
+            calls.append(
+                _model_call(
+                    self.assessor_provider,
+                    purpose="locate",
+                    requirement_ids=rid,
+                    status="failed",
+                    error=exc,
+                    discarded_usage=discarded,
+                )
+            )
+            return (
+                _server_verdict(
+                    requirement,
+                    status=RequirementVerdictStatus.UNCLEAR,
+                    rationale=(
+                        "Belegsuche für diese Anforderung fehlgeschlagen; sie "
+                        "bleibt unbeurteilt und gehört zur menschlichen Prüfung."
+                    ),
+                ),
+                calls,
+            )
+        calls.append(
+            _model_call(
+                self.assessor_provider,
+                purpose="locate",
+                requirement_ids=rid,
+                status="succeeded",
+                discarded_usage=discarded,
+            )
+        )
+
+        chunk_by_id = {chunk["chunk_id"]: chunk for chunk in chunk_payload}
+        located = [q for q in location.quotes if q.chunk_id in chunk_by_id]
+        if not located:
+            if location.applicability == RequirementApplicability.DOES_NOT_APPLY:
+                return (
+                    _server_verdict(
+                        requirement,
+                        status=RequirementVerdictStatus.NOT_APPLICABLE,
+                        rationale=f"Laut Belegsuche nicht einschlägig: {location.reason}",
+                    ),
+                    calls,
+                )
+            return (
+                _server_verdict(
+                    requirement,
+                    status=RequirementVerdictStatus.UNCLEAR,
+                    rationale=(
+                        "Keine einschlägige Stelle in den Auszügen gefunden: "
+                        f"{location.reason}"
+                    ),
+                ),
+                calls,
+            )
+
+        # --- call 2: judge, sampled ----------------------------------------
+        context_chunks = [
+            chunk_by_id[chunk_id]
+            for chunk_id in dict.fromkeys(q.chunk_id for q in located)
+        ]
+        samples: list[RequirementVerdict] = []
+        for sample_index in range(max(1, self.assessor_samples)):
+            reverse = sample_index % 2 == 1
+            ordered = list(reversed(located)) if reverse else located
+            input_schema = {
+                "requirement": requirement_payload,
+                "quotes": [
+                    {"index": i, "chunk_id": q.chunk_id, "quote": q.quote}
+                    for i, q in enumerate(ordered)
+                ],
+                "chunks": list(reversed(context_chunks)) if reverse else context_chunks,
+            }
+            discarded = []
+            try:
+                judged = self._judge_once(input_schema, discarded_usage=discarded)
+            except Exception as exc:  # noqa: BLE001 - fail-secure per sample
+                calls.append(
+                    _model_call(
+                        self.assessor_provider,
+                        purpose="judge",
+                        requirement_ids=rid,
+                        status="failed",
+                        error=exc,
+                        discarded_usage=discarded,
+                    )
+                )
+                continue
+            calls.append(
+                _model_call(
+                    self.assessor_provider,
+                    purpose="judge",
+                    requirement_ids=rid,
+                    status="succeeded",
+                    discarded_usage=discarded,
+                )
+            )
+            samples.append(_narrow_to_verdict(requirement, judged, ordered, chunk_by_id))
+
+        if not samples:
+            return (
+                _server_verdict(
+                    requirement,
+                    status=RequirementVerdictStatus.UNCLEAR,
+                    rationale=(
+                        "Beurteilung für diese Anforderung fehlgeschlagen; sie "
+                        "bleibt unbeurteilt und gehört zur menschlichen Prüfung."
+                    ),
+                ),
+                calls,
+            )
+        merged, disagreement = _merge_sample_verdicts(samples)
+        checked = _check_provenance(requirement, merged, chunks)
+        if disagreement:
+            checked = checked.model_copy(update={"sample_disagreement": True})
+        return checked, calls
+
+    def _judge_once(
+        self, input_schema: dict[str, Any], *, discarded_usage: list[Any]
+    ) -> NarrowVerdict:
+        """One judge sample, with one explicit second chance to point at a quote."""
+        raw = _run_with_one_reask(
+            self.assessor_provider,
+            JUDGE_PROMPT,
+            input_schema,
+            NarrowVerdict,
+            discarded_usage=discarded_usage,
+        )
+        judged = NarrowVerdict.model_validate(raw)
+        if not _decided_without_indices(judged):
+            return judged
+        first_metadata = self.assessor_provider.last_run_metadata
+        try:
+            raw = self.assessor_provider.run_structured(
+                JUDGE_PROMPT + JUDGE_REASK_NOTE, input_schema, NarrowVerdict
+            )
+            second = NarrowVerdict.model_validate(raw)
+        except ProviderStructuredOutputError:
+            second = None
+        if second is not None and not _decided_without_indices(second):
+            if first_metadata and first_metadata.token_usage:
+                discarded_usage.append(first_metadata.token_usage)
+            return second
+        second_metadata = self.assessor_provider.last_run_metadata
+        if second_metadata and second_metadata.token_usage:
+            discarded_usage.append(second_metadata.token_usage)
+        self.assessor_provider.last_run_metadata = first_metadata
+        return judged
+
     def _verify_entailment(
         self,
         verdict: VerifiedRequirementVerdict,
@@ -729,6 +1003,54 @@ REASK_CONTRACT_NOTE = (
     "zusammenhängenden quote aus genau diesem Chunk. Kannst du keinen Beleg "
     "zitieren, ist der Status unclear."
 )
+
+
+def _decided_without_indices(judged: NarrowVerdict) -> bool:
+    return judged.status in (
+        RequirementVerdictStatus.FULFILLED,
+        RequirementVerdictStatus.VIOLATED,
+    ) and not judged.supporting_quote_indices
+
+
+def _narrow_to_verdict(
+    requirement: Requirement,
+    judged: NarrowVerdict,
+    quotes: list[Any],
+    chunk_by_id: dict[str, dict[str, Any]],
+) -> RequirementVerdict:
+    """Resolve the judge's quote indices back to chunk-addressed evidence.
+
+    Out-of-range indices are ignored rather than failing the verdict; a
+    decided verdict that ends up with no evidence is then demoted by the
+    provenance check exactly like a grouped verdict would be.
+    """
+    evidence = []
+    seen: set[int] = set()
+    for index in judged.supporting_quote_indices:
+        if index in seen or not 0 <= index < len(quotes):
+            continue
+        seen.add(index)
+        quote = quotes[index]
+        chunk = chunk_by_id[quote.chunk_id]
+        evidence.append(
+            {
+                "document_id": chunk["document_id"],
+                "chunk_id": quote.chunk_id,
+                "page": chunk["page"],
+                "quote": quote.quote,
+            }
+        )
+    return RequirementVerdict(
+        requirement_id=requirement.requirement_id,
+        status=judged.status,
+        severity=judged.severity,
+        rationale=judged.rationale,
+        evidence=evidence,
+        evidence_type=judged.evidence_type,
+        evidence_reference=judged.evidence_reference,
+        evidence_sufficiency=judged.evidence_sufficiency,
+        independent_support=judged.independent_support,
+    )
 
 
 def _decided_without_quote(output: RequirementGroupOutput) -> list[str]:
@@ -1222,6 +1544,7 @@ def default_requirement_review_engine(
             entailment_provider=MockProvider(output_factory=_mock_entailment_output),
             extraction_provider=MockProvider(output_factory=_mock_extraction_output),
             assessor_samples=settings.requirement_review_assessor_samples,
+            assessor_mode=settings.requirement_review_assessor_mode,
         )
     runtime_options = _runtime_options(settings)
     return RequirementReviewEngine(
@@ -1239,6 +1562,7 @@ def default_requirement_review_engine(
             settings.requirement_review_assessor_provider, settings, runtime_options
         ),
         assessor_samples=settings.requirement_review_assessor_samples,
+        assessor_mode=settings.requirement_review_assessor_mode,
     )
 
 
@@ -1280,8 +1604,37 @@ def _mock_assessor_output(
     """Deterministic offline assessor: violated iff a red-flag term appears.
 
     Exercises the full plumbing (evidence provenance included, because the
-    quote is a real chunk line) without any network call.
+    quote is a real chunk line) without any network call. Answers the narrow
+    path's two schemas with the same heuristic.
     """
+    if output_schema is EvidenceLocation:
+        requirement = input_schema.get("requirement", {})
+        flags = [f.lower() for f in requirement.get("required_evidence", []) if isinstance(f, str)]
+        quotes = []
+        for chunk in input_schema.get("chunks", []):
+            for line in str(chunk.get("text", "")).splitlines():
+                if any(flag and flag in line.lower() for flag in flags):
+                    quotes.append({"chunk_id": chunk["chunk_id"], "quote": line.strip()})
+                    break
+        return {
+            "applicability": "applies" if quotes else "cannot_tell",
+            "reason": "Mock-Belegsuche.",
+            "quotes": quotes[:5],
+        }
+    if output_schema is NarrowVerdict:
+        quotes = input_schema.get("quotes", [])
+        if not quotes:
+            return {"status": "unclear", "severity": "medium", "rationale": "Mock: keine Zitate."}
+        return {
+            "status": "fulfilled",
+            "severity": None,
+            "rationale": "Mock-Assessor: geforderter Nachweis gefunden.",
+            "supporting_quote_indices": [0],
+            "evidence_type": "Dokumentauszug",
+            "evidence_reference": quotes[0]["chunk_id"],
+            "evidence_sufficiency": "sufficient",
+            "independent_support": False,
+        }
     verdicts = []
     chunks = input_schema.get("chunks", [])
     for requirement in input_schema.get("requirements", []):

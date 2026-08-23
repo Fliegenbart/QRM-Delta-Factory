@@ -1613,6 +1613,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--anthropic-model", default="claude-sonnet-4-6")
     parser.add_argument("--openai-model", default="gpt-5.4")
     parser.add_argument("--hetzner-model", default="Qwen3.8-27B")
+    parser.add_argument(
+        "--assessor-mode",
+        choices=["grouped", "narrow"],
+        default=None,
+        help="Override the requirement engine's assessor mode for this run.",
+    )
     args = parser.parse_args(argv)
 
     _configure_environment(
@@ -1620,6 +1626,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     if args.mode == "live":
         os.environ["QRM_HETZNER_MODEL_ID"] = args.hetzner_model
+    if args.assessor_mode:
+        os.environ["QRM_REQUIREMENT_REVIEW_ASSESSOR_MODE"] = args.assessor_mode
 
     # Imports happen after env setup because get_settings() is lru_cached.
     from fastapi.testclient import TestClient
@@ -1678,6 +1686,7 @@ def main(argv: list[str] | None = None) -> int:
         "anthropic_model": args.anthropic_model if uses_anthropic else None,
         "openai_model": args.openai_model if uses_openai else None,
         "hetzner_model": args.hetzner_model if uses_hetzner else None,
+        "assessor_mode": args.assessor_mode or "grouped",
         "case_count": len(case_dirs),
     }
 
@@ -1732,6 +1741,8 @@ def main(argv: list[str] | None = None) -> int:
     aggregate = _aggregate(case_results)
     package_release_gate = _package_release_gate(case_results) if args.package_dir else None
     run_label = args.mode if args.mode == "mock" else f"{args.mode}_{args.stack}"
+    if args.assessor_mode == "narrow":
+        run_label += "_narrow"
     if args.engine != "finding":
         run_label = f"{run_label}_{args.engine}"
     output_dir = Path(args.output_dir) / started_at.strftime(f"%Y%m%d_%H%M%S_{run_label}")

@@ -1504,3 +1504,172 @@ def test_assessor_retries_once_on_a_malformed_response() -> None:
     )
     assert verdict.published_status == RequirementVerdictStatus.VIOLATED
     assert all(c.status == "succeeded" for c in report.model_calls if c.purpose == "assess")
+
+
+# --- narrow assessor -------------------------------------------------------
+
+
+def _narrow_provider(
+    *,
+    applicability: str = "applies",
+    quotes: list[dict[str, str]] | None = None,
+    judge: dict[str, Any] | None = None,
+    judge_sequence: list[dict[str, Any]] | None = None,
+) -> tuple[MockProvider, list[tuple[str, str]]]:
+    """Mock that answers EvidenceLocation and NarrowVerdict; records the calls."""
+    from app.schemas.requirement_review import EvidenceLocation, NarrowVerdict
+
+    seen: list[tuple[str, str]] = []
+    judged: list[int] = []
+
+    def _factory(prompt: str, input_schema: dict[str, Any], output_schema: Any) -> dict:
+        if output_schema is EvidenceLocation:
+            seen.append(("locate", prompt))
+            assert "requirement" in input_schema and "chunks" in input_schema
+            return {
+                "applicability": applicability,
+                "reason": "Belegsuche.",
+                "quotes": quotes if quotes is not None else [],
+            }
+        assert output_schema is NarrowVerdict
+        seen.append(("judge", prompt))
+        if judge_sequence:
+            judged.append(1)
+            return judge_sequence[min(len(judged) - 1, len(judge_sequence) - 1)]
+        return judge or {"status": "unclear", "severity": "medium", "rationale": "Unklar."}
+
+    return MockProvider(output_factory=_factory), seen
+
+
+def _narrow_engine(assessor: MockProvider, *, samples: int = 1) -> RequirementReviewEngine:
+    return RequirementReviewEngine(
+        repository=repository,
+        audit_log=audit_log,
+        assessor_provider=assessor,
+        entailment_provider=_entailment("supports"),
+        assessor_samples=samples,
+        assessor_mode="narrow",
+    )
+
+
+def test_narrow_assessor_locates_then_judges_and_resolves_quotes_by_index() -> None:
+    """The judge points at quotes by index; the engine attaches chunk and page.
+
+    The model never copies a document id or a page number -- the two fields
+    the grouped call got wrong most -- and a decided verdict cannot exist
+    without a quote because the judge never sees anything else.
+    """
+    _setup()
+    quote = "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei."
+    provider, seen = _narrow_provider(
+        quotes=[{"chunk_id": "chunk_req_change_p1", "quote": quote}],
+        judge={
+            "status": "violated",
+            "severity": "high",
+            "rationale": "Der Nachweis fehlt.",
+            "supporting_quote_indices": [0, 7],  # 7 is out of range and ignored
+        },
+    )
+
+    report = _narrow_engine(provider).run("ds_req_review_demo")
+
+    verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
+    assert [kind for kind, _ in seen] == ["locate", "judge"]
+    assert verdict.model_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.provenance_ok is True
+    assert [e.quote for e in verdict.evidence] == [quote]
+    assert verdict.evidence[0].document_id == "doc_req_change"
+    assert verdict.evidence[0].page == 1
+    assert [c.purpose for c in report.model_calls if c.status == "succeeded"] == [
+        "locate",
+        "judge",
+        "entailment",
+    ]
+
+
+def test_narrow_assessor_answers_without_quotes_on_the_server() -> None:
+    """No located evidence means no judge call: unclear, or not applicable
+    when the locator says the requirement does not concern the case."""
+    _setup()
+    provider, seen = _narrow_provider(applicability="cannot_tell", quotes=[])
+    report = _narrow_engine(provider).run("ds_req_review_demo")
+    verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
+    assert [kind for kind, _ in seen] == ["locate"]
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert verdict.server_authored is True
+
+    _setup()
+    provider, seen = _narrow_provider(applicability="does_not_apply", quotes=[])
+    report = _narrow_engine(provider).run("ds_req_review_demo")
+    verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
+    assert verdict.published_status == RequirementVerdictStatus.NOT_APPLICABLE
+    assert verdict.server_authored is True
+
+
+def test_narrow_judge_gets_one_second_chance_to_point_at_a_quote() -> None:
+    """violated with no indices is re-asked once with the breach named; a
+    judge that still points at nothing keeps its answer and is demoted by
+    provenance, never lost."""
+    from app.services.requirement_review import JUDGE_REASK_NOTE
+
+    _setup()
+    quote = "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei."
+    provider, seen = _narrow_provider(
+        quotes=[{"chunk_id": "chunk_req_change_p1", "quote": quote}],
+        judge_sequence=[
+            {"status": "violated", "severity": "high", "rationale": "Fehlt.", "supporting_quote_indices": []},
+            {"status": "violated", "severity": "high", "rationale": "Fehlt.", "supporting_quote_indices": [0]},
+        ],
+    )
+    report = _narrow_engine(provider).run("ds_req_review_demo")
+    verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
+    judge_prompts = [p for kind, p in seen if kind == "judge"]
+    assert len(judge_prompts) == 2
+    assert judge_prompts[1].endswith(JUDGE_REASK_NOTE)
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.evidence[0].quote == quote
+
+    # Refuses twice: the first answer stands and provenance demotes it.
+    _setup()
+    provider, seen = _narrow_provider(
+        quotes=[{"chunk_id": "chunk_req_change_p1", "quote": quote}],
+        judge={"status": "violated", "severity": "high", "rationale": "Fehlt.", "supporting_quote_indices": []},
+    )
+    report = _narrow_engine(provider).run("ds_req_review_demo")
+    verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
+    assert verdict.model_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
+    assert verdict.server_authored is False
+
+
+def test_narrow_assessor_merges_judge_samples_alarm_side() -> None:
+    """Two judge samples over the same quotes merge like grouped samples:
+    one violated is enough to make a candidate; the second sees the quotes
+    reversed."""
+    _setup()
+    quotes = [
+        {"chunk_id": "chunk_req_change_p1", "quote": "Change Control CC-2026-014 senkt den AVI-Schwellwert."},
+        {"chunk_id": "chunk_req_change_p1", "quote": "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei."},
+    ]
+    orders: list[list[str]] = []
+    from app.schemas.requirement_review import EvidenceLocation, NarrowVerdict
+
+    def _factory(prompt: str, input_schema: dict[str, Any], output_schema: Any) -> dict:
+        if output_schema is EvidenceLocation:
+            return {"applicability": "applies", "reason": "ok", "quotes": quotes}
+        order = [q["quote"] for q in input_schema["quotes"]]
+        orders.append(order)
+        if len(orders) == 1:
+            return {"status": "fulfilled", "rationale": "Belegt.", "supporting_quote_indices": [0],
+                    "evidence_type": "Auszug", "evidence_reference": "p1",
+                    "evidence_sufficiency": "sufficient", "independent_support": True}
+        # second sample sees the reversed order; index 0 is now the gap quote
+        return {"status": "violated", "severity": "high", "rationale": "Nachweis fehlt.", "supporting_quote_indices": [0]}
+
+    report = _narrow_engine(MockProvider(output_factory=_factory), samples=2).run("ds_req_review_demo")
+    verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
+    assert orders[1] == list(reversed(orders[0]))
+    assert verdict.model_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.sample_disagreement is True
+    assert verdict.evidence[0].quote == quotes[1]["quote"]

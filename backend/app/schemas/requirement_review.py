@@ -75,6 +75,51 @@ class RequirementGroupOutput(StrictSchema):
     verdicts: list[RequirementVerdict]
 
 
+class LocatedQuote(StrictSchema):
+    """One verbatim passage the locator says bears on a requirement."""
+
+    chunk_id: str = Field(min_length=1)
+    quote: str = Field(min_length=1)
+
+
+class RequirementApplicability(StrEnum):
+    APPLIES = "applies"
+    DOES_NOT_APPLY = "does_not_apply"
+    CANNOT_TELL = "cannot_tell"
+
+
+class EvidenceLocation(StrictSchema):
+    """Output of the narrow assessor's first call: where is the evidence?
+
+    Flat on purpose. A 27B model that left the evidence list empty in 154 of
+    280 grouped verdicts quoted verbatim four times out of four when asked one
+    question with one flat answer. The judgment is a separate call that only
+    ever sees these quotes, so a decided verdict cannot exist without one.
+    """
+
+    applicability: RequirementApplicability
+    reason: str = Field(min_length=1)
+    quotes: list[LocatedQuote] = Field(default_factory=list)
+
+
+class NarrowVerdict(StrictSchema):
+    """Output of the narrow assessor's second call: the judgment over quotes.
+
+    ``supporting_quote_indices`` point into the quotes the judge was given;
+    the engine resolves them back to chunks, so the model never has to copy
+    document ids or page numbers -- the two fields it got wrong most.
+    """
+
+    status: RequirementVerdictStatus
+    severity: Severity | None = None
+    rationale: str = Field(min_length=1)
+    supporting_quote_indices: list[int] = Field(default_factory=list)
+    evidence_type: str | None = None
+    evidence_reference: str | None = None
+    evidence_sufficiency: EvidenceSufficiency | None = None
+    independent_support: bool | None = None
+
+
 class FulfilledChallenge(StrictSchema):
     """Structured output of the adversarial second look at a FULFILLED verdict.
 

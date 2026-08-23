@@ -106,6 +106,14 @@ class Settings(BaseSettings):
         " requirement instead of a findings feed. Additive: the finding pack is"
         " produced either way, and a failing coverage review never fails the run.",
     )
+    requirement_review_assessor_mode: str = Field(
+        default="grouped",
+        description="grouped: six requirements per assessor call with all chunks and"
+        " the whole rulebook -- the shape a frontier model handles. narrow: per"
+        " requirement, locate the evidence first, then judge over those quotes"
+        " alone -- the shape a local 27B model handles. Measured 2026-08-23 on the"
+        " goldstandard corpus before being made selectable.",
+    )
     requirement_review_assessor_samples: int = Field(
         default=2,
         ge=1,
