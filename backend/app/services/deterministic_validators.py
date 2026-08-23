@@ -69,6 +69,125 @@ DEFAULT_REQUIREMENTS_BY_VALIDATOR: dict[str, tuple[str, ...]] = {
 }
 
 
+@dataclass(frozen=True)
+class RuleDescription:
+    """What a reviewer needs to read a rule: what it checks, on what, against
+    which obligation, and how sure it is. The catalogue is the readable face
+    of the deterministic layer -- the part of the system a QA department can
+    validate rule by rule, with the goldstandard cases as its test suite."""
+
+    validator_id: str
+    title: str
+    checks: str
+    inputs: str
+    severity: str
+    regulatory_basis: str
+    requirement_ids: tuple[str, ...]
+
+
+RULE_CATALOGUE: tuple[RuleDescription, ...] = (
+    RuleDescription(
+        "empty_required_field",
+        "Leeres Pflichtfeld",
+        "Ein Signatur-, Prüf- oder Freigabefeld existiert im Dokument, trägt aber keinen Unterzeichner -- leer, nur ein Datum, 'siehe oben' oder 'N/A' ohne Begründung.",
+        "Signaturfelder",
+        "high",
+        "EU-GMP Teil I Kap. 4.7-4.8 (Aufzeichnungen: zeitnah, lesbar, unterschrieben); ALCOA",
+        (),
+    ),
+    RuleDescription(
+        "action_item_without_responsible",
+        "Maßnahme ohne Verantwortlichen",
+        "Eine Position einer Maßnahmenliste nennt niemanden, der sie umsetzt.",
+        "Maßnahmen",
+        "medium",
+        "EU-GMP Teil I Kap. 1.4 (xiv) (CAPA); ICH Q10 3.2.2",
+        ("req_capa_responsible_timeline",),
+    ),
+    RuleDescription(
+        "measurement_outside_specification",
+        "Messwert außerhalb der deklarierten Grenze",
+        "Ein Messwert wird mit jeder deklarierten Grenze desselben Parameters verglichen (gleiche Einheit); liegt er außerhalb, ist das ein Befund -- auch wenn das Dokument 'konform' sagt.",
+        "Messwerte, Grenzwerte",
+        "high",
+        "EU-GMP Teil I Kap. 6.35-6.36 (OOS); Kap. 1.8 (vii)",
+        (),
+    ),
+    RuleDescription(
+        "conflicting_actors_for_one_activity",
+        "Eine Tätigkeit, zwei Hände",
+        "Dieselbe Handlung am selben Objekt ist im Dokument verschiedenen Personen zugeschrieben.",
+        "Datierte Schritte",
+        "medium",
+        "EU-GMP Teil I Kap. 4.8; ALCOA (attributable)",
+        (),
+    ),
+    RuleDescription(
+        "conflicting_timestamps_for_one_activity",
+        "Eine Tätigkeit, zwei Zeitangaben",
+        "Dieselbe Handlung am selben Objekt trägt im Dokument widersprüchliche Zeitangaben.",
+        "Datierte Schritte",
+        "medium",
+        "EU-GMP Teil I Kap. 4.8; ALCOA (contemporaneous)",
+        (),
+    ),
+    RuleDescription(
+        "step_predates_its_event",
+        "Schritt vor dem Ereignis datiert",
+        "Eine Untersuchung, Bewertung, Prüfung, Freigabe oder Wirksamkeitsprüfung ist früher datiert als das Ereignis derselben Aufzeichnung, das sie betrifft.",
+        "Datierte Schritte (Rolle, Bezugsobjekt)",
+        "high",
+        "EU-GMP Teil I Kap. 4.8; Annex 11 §9 (Audit Trail)",
+        DEFAULT_REQUIREMENTS_BY_VALIDATOR["step_predates_its_event"],
+    ),
+    RuleDescription(
+        "release_before_assessment",
+        "Freigabe vor abgeschlossener Bewertung",
+        "Eine Freigabe ist früher datiert als die Bewertung oder Untersuchung derselben Aufzeichnung, auf der sie beruht.",
+        "Datierte Schritte (Rolle, Bezugsobjekt)",
+        "critical",
+        "EU-GMP Teil I Kap. 1.4 (xv); Kap. 1.8 (vii); Annex 16",
+        DEFAULT_REQUIREMENTS_BY_VALIDATOR["release_before_assessment"],
+    ),
+    RuleDescription(
+        "effectiveness_check_before_implementation",
+        "Wirksamkeitsprüfung vor Umsetzung",
+        "Eine Wirksamkeitsprüfung ist früher datiert als die Umsetzung der Maßnahme, die sie prüft.",
+        "Datierte Schritte (Rolle, Bezugsobjekt)",
+        "high",
+        "EU-GMP Teil I Kap. 1.4 (xiv); ICH Q10 3.2.2",
+        DEFAULT_REQUIREMENTS_BY_VALIDATOR["effectiveness_check_before_implementation"],
+    ),
+    RuleDescription(
+        "first_use_before_approval_or_training",
+        "Erste Anwendung vor Freigabe oder Schulung",
+        "Die erste GMP-Anwendung einer Änderung ist früher datiert als ihre Freigabe oder die zugehörige Schulung.",
+        "Datierte Schritte (Rolle, Bezugsobjekt)",
+        "high",
+        "EU-GMP Teil I Kap. 1.4 (xi), Kap. 2.10-2.11; Annex 15 §11",
+        DEFAULT_REQUIREMENTS_BY_VALIDATOR["first_use_before_approval_or_training"],
+    ),
+    RuleDescription(
+        "same_person_performs_and_approves",
+        "Vier-Augen-Prinzip nicht erkennbar",
+        "Dieselbe Person hat einen Vorgang sowohl ausgeführt bzw. erstellt als auch geprüft oder freigegeben.",
+        "Signaturfelder, datierte Schritte",
+        "medium",
+        "EU-GMP Teil I Kap. 2.5-2.7 (Verantwortlichkeiten); 21 CFR 211.22",
+        DEFAULT_REQUIREMENTS_BY_VALIDATOR["same_person_performs_and_approves"],
+    ),
+    RuleDescription(
+        "capa_effectiveness_check_missing",
+        "CAPA ohne Wirksamkeitsprüfung",
+        "Korrekturmaßnahmen sind festgelegt, aber nirgends in den Unterlagen ist eine Wirksamkeitsprüfung vorgesehen -- weder als Schritt, noch als Maßnahme, noch als Erwähnung.",
+        "Maßnahmen, datierte Schritte, Volltext",
+        "high",
+        "EU-GMP Teil I Kap. 1.4 (xiv); ICH Q10 3.2.2",
+        DEFAULT_REQUIREMENTS_BY_VALIDATOR["capa_effectiveness_check_missing"],
+    ),
+)
+
+
 def run_validators(
     evidence: StructuredEvidence, context: ValidationContext | None = None
 ) -> list[ValidatorFinding]:

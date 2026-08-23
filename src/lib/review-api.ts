@@ -13,7 +13,8 @@ import type {
   RequirementSet,
   RequirementCoverageReport,
   ReviewDecisionValue,
-  ReviewPack
+  ReviewPack,
+  RuleDescription
 } from "@/src/lib/review-ui";
 import { normalizeReviewDecisionPayload } from "@/src/lib/review-ui";
 import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
@@ -130,6 +131,10 @@ export async function getRequirementLibraryOverview(): Promise<RequirementLibrar
     await ensureRequirementSet({ requirementSetId, tenantId });
     return fetchRequirementLibraryOverview(requirementSetId);
   }
+}
+
+export async function listRuleCatalogue(): Promise<RuleDescription[]> {
+  return backendFetch<RuleDescription[]>("/validators");
 }
 
 export async function getHumanFeedbackRegistry(): Promise<HumanFeedbackRegistryReport> {

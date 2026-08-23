@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { AlertCircle, CheckCircle2, FileUp, Loader2, RefreshCcw, UploadCloud } from "lucide-react";
-import { userFacingReviewLoadError, type Requirement, type RequirementLibraryOverview } from "@/src/lib/review-ui";
+import {
+  userFacingReviewLoadError,
+  type Requirement,
+  type RequirementLibraryOverview,
+  type RuleDescription
+} from "@/src/lib/review-ui";
 
 type LoadState = "loading" | "ready" | "uploading" | "error";
 
@@ -29,6 +34,7 @@ const expectedRuleFields = [
 
 export function RequirementLibraryManager() {
   const [overview, setOverview] = useState<RequirementLibraryOverview | null>(null);
+  const [rules, setRules] = useState<RuleDescription[]>([]);
   const [state, setState] = useState<LoadState>("loading");
   const [error, setError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -62,6 +68,7 @@ export function RequirementLibraryManager() {
       });
       const payload = await readPayload(response);
       setOverview(payload.overview);
+      if (Array.isArray(payload.rules)) setRules(payload.rules);
       setState("ready");
     } catch (caught) {
       setState("error");
@@ -83,6 +90,7 @@ export function RequirementLibraryManager() {
       });
       const payload = await readPayload(response);
       setOverview(payload.overview);
+      if (Array.isArray(payload.rules)) setRules(payload.rules);
       setSelectedFile(null);
       setState("ready");
     } catch (caught) {
@@ -254,6 +262,48 @@ export function RequirementLibraryManager() {
                   <span className="font-medium text-[var(--text-primary)]">{source.name}</span>
                   <span className="mono text-[var(--text-tertiary)]">v{source.version}</span>
                   <span className="text-[var(--text-tertiary)]">{source.count} Regeln</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="surface p-5 xl:col-span-2">
+          <div className="text-[13px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+            Deterministische Prüfregeln
+          </div>
+          <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-[var(--text-secondary)]">
+            Diese Regeln entscheiden ohne Modell: Sie rechnen über Werte, Daten und
+            Signaturfelder, die aus den Unterlagen extrahiert und wortwörtlich gegen den
+            Quelltext geerdet wurden. Jede Regel nennt, was sie prüft, worauf, gegen welche
+            Vorgabe — und kann Zeile für Zeile validiert werden. Ein Regelbefund hebt eine
+            Anforderung auf „verletzt"; er senkt nie.
+          </p>
+          <div className="mt-3 space-y-1.5">
+            {rules.length === 0 ? (
+              <EmptyLine text="Regelkatalog nicht geladen." />
+            ) : (
+              rules.map((rule) => (
+                <div
+                  key={rule.validator_id}
+                  className="grid gap-2 rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-2.5 text-[12px] md:grid-cols-[220px_1fr_auto] md:items-start"
+                >
+                  <div>
+                    <div className="font-medium text-[var(--text-primary)]">{rule.title}</div>
+                    <div className="mono mt-0.5 text-[11px] text-[var(--text-tertiary)]">
+                      {rule.validator_id}
+                    </div>
+                  </div>
+                  <div className="text-[var(--text-secondary)]">
+                    <p className="leading-relaxed">{rule.checks}</p>
+                    <p className="mt-1 text-[11px] text-[var(--text-tertiary)]">
+                      Grundlage: {rule.inputs} · {rule.regulatory_basis}
+                      {rule.requirement_ids.length > 0
+                        ? ` · prüft ${rule.requirement_ids.join(", ")}`
+                        : ""}
+                    </p>
+                  </div>
+                  <Pill>{displayCriticality(rule.severity)}</Pill>
                 </div>
               ))
             )}

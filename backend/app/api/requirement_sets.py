@@ -110,6 +110,42 @@ def deactivate_requirement_set(requirement_set_id: str, request: Request) -> Req
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
 
+@router.get("/validators", response_model=list[dict])
+def list_validators() -> list[dict]:
+    """The deterministic rule catalogue, for the rulebook page.
+
+    Public per tenant like the library itself: a reviewer must be able to
+    read what the rules check before trusting a finding they produced.
+    """
+    from app.services.arithmetic_validators import ARITHMETIC_VALIDATOR_VERSION as ARITHMETIC_VERSION
+    from app.services.deterministic_validators import RULE_CATALOGUE, VALIDATOR_VERSION
+
+    return [
+        {
+            "validator_id": rule.validator_id,
+            "title": rule.title,
+            "checks": rule.checks,
+            "inputs": rule.inputs,
+            "severity": rule.severity,
+            "regulatory_basis": rule.regulatory_basis,
+            "requirement_ids": list(rule.requirement_ids),
+            "version": VALIDATOR_VERSION,
+        }
+        for rule in RULE_CATALOGUE
+    ] + [
+        {
+            "validator_id": "arithmetic_share_and_conversion",
+            "title": "Anteile und Umrechnungen nachgerechnet",
+            "checks": "Angegebene Anteile ('12 von 40 (30 %)') und Einheitenumrechnungen im Fließtext werden nachgerechnet; ein widersprüchlicher Wert ist ein Befund.",
+            "inputs": "Volltext der Auszüge",
+            "severity": "medium",
+            "regulatory_basis": "EU-GMP Teil I Kap. 4.8; ALCOA (accurate)",
+            "requirement_ids": [],
+            "version": ARITHMETIC_VERSION,
+        }
+    ]
+
+
 @router.get("/requirements/search", response_model=list[Requirement])
 def search_requirements(
     request: Request,

@@ -553,6 +553,18 @@ export type RequirementLibraryOverview = {
   activeRequirements: Requirement[];
 };
 
+/** One deterministic rule, as the rulebook page shows it. */
+export type RuleDescription = {
+  validator_id: string;
+  title: string;
+  checks: string;
+  inputs: string;
+  severity: string;
+  regulatory_basis: string;
+  requirement_ids: string[];
+  version: string;
+};
+
 export type HumanFeedbackRecord = {
   feedback_id: string;
   review_id: string;
