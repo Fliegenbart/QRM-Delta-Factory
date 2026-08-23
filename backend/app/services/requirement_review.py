@@ -29,6 +29,8 @@ verdicts for its whole group, which in a QA process means human review.
 
 from __future__ import annotations
 
+import copy
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from typing import Any
 
@@ -289,10 +291,27 @@ class RequirementReviewEngine:
 
         chunk_payload = _chunk_payload(chunks, self.repository)
         if self.assessor_mode == "narrow":
-            for requirement in applicable:
-                verdict, calls = self._assess_narrow(
-                    requirement=requirement, chunk_payload=chunk_payload, chunks=chunks
+            # Requirements are independent of one another, so they run on a
+            # small pool. Each worker gets its own shallow copy of the provider:
+            # breaker state and the per-provider semaphore are class-level and
+            # locked, but last_run_metadata -- which the call record reads --
+            # is per instance, and two workers sharing one instance would book
+            # each other's tokens. The semaphore still bounds real concurrent
+            # HTTP calls at max_concurrent_calls, so this is ordering, not load.
+            workers = max(1, self.assessor_provider.runtime_options.max_concurrent_calls)
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                results = list(
+                    pool.map(
+                        lambda requirement: self._assess_narrow(
+                            requirement=requirement,
+                            chunk_payload=chunk_payload,
+                            chunks=chunks,
+                            provider=copy.copy(self.assessor_provider),
+                        ),
+                        applicable,
+                    )
                 )
+            for verdict, calls in results:
                 verdicts.append(verdict)
                 model_calls.extend(calls)
         else:
@@ -307,15 +326,29 @@ class RequirementReviewEngine:
             requirement.requirement_id: requirement.criticality.value
             for requirement in requirements
         }
-        verdicts = [self._verify_entailment(verdict, model_calls) for verdict in verdicts]
-        verdicts = [
-            self._challenge_fulfilled(
-                verdict,
-                model_calls,
+        # The checks are per verdict and independent; same pool discipline as
+        # the narrow assessor, with a provider copy per task.
+        workers = max(1, self.entailment_provider.runtime_options.max_concurrent_calls)
+
+        def _check(
+            verdict: VerifiedRequirementVerdict,
+        ) -> tuple[VerifiedRequirementVerdict, list[RequirementReviewModelCall]]:
+            provider = copy.copy(self.entailment_provider)
+            local_calls: list[RequirementReviewModelCall] = []
+            checked = self._verify_entailment(verdict, local_calls, provider=provider)
+            checked = self._challenge_fulfilled(
+                checked,
+                local_calls,
                 criticality=criticality_by_id.get(verdict.requirement_id, "medium"),
+                provider=provider,
             )
-            for verdict in verdicts
-        ]
+            return checked, local_calls
+
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            checked_results = list(pool.map(_check, verdicts))
+        verdicts = [checked for checked, _ in checked_results]
+        for _, local_calls in checked_results:
+            model_calls.extend(local_calls)
 
         validator_findings: list[dict[str, Any]] = []
         extracted_evidence: dict[str, Any] | None = None
@@ -643,6 +676,7 @@ class RequirementReviewEngine:
         requirement: Requirement,
         chunk_payload: list[dict[str, Any]],
         chunks: list[DocumentChunk],
+        provider: BaseModelProvider | None = None,
     ) -> tuple[VerifiedRequirementVerdict, list[RequirementReviewModelCall]]:
         """Two small calls per requirement: locate the evidence, then judge it.
 
@@ -669,12 +703,13 @@ class RequirementReviewEngine:
         }
         calls: list[RequirementReviewModelCall] = []
         rid = [requirement.requirement_id]
+        provider = provider or self.assessor_provider
 
         # --- call 1: locate -------------------------------------------------
         discarded: list[Any] = []
         try:
             raw = _run_with_one_reask(
-                self.assessor_provider,
+                provider,
                 LOCATE_PROMPT,
                 {"requirement": requirement_payload, "chunks": chunk_payload},
                 EvidenceLocation,
@@ -684,7 +719,7 @@ class RequirementReviewEngine:
         except Exception as exc:  # noqa: BLE001 - fail-secure per requirement
             calls.append(
                 _model_call(
-                    self.assessor_provider,
+                    provider,
                     purpose="locate",
                     requirement_ids=rid,
                     status="failed",
@@ -705,7 +740,7 @@ class RequirementReviewEngine:
             )
         calls.append(
             _model_call(
-                self.assessor_provider,
+                provider,
                 purpose="locate",
                 requirement_ids=rid,
                 status="succeeded",
@@ -756,11 +791,11 @@ class RequirementReviewEngine:
             }
             discarded = []
             try:
-                judged = self._judge_once(input_schema, discarded_usage=discarded)
+                judged = self._judge_once(input_schema, discarded_usage=discarded, provider=provider)
             except Exception as exc:  # noqa: BLE001 - fail-secure per sample
                 calls.append(
                     _model_call(
-                        self.assessor_provider,
+                        provider,
                         purpose="judge",
                         requirement_ids=rid,
                         status="failed",
@@ -771,7 +806,7 @@ class RequirementReviewEngine:
                 continue
             calls.append(
                 _model_call(
-                    self.assessor_provider,
+                    provider,
                     purpose="judge",
                     requirement_ids=rid,
                     status="succeeded",
@@ -799,11 +834,16 @@ class RequirementReviewEngine:
         return checked, calls
 
     def _judge_once(
-        self, input_schema: dict[str, Any], *, discarded_usage: list[Any]
+        self,
+        input_schema: dict[str, Any],
+        *,
+        discarded_usage: list[Any],
+        provider: BaseModelProvider | None = None,
     ) -> NarrowVerdict:
         """One judge sample, with one explicit second chance to point at a quote."""
+        provider = provider or self.assessor_provider
         raw = _run_with_one_reask(
-            self.assessor_provider,
+            provider,
             JUDGE_PROMPT,
             input_schema,
             NarrowVerdict,
@@ -812,9 +852,9 @@ class RequirementReviewEngine:
         judged = NarrowVerdict.model_validate(raw)
         if not _decided_without_indices(judged):
             return judged
-        first_metadata = self.assessor_provider.last_run_metadata
+        first_metadata = provider.last_run_metadata
         try:
-            raw = self.assessor_provider.run_structured(
+            raw = provider.run_structured(
                 JUDGE_PROMPT + JUDGE_REASK_NOTE, input_schema, NarrowVerdict
             )
             second = NarrowVerdict.model_validate(raw)
@@ -824,16 +864,17 @@ class RequirementReviewEngine:
             if first_metadata and first_metadata.token_usage:
                 discarded_usage.append(first_metadata.token_usage)
             return second
-        second_metadata = self.assessor_provider.last_run_metadata
+        second_metadata = provider.last_run_metadata
         if second_metadata and second_metadata.token_usage:
             discarded_usage.append(second_metadata.token_usage)
-        self.assessor_provider.last_run_metadata = first_metadata
+        provider.last_run_metadata = first_metadata
         return judged
 
     def _verify_entailment(
         self,
         verdict: VerifiedRequirementVerdict,
         model_calls: list[RequirementReviewModelCall],
+        provider: BaseModelProvider | None = None,
     ) -> VerifiedRequirementVerdict:
         """Ask a second model whether the evidence carries the claim.
 
@@ -848,19 +889,20 @@ class RequirementReviewEngine:
             return verdict
         if not verdict.evidence:
             return verdict
+        provider = provider or self.entailment_provider
         input_schema = {
             "rationale": verdict.rationale,
             "quotes": [item.quote for item in verdict.evidence],
         }
         try:
             raw = _run_with_one_reask(
-                self.entailment_provider, ENTAILMENT_PROMPT, input_schema, EntailmentCheck
+                provider, ENTAILMENT_PROMPT, input_schema, EntailmentCheck
             )
             check = EntailmentCheck.model_validate(raw)
         except Exception as exc:  # noqa: BLE001 - fail-secure per verdict
             model_calls.append(
                 _model_call(
-                    self.entailment_provider,
+                    provider,
                     purpose="entailment",
                     requirement_ids=[verdict.requirement_id],
                     status="failed",
@@ -879,7 +921,7 @@ class RequirementReviewEngine:
             )
         model_calls.append(
             _model_call(
-                self.entailment_provider,
+                provider,
                 purpose="entailment",
                 requirement_ids=[verdict.requirement_id],
                 status="succeeded",
@@ -899,6 +941,7 @@ class RequirementReviewEngine:
         model_calls: list[RequirementReviewModelCall],
         *,
         criticality: str,
+        provider: BaseModelProvider | None = None,
     ) -> VerifiedRequirementVerdict:
         """Adversarial second look at FULFILLED verdicts of critical scope.
 
@@ -917,6 +960,7 @@ class RequirementReviewEngine:
             return verdict
         if verdict.server_authored:
             return verdict
+        provider = provider or self.entailment_provider
         if verdict.independent_support is True:
             # The challenge exists to catch fulfilled-by-self-attestation. Where
             # the assessor already names support beyond the document's own
@@ -935,13 +979,13 @@ class RequirementReviewEngine:
         }
         try:
             raw = _run_with_one_reask(
-                self.entailment_provider, CHALLENGE_PROMPT, input_schema, FulfilledChallenge
+                provider, CHALLENGE_PROMPT, input_schema, FulfilledChallenge
             )
             challenge = FulfilledChallenge.model_validate(raw)
         except Exception as exc:  # noqa: BLE001 - fail-secure per verdict
             model_calls.append(
                 _model_call(
-                    self.entailment_provider,
+                    provider,
                     purpose="challenge",
                     requirement_ids=[verdict.requirement_id],
                     status="failed",
@@ -960,7 +1004,7 @@ class RequirementReviewEngine:
             )
         model_calls.append(
             _model_call(
-                self.entailment_provider,
+                provider,
                 purpose="challenge",
                 requirement_ids=[verdict.requirement_id],
                 status="succeeded",
