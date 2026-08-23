@@ -51,6 +51,18 @@ def _retry_status(document_set_id: str) -> RequirementReportRetry:
     )
 
 
+def _pipeline_is_running(document_set_id: str) -> bool:
+    from app.api.pipeline_runs import get_pipeline_service
+    from app.schemas.pipeline import PipelineRunStatus
+    from app.services.pipeline import PipelineRunNotFoundError
+
+    try:
+        latest = get_pipeline_service().get_latest_pipeline_run(document_set_id)
+    except PipelineRunNotFoundError:
+        return False
+    return latest.status == PipelineRunStatus.RUNNING
+
+
 def _run_retry(document_set_id: str) -> None:
     from app.services.requirement_review import default_requirement_review_engine
 
@@ -133,6 +145,14 @@ def retry_failed_requirements(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Für DocumentSet {document_set_id} liegt noch kein Anforderungsbericht vor.",
+        )
+    if _pipeline_is_running(document_set_id):
+        # The pipeline will replace the whole report when it finishes; a
+        # retry merging into the old one in parallel would be lost or, worse,
+        # interleave with the new report's write.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Die Analyse läuft gerade; die erneute Prüfung ist erst danach möglich.",
         )
     if current.active:
         return current

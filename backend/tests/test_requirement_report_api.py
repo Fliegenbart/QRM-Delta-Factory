@@ -268,3 +268,19 @@ def test_retry_without_a_report_is_a_conflict() -> None:
     response = client.post(f"/document-sets/{document_set_id}/requirement-report/retry")
 
     assert response.status_code == 409
+
+
+def test_retry_is_refused_while_the_pipeline_is_running() -> None:
+    from app.schemas.pipeline import PipelineRunStatus
+
+    client = TestClient(app)
+    document_set_id = _run_pipeline(client)
+    run = max(repository.pipeline_runs.values(), key=lambda r: r.started_at)
+    repository.update_pipeline_run(
+        run.model_copy(update={"status": PipelineRunStatus.RUNNING, "completed_at": None})
+    )
+
+    response = client.post(f"/document-sets/{document_set_id}/requirement-report/retry")
+
+    assert response.status_code == 409
+    assert "läuft gerade" in response.json()["detail"]
