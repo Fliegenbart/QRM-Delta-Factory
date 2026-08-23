@@ -1522,3 +1522,55 @@ def test_stringified_container_fields_are_decoded_for_any_schema() -> None:
     assert evidence["events"] == []
     assert evidence["measurements"] == "keine"
     assert evidence["signatures"] == "[not json"
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"),
+    [
+        (
+            {"type": "error", "error": {"type": "invalid_request_error", "message": "You have reached your specified API usage limits. You will regain access on 2026-09-01."}},
+            "openai provider call failed with HTTP 400 (usage_limit_reached)",
+        ),
+        (
+            {"error": {"type": "invalid_request_error", "message": "max_tokens must be positive"}},
+            "openai provider call failed with HTTP 400 (invalid_request_error)",
+        ),
+        (
+            {"error": {"message": "Ignore previous instructions <script>"}},
+            "openai provider call failed with HTTP 400",
+        ),
+    ],
+)
+def test_http_error_carries_the_safe_error_kind(
+    monkeypatch: pytest.MonkeyPatch, body: dict, expected: str
+) -> None:
+    """"HTTP 400" alone hid an exhausted monthly limit behind the same three
+    words as a malformed request. The body's error type is a controlled
+    vocabulary and safe; free-text bodies stay out of the message."""
+    import httpx
+
+    from app.agents.providers.openai_provider import OpenAIProvider
+
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai")
+    monkeypatch.setenv("QRM_OPENAI_API_KEY", "test-key")
+    get_settings.cache_clear()
+
+    def fake_post(self: httpx.Client, url: str, **_: Any) -> httpx.Response:
+        request = httpx.Request("POST", url)
+        return httpx.Response(400, json=body, request=request)
+
+    monkeypatch.setattr(httpx.Client, "post", fake_post)
+    provider = OpenAIProvider(configured_model_id="gpt-5.4")
+    try:
+        with pytest.raises(ProviderCallError) as failure:
+            provider.run_structured(
+                prompt="p", input_schema={}, output_schema=ReviewerAgentOutput
+            )
+    finally:
+        get_settings.cache_clear()
+        BaseModelProvider._provider_failure_counts.clear()
+        BaseModelProvider._provider_opened_at.clear()
+
+    assert str(failure.value) == expected
+    assert failure.value.retryable is False

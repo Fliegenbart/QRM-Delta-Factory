@@ -18,6 +18,37 @@ _RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 529}
 _MAX_RETRY_AFTER_SECONDS = 30.0
 
 
+_SAFE_ERROR_KIND = re.compile(r"^[a-z0-9_.-]{1,64}$")
+
+#: Body substrings that identify an exhausted quota rather than a bad request.
+#: Checked against a bounded prefix of the body only when the error type alone
+#: is ambiguous (Anthropic reports its monthly usage limit as a plain
+#: invalid_request_error with HTTP 400).
+_USAGE_LIMIT_MARKERS = ("usage limit", "credit balance", "quota")
+
+
+def _error_kind(response: httpx.Response) -> str | None:
+    """A short, safe classifier for a provider error body, or None."""
+    try:
+        payload = response.json()
+    except ValueError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    error = payload.get("error")
+    if not isinstance(error, dict):
+        return None
+    kind = error.get("type") or error.get("code")
+    message = error.get("message")
+    if isinstance(message, str) and any(
+        marker in message[:300].lower() for marker in _USAGE_LIMIT_MARKERS
+    ):
+        return "usage_limit_reached"
+    if isinstance(kind, str) and _SAFE_ERROR_KIND.match(kind):
+        return kind
+    return None
+
+
 class ExternalProviderBase(BaseModelProvider):
     api_key_env_var: str
 
@@ -42,8 +73,15 @@ class ExternalProviderBase(BaseModelProvider):
         except httpx.HTTPStatusError as exc:
             status_code = exc.response.status_code
             retry_after_seconds = _capped_retry_after(exc.response.headers.get("retry-after"))
+            # The body's error *type* is a controlled vocabulary and safe to
+            # surface; the message text is not (it can quote the payload).
+            # Without it, "HTTP 400" hid an exhausted monthly usage limit
+            # behind the same three words as a malformed request -- an
+            # outage that reads like a bug costs the diagnosis an extra hop.
+            error_kind = _error_kind(exc.response)
+            suffix = f" ({error_kind})" if error_kind else ""
             raise ProviderCallError(
-                f"{self.provider_name} provider call failed with HTTP {status_code}",
+                f"{self.provider_name} provider call failed with HTTP {status_code}{suffix}",
                 retryable=status_code in _RETRYABLE_STATUS_CODES,
                 retry_after_seconds=retry_after_seconds,
             ) from exc
