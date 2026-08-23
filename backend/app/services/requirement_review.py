@@ -206,6 +206,14 @@ JUDGE_PROMPT = (
     "fulfilled mit insufficient ist keins: dann unclear."
 )
 
+LOCATE_REASK_NOTE = (
+    "\n\nHINWEIS ZUR WIEDERHOLUNG: Die vorige Antwort hat eine relevante Stelle "
+    "beschrieben, aber nicht zitiert. Beschreibungen zählen nicht. Kopiere die "
+    "Stelle(n), die du meinst, WÖRTLICH in quotes, jede mit ihrer chunk_id. "
+    "Gibt es wirklich keine relevante Stelle, lass quotes leer und setze "
+    "applicability auf does_not_apply oder cannot_tell."
+)
+
 JUDGE_REASK_NOTE = (
     "\n\nHINWEIS ZUR WIEDERHOLUNG: Die vorige Antwort war fulfilled oder "
     "violated ohne eine einzige Zitatnummer in supporting_quote_indices. "
@@ -761,6 +769,15 @@ class RequirementReviewEngine:
 
         chunk_by_id = {chunk["chunk_id"]: chunk for chunk in chunk_payload}
         located = [q for q in location.quotes if q.chunk_id in chunk_by_id]
+        if not located and location.applicability != RequirementApplicability.DOES_NOT_APPLY:
+            # The locator described the passage instead of quoting it -- "Die
+            # QS-Notiz dokumentiert, dass ..." with an empty list -- on three of
+            # the rows behind the two judgment misses of the 2026-08-23 run. It
+            # knows where the evidence is; it is told once that descriptions
+            # do not count. A second empty answer stands.
+            location, located = self._locate_again(
+                provider, requirement_payload, chunk_payload, chunk_by_id, location, calls, rid
+            )
         if not located:
             if location.applicability == RequirementApplicability.DOES_NOT_APPLY:
                 return (
@@ -843,6 +860,34 @@ class RequirementReviewEngine:
         if disagreement:
             checked = checked.model_copy(update={"sample_disagreement": True})
         return checked, calls
+
+    def _locate_again(
+        self,
+        provider: BaseModelProvider,
+        requirement_payload: dict[str, Any],
+        chunk_payload: list[dict[str, Any]],
+        chunk_by_id: dict[str, dict[str, Any]],
+        first: EvidenceLocation,
+        calls: list[RequirementReviewModelCall],
+        rid: list[str],
+    ) -> tuple[EvidenceLocation, list[Any]]:
+        try:
+            raw = provider.run_structured(
+                LOCATE_PROMPT + LOCATE_REASK_NOTE,
+                {"requirement": requirement_payload, "chunks": chunk_payload},
+                EvidenceLocation,
+            )
+            second = EvidenceLocation.model_validate(raw)
+        except Exception as exc:  # noqa: BLE001 - the first answer stands
+            calls.append(
+                _model_call(provider, purpose="locate", requirement_ids=rid, status="failed", error=exc)
+            )
+            return first, []
+        calls.append(
+            _model_call(provider, purpose="locate", requirement_ids=rid, status="succeeded")
+        )
+        located = [q for q in second.quotes if q.chunk_id in chunk_by_id]
+        return (second, located) if located else (first, [])
 
     def _judge_once(
         self,

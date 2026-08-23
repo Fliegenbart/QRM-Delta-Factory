@@ -1595,7 +1595,9 @@ def test_narrow_assessor_answers_without_quotes_on_the_server() -> None:
     provider, seen = _narrow_provider(applicability="cannot_tell", quotes=[])
     report = _narrow_engine(provider).run("ds_req_review_demo")
     verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
-    assert [kind for kind, _ in seen] == ["locate"]
+    # cannot_tell without quotes gets the locator's one second chance, then
+    # stands; the judge is never called.
+    assert [kind for kind, _ in seen] == ["locate", "locate"]
     assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
     assert verdict.server_authored is True
 
@@ -1764,3 +1766,38 @@ def test_rule_escalation_rewrites_a_failed_verdicts_rationale() -> None:
     assert merged[0].published_status == RequirementVerdictStatus.VIOLATED
     assert merged[0].rationale == finding.statement
     assert findings[0]["validator_id"] == "capa_effectiveness_check_missing"
+
+
+def test_locator_that_describes_without_quoting_is_asked_once_more() -> None:
+    """'Die QS-Notiz dokumentiert, dass ...' with an empty quote list sat
+    behind three rows of the two judgment misses on 2026-08-23. One more
+    ask, naming the breach; a second empty answer stands."""
+    from app.schemas.requirement_review import EvidenceLocation, NarrowVerdict
+    from app.services.requirement_review import LOCATE_REASK_NOTE
+
+    _setup()
+    quote = "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei."
+    prompts: list[str] = []
+
+    def _factory(prompt: str, input_schema: dict[str, Any], output_schema: Any) -> dict:
+        if output_schema is EvidenceLocation:
+            prompts.append(prompt)
+            if len(prompts) == 1:
+                return {"applicability": "applies", "reason": "Die Notiz dokumentiert, dass der Nachweis fehlt.", "quotes": []}
+            return {"applicability": "applies", "reason": "Zitiert.", "quotes": [{"chunk_id": "chunk_req_change_p1", "quote": quote}]}
+        assert output_schema is NarrowVerdict
+        return {"status": "violated", "severity": "high", "rationale": "Fehlt.", "supporting_quote_indices": [0]}
+
+    report = _narrow_engine(MockProvider(output_factory=_factory)).run("ds_req_review_demo")
+    verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
+
+    assert len(prompts) == 2 and prompts[1].endswith(LOCATE_REASK_NOTE)
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.evidence[0].quote == quote
+    assert [c.purpose for c in report.model_calls if c.status == "succeeded"][:3] == ["locate", "locate", "judge"]
+
+    # does_not_apply with no quotes is an answer, not a breach: no second ask.
+    _setup()
+    provider, seen = _narrow_provider(applicability="does_not_apply", quotes=[])
+    _narrow_engine(provider).run("ds_req_review_demo")
+    assert [kind for kind, _ in seen] == ["locate"]
