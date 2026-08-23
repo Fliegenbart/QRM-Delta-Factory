@@ -11,7 +11,8 @@ touching prose.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from typing import Any
 
 from app.agents.providers import BaseModelProvider
@@ -33,7 +34,9 @@ EXTRACTION_PROMPT = (
     "inklusive Komma- oder Punktschreibweise) und Einheit.\n"
     "3. specifications: Jede deklarierte Grenze (NMT, NLT, ≤, ≥, Bereich). "
     "Benutze für parameter DENSELBEN Namen wie bei der zugehörigen Messung, "
-    "damit beide zusammenfinden.\n"
+    "damit beide zusammenfinden. Die Zahlen gehören in limit_low und "
+    "limit_high (bei NMT nur limit_high, bei NLT nur limit_low); unit "
+    "enthält NUR die Einheit, z. B. '%'.\n"
     "4. action_items: NUR Positionen von Listen mit Handlungscharakter -- "
     "CAPA-Maßnahmen, Aufgaben, Korrekturmaßnahmen, also Dinge, die jemand tun "
     "muss -- einzeln, mit responsible und due_date, sofern genannt; fehlend "
@@ -66,6 +69,20 @@ class ExtractionOutcome:
     failures: list[tuple[str, Exception]]
     #: "document_id:pass" per succeeded category pass.
     succeeded_document_ids: list[str]
+    #: Rows the model returned whose quote could not be grounded in the cited
+    #: chunk, per category. Until 2026-08-23 these vanished without a trace,
+    #: and a validator that never fired could not be told apart from one that
+    #: never received its inputs.
+    dropped_unverifiable: dict[str, int] = field(default_factory=dict)
+
+    def report_payload(self) -> dict[str, Any]:
+        """What the coverage report records about the extraction layer."""
+        dumped = self.evidence.model_dump(mode="json")
+        return {
+            "counts": {category: len(rows) for category, rows in dumped.items()},
+            "dropped_unverifiable": dict(self.dropped_unverifiable),
+            "rows": dumped,
+        }
 
 
 #: The extraction task split into disjoint category passes per document. Eight
@@ -163,11 +180,54 @@ class EvidenceExtractor:
                         for category, rows in scoped.items()
                     }
                 )
+        merged = _repair_specification_limits(merged)
+        grounded = _ground_locations(merged, chunks)
+        dropped = {
+            category: len(getattr(merged, category)) - len(getattr(grounded, category))
+            for category in ("signatures", "measurements", "specifications", "action_items", "events")
+        }
         return ExtractionOutcome(
-            evidence=_ground_locations(merged, chunks),
+            evidence=grounded,
             failures=failures,
             succeeded_document_ids=succeeded,
+            dropped_unverifiable={k: v for k, v in dropped.items() if v},
         )
+
+
+#: "limit_low: 95.0, limit_high: 102.0" and the like, found inside a field
+#: that is not limit_low or limit_high.
+_STRAY_LIMIT = re.compile(r"limit_(low|high)\s*[:=]\s*([-+]?\d+(?:[.,]\d+)?)", re.IGNORECASE)
+_UNIT_TAIL = re.compile(r"^\s*([^,;]*?)\s*(?:[,;]\s*limit_.*)?$", re.IGNORECASE | re.DOTALL)
+
+
+def _repair_specification_limits(evidence: StructuredEvidence) -> StructuredEvidence:
+    """Recover limits a model wrote into the wrong field.
+
+    Qwen3.8 returned ``unit: "%, limit_low: 95.0, limit_high: 102.0"`` with
+    both limit fields null for the one specification the yield case turns on;
+    the limit validator then had nothing to compare and the 92.4% yield passed
+    as conformant. The numbers were there, just mislaid. Only ever fills a
+    null limit from a stray annotation, never overrides a value the model
+    placed correctly.
+    """
+    repaired = []
+    changed = False
+    for spec in evidence.specifications:
+        low, high, unit = spec.limit_low, spec.limit_high, spec.unit
+        haystack = " ".join(str(v) for v in (spec.unit, spec.operator, spec.parameter) if v)
+        for which, number in _STRAY_LIMIT.findall(haystack):
+            if which.lower() == "low" and low is None:
+                low = number
+            elif which.lower() == "high" and high is None:
+                high = number
+        if unit and _STRAY_LIMIT.search(unit):
+            match = _UNIT_TAIL.match(unit)
+            unit = (match.group(1) or None) if match else unit
+        if (low, high, unit) != (spec.limit_low, spec.limit_high, spec.unit):
+            changed = True
+            spec = spec.model_copy(update={"limit_low": low, "limit_high": high, "unit": unit})
+        repaired.append(spec)
+    return evidence.model_copy(update={"specifications": repaired}) if changed else evidence
 
 
 def _ground_locations(

@@ -364,13 +364,34 @@ def _matching_source_quote(model_quote: str, source_text: str) -> str | None:
             model_quote
         ):
             return candidate
+        # The token sequences are identical, so the texts can only differ in
+        # markup and punctuation: "$$", "{", "}", a list dash. Treat that as
+        # presentation too -- content words and numbers have already matched
+        # exactly, including "92,4" against "92.4".
+        if _content_only(candidate) == _content_only(model_quote):
+            return candidate
     return None
 
 
+_LATEX_COMMAND_RE = re.compile(r"\\[A-Za-z]+")
+
+
+def _content_only(value: str) -> str:
+    stripped = _LATEX_COMMAND_RE.sub(" ", value)
+    return "".join(
+        ch for ch in _canonicalize_quote_presentation(stripped) if ch.isalnum()
+    ).lower()
+
+
 def _reconciliation_token_spans(value: str) -> list[tuple[str, int, int]]:
+    # A backslash-led word is a LaTeX command (\text, \frac, \times), not
+    # content: a model rendering "$$\frac{462.000}{500.000} \times 100$$" as
+    # "462.000 / 500.000 × 100" has quoted the source faithfully, and the
+    # grounded span is the LaTeX itself -- the true source text.
     return [
         (_canonicalize_reconciliation_token(match.group()), match.start(), match.end())
         for match in _RECONCILIATION_TOKEN_RE.finditer(value)
+        if not (match.start() > 0 and value[match.start() - 1] == "\\")
     ]
 
 
@@ -425,8 +446,19 @@ def _expand_presentation_boundaries(source_text: str, *, start: int, end: int) -
 
 
 def _extend_to_next_token_boundary(source_text: str, *, end: int) -> int:
+    """Take the trailing punctuation of the last token, but never the next line.
+
+    Running to the next token used to cross line breaks: the quote
+    "... 95.0% bis 102.0%" swallowed "\n\n## " of the following heading, the
+    canonical forms then differed by a stray "##", and the one specification
+    the yield case turns on was dropped as unverifiable.
+    """
     next_token = _RECONCILIATION_TOKEN_RE.search(source_text, pos=end)
-    return next_token.start() if next_token is not None else len(source_text)
+    limit = next_token.start() if next_token is not None else len(source_text)
+    # The line's own terminator still belongs to the span (existing quotes
+    # and their hashes end on it); what follows the line break does not.
+    newline = source_text.find("\n", end, limit)
+    return newline + 1 if newline != -1 else limit
 
 
 def _recompute_reviewer_quote_hashes(raw_output: dict[str, Any]) -> dict[str, Any]:

@@ -1673,3 +1673,28 @@ def test_narrow_assessor_merges_judge_samples_alarm_side() -> None:
     assert verdict.model_status == RequirementVerdictStatus.VIOLATED
     assert verdict.sample_disagreement is True
     assert verdict.evidence[0].quote == quotes[1]["quote"]
+
+
+def test_grounding_forgives_markup_and_latex_but_not_content() -> None:
+    """Two rows the yield case turns on were dropped as unverifiable.
+
+    The bold line "**...Validierung:** 95.0% bis 102.0%" failed because the
+    span extension ran past the line break and swallowed "## " of the next
+    heading; the LaTeX line failed because \\text, \\frac and \\times were
+    tokenised as words the model rightly did not quote. Both are
+    presentation. A changed number or word is still refused.
+    """
+    from app.services.requirement_review import _ground_quote
+
+    source = (
+        "- **Spezifizierter Toleranzbereich laut Validierung:** 95.0% bis 102.0%  \n\n"
+        "## Ausbeuteberechnung\n"
+        "$$\\text{Reale Netto-Ausbeute} = \\frac{462.000}{500.000} \\times 100 = 92,4\\%$$\n"
+    )
+    assert _ground_quote(
+        "Spezifizierter Toleranzbereich laut Validierung: 95.0% bis 102.0%", source
+    ) == ["Spezifizierter Toleranzbereich laut Validierung:** 95.0% bis 102.0%"]
+    grounded = _ground_quote("Reale Netto-Ausbeute = 462.000 / 500.000 × 100 = 92,4%", source)
+    assert grounded is not None and grounded[0] in source and "92,4" in grounded[0]
+    assert _ground_quote("Reale Netto-Ausbeute = 462.000 / 500.000 × 100 = 93,4%", source) is None
+    assert _ground_quote("Spezifizierter Toleranzbereich laut Validierung: 95.0% bis 103.0%", source) is None

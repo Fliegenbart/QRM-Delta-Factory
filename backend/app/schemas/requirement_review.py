@@ -214,6 +214,10 @@ class RequirementCoverageReport(StrictSchema):
     #: claimed -- an unattached breach is still a breach and must not vanish
     #: because the mapping was missing.
     validator_findings: list[dict] = Field(default_factory=list)
+    #: What the extraction layer actually produced -- row counts, rows the
+    #: grounding step dropped, and the rows themselves -- so that a validator
+    #: that did not fire can be traced to the input it did not get.
+    extracted_evidence: dict | None = None
 
     def summary(self) -> dict[str, Any]:
         return {

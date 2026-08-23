@@ -318,8 +318,9 @@ class RequirementReviewEngine:
         ]
 
         validator_findings: list[dict[str, Any]] = []
+        extracted_evidence: dict[str, Any] | None = None
         if self.extraction_provider is not None:
-            verdicts, validator_findings = self._apply_validators(
+            verdicts, validator_findings, extracted_evidence = self._apply_validators(
                 verdicts=verdicts,
                 applicable=applicable,
                 chunk_payload=chunk_payload,
@@ -353,6 +354,7 @@ class RequirementReviewEngine:
                 1 for call in model_calls if call.status != "succeeded"
             ),
             validator_findings=validator_findings,
+            extracted_evidence=extracted_evidence,
         )
         self.audit_log.append(
             event_type="requirement_review_completed",
@@ -372,7 +374,7 @@ class RequirementReviewEngine:
         chunk_payload: list[dict[str, Any]],
         chunks: list[DocumentChunk],
         model_calls: list[RequirementReviewModelCall],
-    ) -> tuple[list[VerifiedRequirementVerdict], list[dict[str, Any]]]:
+    ) -> tuple[list[VerifiedRequirementVerdict], list[dict[str, Any]], dict[str, Any]]:
         """Run structured extraction plus deterministic checks, then merge.
 
         Deterministic evidence of a breach overrides a model all-clear: this is
@@ -441,7 +443,11 @@ class RequirementReviewEngine:
                         update["severity"] = Severity(finding.severity)
                 verdicts_by_id[requirement_id] = verdict.model_copy(update=update)
         merged = [verdicts_by_id[v.requirement_id] for v in verdicts]
-        return merged, [finding.model_dump(mode="json") for finding in findings]
+        return (
+            merged,
+            [finding.model_dump(mode="json") for finding in findings],
+            outcome.report_payload(),
+        )
 
     def _insist_on_quotes(
         self,
