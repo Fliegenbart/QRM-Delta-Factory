@@ -114,6 +114,13 @@ class Settings(BaseSettings):
         " alone -- the shape a local 27B model handles. Measured 2026-08-23 on the"
         " goldstandard corpus before being made selectable.",
     )
+    requirement_review_locate_chunk_limit: int = Field(
+        default=12,
+        ge=1,
+        description="Chunks the narrow assessor's locator sees per requirement,"
+        " chosen by lexical overlap with the requirement. Caps token volume on"
+        " large packages; small cases pass through untouched.",
+    )
     requirement_review_assessor_samples: int = Field(
         default=2,
         ge=1,

@@ -30,6 +30,7 @@ verdicts for its whole group, which in a QA process means human review.
 from __future__ import annotations
 
 import copy
+import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from typing import Any
@@ -252,6 +253,7 @@ class RequirementReviewEngine:
         group_size: int = REQUIREMENT_GROUP_SIZE,
         assessor_samples: int = 2,
         assessor_mode: str = "grouped",
+        locate_chunk_limit: int = 12,
     ) -> None:
         self.repository = repository
         self.audit_log = audit_log
@@ -268,6 +270,11 @@ class RequirementReviewEngine:
         #: requirement, locate the evidence first, then judge over those quotes
         #: alone -- the shape a local 27B model handles. See _assess_narrow.
         self.assessor_mode = assessor_mode
+        #: How many chunks the locator sees per requirement. Every requirement
+        #: used to get every chunk -- 26 copies of the whole case per case,
+        #: 1.67M tokens for ten small cases. Fine on a rented endpoint, the
+        #: bottleneck on a customer's own GPU. See _candidate_chunks.
+        self.locate_chunk_limit = max(1, locate_chunk_limit)
 
     def run(self, document_set_id: str) -> RequirementCoverageReport:
         document_set = self.repository.get_document_set(document_set_id)
@@ -725,12 +732,13 @@ class RequirementReviewEngine:
         provider = provider or self.assessor_provider
 
         # --- call 1: locate -------------------------------------------------
+        candidate_chunks = _candidate_chunks(requirement, chunk_payload, self.locate_chunk_limit)
         discarded: list[Any] = []
         try:
             raw = _run_with_one_reask(
                 provider,
                 LOCATE_PROMPT,
-                {"requirement": requirement_payload, "chunks": chunk_payload},
+                {"requirement": requirement_payload, "chunks": candidate_chunks},
                 EvidenceLocation,
                 discarded_usage=discarded,
             )
@@ -776,7 +784,7 @@ class RequirementReviewEngine:
             # knows where the evidence is; it is told once that descriptions
             # do not count. A second empty answer stands.
             location, located = self._locate_again(
-                provider, requirement_payload, chunk_payload, chunk_by_id, location, calls, rid
+                provider, requirement_payload, candidate_chunks, chunk_by_id, location, calls, rid
             )
         if not located:
             if location.applicability == RequirementApplicability.DOES_NOT_APPLY:
@@ -1117,6 +1125,51 @@ REASK_CONTRACT_NOTE = (
     "zusammenhängenden quote aus genau diesem Chunk. Kannst du keinen Beleg "
     "zitieren, ist der Status unclear."
 )
+
+
+_TERM_RE = re.compile(r"[a-zäöüß0-9][a-zäöüß0-9\-]{2,}")
+_STOP_TERMS = frozenset(
+    "und oder der die das den dem des ein eine einer eines für mit von zur zum bei auf "
+    "aus nach vor über unter durch ist sind wird werden muss müssen soll sollen kann "
+    "nicht sein haben hat als auch wie wenn dass nur alle jede jeder jedes sich "
+    "the and for with from that this are not".split()
+)
+
+
+def _terms(text: str) -> set[str]:
+    """Lower-cased content words, cut to a crude stem so 'Freigabe' meets
+    'freigegeben' and 'Validierung' meets 'Validierungsnachweis'."""
+    return {
+        term[:6]
+        for term in _TERM_RE.findall(text.casefold().replace("**", " "))
+        if term not in _STOP_TERMS
+    }
+
+
+def _candidate_chunks(
+    requirement: Requirement, chunk_payload: list[dict[str, Any]], limit: int
+) -> list[dict[str, Any]]:
+    """The chunks worth showing the locator for one requirement.
+
+    Lexical overlap between the requirement (title, text, required evidence)
+    and each chunk, top ``limit`` in document order. A small case passes
+    through untouched -- on the ten-case goldstandard corpus no case has more
+    than five chunks, so this changes nothing there and everything on a real
+    thirty-page deviation package. Ties and all-zero scores fall back to
+    document order, so a requirement whose vocabulary matches nothing still
+    sees the first ``limit`` chunks rather than none.
+    """
+    if len(chunk_payload) <= limit:
+        return chunk_payload
+    wanted = _terms(
+        " ".join([requirement.title or "", requirement.requirement_text, *requirement.required_evidence])
+    )
+    scored = []
+    for index, chunk in enumerate(chunk_payload):
+        overlap = len(wanted & _terms(str(chunk.get("text", ""))))
+        scored.append((-overlap, index))
+    keep = sorted(index for _, index in sorted(scored)[:limit])
+    return [chunk_payload[index] for index in keep]
 
 
 def _decided_without_indices(judged: NarrowVerdict) -> bool:
@@ -1659,6 +1712,7 @@ def default_requirement_review_engine(
             extraction_provider=MockProvider(output_factory=_mock_extraction_output),
             assessor_samples=settings.requirement_review_assessor_samples,
             assessor_mode=settings.requirement_review_assessor_mode,
+            locate_chunk_limit=settings.requirement_review_locate_chunk_limit,
         )
     runtime_options = _runtime_options(settings)
     return RequirementReviewEngine(
@@ -1677,6 +1731,7 @@ def default_requirement_review_engine(
         ),
         assessor_samples=settings.requirement_review_assessor_samples,
         assessor_mode=settings.requirement_review_assessor_mode,
+        locate_chunk_limit=settings.requirement_review_locate_chunk_limit,
     )
 
 

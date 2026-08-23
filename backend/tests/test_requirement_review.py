@@ -1801,3 +1801,32 @@ def test_locator_that_describes_without_quoting_is_asked_once_more() -> None:
     provider, seen = _narrow_provider(applicability="does_not_apply", quotes=[])
     _narrow_engine(provider).run("ds_req_review_demo")
     assert [kind for kind, _ in seen] == ["locate"]
+
+
+def test_locator_sees_the_chunks_that_share_the_requirements_vocabulary() -> None:
+    from app.schemas.domain import Requirement
+    from app.services.requirement_review import _candidate_chunks
+
+    requirement = repository.get_requirement_set("rset_req_review_2026").requirements[0] if repository.get_requirement_set("rset_req_review_2026") else None
+    if requirement is None:
+        _setup()
+        requirement = repository.get_requirement_set("rset_req_review_2026").requirements[0]
+    # req_threshold_validation: Schwellwert, Validierungsevidenz, Validierungsnachweis
+    chunks = [
+        {"chunk_id": f"c{i}", "text": text}
+        for i, text in enumerate(
+            [
+                "Verteilerliste: QA, QC, Produktion.",
+                "Der Schwellwert wurde von 0,5 auf 0,3 gesenkt.",
+                "Lagertemperatur 2-8 °C, Protokoll anbei.",
+                "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei.",
+                "Reinigungsprotokoll Charge R-1183.",
+            ]
+        )
+    ]
+    picked = _candidate_chunks(requirement, chunks, limit=2)
+    assert [c["chunk_id"] for c in picked] == ["c1", "c3"]
+    # At or under the limit nothing is filtered; all-zero overlap keeps document order.
+    assert _candidate_chunks(requirement, chunks, limit=5) == chunks
+    unrelated = [{"chunk_id": "x", "text": "lorem"}, {"chunk_id": "y", "text": "ipsum"}, {"chunk_id": "z", "text": "dolor"}]
+    assert [c["chunk_id"] for c in _candidate_chunks(requirement, unrelated, limit=2)] == ["x", "y"]
