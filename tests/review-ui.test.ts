@@ -733,3 +733,38 @@ describe("model stack description", () => {
     expect(described.rows.find((row) => row.label === "Gegenprüfer")?.value).toBe("Claude (Anthropic), GPT (OpenAI)");
   });
 });
+
+
+describe("requirementConfidenceNotes", () => {
+  it("states a rule finding once even when it fired in several places", async () => {
+    const { requirementConfidenceNotes } = await import("../src/lib/review-ui");
+    const notes = requirementConfidenceNotes({
+      requirement_id: "req_x",
+      requirement_title: null,
+      requirement_text: "t",
+      source_name: "s",
+      section: "1",
+      model_status: "violated",
+      published_status: "violated",
+      severity: "high",
+      rationale: "r",
+      evidence: [],
+      dropped_evidence_count: 0,
+      dropped_evidence_reasons: [],
+      provenance_ok: true,
+      evidence_type: null,
+      evidence_reference: null,
+      evidence_sufficiency: null,
+      entailment: null,
+      entailment_reason: null,
+      independent_support: null,
+      challenge_sustained: null,
+      challenge_reason: null,
+      sample_disagreement: false,
+      validator_flags: ["measurement_outside_specification", "measurement_outside_specification"],
+      validator_statements: ["Der Messwert 34,2 °C liegt außerhalb 40–45.", "Der Messwert 34,2 °C liegt außerhalb 40–45."],
+      server_authored: false
+    });
+    expect(notes.filter((note) => note.startsWith("Deterministische Prüfung"))).toHaveLength(1);
+  });
+});

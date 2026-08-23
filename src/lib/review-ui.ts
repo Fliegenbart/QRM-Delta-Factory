@@ -1350,7 +1350,11 @@ export function requirementConfidenceNotes(row: RequirementVerdictRow): string[]
   if (row.evidence_sufficiency === "partial") {
     notes.push("Nachweis nur teilweise ausreichend");
   }
-  for (const statement of row.validator_statements) {
+  // The same breach is often found in several places -- a value quoted in
+  // the deviation report, the batch record and the summary fires the rule
+  // three times with one statement. Say it once; the evidence list carries
+  // every location.
+  for (const statement of new Set(row.validator_statements)) {
     notes.push(`Deterministische Prüfung: ${statement}`);
   }
   return notes;
