@@ -1698,3 +1698,69 @@ def test_grounding_forgives_markup_and_latex_but_not_content() -> None:
     assert grounded is not None and grounded[0] in source and "92,4" in grounded[0]
     assert _ground_quote("Reale Netto-Ausbeute = 462.000 / 500.000 × 100 = 93,4%", source) is None
     assert _ground_quote("Spezifizierter Toleranzbereich laut Validierung: 95.0% bis 103.0%", source) is None
+
+
+def test_rule_escalation_rewrites_a_failed_verdicts_rationale() -> None:
+    """A rule finding that lifts a row to violated is the row's reason.
+
+    The CAPA-effectiveness rule fired on case_07 of the 2026-08-23 Qwen run,
+    but the judge call had died on a 503, so the published row read
+    "Beurteilung fehlgeschlagen" above a correct finding -- and the eval
+    matcher, reading the rationale, scored a miss.
+    """
+    from app.schemas.structured_evidence import ValidatorFinding
+    from app.services.requirement_review import _server_verdict
+
+    _setup()
+    requirement = repository.get_requirement_set("rset_req_review_2026").requirements[0]
+    failed = _server_verdict(
+        requirement,
+        status=RequirementVerdictStatus.UNCLEAR,
+        rationale="Beurteilung für diese Anforderung fehlgeschlagen.",
+    )
+    engine = _engine(_assessor([]), _entailment("supports"))
+    finding = ValidatorFinding(
+        validator_id="capa_effectiveness_check_missing",
+        requirement_ids=[requirement.requirement_id],
+        severity="high",
+        statement="Die CAPA enthält 1 Maßnahme, aber keine Wirksamkeitsprüfung.",
+        locations=[],
+    )
+
+    class _Outcome:
+        evidence = None
+        succeeded_document_ids: list[str] = []
+        failures: list[Any] = []
+
+        def report_payload(self) -> dict[str, Any]:
+            return {}
+
+    class _Extractor:
+        def __init__(self, *, provider: Any) -> None:
+            pass
+
+        def extract(self, **_: Any) -> _Outcome:
+            return _Outcome()
+
+    import app.services.deterministic_validators as validators
+    import app.services.evidence_extraction as extraction
+
+    saved = (validators.run_validators, extraction.EvidenceExtractor)
+    validators.run_validators = lambda *_a, **_k: [finding]
+    extraction.EvidenceExtractor = _Extractor
+    try:
+        engine.extraction_provider = _assessor([])
+        merged, findings, _ = engine._apply_validators(
+            verdicts=[failed],
+            applicable=[requirement],
+            chunk_payload=[],
+            chunks=[],
+            model_calls=[],
+            document_set=repository.get_document_set("ds_req_review_demo"),
+        )
+    finally:
+        validators.run_validators, extraction.EvidenceExtractor = saved
+
+    assert merged[0].published_status == RequirementVerdictStatus.VIOLATED
+    assert merged[0].rationale == finding.statement
+    assert findings[0]["validator_id"] == "capa_effectiveness_check_missing"

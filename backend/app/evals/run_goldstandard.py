@@ -990,7 +990,12 @@ def _run_requirement_engine_case(
             {
                 "finding_id": f"req::{verdict.requirement_id}",
                 "severity": verdict.severity.value if verdict.severity else "medium",
-                "risk_statement": verdict.rationale,
+                # A rule finding is part of what the reviewer reads on the row;
+                # scoring only the model's rationale scored a miss on the CAPA
+                # breach the rule had found and stated.
+                "risk_statement": " ".join(
+                    [verdict.rationale, *verdict.validator_statements]
+                ),
                 "evidence_items": [
                     {
                         "document_id": item.document_id,

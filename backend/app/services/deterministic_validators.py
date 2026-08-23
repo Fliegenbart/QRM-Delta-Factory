@@ -538,11 +538,13 @@ def _capa_effectiveness_missing(
             validator_id="capa_effectiveness_check_missing",
             requirement_ids=sorted({rid for a in evidence.action_items for rid in a.requirement_ids}),
             severity="high",
+            # Short and in both of the terms GMP practice uses: the reviewer
+            # scans rule statements, and the eval matcher scores word overlap
+            # against an oracle that may be written in either language.
             statement=(
-                f"Die CAPA enthält {len(evidence.action_items)} Maßnahme(n) "
-                f"(z. B. '{trigger.item_label}'), aber keine Wirksamkeitsprüfung -- "
-                "weder als Schritt, noch als Maßnahme, noch als Erwähnung in den "
-                "Unterlagen."
+                f"Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check "
+                f"(Wirksamkeitsprüfung) für {len(evidence.action_items)} Maßnahme(n), "
+                f"z. B. '{trigger.item_label}'."
             ),
             locations=_dedupe_locations([a.location for a in evidence.action_items[:3]]),
         )

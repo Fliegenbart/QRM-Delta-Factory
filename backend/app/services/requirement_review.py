@@ -482,6 +482,17 @@ class RequirementReviewEngine:
                     update["published_status"] = RequirementVerdictStatus.VIOLATED
                     if verdict.severity is None:
                         update["severity"] = Severity(finding.severity)
+                    # The rule is now the reason the row is violated, so the
+                    # row must say so. Left alone, a verdict whose model call
+                    # had failed kept "Beurteilung fehlgeschlagen" as its
+                    # rationale above a perfectly good rule finding -- the
+                    # reviewer read a failure, and the eval matcher scored a
+                    # miss on a breach the system had in fact found.
+                    update["rationale"] = (
+                        finding.statement
+                        if verdict.server_authored
+                        else f"{finding.statement} {verdict.rationale}"
+                    )
                 verdicts_by_id[requirement_id] = verdict.model_copy(update=update)
         merged = [verdicts_by_id[v.requirement_id] for v in verdicts]
         return (
