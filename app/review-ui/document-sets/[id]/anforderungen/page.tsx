@@ -27,6 +27,7 @@ export default async function RequirementCoveragePage({ params }: PageProps) {
         <RequirementReportView
           report={report}
           reviewPackHref={`/review-ui/document-sets/${encodeURIComponent(id)}/review-pack`}
+          retryDocumentSetId={id}
         />
       </ReviewShell>
     );

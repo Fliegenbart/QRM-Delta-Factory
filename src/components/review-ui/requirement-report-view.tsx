@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ReviewPanel, StatusBadge } from "@/src/components/review-ui/review-shell";
 import { RequirementReportExportActions } from "@/src/components/review-ui/requirement-report-export-actions";
+import { RetryFailedRequirements } from "@/src/components/review-ui/retry-failed-requirements";
 import {
   REQUIREMENT_STATUS_LABELS,
   REQUIREMENT_STATUS_ORDER,
@@ -46,15 +47,19 @@ export function RequirementReportView({
   report,
   reviewPackHref,
   exportable = true,
+  retryDocumentSetId,
   intro
 }: {
   report: RequirementCoverageReport;
   reviewPackHref?: string;
   exportable?: boolean;
+  /** Live case: enables re-judging rows a failed model call left behind. */
+  retryDocumentSetId?: string;
   intro?: ReactNode;
 }) {
   const progress = requirementCoverageProgress(report);
   const checks = deterministicCheckSummary(report);
+  const retryable = report.verdicts.filter((row) => row.needs_retry).length;
   const grouped = REQUIREMENT_STATUS_ORDER.map((status) => ({
     status,
     rows: report.verdicts.filter((row) => row.published_status === status)
@@ -133,6 +138,9 @@ export function RequirementReportView({
             </p>
           </div>
         ) : null}
+        {retryDocumentSetId && retryable > 0 ? (
+          <RetryFailedRequirements documentSetId={retryDocumentSetId} retryable={retryable} />
+        ) : null}
         {reviewPackHref ? (
           <p className="mt-3 text-xs leading-5 text-[var(--text-tertiary)]">
             <Link href={reviewPackHref} className="underline underline-offset-2">
@@ -184,6 +192,12 @@ function RequirementRow({ row }: { row: RequirementVerdictRow }) {
       </header>
       <p className="mt-1 text-xs leading-5 text-[var(--text-tertiary)]">{row.requirement_text}</p>
       <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">{row.rationale}</p>
+      {row.needs_retry ? (
+        <p className="mt-2 text-xs leading-5 text-amber-800">
+          Modellaufruf fehlgeschlagen — diese Zeile ist ein Platzhalter, kein Urteil, und kann
+          allein erneut geprüft werden.
+        </p>
+      ) : null}
 
       {row.evidence.length > 0 ? (
         <div className="mt-3 space-y-2">

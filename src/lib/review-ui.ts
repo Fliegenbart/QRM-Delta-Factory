@@ -1189,6 +1189,13 @@ export type RequirementVerdictStatus =
   | "unclear"
   | "not_applicable";
 
+export type RequirementReportRetry = {
+  /** Rows a failed model call left as placeholders. */
+  retryable: number;
+  active: boolean;
+  detail?: string | null;
+};
+
 export type RequirementReportEvidence = {
   document_id: string;
   chunk_id: string;
@@ -1229,6 +1236,8 @@ export type RequirementVerdictRow = {
   validator_flags: string[];
   validator_statements: string[];
   server_authored: boolean;
+  /** A model call behind this row failed; the row can be re-run on its own. */
+  needs_retry?: boolean;
 };
 
 export type RequirementCoverageReport = {
