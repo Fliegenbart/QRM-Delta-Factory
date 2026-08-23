@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from typing import Any
 
-from app.agents.providers import MockProvider, ProviderCallError
+from app.agents.providers import BaseModelProvider, MockProvider, ProviderCallError
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.schemas.domain import Document, DocumentChunk, DocumentSet, RequirementSet
@@ -30,6 +30,11 @@ CHUNK_TEXT = (
 def _setup(*, process_area: str = "aseptic_filling") -> None:
     repository.reset()
     audit_log.clear()
+    # Breaker state is class-level and survives between tests: two failing
+    # tests in a row would otherwise open the mock provider's circuit for
+    # every test after them.
+    BaseModelProvider._provider_failure_counts.clear()
+    BaseModelProvider._provider_opened_at.clear()
     repository.create_requirement_set(
         RequirementSet(
             requirement_set_id="rset_req_review_2026",
@@ -268,6 +273,59 @@ def test_failed_assessor_group_fails_secure_to_unclear() -> None:
     assert report.failed_model_call_count == 2
     failed = [call for call in report.model_calls if call.status == "failed"]
     assert failed and failed[0].error_type == "ProviderCallError"
+
+
+def test_failed_rows_are_flagged_and_can_be_rerun_on_their_own() -> None:
+    """A host that answered 5xx for one call must not cost a 25-minute rerun."""
+    _setup()
+    quote = "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei."
+    attempts = {"count": 0}
+
+    def _flaky(*_: Any) -> dict:
+        attempts["count"] += 1
+        if attempts["count"] <= 2:  # both first-run samples die
+            raise ProviderCallError("provider unavailable")
+        return {"verdicts": [_violated_verdict(quote)]}
+
+    engine = _engine(MockProvider(output_factory=_flaky), _entailment("supports"))
+    first = engine.run("ds_req_review_demo")
+    repository.replace_requirement_report(
+        document_set_id="ds_req_review_demo", report=first
+    )
+    placeholder = next(
+        v for v in first.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert placeholder.needs_retry is True
+    assert placeholder.published_status == RequirementVerdictStatus.UNCLEAR
+    untouched = [v for v in first.verdicts if v.requirement_id != "req_threshold_validation"]
+    assert all(v.needs_retry is False for v in untouched)
+
+    progress: list[str] = []
+    retried = engine.rerun_failed("ds_req_review_demo", progress=progress.append)
+
+    verdict = next(
+        v for v in retried.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.needs_retry is False
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.evidence[0].quote == quote
+    assert verdict.evidence[0].document_name == "change-control.md"
+    # The rows that were fine are exactly as they were; the call log keeps
+    # the failed attempts and adds the successful one.
+    assert [v.requirement_id for v in retried.verdicts] == [v.requirement_id for v in first.verdicts]
+    assert retried.failed_model_call_count == first.failed_model_call_count == 2
+    assert len(retried.model_calls) > len(first.model_calls)
+    assert retried.status_counts["violated"] == first.status_counts.get("violated", 0) + 1
+    assert any("Erneute Prüfung" in line for line in progress)
+    assert repository.get_requirement_report("ds_req_review_demo") == retried
+    assert any(
+        event.event_type == "requirement_review_retried"
+        and event.payload["retried_requirement_ids"] == ["req_threshold_validation"]
+        and event.payload["still_failed"] == []
+        for event in audit_log.list_events()
+    )
+    # Nothing left to retry: the report is returned unchanged.
+    assert engine.rerun_failed("ds_req_review_demo") == retried
 
 
 def test_missing_verdict_for_a_requirement_becomes_unclear() -> None:

@@ -193,6 +193,12 @@ class VerifiedRequirementVerdict(StrictSchema):
     #: True when the verdict was authored by the server (inapplicable
     #: requirement, failed model group), not by a model.
     server_authored: bool = False
+    #: True when a model call behind this row failed (assessment, evidence
+    #: search, entailment or challenge) and the row is a placeholder rather
+    #: than a judgement. These rows can be re-run on their own -- on a host
+    #: that answers 5xx for an afternoon, that is the difference between a
+    #: two-minute fix and a 25-minute rerun.
+    needs_retry: bool = False
 
 
 class RequirementReviewModelCall(StrictSchema):
