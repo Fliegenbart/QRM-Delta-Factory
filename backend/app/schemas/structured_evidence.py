@@ -70,10 +70,34 @@ class ExtractedActionItem(StrictSchema):
     location: EvidenceLocation
 
 
+#: What kind of step an event is in the life of a GMP record. The ordering
+#: validator reasons over these, never over prose: a release dated before the
+#: assessment it rests on, a review dated before the event it reviews.
+EVENT_ROLES = (
+    "event",  # the deviation, OOS, change or incident itself
+    "investigation",
+    "assessment",
+    "review",
+    "approval",
+    "release",
+    "training",
+    "implementation",
+    "effectiveness_check",
+    "first_use",
+    "other",
+)
+
+
 class ExtractedEvent(StrictSchema):
     description: str = Field(min_length=1)
     timestamp: str | None = None
     actor: str | None = None
+    #: One of EVENT_ROLES, as classified by the extractor; None when unknown.
+    role: str | None = None
+    #: The record this step belongs to -- batch, deviation, change or sample
+    #: identifier -- so steps of different records are never ordered against
+    #: each other.
+    refers_to: str | None = None
     #: Extraction groups rows that describe the same real-world activity under
     #: one key; the consistency validator only ever compares within a group.
     activity_key: str | None = None

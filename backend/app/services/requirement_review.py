@@ -326,6 +326,7 @@ class RequirementReviewEngine:
                 chunk_payload=chunk_payload,
                 chunks=chunks,
                 model_calls=model_calls,
+                document_set=document_set,
             )
         # Arithmetic runs on chunk text and needs no extraction, so it must not
         # sit behind the extraction provider: surviving a truncated extraction
@@ -374,6 +375,7 @@ class RequirementReviewEngine:
         chunk_payload: list[dict[str, Any]],
         chunks: list[DocumentChunk],
         model_calls: list[RequirementReviewModelCall],
+        document_set: DocumentSet,
     ) -> tuple[list[VerifiedRequirementVerdict], list[dict[str, Any]], dict[str, Any]]:
         """Run structured extraction plus deterministic checks, then merge.
 
@@ -384,7 +386,7 @@ class RequirementReviewEngine:
         validators are additive, and a dead extraction call must not take the
         assessed verdicts down with it.
         """
-        from app.services.deterministic_validators import run_validators
+        from app.services.deterministic_validators import ValidationContext, run_validators
         from app.services.evidence_extraction import EvidenceExtractor
 
         requirement_index = [
@@ -421,7 +423,13 @@ class RequirementReviewEngine:
                 )
             )
 
-        findings = run_validators(outcome.evidence)
+        findings = run_validators(
+            outcome.evidence,
+            ValidationContext(
+                declared_document_type=document_set.declared_document_type,
+                chunk_texts=tuple(chunk.text for chunk in chunks),
+            ),
+        )
         applicable_ids = {requirement.requirement_id for requirement in applicable}
         verdicts_by_id = {verdict.requirement_id: verdict for verdict in verdicts}
         for finding in findings:
