@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { pickHeadlineRun } from "@/src/lib/ringversuch-overview";
 import {
   Activity,
   CheckCircle2,
@@ -49,6 +50,7 @@ type CaseResult = {
 type RunMeta = {
   mode?: string;
   stack?: string | null;
+  engine?: string;
   started_at?: string;
   anthropic_model?: string | null;
   openai_model?: string | null;
@@ -100,10 +102,20 @@ function isCurrentStack(run: RunMeta): boolean {
   return run.mode !== "mock" && currentStacks.has(run.stack ?? "");
 }
 
+const engineLabels: Record<string, string> = {
+  finding: "Befundweg",
+  requirement: "Anforderungsweg",
+};
+
 function stackLabel(run: RunMeta): string {
   if (run.mode === "mock") return "Baseline ohne KI (Regex)";
   const label = stackLabels[run.stack ?? ""] ?? run.stack ?? "Früher KI-Lauf";
-  return isCurrentStack(run) ? label : `${label} — historisch`;
+  // The two review paths score on one ruler but are different products;
+  // a 22/25 on the requirement path next to a 25/25 on the finding path
+  // must say which is which.
+  const engine = engineLabels[run.engine ?? ""];
+  const named = engine ? `${label} · ${engine}` : label;
+  return isCurrentStack(run) ? named : `${named} — historisch`;
 }
 
 function percent(rate: number | null | undefined): string {
@@ -169,8 +181,9 @@ const providerLabels: Record<string, string> = {
 
 function pickDefaultRunId(runs: RingversuchRun[] | null | undefined): string | null {
   if (!runs?.length) return null;
-  const firstLive = runs.find((run) => run.run.mode === "live");
-  return (firstLive ?? runs[0])?.id ?? null;
+  // The page opens on the stack customers get, not on whichever ablation ran
+  // last; ablations stay one click away in the history table.
+  return (pickHeadlineRun(runs) ?? runs[0])?.id ?? null;
 }
 
 export function RingversuchDashboard({ initialRuns }: { initialRuns?: RingversuchRun[] }) {

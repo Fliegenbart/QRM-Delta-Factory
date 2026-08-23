@@ -32,6 +32,20 @@ describe("landing Ringversuch stats", () => {
     expect(stats?.foundValue).toBe("25 / 25");
   });
 
+  it("headlines the production stack even when an ablation ran more recently", () => {
+    // 2026-08-23: the newest live run was a Qwen-on-Hetzner ablation at 12/25,
+    // the production two-provider stack stood at 22/25 on the same corpus.
+    const stats = deriveLandingProofStats([
+      run("20260823_005022_live_hetzner", "live", 12, 25, "hetzner"),
+      run("20260822_204352_live_mixed", "live", 22, 25, "mixed"),
+      run("20260725_194032_live_hybrid", "live", 25, 25, "hybrid")
+    ]);
+
+    expect(stats?.foundValue).toBe("22 / 25");
+    expect(stats?.standLabel).toBe("Stand 22.08.2026");
+    expect(stats?.measuredOnFormerStack).toBe(false);
+  });
+
   it("does not manufacture proof stats when no live run was published", () => {
     expect(
       deriveLandingProofStats([run("20260721_120000_mock", "mock", 25, 25, "mixed")])

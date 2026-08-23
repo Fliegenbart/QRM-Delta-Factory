@@ -10,6 +10,7 @@ type RawRingversuchRun = {
   run?: {
     mode?: unknown;
     stack?: unknown;
+    engine?: unknown;
     started_at?: unknown;
     anthropic_model?: unknown;
     openai_model?: unknown;
@@ -43,6 +44,7 @@ export type PublicRingversuchRun = {
   run: {
     mode?: string;
     stack?: string | null;
+    engine?: string;
     started_at?: string;
   };
   aggregate: {
@@ -58,6 +60,7 @@ export function toPublicRingversuchRun(run: RawRingversuchRun): PublicRingversuc
     run: {
       mode: readString(run.run?.mode),
       stack: readNullableString(run.run?.stack),
+      engine: readString(run.run?.engine),
       started_at: readString(run.run?.started_at),
     },
     aggregate: {
