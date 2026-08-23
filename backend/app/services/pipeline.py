@@ -10,10 +10,16 @@ from app.audit.events import InMemoryAuditLog
 from app.core.config import get_settings
 from app.db.in_memory import InMemoryDocumentRepository
 from app.schemas.domain import DocumentSet, DocumentSetStatus, ModelRunStatus, ParsingStatus
-from app.schemas.pipeline import PipelineModelManifestItem, PipelineRun, PipelineRunStatus
+from app.schemas.pipeline import (
+    PipelineModelManifestItem,
+    PipelineProgress,
+    PipelineRun,
+    PipelineRunStatus,
+)
 from app.schemas.risk import RiskDecision, RiskDecisionClass
 from app.services.adversarial_review import AdversarialReviewService
 from app.services.claim_ledger import ClaimLedgerService, default_claim_extractor
+from app.services import progress
 from app.services.objective_red_flags import ObjectiveRedFlagService
 from app.services.review_orchestrator import PrimaryReviewOrchestrator
 from app.services.review_pack import ReviewPackService
@@ -152,8 +158,11 @@ class PipelineService:
                 ("requirement_coverage_review", self._requirement_coverage_review),
                 ("audit_trail_completion", self._audit_trail_completion),
             ]
-            for step_name, step in steps:
+            for index, (step_name, step) in enumerate(steps, start=1):
                 current_step = step_name
+                pipeline_run = self._record_step(
+                    pipeline_run, step_name=step_name, index=index, count=len(steps)
+                )
                 step_result = step(document_set_id)
                 if isinstance(step_result, RiskDecision):
                     risk_decision = step_result
@@ -177,8 +186,10 @@ class PipelineService:
                     "status": completed_status,
                     "completed_at": datetime.now(UTC),
                     "model_manifest": self._model_manifest(document_set_id),
+                    "progress": None,
                 }
             )
+            progress.clear(document_set_id)
             self.repository.update_pipeline_run(completed_run)
             self._audit(
                 event_type="pipeline_run_completed",
@@ -201,8 +212,10 @@ class PipelineService:
                     "failed_step": current_step,
                     "error_summary": str(exc),
                     "model_manifest": self._model_manifest(document_set_id),
+                    "progress": None,
                 }
             )
+            progress.clear(document_set_id)
             self.repository.update_pipeline_run(failed_run)
             self._mark_document_set_for_human_review(document_set)
             self._audit(
@@ -216,6 +229,23 @@ class PipelineService:
                 },
             )
             return failed_run
+
+    def _record_step(
+        self, pipeline_run: PipelineRun, *, step_name: str, index: int, count: int
+    ) -> PipelineRun:
+        """Persist which step the run is on, so a poll can say so."""
+        progress.clear(pipeline_run.document_set_id)
+        updated = pipeline_run.model_copy(
+            update={
+                "progress": PipelineProgress(
+                    step=step_name,
+                    step_index=index,
+                    step_count=count,
+                    updated_at=datetime.now(UTC),
+                )
+            }
+        )
+        return self.repository.update_pipeline_run(updated)
 
     def _acquire_pipeline_run(
         self,
@@ -526,7 +556,9 @@ class PipelineService:
             engine = default_requirement_review_engine(
                 repository=self.repository, audit_log=self.audit_log
             )
-            report = engine.run(document_set_id)
+            report = engine.run(
+                document_set_id, progress=progress.reporter(document_set_id)
+            )
         except Exception as exc:  # noqa: BLE001 - additive report, never fatal
             self.audit_log.append(
                 event_type="requirement_review_failed",

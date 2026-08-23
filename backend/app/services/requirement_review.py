@@ -31,7 +31,8 @@ from __future__ import annotations
 
 import copy
 import re
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from typing import Any
 
@@ -276,7 +277,15 @@ class RequirementReviewEngine:
         #: bottleneck on a customer's own GPU. See _candidate_chunks.
         self.locate_chunk_limit = max(1, locate_chunk_limit)
 
-    def run(self, document_set_id: str) -> RequirementCoverageReport:
+    def run(
+        self,
+        document_set_id: str,
+        *,
+        progress: Callable[[str], None] | None = None,
+    ) -> RequirementCoverageReport:
+        # A run on a local model takes 20-30 minutes; the reviewer waiting on
+        # it gets told where it is. Reporting never affects the result.
+        tell = progress or (lambda _detail: None)
         document_set = self.repository.get_document_set(document_set_id)
         if document_set is None:
             raise RequirementReviewDocumentSetNotFoundError(
@@ -314,28 +323,37 @@ class RequirementReviewEngine:
             # each other's tokens. The semaphore still bounds real concurrent
             # HTTP calls at max_concurrent_calls, so this is ordering, not load.
             workers = max(1, self.assessor_provider.runtime_options.max_concurrent_calls)
+            tell(f"Anforderung 0 von {len(applicable)} beurteilt")
             with ThreadPoolExecutor(max_workers=workers) as pool:
-                results = list(
-                    pool.map(
-                        lambda requirement: self._assess_narrow(
-                            requirement=requirement,
-                            chunk_payload=chunk_payload,
-                            chunks=chunks,
-                            provider=copy.copy(self.assessor_provider),
-                        ),
-                        applicable,
+                futures = [
+                    pool.submit(
+                        self._assess_narrow,
+                        requirement=requirement,
+                        chunk_payload=chunk_payload,
+                        chunks=chunks,
+                        provider=copy.copy(self.assessor_provider),
                     )
-                )
+                    for requirement in applicable
+                ]
+                for done, _future in enumerate(as_completed(futures), start=1):
+                    tell(f"Anforderung {done} von {len(applicable)} beurteilt")
+                # Collected in submission order: the report's call list stays
+                # deterministic regardless of which worker finished first.
+                results = [future.result() for future in futures]
             for verdict, calls in results:
                 verdicts.append(verdict)
                 model_calls.extend(calls)
         else:
-            for group in _grouped(applicable, self.group_size):
+            groups = _grouped(applicable, self.group_size)
+            done = 0
+            for group in groups:
                 group_verdicts, group_calls = self._assess_group(
                     group=group, chunk_payload=chunk_payload, chunks=chunks
                 )
                 verdicts.extend(group_verdicts)
                 model_calls.extend(group_calls)
+                done += len(group)
+                tell(f"{done} von {len(applicable)} Anforderungen beurteilt")
 
         criticality_by_id = {
             requirement.requirement_id: requirement.criticality.value
@@ -359,14 +377,19 @@ class RequirementReviewEngine:
             )
             return checked, local_calls
 
+        tell(f"Urteile werden nachgeprüft (0 von {len(verdicts)})")
         with ThreadPoolExecutor(max_workers=workers) as pool:
-            checked_results = list(pool.map(_check, verdicts))
+            check_futures = [pool.submit(_check, verdict) for verdict in verdicts]
+            for done, _future in enumerate(as_completed(check_futures), start=1):
+                tell(f"Urteile werden nachgeprüft ({done} von {len(verdicts)})")
+            checked_results = [future.result() for future in check_futures]
         verdicts = [checked for checked, _ in checked_results]
         for _, local_calls in checked_results:
             model_calls.extend(local_calls)
 
         validator_findings: list[dict[str, Any]] = []
         extracted_evidence: dict[str, Any] | None = None
+        tell("Fakten werden erfasst und Regeln geprüft")
         if self.extraction_provider is not None:
             verdicts, validator_findings, extracted_evidence = self._apply_validators(
                 verdicts=verdicts,

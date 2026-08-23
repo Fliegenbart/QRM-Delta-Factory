@@ -613,7 +613,38 @@ export type PipelineRun = {
   error_summary?: string | null;
   config_version: string;
   model_manifest?: PipelineModelManifestItem[];
+  /** Where a running pipeline is; absent on older backends and finished runs. */
+  progress?: PipelineProgress | null;
 };
+
+export type PipelineProgress = {
+  step: string;
+  step_index: number;
+  step_count: number;
+  detail?: string | null;
+  updated_at: string;
+};
+
+/** The pipeline's steps in the reviewer's words, in execution order. */
+export const PIPELINE_STEP_LABELS: Record<string, string> = {
+  parse_document_set: "Unterlagen lesen",
+  quality_gate: "Lesbarkeit prüfen",
+  requirement_retrieval: "Regelwerk zuordnen",
+  claim_ledger_extraction: "Aussagen herauslesen",
+  primary_multi_agent_review: "Fachprüfer lesen die Unterlagen",
+  evidence_verification: "Zitate gegen den Quelltext prüfen",
+  adversarial_review: "Gegenprüfung",
+  objective_red_flag_scan: "Objektive Warnsignale suchen",
+  adversarial_evidence_verification: "Zitate der Gegenprüfung prüfen",
+  risk_fusion: "Risiken bündeln",
+  review_pack_generation: "Prüfmappe zusammenstellen",
+  requirement_coverage_review: "Anforderung für Anforderung urteilen",
+  audit_trail_completion: "Audit-Trail abschließen"
+};
+
+export function pipelineStepLabel(step: string): string {
+  return PIPELINE_STEP_LABELS[step] ?? step.replaceAll("_", " ");
+}
 
 export type PipelineModelManifestItem = {
   agent_id: string;
