@@ -1491,3 +1491,34 @@ def test_breaker_opening_is_logged_and_posted_once(monkeypatch: pytest.MonkeyPat
     assert posted[0]["json"]["consecutive_failures"] == 3
     assert "circuit breaker opened" in caplog.text
     provider._clear_failures()
+
+
+def test_stringified_container_fields_are_decoded_for_any_schema() -> None:
+    """Claude returned `verdicts` as a JSON string in 17 calls of one run."""
+    from app.agents.providers.base import _decode_stringified_fields
+    from app.schemas.requirement_review import RequirementGroupOutput
+    from app.schemas.structured_evidence import StructuredEvidence
+
+    verdicts = [
+        {
+            "requirement_id": "req_a",
+            "status": "violated",
+            "severity": "high",
+            "rationale": "Kein Nachweis.",
+            "evidence": [],
+        }
+    ]
+    decoded = _decode_stringified_fields(
+        {"verdicts": json.dumps(verdicts, indent=2)}, output_schema=RequirementGroupOutput
+    )
+    assert decoded["verdicts"] == verdicts
+    assert RequirementGroupOutput.model_validate(decoded).verdicts[0].requirement_id == "req_a"
+
+    # Optional containers are containers too; prose and broken JSON stay put.
+    evidence = _decode_stringified_fields(
+        {"events": "[]", "measurements": "keine", "signatures": "[not json"},
+        output_schema=StructuredEvidence,
+    )
+    assert evidence["events"] == []
+    assert evidence["measurements"] == "keine"
+    assert evidence["signatures"] == "[not json"

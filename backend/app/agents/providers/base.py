@@ -9,7 +9,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from hashlib import sha256
 from threading import Lock, Semaphore
-from typing import Any
+from types import UnionType
+from typing import Any, Union, get_args, get_origin
 
 import httpx
 from pydantic import BaseModel, Field, ValidationError
@@ -412,11 +413,58 @@ def _hash_json(payload: dict[str, Any]) -> str:
     return sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
 
 
+def _container_kinds(annotation: Any) -> set[str]:
+    """Which container(s) a field annotation accepts: {"list"}, {"dict"}, both, or none."""
+    origin = get_origin(annotation)
+    if origin in (Union, UnionType):
+        kinds: set[str] = set()
+        for arg in get_args(annotation):
+            kinds |= _container_kinds(arg)
+        return kinds
+    if origin is list or annotation is list:
+        return {"list"}
+    if origin is dict or annotation is dict:
+        return {"dict"}
+    return set()
+
+
+def _decode_stringified_fields(
+    payload: dict[str, Any], *, output_schema: type[BaseModel]
+) -> dict[str, Any]:
+    """Decode a list or object field that arrived as a JSON string.
+
+    Claude's tool-use path returned ``verdicts`` as a stringified array in 17
+    assessor calls of one mixed run -- a whole group of six requirements lost
+    each time, for a payload that was valid JSON one ``json.loads`` away. The
+    schema says which fields are containers; anything that does not parse is
+    left alone for the field-specific normalisers and the validation error.
+    """
+    decoded = dict(payload)
+    for name, field in output_schema.model_fields.items():
+        value = decoded.get(name)
+        if not isinstance(value, str):
+            continue
+        wants = _container_kinds(field.annotation)
+        text = value.strip()
+        if not wants or not text or text[0] not in "[{":
+            continue
+        try:
+            parsed = json.loads(text)
+        except ValueError:
+            continue
+        if (isinstance(parsed, list) and "list" in wants) or (
+            isinstance(parsed, dict) and "dict" in wants
+        ):
+            decoded[name] = parsed
+    return decoded
+
+
 def _normalize_structured_payload(
     payload: dict[str, Any],
     *,
     output_schema: type[BaseModel],
 ) -> dict[str, Any]:
+    payload = _decode_stringified_fields(payload, output_schema=output_schema)
     if output_schema.__name__ == "RequirementGroupOutput":
         return _normalize_requirement_group_payload(payload)
     if output_schema.__name__ == "FulfilledChallenge":
