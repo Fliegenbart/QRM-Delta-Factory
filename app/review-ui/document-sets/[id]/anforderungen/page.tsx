@@ -10,6 +10,7 @@ import { RequirementReportExportActions } from "@/src/components/review-ui/requi
 import {
   REQUIREMENT_STATUS_LABELS,
   REQUIREMENT_STATUS_ORDER,
+  deterministicCheckSummary,
   isHiddenDemoDocumentSetId,
   requirementConfidenceNotes,
   requirementCoverageProgress,
@@ -59,6 +60,7 @@ export default async function RequirementCoveragePage({ params }: PageProps) {
   try {
     const report = await getRequirementReport(id);
     const progress = requirementCoverageProgress(report);
+    const checks = deterministicCheckSummary(report);
     const grouped = REQUIREMENT_STATUS_ORDER.map((status) => ({
       status,
       rows: report.verdicts.filter((row) => row.published_status === status)
@@ -119,6 +121,30 @@ export default async function RequirementCoveragePage({ params }: PageProps) {
                 ) : null}
               </dl>
             </div>
+            {checks ? (
+              <div className="mt-4 rounded-md border border-[var(--border-default)] px-4 py-3">
+                <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
+                  Deterministisch geprüft
+                </div>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                  Das Modell liest; Regeln entscheiden, was Regeln entscheiden können — ein Wert
+                  gegen seine Grenze, ein Schritt vor dem Ereignis, das er betrifft, eine CAPA
+                  ohne Wirksamkeitsprüfung. Aus den Unterlagen wurden{" "}
+                  {checks.rows.length === 0
+                    ? "keine typisierten Einträge"
+                    : checks.rows.map((row) => `${row.count} ${row.label}`).join(", ")}{" "}
+                  extrahiert und wortwörtlich gegen den Quelltext geerdet
+                  {checks.dropped > 0
+                    ? ` (${checks.dropped} nicht belegbare Einträge verworfen)`
+                    : ""}
+                  . Daraus folgten{" "}
+                  <strong className="font-semibold text-[var(--text-primary)]">
+                    {checks.findings === 1 ? "1 Regelbefund" : `${checks.findings} Regelbefunde`}
+                  </strong>
+                  ; jeder davon steht unten an seiner Anforderung, mit Beleg.
+                </p>
+              </div>
+            ) : null}
             <p className="mt-3 text-xs leading-5 text-[var(--text-tertiary)]">
               <Link
                 href={`/review-ui/document-sets/${encodeURIComponent(id)}/review-pack`}

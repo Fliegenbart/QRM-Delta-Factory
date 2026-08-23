@@ -1271,7 +1271,42 @@ export type RequirementCoverageReport = {
   }[];
   failed_model_call_count: number;
   validator_findings: Record<string, unknown>[];
+  extracted_evidence?: {
+    counts: Record<string, number>;
+    dropped_unverifiable: Record<string, number>;
+    rows: Record<string, unknown[]>;
+  } | null;
 };
+
+/**
+ * What the deterministic layer did, in the reviewer's words.
+ *
+ * The model reads; rules decide what rules can decide -- a value against its
+ * limit, a step dated before the event it concerns, a CAPA with no
+ * effectiveness check. Showing the reviewer how many typed rows were
+ * extracted and how many rules fired is what makes that layer something a
+ * QA department can validate, instead of a black box with a percentage.
+ */
+export function deterministicCheckSummary(report: RequirementCoverageReport): {
+  rows: { label: string; count: number }[];
+  findings: number;
+  dropped: number;
+} | null {
+  const extracted = report.extracted_evidence;
+  if (!extracted) return null;
+  const labels: Record<string, string> = {
+    signatures: "Signaturfelder",
+    measurements: "Messwerte",
+    specifications: "Grenzwerte",
+    action_items: "Maßnahmen",
+    events: "Datierte Schritte"
+  };
+  const rows = Object.entries(labels)
+    .map(([key, label]) => ({ label, count: extracted.counts[key] ?? 0 }))
+    .filter((row) => row.count > 0);
+  const dropped = Object.values(extracted.dropped_unverifiable ?? {}).reduce((a, b) => a + b, 0);
+  return { rows, findings: report.validator_findings.length, dropped };
+}
 
 export const REQUIREMENT_STATUS_LABELS: Record<RequirementVerdictStatus, string> = {
   violated: "Verletzt",
