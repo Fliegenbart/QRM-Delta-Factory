@@ -1,5 +1,7 @@
-import { AppShell } from "@/src/components/app-shell";
+import { redirect } from "next/navigation";
 
-export default function DashboardPage() {
-  return <AppShell section="dashboard" />;
+// The signed-in tool has one door: the cases page, with the upload on top.
+// The public pitch lives at /ueberblick.
+export default function HomePage() {
+  redirect("/review-ui");
 }

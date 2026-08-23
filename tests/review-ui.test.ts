@@ -59,7 +59,9 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.workspaceTitle).toBe("QA-Prüfung vorbereiten");
     expect(consultantReviewCopy.workspaceDescription).toBe("Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.");
     expect(consultantReviewCopy.list.title).toBe("Prüffälle");
-    expect(consultantReviewCopy.list.empty).toContain("Startseite");
+    // The upload now lives on the cases page itself; the empty state points
+    // up, not to a separate start page.
+    expect(consultantReviewCopy.list.empty).toContain("oben");
     expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt");
     expect(consultantReviewCopy.decision.savedMessage).toContain("Bearbeitungsstand");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
@@ -121,15 +123,21 @@ describe("review UI helpers", () => {
     );
   });
 
-  it("uses reviewer-friendly upload guidance on the start form", () => {
+  it("uses reviewer-friendly upload guidance on the cases page", () => {
+    // One door into the work: the upload sits on the cases page, the
+    // signed-in navigation carries no pitch pages.
+    const casesPage = readFileSync(join(process.cwd(), "app/review-ui/page.tsx"), "utf8");
     const appShell = readFileSync(join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
     const intakeUploader = readFileSync(
       join(process.cwd(), "src/components/review-ui/intake-uploader.tsx"),
       "utf8"
     );
 
-    expect(appShell).toContain("Change, CAPA, Abweichung oder Audit-Finding hochladen.");
-    expect(appShell).toContain("Mehrere Dokumente sind möglich");
+    expect(casesPage).toContain("Change, CAPA, Abweichung oder Audit-Finding hochladen.");
+    expect(casesPage).toContain("Mehrere Dokumente sind");
+    expect(casesPage).toContain("<IntakeUploader />");
+    expect(appShell).not.toContain('"nav.ueberblick"');
+    expect(appShell).not.toContain('["dashboard", "nav.dashboard"');
     expect(intakeUploader).toContain("Was ist der Auslöser?");
     expect(intakeUploader).toContain("Wo passiert es?");
     expect(intakeUploader).toContain("optional, fürs Protokoll");

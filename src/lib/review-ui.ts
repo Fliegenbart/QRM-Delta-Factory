@@ -267,8 +267,7 @@ export const consultantReviewCopy = {
   },
   list: {
     title: "Prüffälle",
-    empty:
-      "Noch kein echter Prüffall vorhanden. Laden Sie auf der Startseite Unterlagen hoch, dann erscheint hier der Fall.",
+    empty: "Noch kein echter Prüffall vorhanden. Laden Sie oben Unterlagen hoch, dann erscheint hier der Fall.",
     loadErrorPrefix: "Fallliste konnte nicht geladen werden",
     columns: {
       package: "Prüffall",
@@ -277,7 +276,10 @@ export const consultantReviewCopy = {
       status: "Status",
       sources: "Unterlagen"
     },
-    open: "Öffnen"
+    open: "Öffnen",
+    examplesTitle: "Drei Beispiele: So sieht eine fertige Prüfmappe aus.",
+    examplesDescription:
+      "Der Fall, die Quellen, die Lücken — und der nächste Entscheidungsschritt. Klicken Sie sich durch, bevor Sie eigene Unterlagen hochladen."
   },
   detail: {
     title: "Prüffall",
