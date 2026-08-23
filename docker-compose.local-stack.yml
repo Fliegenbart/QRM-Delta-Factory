@@ -1,0 +1,32 @@
+# Overlay für den lokalen Modell-Stack: jede Modellanfrage geht an EINEN
+# OpenAI-kompatiblen Endpunkt (Hetzner Inference heute, ein vLLM-Server auf
+# eigener Hardware morgen). Kein Dokument verlässt diesen Endpunkt.
+#
+#   docker compose -f docker-compose.hetzner.yml -f docker-compose.local-stack.yml up -d --build
+#
+# Die Schlüssel fuer Anthropic/OpenAI werden hier optional -- in der .env
+# duerfen sie fehlen. Siehe ops/LOCAL-STACK.md.
+services:
+  app:
+    environment:
+      QRM_MODEL_STACK: "local"
+      # Der Overlay muss die im Basis-Compose explizit gesetzten Werte
+      # wiederholen: ein explizit gesetzter Wert gewinnt immer gegen das Preset.
+      QRM_ALLOWED_MODEL_PROVIDERS: "hetzner,mock"
+      QRM_CRITIC_PROVIDERS: "hetzner"
+      QRM_HETZNER_API_KEY: ${HETZNER_API_KEY:?HETZNER_API_KEY fehlt in .env}
+      # Hetzner Inference (Standard) oder der eigene vLLM-Server, z. B.
+      # http://gpu-01.intern:8000/v1/chat/completions
+      QRM_HETZNER_ENDPOINT: ${QRM_HETZNER_ENDPOINT:-https://inference.hetzner.com/api/v1/chat/completions}
+      QRM_HETZNER_MODEL_ID: ${QRM_HETZNER_MODEL_ID:-Qwen3.8-27B}
+      # 13-23 Token/s auf Hetzner Inference: ein Aufruf darf laenger dauern,
+      # und ein ganzer Pruefdurchlauf (26 Anforderungen x Suchen + Urteilen)
+      # braucht die laengere Lease. Auf eigener Hardware nach Messung senken.
+      QRM_HETZNER_MODEL_PROVIDER_TIMEOUT_SECONDS: "480"
+      QRM_MODEL_PROVIDER_RETRY_DEADLINE_SECONDS: "1200"
+      QRM_PIPELINE_RUN_LEASE_SECONDS: "3600"
+      # Mehr als zwei parallele Aufrufe haben auf Hetzner Inference 5xx
+      # provoziert; eigene vLLM-Server vertragen je nach Karte deutlich mehr.
+      QRM_MODEL_PROVIDER_MAX_CONCURRENCY: ${QRM_MODEL_PROVIDER_MAX_CONCURRENCY:-2}
+      QRM_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      QRM_OPENAI_API_KEY: ${OPENAI_API_KEY:-}

@@ -41,6 +41,10 @@ const RingversuchDashboard = dynamic(
   () => import("@/src/components/review-ui/ringversuch-dashboard").then((m) => m.RingversuchDashboard),
   { loading: () => <SectionSkeleton /> }
 );
+const ModelStackPanel = dynamic(
+  () => import("@/src/components/review-ui/model-stack-panel").then((m) => m.ModelStackPanel),
+  { ssr: false }
+);
 const ReviewCalibrationPanel = dynamic(
   () => import("@/src/components/review-ui/review-calibration-panel").then((m) => m.ReviewCalibrationPanel),
   { loading: () => <SectionSkeleton /> }
@@ -332,6 +336,8 @@ function AiArchitectureSection() {
           </ol>
         </div>
       </section>
+
+      <ModelStackPanel />
 
       <Panel title="Die Grenzen, die fest eingebaut sind:">
         <div className="grid gap-2 md:grid-cols-2">

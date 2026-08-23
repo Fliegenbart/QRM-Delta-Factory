@@ -511,20 +511,28 @@ describe("review UI helpers", () => {
   it("documents the AI architecture as a controlled review chain, not model voting", () => {
     const appShell = readFileSync(join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
 
-    expect(aiArchitectureConcept.title).toBe("Der Weg eines Befunds — und sechs Stellen, an denen geprüft wird.");
+    expect(aiArchitectureConcept.title).toBe("Der Weg eines Befunds — und acht Stellen, an denen geprüft wird.");
     expect(aiArchitectureConcept.subtitle).toContain("wie aus einem hochgeladenen Dokument ein belegter Befund wird");
     expect(aiArchitectureConcept.subtitle).toContain("der letzte Schritt gehört immer einem Menschen");
     expect(aiArchitectureConcept.subtitle).not.toContain("Multi-Agent");
     expect(aiArchitectureConcept.subtitle).not.toContain("Regelkarten");
-    expect(aiArchitectureConcept.flow).toHaveLength(6);
+    expect(aiArchitectureConcept.flow).toHaveLength(8);
     expect(aiArchitectureConcept.flow.map((step) => step.title)).toEqual([
       "Aussagen herauslesen",
+      "Fakten erfassen",
+      "Regeln rechnen",
       "Den Fall einordnen",
-      "Fachlich prüfen",
+      "Anforderung für Anforderung urteilen",
       "Quellen abgleichen",
       "Risiken bündeln",
       "Entscheidung dokumentieren"
     ]);
+    // The rebuilt engine: facts first, deterministic rules second, the model
+    // judges per requirement over located quotes -- the page must say so.
+    const descriptions = aiArchitectureConcept.flow.map((step) => step.description).join(" ");
+    expect(descriptions).toContain("ohne Modell");
+    expect(descriptions).toContain("erst die Belegstellen");
+    expect(aiArchitectureConcept.flow.find((step) => step.id === "rules")?.safeguard).toContain("Er senkt nie.");
     expect(aiArchitectureConcept.flow.every((step) => step.safeguard.startsWith("Sicherung:"))).toBe(true);
     expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).toContain("Diese Prüfung macht fester Programmcode, keine KI");
     expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Claim Ledger");
@@ -695,3 +703,39 @@ function restoreEnv(key: string, value: string | undefined) {
   }
   process.env[key] = value;
 }
+
+
+describe("model stack description", () => {
+  it("names the local stack as one that keeps documents off the cloud", async () => {
+    const { describeModelStack } = await import("../src/lib/review-ui");
+    const described = describeModelStack({
+      stack: "local",
+      finding_reviewers: "hetzner",
+      requirement_assessor: "hetzner",
+      requirement_assessor_mode: "narrow",
+      entailment_checker: "hetzner",
+      critics: "hetzner"
+    });
+    expect(described.label).toBe("Lokaler Stack");
+    expect(described.summary).toContain("Kein Dokument erreicht Anthropic oder OpenAI");
+    expect(described.rows.map((row) => row.value)).toContain("pro Anforderung: erst Belege suchen, dann urteilen");
+    expect(described.rows.every((row) => !row.value.includes("hetzner"))).toBe(true);
+  });
+
+  it("spells out the per-role cloud mix instead of echoing the raw setting", async () => {
+    const { describeModelStack } = await import("../src/lib/review-ui");
+    const described = describeModelStack({
+      stack: "cloud",
+      finding_reviewers: "per-role mix (anthropic/openai)",
+      requirement_assessor: "anthropic",
+      requirement_assessor_mode: "grouped",
+      entailment_checker: "openai",
+      critics: "anthropic,openai"
+    });
+    expect(described.label).toBe("Cloud-Stack");
+    expect(described.rows.find((row) => row.label === "Fachprüfer (Befundsicht)")?.value).toBe(
+      "Claude und GPT, nach Rolle verteilt"
+    );
+    expect(described.rows.find((row) => row.label === "Gegenprüfer")?.value).toBe("Claude (Anthropic), GPT (OpenAI)");
+  });
+});

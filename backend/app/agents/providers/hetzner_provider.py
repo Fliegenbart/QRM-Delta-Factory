@@ -39,7 +39,13 @@ class HetznerProvider(OpenAIProvider):
         model_version: str | None = None,
         prompt_version: str = "hetzner-provider-v0.1",
         runtime_options: ProviderRuntimeOptions | None = None,
+        endpoint: str | None = None,
     ) -> None:
+        # The class default is Hetzner's hosted endpoint; a deployment on the
+        # customer's own hardware points this at its vLLM server instead and
+        # nothing else about the provider changes.
+        if endpoint:
+            self.endpoint = endpoint
         ExternalProviderBase.__init__(
             self,
             provider_name="hetzner",

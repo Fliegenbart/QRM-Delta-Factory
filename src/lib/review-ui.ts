@@ -360,7 +360,7 @@ const riskStatementLabels: Record<string, string> = {
 };
 
 export const aiArchitectureConcept = {
-  title: "Der Weg eines Befunds — und sechs Stellen, an denen geprüft wird.",
+  title: "Der Weg eines Befunds — und acht Stellen, an denen geprüft wird.",
   subtitle:
     "Hier sehen Sie genau, wie aus einem hochgeladenen Dokument ein belegter Befund wird. Jeder Schritt ist nachvollziehbar, jeder hat eine eingebaute Sicherung, und der letzte Schritt gehört immer einem Menschen.",
   flow: [
@@ -372,6 +372,21 @@ export const aiArchitectureConcept = {
       safeguard: "Sicherung: Keine Aussage ohne Quelle. Was sich nicht belegen lässt, geht nicht weiter."
     },
     {
+      id: "facts",
+      title: "Fakten erfassen",
+      description:
+        "Messwerte, Grenzwerte, Daten, Unterschriften und Maßnahmen werden als strukturierte Fakten erfasst — jeder mit dem wörtlichen Zitat, aus dem er stammt. Das Modell schreibt ab; es bewertet hier nichts.",
+      safeguard:
+        "Sicherung: Jedes Zitat wird Zeichen für Zeichen im Quelltext gesucht. Ein Fakt, der sich dort nicht wiederfindet, wird verworfen und gezählt."
+    },
+    {
+      id: "rules",
+      title: "Regeln rechnen",
+      description:
+        "Feste Prüfregeln entscheiden ohne Modell: Messwert gegen Grenze, Datumsfolge, Vier-Augen-Prinzip, Wirksamkeitsprüfung, leere Pflichtfelder. Jede Regel nennt, was sie prüft und auf welcher regulatorischen Grundlage — der Katalog steht im Regelwerk.",
+      safeguard: "Sicherung: Ein Regelbefund hebt eine Anforderung auf „verletzt“. Er senkt nie."
+    },
+    {
       id: "scope-router",
       title: "Den Fall einordnen",
       description:
@@ -379,18 +394,18 @@ export const aiArchitectureConcept = {
       safeguard: "Sicherung: Die Prüfer bekommen nur die Regeln, die zum Fall passen — kein Streuschuss."
     },
     {
-      id: "reviewer-agents",
-      title: "Fachlich prüfen",
+      id: "requirements",
+      title: "Anforderung für Anforderung urteilen",
       description:
-        "Sieben unabhängige Prüfinstanzen gehen den Fall durch — Datenintegrität, Abweichung, CAPA, Chargenbezug, Validierung und Sterilität, regulatorische Konsistenz, Widersprüche.",
+        "Für jede Anforderung des Regelwerks sucht das Modell zuerst die Belegstellen und urteilt dann allein über diese Zitate: erfüllt, verletzt oder unklar. Zwei kleine Fragen statt einer großen — so trägt auch ein lokal laufendes Modell die Prüfung. Sieben Fachprüfer ergänzen die Befundsicht.",
       safeguard:
-        "Sicherung: Jede Instanz arbeitet mit den passenden Regeln und Quellen. Was eine übersieht, fällt einer anderen auf."
+        "Sicherung: Kein Urteil ohne Zitat. Fehlt der Beleg, wird noch einmal gesucht; bleibt er aus, steht „unklar“ statt „erfüllt“."
     },
     {
       id: "evidence-verifier",
       title: "Quellen abgleichen",
       description:
-        "Jeder Befund wird gegen seinen Beleg geprüft: Stimmt das Zitat? Passt die Seite? Trägt die Textstelle die Aussage? Diese Prüfung macht fester Programmcode, keine KI — Zeichen für Zeichen.",
+        "Jeder Befund wird gegen seinen Beleg geprüft: Stimmt das Zitat? Passt die Seite? Trägt die Textstelle die Aussage? Diese Prüfung macht fester Programmcode, keine KI — Zeichen für Zeichen. Danach prüft eine zweite Modellinstanz nur noch, ob das Zitat die Begründung wirklich trägt.",
       safeguard: "Sicherung: Schwache oder fehlende Belege bleiben offen, statt durchzurutschen."
     },
     {
@@ -415,9 +430,89 @@ export const aiArchitectureConcept = {
     "Jeder Lauf protokolliert Modell, Prüfauftrag und Regelpakete.",
     "Eigene SOPs lassen sich laden; die Prüfer ziehen daraus die passenden Regeln.",
     "Hohe und kritische Risiken werden nie automatisch geschlossen.",
-    "Fehlt ein nötiges Regelpaket, blockiert das die Freigabe."
+    "Fehlt ein nötiges Regelpaket, blockiert das die Freigabe.",
+    "Die Modelle sind austauschbar, die Prüfkette nicht: Sie läuft mit Cloud-Modellen oder komplett auf eigener Hardware."
   ]
 } as const;
+
+export type ModelRoles = {
+  stack: string;
+  finding_reviewers: string;
+  requirement_assessor: string;
+  requirement_assessor_mode: string;
+  entailment_checker: string;
+  critics: string;
+};
+
+export type BackendHealth = {
+  status: string;
+  app_name: string;
+  app_version: string;
+  environment: string;
+  model_roles?: ModelRoles;
+};
+
+const PROVIDER_LABELS: Record<string, string> = {
+  anthropic: "Claude (Anthropic)",
+  openai: "GPT (OpenAI)",
+  hetzner: "Qwen auf dem EU-/Kundenserver",
+  mock: "Offline-Stellvertreter (kein Modell)",
+  none: "keiner"
+};
+
+export function describeProvider(name: string): string {
+  const key = name.trim().toLowerCase();
+  if (key in PROVIDER_LABELS) return PROVIDER_LABELS[key];
+  if (key.startsWith("per-role mix")) return "Claude und GPT, nach Rolle verteilt";
+  return name
+    .split(",")
+    .map((part) => PROVIDER_LABELS[part.trim().toLowerCase()] ?? part.trim())
+    .join(", ");
+}
+
+export function describeModelStack(roles: ModelRoles): {
+  label: string;
+  summary: string;
+  rows: { label: string; value: string }[];
+} {
+  const stackLabel: Record<string, { label: string; summary: string }> = {
+    cloud: {
+      label: "Cloud-Stack",
+      summary:
+        "Claude liest, GPT prüft nach. Zwei Modellfamilien, damit der Prüfer nicht die blinden Flecken des Lesers teilt."
+    },
+    local: {
+      label: "Lokaler Stack",
+      summary:
+        "Jede Anfrage geht an einen Endpunkt unter eigener Kontrolle. Kein Dokument erreicht Anthropic oder OpenAI."
+    },
+    cascade: {
+      label: "Kaskade",
+      summary:
+        "Die Dokumente werden nur lokal gelesen. Nachgeprüft werden allein Zitat und Begründung — nie das Dokument — durch eine zweite Modellfamilie."
+    }
+  };
+  const described = stackLabel[roles.stack] ?? {
+    label: roles.stack,
+    summary: "Unbekannter Stack — die Rollen unten zeigen, was tatsächlich läuft."
+  };
+  return {
+    ...described,
+    rows: [
+      { label: "Dokumente lesen und urteilen", value: describeProvider(roles.requirement_assessor) },
+      {
+        label: "Prüfmodus",
+        value:
+          roles.requirement_assessor_mode === "narrow"
+            ? "pro Anforderung: erst Belege suchen, dann urteilen"
+            : "gruppiert: sechs Anforderungen je Aufruf mit allen Quellen"
+      },
+      { label: "Zitat trägt Begründung?", value: describeProvider(roles.entailment_checker) },
+      { label: "Fachprüfer (Befundsicht)", value: describeProvider(roles.finding_reviewers) },
+      { label: "Gegenprüfer", value: describeProvider(roles.critics) }
+    ]
+  };
+}
 
 export const caseWorkspaceStructure = {
   route: "/case-workspace",

@@ -1,6 +1,7 @@
 import "server-only";
 
 import type {
+  BackendHealth,
   DocumentSet,
   DocumentSummary,
   CalibrationExample,
@@ -135,6 +136,10 @@ export async function getRequirementLibraryOverview(): Promise<RequirementLibrar
 
 export async function listRuleCatalogue(): Promise<RuleDescription[]> {
   return backendFetch<RuleDescription[]>("/validators");
+}
+
+export async function getBackendHealth(): Promise<BackendHealth> {
+  return backendFetch<BackendHealth>("/health");
 }
 
 export async function getHumanFeedbackRegistry(): Promise<HumanFeedbackRegistryReport> {
