@@ -214,6 +214,15 @@ def _configure_environment(
         os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "mock"
 
 
+def _corpus_name(cases_dir: Path, *, package_dir: str | None) -> str:
+    if package_dir:
+        return f"package:{Path(package_dir).name}"
+    resolved = cases_dir.resolve()
+    if resolved == DEFAULT_CASES_DIR.resolve():
+        return "goldstandard"
+    return resolved.name
+
+
 def _requirement_set() -> dict[str, Any]:
     """Load the canonical general GMP library, scoped to the harness tenant.
 
@@ -1700,6 +1709,10 @@ def main(argv: list[str] | None = None) -> int:
         "mode": args.mode,
         "engine": args.engine,
         "stack": args.stack if live else None,
+        # Which case set the numbers are about. The default corpus has been
+        # looked at while the engine was built, so a run on it is a regression
+        # check; a blind corpus is only blind until someone tunes on it.
+        "corpus": _corpus_name(cases_dir, package_dir=args.package_dir),
         "started_at": started_at.isoformat(timespec="seconds"),
         "anthropic_model": args.anthropic_model if uses_anthropic else None,
         "openai_model": args.openai_model if uses_openai else None,
