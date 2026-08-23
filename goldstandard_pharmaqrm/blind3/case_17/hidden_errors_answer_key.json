@@ -1,0 +1,43 @@
+{
+  "case_id": "CASE_17",
+  "document_type": "change_control",
+  "process_area": "computerized_system",
+  "errors": [
+    {
+      "document_name": "document_03_go_live_release.md",
+      "error_id": "ERR_17_01",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "critical",
+      "exact_evidence_text": "Freigabe zur GMP-Nutzung:** 02.02.2026, 08:00 Uhr",
+      "why_it_is_a_problem": "Das System wurde am 02.02.2026 für die GMP-Nutzung freigegeben, obwohl die IQ/OQ erst am 09.02.2026 abgeschlossen wurde und ein OQ-Testfall bis dahin fehlgeschlagen war. Alle Prüfaufträge einer Woche wurden auf einem nicht qualifizierten System bearbeitet.",
+      "expected_reviewer_finding": "Produktivsetzung des Systems vor Abschluss der Qualifizierung (IQ/OQ).",
+      "expected_action": "Bewertung aller zwischen 02.02. und 09.02.2026 im System erzeugten GMP-Daten, Abweichung eröffnen, Freigabeprozess für computergestützte Systeme auf QA-Freigabe vor Go-Live prüfen.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_03_go_live_release.md",
+      "error_id": "ERR_17_02",
+      "error_type": "Datenintegrität",
+      "severity": "high",
+      "exact_evidence_text": "| 01.02.2026 09:20 | gfischer | Konfigurationsänderung genehmigt (Freigabe-Workflow) |",
+      "why_it_is_a_problem": "Derselbe Benutzer hat die Konfigurationsänderung (Rollenmatrix) durchgeführt und fünf Minuten später selbst genehmigt. Der Freigabe-Workflow erfüllt damit nicht das Vier-Augen-Prinzip; der Systemverantwortliche hat zudem die Freigabe zur GMP-Nutzung allein erteilt.",
+      "expected_reviewer_finding": "Konfigurationsänderung vom selben Benutzer durchgeführt und genehmigt; Vier-Augen-Prinzip im Freigabe-Workflow nicht gewahrt.",
+      "expected_action": "Rollenkonfiguration so ändern, dass Durchführung und Genehmigung getrennt sind; Änderung nachträglich durch QA-IT prüfen.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_17_01",
+      "document_name": "document_01_change_control.md",
+      "evidence_text": "Backup-Test am 30.01.2026 erfolgreich, Wiederherstellung in Testumgebung in 47 min",
+      "why_it_is_harmless": "Ein erfolgreich getestetes Backup vor der Migration ist die geforderte Mitigation."
+    },
+    {
+      "decoy_id": "DEC_17_02",
+      "document_name": "document_02_qualification_summary.md",
+      "evidence_text": "Record Count vor/nach Migration: 184.223 / 184.223 Prüfaufträge, 9.114 / 9.114 Spezifikationen.",
+      "why_it_is_harmless": "Ein vollständiger Datenabgleich ohne Abweichung ist kein Befund."
+    }
+  ]
+}

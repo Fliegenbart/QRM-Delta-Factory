@@ -1,0 +1,43 @@
+{
+  "case_id": "CASE_15",
+  "document_type": "deviation",
+  "process_area": "stability",
+  "errors": [
+    {
+      "document_name": "document_02_oos_investigation.md",
+      "error_id": "ERR_15_01",
+      "error_type": "Abweichungsmanagement",
+      "severity": "critical",
+      "exact_evidence_text": "Eine Bewertung der Marktcharge erfolgt nach Vorliegen des 18-Monats-Ergebnisses.",
+      "why_it_is_a_problem": "Ein bestätigtes OOS im Gehalt einer Stabilitätscharge mit erkennbarem Abbautrend betrifft unmittelbar die Marktcharge derselben Kampagne. Die Bewertung der Marktcharge um sechs Monate aufzuschieben ist unzulässig; eine sofortige Bewertung (ggf. Rückruf, Verkürzung der Haltbarkeit, Behördenmeldung) ist erforderlich.",
+      "expected_reviewer_finding": "Unzulässiges Aufschieben der Bewertung der Marktcharge trotz bestätigtem OOS mit Abbautrend.",
+      "expected_action": "Sofortige Bewertung der Marktcharge LEV-2025-M041, Prüfung von Rückruf und Haltbarkeitsverkürzung, Meldepflicht prüfen.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_03_capa_plan.md",
+      "error_id": "ERR_15_02",
+      "error_type": "CAPA",
+      "severity": "medium",
+      "exact_evidence_text": "| 2 | Prüfung der Blisterdichtigkeit an Rückstellmustern | — | offen |",
+      "why_it_is_a_problem": "Die Maßnahme zur Prüfung der Blisterdichtigkeit — die einzige, die die Ursachenhypothese prüft — hat weder einen Verantwortlichen noch einen Termin.",
+      "expected_reviewer_finding": "CAPA-Maßnahme ohne Verantwortlichen und ohne Termin.",
+      "expected_action": "Verantwortlichen und Termin festlegen, Maßnahme nachverfolgen.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_15_01",
+      "document_name": "document_01_stability_report.md",
+      "evidence_text": "| 6 Monate | 09.02.2026 | 98,9 % | konform |",
+      "why_it_is_harmless": "Der 6-Monats-Wert liegt innerhalb der Spezifikation."
+    },
+    {
+      "decoy_id": "DEC_15_02",
+      "document_name": "document_02_oos_investigation.md",
+      "evidence_text": "Checkliste gemäß SOP-QC-OOS-001 abgearbeitet: Probenvorbereitung, Standardeinwaage, Systemeignung (RSD 0,6 %), Berechnung und Verdünnungsfaktor geprüft.",
+      "why_it_is_harmless": "Eine dokumentierte Phase-I-Laboruntersuchung nach SOP ist korrektes Vorgehen."
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "case_id": "CASE_11",
+  "document_type": "deviation",
+  "process_area": "aseptic_filling",
+  "errors": [
+    {
+      "document_name": "document_02_filter_integrity_record.md",
+      "error_id": "ERR_11_01",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "critical",
+      "exact_evidence_text": "| Post-Use Bubble Point | 05.06.2026, 14:05 | 2,9 bar | NLT 3,2 bar | bestanden |",
+      "why_it_is_a_problem": "Der Post-Use-Bubble-Point von 2,9 bar liegt unter dem Akzeptanzkriterium von NLT 3,2 bar und wurde dennoch als bestanden bewertet. Ein nicht bestandener Post-Use-Integritätstest stellt die Sterilität der gesamten Charge in Frage.",
+      "expected_reviewer_finding": "Filterintegritätstest unter dem Akzeptanzkriterium wird fälschlich als bestanden bewertet.",
+      "expected_action": "Bewertung auf 'nicht bestanden' korrigieren, Sterilitätsrisiko der Charge als kritisch einstufen, Chargenvernichtung oder vollständige Sterilitätsuntersuchung prüfen.",
+      "requires_cross_document_comparison": false
+    },
+    {
+      "document_name": "document_03_qa_review_note.md",
+      "error_id": "ERR_11_02",
+      "error_type": "Datenintegrität",
+      "severity": "high",
+      "exact_evidence_text": "QA-Review durchgeführt am:** 03.06.2026",
+      "why_it_is_a_problem": "Der QA-Review ist auf den 03.06.2026 datiert, die Abweichung wurde aber erst am 05.06.2026 festgestellt. Ein Review kann nicht vor dem Ereignis stattgefunden haben, das er bewertet; das Datum ist entweder falsch oder nachträglich gesetzt.",
+      "expected_reviewer_finding": "QA-Review datiert vor dem bewerteten Ereignis; Zeitangabe nicht plausibel.",
+      "expected_action": "Datum des Reviews klären und korrigieren, Audit Trail des Dokumentensystems prüfen, Abweichung zur Datenintegrität eröffnen.",
+      "requires_cross_document_comparison": true
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_11_01",
+      "document_name": "document_01_deviation_report.md",
+      "evidence_text": "Partikel ≥0,5 µm: 1.120/m³ bei Limit 3.520/m³",
+      "why_it_is_harmless": "Der Partikelwert liegt deutlich innerhalb des Aktionslimits."
+    },
+    {
+      "decoy_id": "DEC_11_02",
+      "document_name": "document_02_filter_integrity_record.md",
+      "evidence_text": "| Pre-Use WIT | 05.06.2026, 08:10 | 0,09 ml/min | NMT 0,20 ml/min | bestanden |",
+      "why_it_is_harmless": "Der Pre-Use-Test liegt innerhalb des Kriteriums und ist korrekt bewertet."
+    }
+  ]
+}
