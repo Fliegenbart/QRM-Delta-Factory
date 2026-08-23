@@ -60,174 +60,6 @@ export const productHomeCopy = {
     "Der Fall, die Quellen, die Lücken — und der nächste Entscheidungsschritt. Klicken Sie sich durch, bevor Sie eigene Unterlagen hochladen."
 } as const;
 
-export type DemoReviewCase = {
-  id: string;
-  severity: "critical" | "major" | "minor" | "ready";
-  severityLabel: string;
-  area: string;
-  title: string;
-  noteLabel: string;
-  criticNote: string;
-  ageLabel: string;
-  sources: string;
-  regulation: string;
-  primaryAction: "open" | "approve";
-  href: string;
-  summary: string;
-  whyItMatters: string;
-  nextStep: string;
-  findings: string[];
-  evidence: string[];
-  missingEvidence: string[];
-  openQuestions: string[];
-  decisionActions: string[];
-};
-
-export const demoReviewCases: DemoReviewCase[] = [
-  {
-    id: "DEV-2025-014",
-    severity: "critical",
-    severityLabel: "Kritisch",
-    area: "Aseptische Abfüllung",
-    title: "Abweichung im Klima-Monitoring, Bezug zum Sterilfilter unklar",
-    noteLabel: "Prüfhinweis",
-    criticNote:
-      "Für die Aussage, der HEPA-Vorlauf sei entkoppelt, fehlt eine Quelle. Annex 1 §8.123 ist zitiert, aber das Zitat passt nicht zur Textstelle auf Seite 14.",
-    ageLabel: "vor 12 min",
-    sources: "3 Quellen · 1 fehlt",
-    regulation: "ICH Q9 §5.3.2",
-    primaryAction: "open",
-    href: "/review-ui/demo/dev-2025-014",
-    summary:
-      "Die Abweichung kann kritisch sein, weil ein Klima-Signal und die Sterilfilter-Bewertung noch nicht sauber zusammengeführt sind.",
-    whyItMatters:
-      "Warum dieser Fall wichtig ist: Eine unklare Quelle kann dazu führen, dass ein Sterilitätsrisiko zu früh als abgedeckt gilt.",
-    nextStep: "Passt die zitierte Stelle wirklich zur Aussage über den HEPA-Vorlauf?",
-    findings: [
-      "HEPA-Vorlauf wird als entkoppelt beschrieben, die zitierte Textstelle belegt das aber nicht klar.",
-      "Klima-Monitoring und Sterilfilter-Bewertung sind fachlich verbunden, aber noch nicht sauber abgegrenzt.",
-      "Der Fall braucht eine menschliche QA-Entscheidung, bevor er geschlossen werden kann."
-    ],
-    evidence: [
-      "Abweichungsbericht mit Klima-Monitoring-Verlauf",
-      "Annex-1-Referenz zur Sterilfilter-Bewertung",
-      "Chargenbezug und Reinraum-Bereich"
-    ],
-    missingEvidence: [
-      "Nachweis, dass Klima-Signal und HEPA-Vorlauf fachlich getrennt bewertet wurden.",
-      "Passende Textstelle zur Aussage über den HEPA-Vorlauf.",
-      "SME-Einschätzung, ob das Gap freigaberelevant ist."
-    ],
-    openQuestions: [
-      "Ist die zitierte Textstelle fachlich passend?",
-      "Fehlt ein Nachweis zur Trennung von Klima- und Sterilfilter-Risiko?",
-      "Muss QA sofort entscheiden oder zuerst SME nachfordern?"
-    ],
-    decisionActions: [
-      "Bestätigen",
-      "Weitere Unterlagen anfordern",
-      "An QA eskalieren"
-    ]
-  },
-  {
-    id: "CAPA-2025-082",
-    severity: "major",
-    severityLabel: "Hoch",
-    area: "Reinigung",
-    title: "Wirksamkeitsprüfung Reinigungsmittel nach 30 Tagen offen",
-    noteLabel: "Prüfhinweis",
-    criticNote:
-      "Die Maßnahmen sind dokumentiert, die Wirksamkeit aber noch nicht bewertet. Zu entscheiden: blockierendes Gap für die Freigabe oder nicht?",
-    ageLabel: "vor 1 Std.",
-    sources: "5 Quellen · vollständig",
-    regulation: "SOP-CLN-04 §4.2",
-    primaryAction: "open",
-    href: "/review-ui/demo/capa-2025-082",
-    summary:
-      "Die CAPA ist formal angelegt, aber der wichtigste Wirksamkeitsnachweis ist noch offen.",
-    whyItMatters:
-      "Warum dieser Fall wichtig ist: Ohne Wirksamkeitsbewertung bleibt unklar, ob die Korrekturmaßnahme wirklich abgeschlossen ist.",
-    nextStep: "Reicht der Maßnahmenstand, oder muss die Wirksamkeit vor Freigabe belegt sein?",
-    findings: [
-      "Maßnahmen sind dokumentiert, die Wirksamkeit ist aber noch nicht bewertet.",
-      "Die Frist von 30 Tagen ist im Prüfkontext sichtbar und muss bewertet werden.",
-      "Der Fall kann ohne klare Wirksamkeitsbewertung nicht sauber freigegeben werden."
-    ],
-    evidence: [
-      "CAPA-Aktionsliste",
-      "Reinigungsprotokoll Charge R-1183",
-      "SOP-CLN-04 §4.2"
-    ],
-    missingEvidence: [
-      "Nachweis der Wirksamkeitsprüfung nach 30 Tagen.",
-      "Begründung, falls die Freigabe vor Abschluss der Bewertung möglich sein soll.",
-      "Fachliche Bestätigung durch SME oder QA."
-    ],
-    openQuestions: [
-      "Ist die 30-Tage-Frist verbindlich oder nur geplant?",
-      "Gibt es einen dokumentierten Zwischenstatus?",
-      "Wer muss die Wirksamkeit fachlich bestätigen?"
-    ],
-    decisionActions: [
-      "Bestätigen",
-      "Weitere Unterlagen anfordern",
-      "An QA eskalieren"
-    ]
-  },
-  {
-    id: "CC-2025-211",
-    severity: "ready",
-    severityLabel: "Bereit für QA",
-    area: "QC-Labor",
-    title: "Methodenänderung Gradient-Profil, SME hat abgezeichnet",
-    noteLabel: "Prüfhinweis",
-    criticNote:
-      "Quellen vollständig, Risiken belegt, keine Widersprüche. Die SME-Abzeichnung vom 18.05. wartet auf Freigabe.",
-    ageLabel: "seit gestern",
-    sources: "8 Quellen · vollständig",
-    regulation: "ICH Q2 R2",
-    primaryAction: "approve",
-    href: "/review-ui/demo/cc-2025-211",
-    summary:
-      "Der Fall ist vorbereitet: Quellen, SME-Abzeichnung und Regelwerksbezug sind sichtbar.",
-    whyItMatters:
-      "Warum dieser Fall wichtig ist: Die Prüfmappe zeigt, dass die wichtigsten Nachweise sichtbar sind und QA zur Entscheidung übergehen kann.",
-    nextStep: "Final prüfen und Entscheidung dokumentieren.",
-    findings: [
-      "SME-Abzeichnung ist vorhanden und datiert.",
-      "Regelwerksbezug zur Methodenänderung ist sichtbar.",
-      "Keine offenen Widersprüche in den angezeigten Quellen."
-    ],
-    evidence: [
-      "SME-Abzeichnung vom 18.05.",
-      "Methodenänderung Gradient-Profil",
-      "Validierungsbezug ICH Q2 R2"
-    ],
-    missingEvidence: [
-      "Keine kritische Lücke in der Demo sichtbar.",
-      "QA-Begründung muss vor Freigabe dokumentiert werden.",
-      "Betroffene Chargen müssen final bestätigt bleiben."
-    ],
-    openQuestions: [
-      "Ist die Begründung für QA ausreichend kurz dokumentiert?",
-      "Sind alle betroffenen Chargen ausgeschlossen oder bewertet?",
-      "Soll die Entscheidung als Freigabe oder als Rückfrage gespeichert werden?"
-    ],
-    decisionActions: [
-      "Bestätigen",
-      "Weitere Unterlagen anfordern",
-      "An QA eskalieren"
-    ]
-  }
-];
-
-export function findDemoReviewCase(id: string): DemoReviewCase | undefined {
-  return demoReviewCases.find((demoCase) => demoCase.href.endsWith(`/${id}`));
-}
-
-export function demoDecisionStorageKey(caseId: string): string {
-  return `pharmaqrm:demo-decision:v1:${caseId}`;
-}
 
 const technicalErrorSignals = [
   "QRM_BACKEND",
@@ -279,7 +111,7 @@ export const consultantReviewCopy = {
     open: "Öffnen",
     examplesTitle: "Drei Beispiele: So sieht eine fertige Prüfmappe aus.",
     examplesDescription:
-      "Der Fall, die Quellen, die Lücken — und der nächste Entscheidungsschritt. Klicken Sie sich durch, bevor Sie eigene Unterlagen hochladen."
+      "Echte Prüfläufe über synthetische Unterlagen aus dem Ringversuch — jedes Urteil mit Zitat, nichts nachbearbeitet. Klicken Sie sich durch, bevor Sie eigene Unterlagen hochladen.",
   },
   detail: {
     title: "Prüffall",
@@ -1331,7 +1163,14 @@ export type RequirementReportEvidence = {
   chunk_id: string;
   page: number;
   quote: string;
+  /** File name, filled server-side; absent on reports from older engines. */
+  document_name?: string;
 };
+
+/** "Abweichungsbericht.md, Seite 3" -- where a quote can be checked. */
+export function evidenceLocationLabel(item: Pick<RequirementReportEvidence, "document_name" | "page">): string {
+  return item.document_name ? `${item.document_name}, Seite ${item.page}` : `Seite ${item.page}`;
+}
 
 export type RequirementVerdictRow = {
   requirement_id: string;

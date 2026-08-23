@@ -6,11 +6,9 @@ import {
   caseWorkspaceStructure,
   aiArchitectureConcept,
   consultantReviewCopy,
-  demoReviewCases,
   buildFindingReviewChecklist,
   cleanEvidenceQuote,
   decisionOptions,
-  demoDecisionStorageKey,
   displayReviewReason,
   displayReviewReasons,
   displayReviewPackSummary,
@@ -90,37 +88,33 @@ describe("review UI helpers", () => {
     expect(productHomeCopy.exampleDescription).toContain("Klicken Sie sich durch");
   });
 
-  it("keeps demo triage cards connected to concrete demo detail routes", () => {
-    expect(demoReviewCases).toHaveLength(3);
-    expect(demoReviewCases.map((demoCase) => demoCase.href)).toEqual([
-      "/review-ui/demo/dev-2025-014",
-      "/review-ui/demo/capa-2025-082",
-      "/review-ui/demo/cc-2025-211"
-    ]);
-    expect(demoReviewCases.map((demoCase) => demoCase.noteLabel)).toEqual([
-      "Prüfhinweis",
-      "Prüfhinweis",
-      "Prüfhinweis"
-    ]);
-    expect(demoReviewCases[0].criticNote).toContain("Für die Aussage");
-    expect(demoReviewCases[0].nextStep).toContain("Passt die zitierte Stelle wirklich");
-    expect(demoReviewCases[1].criticNote).toContain("Zu entscheiden");
-    expect(demoReviewCases[1].nextStep).toContain("muss die Wirksamkeit vor Freigabe belegt sein");
-    expect(demoReviewCases[2].criticNote).toContain("wartet auf Freigabe");
-    expect(demoReviewCases[0].whyItMatters).toContain("Warum dieser Fall wichtig ist");
-    expect(demoReviewCases[0].findings).toHaveLength(3);
-    expect(demoReviewCases[0].missingEvidence[0]).toContain("Nachweis");
-    expect(demoReviewCases[0].decisionActions).toEqual([
-      "Bestätigen",
-      "Weitere Unterlagen anfordern",
-      "An QA eskalieren"
-    ]);
-  });
-
-  it("uses a versioned, case-specific browser key for demo decisions", () => {
-    expect(demoDecisionStorageKey("DEV-2025-014")).toBe(
-      "pharmaqrm:demo-decision:v1:DEV-2025-014"
+  it("shows real engine output as the example cases, with their provenance", async () => {
+    const { demoCases, demoCaseHref, demoCaseScoreline, demoCaseProvenance } = await import(
+      "@/src/lib/demo-cases"
     );
+    expect(demoCases).toHaveLength(3);
+    expect(demoCases.map(demoCaseHref)).toEqual([
+      "/review-ui/demo/xylocortin-temperatur",
+      "/review-ui/demo/ibuprofen-werkzeugbruch",
+      "/review-ui/demo/cefuroxim-ph-drift"
+    ]);
+    for (const demoCase of demoCases) {
+      // A real report: one verdict per requirement of the active library,
+      // every violated row carrying a verbatim quote or a rule finding.
+      expect(demoCase.report.verdicts.length).toBeGreaterThanOrEqual(20);
+      const violated = demoCase.report.verdicts.filter((row) => row.published_status === "violated");
+      expect(violated.length).toBeGreaterThan(0);
+      expect(
+        violated.every((row) => row.evidence.length > 0 || row.validator_statements.length > 0)
+      ).toBe(true);
+      expect(demoCase.gold.found).toBe(demoCase.gold.planted);
+      expect(demoCase.run.model).toBe("Qwen3.8-27B");
+      expect(demoCaseScoreline(demoCase)).toMatch(/^\d von \d eingebauten Fehlern gefunden$/);
+      const provenance = demoCaseProvenance(demoCase);
+      expect(provenance).toContain("Echter Prüflauf vom");
+      expect(provenance).toContain("synthetisch");
+      expect(provenance).toContain("Nichts an diesem Bericht wurde nachbearbeitet.");
+    }
   });
 
   it("uses reviewer-friendly upload guidance on the cases page", () => {

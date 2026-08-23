@@ -387,6 +387,7 @@ class RequirementReviewEngine:
         validator_findings = [*validator_findings, *arithmetic_findings]
 
         verdicts.sort(key=lambda v: v.requirement_id)
+        _name_cited_documents(verdicts, self.repository)
         status_counts: dict[str, int] = {}
         for verdict in verdicts:
             status_counts[verdict.published_status.value] = (
@@ -1278,6 +1279,23 @@ def _split_by_applicability(
         )
         (applicable if matches else inapplicable).append(requirement)
     return applicable, inapplicable
+
+
+def _name_cited_documents(
+    verdicts: list[VerifiedRequirementVerdict], repository: InMemoryDocumentRepository
+) -> None:
+    """Put the file name next to every surviving quote.
+
+    A citation that reads "Seite 1" is not checkable in a four-document case;
+    "document_03_capa_plan.md, Seite 1" is. The id stays for the machines.
+    """
+    names: dict[str, str] = {}
+    for verdict in verdicts:
+        for item in verdict.evidence:
+            if item.document_id not in names:
+                document = repository.get_document(item.document_id)
+                names[item.document_id] = document.filename if document else ""
+            item.document_name = names[item.document_id]
 
 
 def _grouped(requirements: list[Requirement], size: int) -> list[list[Requirement]]:

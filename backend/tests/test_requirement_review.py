@@ -10,6 +10,7 @@ from app.db.in_memory import repository
 from app.schemas.domain import Document, DocumentChunk, DocumentSet, RequirementSet
 from app.schemas.requirement_review import (
     EntailmentSupport,
+    RequirementVerdict,
     RequirementVerdictStatus,
 )
 from app.services.requirement_review import (
@@ -474,6 +475,10 @@ def test_presentation_variant_quote_is_repaired_not_dropped() -> None:
     assert verdict.published_status == RequirementVerdictStatus.VIOLATED
     assert verdict.dropped_evidence_count == 0
     assert verdict.evidence[0].quote == "Change Control CC-2026-014 senkt den AVI-Schwellwert."
+    # The reviewer sees the file, not an id -- filled server-side, never by
+    # the model (the field is absent from the schema it answers).
+    assert verdict.evidence[0].document_name == "change-control.md"
+    assert "document_name" not in str(RequirementVerdict.model_json_schema())
 
 
 def test_ellipsis_quote_grounds_as_one_item_per_fragment() -> None:

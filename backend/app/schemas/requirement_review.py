@@ -15,6 +15,7 @@ from enum import StrEnum
 from typing import Any
 
 from pydantic import Field
+from pydantic.json_schema import SkipJsonSchema
 
 from app.schemas.domain import Severity, StrictSchema
 
@@ -44,6 +45,10 @@ class RequirementReviewEvidence(StrictSchema):
     chunk_id: str = Field(min_length=1)
     page: int = Field(ge=1)
     quote: str = Field(min_length=1)
+    #: Filled server-side when the report is assembled. Kept out of the JSON
+    #: schema the assessor sees: a reviewer needs "Abweichungsbericht, Seite 3",
+    #: the model only knows document ids, and the prompt must not change for it.
+    document_name: SkipJsonSchema[str] = ""
 
 
 class EvidenceSufficiency(StrEnum):

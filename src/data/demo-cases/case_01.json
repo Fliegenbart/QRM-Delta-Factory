@@ -1,0 +1,1817 @@
+{
+  "id": "case_01",
+  "slug": "xylocortin-temperatur",
+  "title": "Manteltemperatur 45 Minuten unter Spezifikation, Abweichung als „Minor“ eingestuft",
+  "area": "Formulierung / Mischen",
+  "trigger": "Abweichung",
+  "product": "Xylocortin 20mg",
+  "dosage_form": "Salbe",
+  "batch": "XYL-2026-004A",
+  "documents": [
+    {
+      "file_name": "case_summary.md",
+      "label": "Fall-Zusammenfassung"
+    },
+    {
+      "file_name": "document_01_deviation_report.md",
+      "label": "Abweichungsbericht"
+    },
+    {
+      "file_name": "document_02_batch_record_excerpt.md",
+      "label": "Chargenprotokoll (Auszug)"
+    },
+    {
+      "file_name": "document_03_capa_plan.md",
+      "label": "CAPA-Plan"
+    },
+    {
+      "file_name": "document_04_quality_approval_note.md",
+      "label": "QA-Freigabevermerk"
+    }
+  ],
+  "run": {
+    "started_at": "2026-08-23T11:23:40+00:00",
+    "stack": "hetzner",
+    "assessor_mode": "narrow",
+    "model": "Qwen3.8-27B",
+    "engine_version": "requirement-review-v0.2",
+    "pipeline_status": "completed",
+    "model_calls": 82,
+    "failed_model_calls": 0,
+    "input_tokens": 205877,
+    "output_tokens": 18677
+  },
+  "gold": {
+    "planted": 2,
+    "found": 2,
+    "decoys": 1,
+    "decoys_passed": 1
+  },
+  "report": {
+    "document_set_id": "ds_816142246044481db6d75d77538b418f",
+    "engine_version": "requirement-review-v0.2",
+    "created_at": "2026-08-23T11:39:43.496785Z",
+    "verdicts": [
+      {
+        "requirement_id": "req_batch_affected_completeness",
+        "requirement_title": "Vollständige Erfassung betroffener Chargen",
+        "requirement_text": "Batch-Impact-Bewertungen müssen alle potenziell betroffenen Chargen einschließlich Vorgänger- und Folgechargen erfassen.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.x",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Dokumente (Abweichungsbericht, Chargenprotokoll, Freigabevermerk) beziehen sich ausschließlich auf die Charge XYL-2026-004A. Es fehlt jegliche Dokumentation, die eine Bewertung der potenziell betroffenen Vorgänger- oder Folgechargen (z. B. durch gemeinsame Rohstoffe, gemeinsame Ausrüstung oder zeitliche Nähe) enthält. Da die Anforderung die Erfassung aller potenziell betroffenen Chargen verlangt und dieser Nachweis in den Auszügen fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_eb3f9e7c70944596a410d97464818647",
+            "chunk_id": "chunk_eb3f9e7c70944596a410d97464818647_p1",
+            "page": 1,
+            "quote": "- **Betroffene Charge:** XYL-2026-004A",
+            "document_name": "case_summary.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "- **Betroffene Charge:** XYL-2026-004A",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "- **Chargennummer:** XYL-2026-004A",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Hiermit wird die Charge XYL-2026-004A bewertet.",
+            "document_name": "document_04_quality_approval_note.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen eindeutig, dass sich die vorliegenden Dokumente ausschließlich auf die Charge XYL-2026-004A beziehen. Da die Behauptung (rationale) darauf beruht, dass keine Dokumentation zu potenziell betroffenen Vorgänger- oder Folgechargen vorliegt, stützen die Zitate diese Lücke, indem sie den begrenzten Umfang der vorhandenen Belege auf die eine Charge beschränken.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_batch_disposition_trace",
+        "requirement_title": "Nachvollziehbare Disposition mit Batch-Record-Verknüpfung",
+        "requirement_text": "Die Freigabe- bzw. Dispositionsentscheidung jeder betroffenen Charge muss begründet und mit den zugehörigen Batch Records verknüpft sein.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Keine einschlägige Stelle in den Auszügen gefunden: Die QA-Freigabe verknüpft die Disposition der Charge XYL-2026-004A explizit mit der untersuchten Abweichung DEV-2026-891, während das Batch Record die zugehörigen Prozessdaten für dieselbe Chargennummer dokumentiert.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_batch_no_release_before_assessment",
+        "requirement_title": "Keine Freigabe vor abgeschlossener Bewertung",
+        "requirement_text": "Eine Charge darf nicht freigegeben werden, solange Abweichungsbewertung, Impact Assessment oder erforderliche QA-Freigabe nicht abgeschlossen sind.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Keine einschlägige Stelle in den Auszügen gefunden: Die QA-Freigabe wurde erst nach der ordnungsgemäßen Untersuchung der Abweichung erteilt, was die Pflicht zur abgeschlossenen Bewertung vor der Freigabe erfüllt.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_capa_effectiveness",
+        "requirement_title": "Wirksamkeitsprüfung der CAPA",
+        "requirement_text": "CAPA-Maßnahmen, die mit einem Qualitätsrisiko verknüpft sind, duerfen nur mit definierter und dokumentierter Wirksamkeitsprüfung (Effectiveness Check) abgeschlossen werden.",
+        "source_name": "ICH Q10",
+        "section": "3.2.2",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt, dass CAPA-Maßnahmen nur mit einer definierten und dokumentierten Wirksamkeitsprüfung abgeschlossen werden dürfen. Der vorliegende CAPA-Plan (Zitat 0 und 1) definiert zwar die geplante Wirksamkeitsprüfung (Überprüfung von drei Chargen), enthält jedoch keinen Nachweis über deren tatsächliche Durchführung oder die Ergebnisse. Die Qualitätsfreigabe (Zitat 3) behauptet lediglich, dass die Abweichung 'ordnungsgemäß untersucht' wurde, was als nachträgliche Behauptung ohne Primärevidenz (z. B. Rohdaten der Temperaturstabilität der drei Chargen) nicht ausreicht, um die Erfüllung der Anforderung zu belegen. Da der Nachweis der Durchführung fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_0c0ef842bce042428943861d76075af4",
+            "chunk_id": "chunk_0c0ef842bce042428943861d76075af4_p1",
+            "page": 1,
+            "quote": "## Wirksamkeitsprüfung (Effectiveness Check)",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_0c0ef842bce042428943861d76075af4",
+            "chunk_id": "chunk_0c0ef842bce042428943861d76075af4_p1",
+            "page": 1,
+            "quote": "Eine Überprüfung der folgenden drei Chargen auf Temperaturstabilität während des Halteschritts wird durchgeführt.",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Die Abweichung DEV-2026-891 wurde ordnungsgemäß untersucht.",
+            "document_name": "document_04_quality_approval_note.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen die Existenz eines CAPA-Plans mit definierter Wirksamkeitsprüfung (Zitat 0 und 1) sowie die formelle Abweichungsbehandlung (Zitat 2). Die Behauptung stützt sich darauf, dass die Zitate den auslösenden Vorgang (Planung/Definition) zeigen, aber keinen Nachweis der tatsächlichen Durchführung oder der Ergebnisse (Primärevidenz) enthalten. Da die Zitate die im Rationale beschriebene Situation (Vorhandensein des Plans, aber Fehlen des Ergebnisses in den vorliegenden Belegen) korrekt widerspiegeln, tragen sie die Behauptung.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_capa_responsible_timeline",
+        "requirement_title": "Verantwortlicher und realistischer Termin der CAPA",
+        "requirement_text": "Jede CAPA-Maßnahme muss einen benannten Maßnahmenverantwortlichen und einen plausiblen, realisierbaren Umsetzungstermin haben.",
+        "source_name": "ICH Q10",
+        "section": "3",
+        "model_status": "fulfilled",
+        "published_status": "fulfilled",
+        "severity": null,
+        "rationale": "Die Zitate belegen, dass für die vorgesehene Maßnahme (Refresher-Schulung) ein konkreter Verantwortlicher (Leitung Produktion) und ein spezifischer, realistischer Termin (30.04.2026) benannt sind. Damit sind die geforderten Nachweise für diese Maßnahme im Dokument enthalten.",
+        "evidence": [
+          {
+            "document_id": "doc_0c0ef842bce042428943861d76075af4",
+            "chunk_id": "chunk_0c0ef842bce042428943861d76075af4_p1",
+            "page": 1,
+            "quote": "   - *Frist:* 30.04.2026",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_0c0ef842bce042428943861d76075af4",
+            "chunk_id": "chunk_0c0ef842bce042428943861d76075af4_p1",
+            "page": 1,
+            "quote": "   - *Verantwortlich:* Leitung Produktion",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_0c0ef842bce042428943861d76075af4",
+            "chunk_id": "chunk_0c0ef842bce042428943861d76075af4_p1",
+            "page": 1,
+            "quote": "1. **Refresher-Schulung:** Der Operator Max Mustermann wird bezüglich der Reaktorsystembedienung und der Temperaturüberwachung nachgeschult.",
+            "document_name": "document_03_capa_plan.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": "Dokumentation im CAPA-Plan",
+        "evidence_reference": "document_03_capa_plan.md, page 1",
+        "evidence_sufficiency": "sufficient",
+        "independent_support": false,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_cc_impact_and_validation",
+        "requirement_title": "Change mit Auswirkungsbewertung und Validierungsabdeckung",
+        "requirement_text": "Änderungen müssen einer dokumentierten Auswirkungsbewertung unterzogen werden; betroffene Validierungen sind zu prüfen und gegebenenfalls zu aktualisieren. Eine 'no impact'-Bewertung muss begründet sein.",
+        "source_name": "ICH Q10",
+        "section": "3.2.3",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt eine dokumentierte Auswirkungsbewertung (Change-Impact-Assessment) und eine Prüfung der betroffenen Validierungen. Die vorliegenden Zitate (0 und 1) belegen lediglich eine qualitative Einschätzung, dass ein negativer Einfluss auf Stabilität oder Freisetzungskinetik durch visuelle Homogenität ausgeschlossen wurde. Es fehlt jedoch der explizite Nachweis einer formalen Auswirkungsbewertung sowie die Dokumentation, dass die relevanten Validierungen geprüft oder aktualisiert wurden. Die Behauptung 'kein Einfluss' ohne Bezug auf Validierungsdaten oder ein formales Impact-Assessment-Dokument erfüllt die hohen Anforderungen an die Dokumentation nicht.",
+        "evidence": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die Abweichung wird als **Minor** eingestuft, da die Salbe visuell homogen blieb und keine Phasengetrennte Konsistenz zeigte. Ein Einfluss auf die Produktqualität wird ausgeschlossen.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Ein negativer Einfluss auf die Stabilität oder die Freisetzungskinetik des Wirkstoffs konnte durch die visuelle Homogenität ausgeschlossen werden.",
+            "document_name": "document_04_quality_approval_note.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen, dass eine qualitative Einschätzung (visuelle Homogenität) vorgenommen wurde, um einen negativen Einfluss auszuschließen. Sie belegen jedoch nicht, dass eine formale Auswirkungsbewertung (Change-Impact-Assessment) durchgeführt oder dass die relevanten Validierungen geprüft wurden. Da die Behauptung (Rationale) genau das Fehlen dieser formalen Nachweise und Validierungsprüfungen als Lücke identifiziert, tragen die Zitate die Behauptung, indem sie den dokumentierten Vorgang (qualitative Einschätzung) zeigen, ohne den geforderten formalen Nachweis zu enthalten.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_impact_assessment",
+        "requirement_title": "Dokumentierte Auswirkungsbewertung der Abweichung",
+        "requirement_text": "Jede Abweichung erfordert eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen.",
+        "source_name": "ICH Q9(R1)",
+        "section": "5",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt eine dokumentierte Bewertung der Auswirkung auf die Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen. Die vorliegenden Zitate (0 und 1) belegen zwar eine qualitative Einschätzung der Abweichung (visuelle Homogenität, Ausschluss negativer Einflüsse auf Stabilität/Freisetzung), jedoch fehlt der explizite Nachweis einer systematischen Bewertung der Patientensicherheit. Zudem wird in den Auszügen keine Liste oder Identifikation aller potenziell betroffenen Chargen (Chargenliste) vorgelegt, obwohl die Anforderung dies explizit verlangt. Da der geforderte Nachweis (Chargenliste, explizite Patientensicherheitsbewertung) in den Auszügen fehlt, während der auslösende Vorgang (Abweichung) belegt ist, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die Abweichung wird als **Minor** eingestuft, da die Salbe visuell homogen blieb und keine Phasengetrennte Konsistenz zeigte. Ein Einfluss auf die Produktqualität wird ausgeschlossen.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Ein negativer Einfluss auf die Stabilität oder die Freisetzungskinetik des Wirkstoffs konnte durch die visuelle Homogenität ausgeschlossen werden.",
+            "document_name": "document_04_quality_approval_note.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "- **Betroffene Charge:** XYL-2026-004A",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (Abweichung bei der Charge XYL-2026-004A) und die qualitative Einschätzung (visuelle Homogenität, Ausschluss negativer Einflüsse auf Stabilität/Freisetzung). Sie zeigen jedoch weder eine explizite systematische Bewertung der Patientensicherheit noch eine Liste aller potenziell betroffenen Chargen. Da die Zitate den behaupteten Mangel (Fehlen dieser spezifischen Nachweise) durch das Nichtvorhandensein in den Auszügen stützen und den Kontext der Abweichung bestätigen, tragen sie die Behauptung.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_oos_before_disposition",
+        "requirement_title": "OOS/OOT-Untersuchung vor Disposition",
+        "requirement_text": "Out-of-Specification- und Out-of-Trend-Ergebnisse müssen vollständig untersucht und bewertet sein, bevor eine Chargen- oder Marktware-Disposition erfolgt; Folgemaßnahmen duerfen nicht unzulässig aufgeschoben werden.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6.35",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt, dass Out-of-Specification- und Out-of-Trend-Ergebnisse vollständig untersucht und bewertet sein müssen, bevor eine Disposition erfolgt. Die vorliegenden Dokumente belegen, dass die Charge XYL-2026-004A am 25.03.2026 für die Verpackung freigegeben wurde (Zitat 1). Der Abweichungsbericht (Zitat 2) datiert auf den 12.03.2026 und enthält eine initiale Risikobewertung, die den Einfluss auf die Produktqualität ausschließt. Es fehlt jedoch ein expliziter, abgeschlossener OOS-Untersuchungsbericht, der die vollständige Bewertung der Abweichung DEV-2026-891 vor der Freigabe dokumentiert. Die Freigabe stützt sich auf die 'visuelle Homogenität', was als unzureichende Primärevidenz für eine vollständige OOS-Untersuchung im Sinne der GMP-Anforderung gilt. Da die Disposition (Freigabe) vor dem Nachweis einer vollständigen, dokumentierten OOS-Untersuchung erfolgte, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Ein negativer Einfluss auf die Stabilität oder die Freisetzungskinetik des Wirkstoffs konnte durch die visuelle Homogenität ausgeschlossen werden. Die Charge wird für die Verpackung freigegeben.",
+            "document_name": "document_04_quality_approval_note.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die Abweichung wird als **Minor** eingestuft, da die Salbe visuell homogen blieb und keine Phasengetrennte Konsistenz zeigte. Ein Einfluss auf die Produktqualität wird ausgeschlossen.",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen die Freigabe der Charge (Zitat 1) und die Einstufung der Abweichung als 'Minor' unter Verweis auf die visuelle Homogenität (Zitat 2). Die Behauptung (Rationale) stützt sich darauf, dass die Freigabe auf dieser 'visuellen Homogenität' basiert und es an einem expliziten, abgeschlossenen OOS-Untersuchungsbericht fehlt. Da die Zitate genau diese Basis der Freigabe (visuelle Homogenität) und die Einstufung belegen, ohne einen vollständigen OOS-Bericht zu zeigen, tragen sie die Behauptung, dass die Disposition auf unzureichender Primärevidenz beruht und ein Verstoß vorliegt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_risk_classification",
+        "requirement_title": "Begründete Risiko- und Schweregradeinstufung",
+        "requirement_text": "Die Einstufung einer Abweichung (z.B. Minor/Major/Kritisch) muss durch eine nachvollziehbare Risikobewertung belegt sein. Eine Einstufung als geringfuegig ohne belastbare physikalisch-chemische oder labortechnische Daten ist unzulässig, auch wenn das Produkt visuell unauffaellig ist.",
+        "source_name": "ICH Q9(R1)",
+        "section": "5.1",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt, dass die Einstufung einer Abweichung durch belastbare physikalisch-chemische oder labortechnische Daten belegt ist. Die vorliegenden Zitate (0 und 2) stützen die Einstufung als 'Minor' ausschließlich auf die 'visuelle Homogenität' und schließen einen Einfluss auf die Qualität basierend auf diesem visuellen Befund aus. Das Zitat 1 zeigt zwar einen Anstieg der Viskosität von 2400 auf 2910 mPa·s während der Abweichung, was auf eine physikalische Veränderung hindeutet, aber es fehlen explizite Labordaten (z. B. Partikelgrößenverteilung, Schmelzpunkt, Wirkstofffreisetzung) oder eine dokumentierte Risikobewertung, die diese Viskositätsänderung im Kontext der Produktqualität bewertet. Die bloße Behauptung, dass ein negativer Einfluss 'ausgeschlossen' wurde, ohne die zugrunde liegenden analytischen Daten vorzulegen, erfüllt die Anforderung nicht. Da die geforderten stützenden Labordaten in den Auszügen fehlen, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die Abweichung wird als **Minor** eingestuft, da die Salbe visuell homogen blieb und keine Phasengetrennte Konsistenz zeigte. Ein Einfluss auf die Produktqualität wird ausgeschlossen.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "| 10:30 | 1200 | 34,2 | 2850 | Homogen | MM |",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Ein negativer Einfluss auf die Stabilität oder die Freisetzungskinetik des Wirkstoffs konnte durch die visuelle Homogenität ausgeschlossen werden.",
+            "document_name": "document_04_quality_approval_note.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 0 und Zitat 2 belegen explizit, dass die Einstufung als 'Minor' und der Ausschluss eines Einflusses auf die Produktqualität ausschließlich auf der 'visuellen Homogenität' basieren. Zitat 1 liefert den Kontext der physikalischen Veränderung (Viskositätsanstieg), für den in den Zitaten keine weiteren analytischen Labordaten (wie Partikelgrößenverteilung oder Freisetzungskinetik) genannt werden. Damit belegen die Zitate den in der Rationale beschriebenen Zustand, dass die Begründung auf visuellen Befunden beruht und die geforderten stützenden Labordaten in den Auszügen fehlen.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_root_cause",
+        "requirement_title": "Belegte Grundursache",
+        "requirement_text": "Die Grundursache einer Abweichung muss durch eine angemessene Untersuchung belegt sein. Eine Zuschreibung als 'Bedienerfehler' ist nur zulaessig, wenn technische Ursachen (z.B. Equipment, Kalibrierung, Alarme) dokumentiert ausgeschlossen wurden.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4(xiv)",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt den Nachweis, dass technische Ursachen (z. B. Equipment, Kalibrierung, Alarme) dokumentiert ausgeschlossen wurden, bevor eine Zuschreibung als Bedienerfehler erfolgt. Die vorliegenden Auszüge belegen zwar die Abweichung (Quote 2) und die nachträgliche Schulung des Operators (Quote 1), jedoch fehlt jegliche Primärevidenz oder ein Bericht, der die technische Funktionsfähigkeit des Kühlsystems oder die Kalibrierung der Sensoren prüft und bestätigt. Die bloße Feststellung der visuellen Homogenität (Quote 0, 3) schließt technische Mängel nicht aus. Da der geforderte Nachweis des Ausschlusses technischer Ursachen in den Dokumenten fehlt, ist die Anforderung nicht erfüllt.",
+        "evidence": [
+          {
+            "document_id": "doc_0c0ef842bce042428943861d76075af4",
+            "chunk_id": "chunk_0c0ef842bce042428943861d76075af4_p1",
+            "page": 1,
+            "quote": "Der Operator Max Mustermann wird bezüglich der Reaktorsystembedienung und der Temperaturüberwachung nachgeschult.",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "Die Kühlung regelte unvorhergesehen herunter. Nach manuellem Eingriff stieg die Temperatur wieder in den Sollbereich.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den Vorfall (Quote 2) und die nachträgliche Maßnahme (Quote 1), was den Kontext der Behauptung stützt. Da die Behauptung jedoch primär auf dem Fehlen eines technischen Ausschlusses beruht, und die Zitate genau diesen fehlenden Nachweis (keine Erwähnung von Kalibrierung oder Equipment-Prüfung) widerspiegeln, tragen sie die Schlussfolgerung, dass die Anforderung nicht erfüllt ist.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_di_access_override_control",
+        "requirement_title": "Zugriffskontrolle und manuelle Overrides",
+        "requirement_text": "Zugriffsrechte müssen rollenbasiert vergeben sein; manuelle Override- oder Admin-Eingriffe in GxP-Systeme müssen begründet, autorisiert und im Audit Trail nachvollziehbar sein.",
+        "source_name": "EU GMP Annex 11",
+        "section": "12",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Laut Belegsuche nicht einschlägig: Die vorliegenden Dokumente beschreiben eine physikalische Prozessabweichung und deren behördliche Freigabe, enthalten jedoch keine Informationen zu IT-Systemen, rollenbasierten Zugriffsrechten oder manuellen Overrides in GxP-Systemen.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_di_alcoa_completeness",
+        "requirement_title": "ALCOA+ Vollständigkeit der Aufzeichnungen",
+        "requirement_text": "Aufzeichnungen müssen zurechenbar, lesbar, zeitgleich, original und korrekt sowie vollständig, konsistent, dauerhaft und verfuegbar sein (ALCOA+). Fehlende oder nachtraeglich veraenderte Originaldaten sind zu begründen.",
+        "source_name": "PIC/S PI 041 (Data Integrity)",
+        "section": "8",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Aufzeichnungen sind nicht vollständig und konsistent im Sinne von ALCOA+. Im Abweichungsbericht (Zitat 0) ist die Prüfung durch Dr. Anna Klar mit dem Datum 14.12.2026 signiert, was zeitlich nach der Chargenfreigabe am 25.03.2026 (Zitat 3) liegt. Dies stellt einen logischen Widerspruch dar und deutet auf eine nachträgliche oder fehlerhafte Datenerfassung hin. Zudem wird in der Freigabe (Zitat 3) die Abwesenheit negativer Einflüsse ausschließlich auf Basis der 'visuellen Homogenität' begründet, während das Chargenprotokoll (Zitat 2) eine deutliche Viskositätsänderung (von 2400 auf 2910 mPa·s) während der Abweichung dokumentiert. Die fehlende korrelierende Bewertung dieser physikalischen Parameter in der Freigabe und die zeitliche Inkonsistenz der Signatur belegen einen Verstoß gegen die Anforderungen an die Vollständigkeit und Korrektheit der Originalaufzeichnungen.",
+        "evidence": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Geprüft durch:** Dr. Anna Klar (Qualitätssicherung) – Digitale Signatur am 14.12.2026",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "| 10:30 | 1200 | 34,2 | 2850 | Homogen | MM |",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Ein negativer Einfluss auf die Stabilität oder die Freisetzungskinetik des Wirkstoffs konnte durch die visuelle Homogenität ausgeschlossen werden.",
+            "document_name": "document_04_quality_approval_note.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "partial",
+        "entailment_reason": "Die Zitate stützen die Behauptung nicht vollständig. Zitat 0 belegt zwar die Signatur am 14.12.2026, aber das in der Behauptung zitierte Datum der Chargenfreigabe (25.03.2026) und die Viskositätsänderung (2400 auf 2910 mPa·s) sind in den bereitgestellten Zitaten nicht enthalten. Zitat 1 zeigt lediglich einen Eintrag mit 2850 mPa·s, was die spezifische Behauptung über die dokumentierte Änderung nicht belegt. Da ein wesentlicher Teil der Behauptung (der zeitliche Widerspruch zur Freigabe und die spezifische Viskositätsänderung) durch die Zitate nicht gedeckt ist, liegt nur eine teilweise Unterstützung vor.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_di_audit_trail_review",
+        "requirement_title": "Audit-Trail-Review",
+        "requirement_text": "GxP-relevante elektronische Daten müssen einen Audit Trail besitzen, der regelmäßig und risikobasiert geprüft wird; sicherheits- oder qualitätsrelevante Eintraege duerfen dabei nicht ausgeschlossen werden.",
+        "source_name": "EU GMP Annex 11",
+        "section": "9",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Auszüge belegen die Erfassung einer Abweichung (DEV-2026-891) und die Nutzung digitaler Signaturen. Es fehlt jedoch jeglicher Nachweis für die Durchführung eines Audit-Trail-Reviews. Die Anforderung verlangt explizit einen dokumentierten Review von GxP-relevanten elektronischen Daten. Da der auslösende Vorgang (digitale Signatur) belegt ist, der geforderte Nachweis (Review) aber in den Dokumenten nicht enthalten ist, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Digitale Signatur am 12.03.2026",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Digitale Signatur am 14.12.2026",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (digitale Signatur), der in der Behauptung als vorhanden beschrieben wird. Da die Behauptung eine Lücke (fehlender Nachweis des Reviews) postuliert, genügt es für die Stützung, dass die Zitate den Ausgangszustand belegen und keinen Gegenbeweis (das Review) enthalten. Die Zitate tragen somit die Behauptung.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_di_signature_plausibility",
+        "requirement_title": "Plausibilitaet von Signatur und Datum",
+        "requirement_text": "Elektronische Unterschriften müssen Name, Datum und Zeit der Signatur sowie deren Bedeutung enthalten; Datums- und Zeitangaben müssen zeitlich plausibel und konsistent mit dem Vorgang sein. In der Zukunft liegende oder widerspruechliche Signaturdaten sind Datenintegritaetsbefunde.",
+        "source_name": "21 CFR Part 11",
+        "section": "11.50",
+        "model_status": "violated",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Die Signaturdaten sind nicht zeitlich plausibel. Das Erfassungsdatum ist der 12.03.2026, während das Prüfdatum der 14.12.2026 lautet. Da die Prüfung nach der Erfassung erfolgen muss, liegt hier ein logischer Widerspruch vor, der die Datenintegrität beeinträchtigt.",
+        "evidence": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "- **Erfasst durch:** Max Mustermann (Produktion) – Digitale Signatur am 12.03.2026",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "- **Datum der Erfassung:** 12.03.2026",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 1,
+        "dropped_evidence_reasons": [
+          "Zitat verworfen (chunk_cc3764ee733f423a91661d3e0c746af5_p1): nicht im Chunk auffindbar, auch nicht nach Reparatur: „- **Geprft durch:** Dr. Anna Klar (Qualittssicherung) – Digitale Signatur am 14.12.2026“"
+        ],
+        "provenance_ok": false,
+        "entailment": "none",
+        "entailment_reason": "Die Zitate belegen das Erfassungsdatum (12.03.2026) und die Signatur, enthalten jedoch keinerlei Information über das im Rationale genannte Prüfdatum (14.12.2026). Da die Behauptung auf einem Widerspruch zwischen zwei Daten beruht, die nicht beide in den Zitaten vorhanden sind, tragen die Zitate die Behauptung nicht.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_doc_cross_consistency",
+        "requirement_title": "Konsistenz ueber alle Dokumente eines Vorgangs",
+        "requirement_text": "Angaben zu Chargen, Daten, Mengen, Temperaturen, Ergebnissen und Status müssen ueber alle Dokumente eines Vorgangs (Bericht, Batch Record, Anhaenge, Freigabenotiz) konsistent sein; Widersprueche müssen aufgeklaert werden.",
+        "source_name": "EU GMP Kapitel 4",
+        "section": "4.1",
+        "model_status": "violated",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Die Dokumente sind in Bezug auf die Chargennummer (XYL-2026-004A) und die Abweichungs-ID (DEV-2026-891) konsistent. Es liegt jedoch ein schwerwiegender Widerspruch in der zeitlichen Abfolge vor: Der Abweichungsbericht (DEV-2026-891) wurde am 12.03.2026 erfasst, während die Chargenprotokolle (Batch Record) für die betroffenen Prozessschritte Zeitstempel vom 10:00 bis 11:15 Uhr ohne explizites Datum zeigen, die aber im Kontext der Freigabe am 25.03.2026 und der Erfassung der Abweichung am 12.03.2026 stehen. Zudem weist der Abweichungsbericht ein Prüfdatum (14.12.2026) auf, das nach dem Freigabedatum (25.03.2026) liegt, was einen logischen Widerspruch in der Dokumentenabfolge darstellt. Diese Widersprüche müssen gemäß Anforderung aufgeklärt werden, was in den vorliegenden Auszügen nicht geschieht.",
+        "evidence": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Während der Haltezeit der Salbenbasis in Reaktor R-02 sank die Manteltemperatur für einen Zeitraum von 45 Minuten auf 34,2°C ab.",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "none",
+        "entailment_reason": "Die Behauptung (Rationale) stützt sich auf spezifische Datenpunkte wie Chargennummern, Abweichungs-IDs, konkrete Zeitstempel (10:00-11:15 Uhr), Freigabedaten (25.03.2026) und ein Prüfdatum (14.12.2026). Das vorliegende Zitat bezeugt lediglich einen Temperaturabfall auf 34,2°C in Reaktor R-02. Es enthält keinerlei Informationen zu den genannten Dokumenten, Daten, IDs oder der zeitlichen Abfolge, die in der Behauptung als Widerspruch angeführt werden. Daher tragen die Zitate die Behauptung nicht.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": true,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_doc_mandatory_attachments",
+        "requirement_title": "Vollständigkeit der Pflichtanhaenge",
+        "requirement_text": "Alle in einem Vorgang referenzierten Pflichtanhaenge und Nachweise müssen tatsaechlich vorhanden und aktuell sein.",
+        "source_name": "EU GMP Kapitel 4",
+        "section": "4.x",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "medium",
+        "rationale": "Die Auszüge listen zwar vier Dokumente als Anhänge auf, belegen jedoch nicht deren tatsächliche Existenz, Vollständigkeit oder Aktualität. Da keine Primärevidenz (z. B. Checklisten, Rohdaten oder signierte Bestätigungen) vorliegt, die die Anwesenheit der Pflichtanhänge bestätigt, kann die Erfüllung nicht nachgewiesen werden. Gemäß den konservativen Regeln ist dies ein Befund, der als unklar gilt, da die bloße Nennung in der Fallzusammenfassung keine ausreichende Evidenz für die physische oder digitale Verfügbarkeit der Dokumente darstellt.",
+        "evidence": [
+          {
+            "document_id": "doc_eb3f9e7c70944596a410d97464818647",
+            "chunk_id": "chunk_eb3f9e7c70944596a410d97464818647_p1",
+            "page": 1,
+            "quote": "1. document_01_deviation_report.md",
+            "document_name": "case_summary.md"
+          },
+          {
+            "document_id": "doc_eb3f9e7c70944596a410d97464818647",
+            "chunk_id": "chunk_eb3f9e7c70944596a410d97464818647_p1",
+            "page": 1,
+            "quote": "2. document_02_batch_record_excerpt.md",
+            "document_name": "case_summary.md"
+          },
+          {
+            "document_id": "doc_eb3f9e7c70944596a410d97464818647",
+            "chunk_id": "chunk_eb3f9e7c70944596a410d97464818647_p1",
+            "page": 1,
+            "quote": "3. document_03_capa_plan.md",
+            "document_name": "case_summary.md"
+          },
+          {
+            "document_id": "doc_eb3f9e7c70944596a410d97464818647",
+            "chunk_id": "chunk_eb3f9e7c70944596a410d97464818647_p1",
+            "page": 1,
+            "quote": "4. document_04_quality_approval_note.md",
+            "document_name": "case_summary.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_process_parameter_limits",
+        "requirement_title": "Einhaltung von Prozessparametern",
+        "requirement_text": "Kritische Prozessparameter müssen innerhalb der spezifizierten Grenzen liegen. Eine Ueber- oder Unterschreitung ist als Abweichung zu bewerten, auch wenn das Produkt visuell unauffaellig erscheint.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.x",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Zitate belegen, dass die Manteltemperatur während der Phase B auf 34,2 °C sank, was unterhalb der spezifizierten Grenze von 40 °C liegt (Zitat 0, 2, 1, 3, 4). Die Anforderung verlangt, dass kritische Prozessparameter innerhalb der Grenzen liegen und Abweichungen bewertet werden müssen. Da die Temperaturgrenze überschritten wurde, liegt ein Verstoß vor. Die Abweichung wurde zwar dokumentiert, aber die Anforderung an die Einhaltung der Parameter selbst ist verletzt.",
+        "evidence": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Solltemperatur laut Herstellanweisung beträgt 40°C bis 45°C.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "| 10:30 | 1200 | 34,2 | 2850 | Homogen | MM |",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Während der Haltezeit der Salbenbasis in Reaktor R-02 sank die Manteltemperatur für einen Zeitraum von 45 Minuten auf 34,2°C ab.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "| 10:45 | 1200 | 34,2 | 2900 | Homogen | MM |",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "| 11:00 | 1200 | 34,2 | 2910 | Homogen, zähflüssig | MM |",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "10:30 | 1200 | 34,2 | 2850 | Homogen | MM",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "10:45 | 1200 | 34,2 | 2900 | Homogen | MM",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "11:00 | 1200 | 34,2 | 2910 | Homogen, zähflüssig | MM",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "sank die Manteltemperatur für einen Zeitraum von 45 Minuten auf 34,2°C ab",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen eindeutig, dass die Solltemperatur bei 40-45°C liegt (Zitat 0) und dass die Isttemperatur während der Haltezeit auf 34,2°C sank (Zitate 1, 3, 4). Dies stützt die Behauptung, dass die Temperatur unterhalb der spezifizierten Grenze lag und somit ein Verstoß gegen die Parametergrenzen vorliegt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [
+          "measurement_outside_specification",
+          "measurement_outside_specification",
+          "measurement_outside_specification",
+          "measurement_outside_specification"
+        ],
+        "validator_statements": [
+          "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+          "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+          "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+          "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45)."
+        ],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_qa_approval_documented",
+        "requirement_title": "Dokumentierte QA-Freigabe",
+        "requirement_text": "QA-Freigaben und Genehmigungen müssen vor Abschluss dokumentiert vorliegen. Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4(xv)",
+        "model_status": "fulfilled",
+        "published_status": "fulfilled",
+        "severity": null,
+        "rationale": "Das vorliegende Dokument ist ein expliziter Qualitätssicherungs-Freigabevermerk (QA-RELEASE-XYL-004A) mit Datum (25.03.2026). Es bestätigt die Bewertung der Charge XYL-2026-004A und die ordnungsgemäße Untersuchung der Abweichung DEV-2026-891. Der Text enthält die klare Aussage, dass die Charge für die Verpackung freigegeben wird. Dies erfüllt die Anforderung, dass die QA-Freigabe vor Abschluss dokumentiert vorliegen muss, da es sich um eine signierte bzw. dokumentierte Freigabe handelt und nicht nur um eine geplante.",
+        "evidence": [
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Hiermit wird die Charge XYL-2026-004A bewertet. Die Abweichung DEV-2026-891 wurde ordnungsgemäß untersucht. Ein negativer Einfluss auf die Stabilität oder die Freisetzungskinetik des Wirkstoffs konnte durch die visuelle Homogenität ausgeschlossen werden. Die Charge wird für die Verpackung freigegeben.",
+            "document_name": "document_04_quality_approval_note.md"
+          },
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "- **Dokumenten-ID:** QA-RELEASE-XYL-004A",
+            "document_name": "document_04_quality_approval_note.md"
+          },
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "- **Datum:** 25.03.2026",
+            "document_name": "document_04_quality_approval_note.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": "QA Approval Record",
+        "evidence_reference": "document_04_quality_approval_note.md, page 1",
+        "evidence_sufficiency": "sufficient",
+        "independent_support": false,
+        "challenge_sustained": false,
+        "challenge_reason": "Die vorgelegten Belege enthalten eine explizite, datierte und identifizierbare QA-Freigabe (Dokumenten-ID: QA-RELEASE-XYL-004A, Datum: 25.03.2026) für die spezifische Charge. Die Anforderung verlangt, dass die Freigabe vor Abschluss dokumentiert vorliegt. Da das Dokument selbst die Dokumentation der Freigabe darstellt und die Freigabe für die Verpackung klar ausgesprochen wird, ist die Evidenz vollständig. Es fehlen keine Pflichtbestandteile, da die Dokumentation der Freigabe die Anforderung erfüllt. Eine Unterschrift ist im Textzitat zwar nicht explizit sichtbar, aber die Existenz des dokumentierten Freigabevermerks mit eindeutiger ID und Datum genügt in diesem Kontext als Beleg für die dokumentierte Freigabe, da die Anforderung auf das Vorliegen der Dokumentation abzielt und nicht auf die physische Unterschrift im Zitat selbst. Die Begründung des Erstprüfers ist schlüssig und die Belege tragen die Erfüllung der Anforderung.",
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_qc_affected_batch_scope_includes_retests",
+        "requirement_title": "Betroffene Chargen inklusive Retests und Rückstellmuster",
+        "requirement_text": "Die Batch-Impact-Bewertung eines QC-Change-Control-Pakets muss alle betroffenen Chargen, Retests und Rückstellmuster enthalten. Eine Charge oder ein Retest im Execution Record darf nicht als ausserhalb des Scopes behandelt werden, wenn neuer Grenzwert, neues Berechnungssheet oder geänderte Spezifikation verwendet werden.",
+        "source_name": "GMP Change-Control Batch-Impact Checklist",
+        "section": "affected-batch-scope",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_equipment_site_bridge_for_comparator_evidence",
+        "requirement_title": "Geraete- und Standort-Bridging für Vergleichsevidenz",
+        "requirement_text": "Vergleichsdaten von anderem Standort oder anderer Geraeteplattform duerfen eine QC-Methodenentscheidung nur stuetzen, wenn eine dokumentierte Geraeteaequivalenz, ein Transfer- oder Bridging-Nachweis oder eine genehmigte fachliche Begründung vorliegt.",
+        "source_name": "EU GMP Kapitel 6 / ICH Q2(R2)",
+        "section": "method-transfer-bridging",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_limit_fitness_at_tightened_limit",
+        "requirement_title": "Methodenfitness am verschaerften quantitativen Grenzwert",
+        "requirement_text": "Wenn ein quantitativer QC-Grenzwert verschaerft wird, muss die Methodenfitness für die Entscheidung am neuen Grenzwert belegt sein. Historische Validierung für einen weniger strengen Grenzwert reicht nur aus, wenn Genauigkeit, Präzision, Linearitaet und Reporting Capability am neuen Grenzwert oder darunter nachvollziehbar abgedeckt sind.",
+        "source_name": "ICH Q2(R2) / EU GMP Kapitel 6",
+        "section": "fitness-for-intended-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_qa_approval_before_first_gmp_use",
+        "requirement_title": "QA-Freigabe vor erster GMP-Anwendung",
+        "requirement_text": "Eine geänderte QC-Spezifikation oder Methode darf für GMP-Freigabeentscheidungen erst verwendet werden, wenn die erforderliche QA-Genehmigung dokumentiert ist. Geplante oder ausstehende Freigaben reichen vor der ersten Chargenfreigabe nicht aus.",
+        "source_name": "EU GMP Kapitel 1 und 4",
+        "section": "change-approval-before-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_training_before_effective_sop_use",
+        "requirement_title": "Training vor wirksamer SOP- oder Spezifikationsanwendung",
+        "requirement_text": "Wenn eine SOP-Version oder Spezifikationsanweisung für eine QC-Freigabeentscheidung verbindlich ist, muss das betroffene Personal vor der Anwendung geschult sein. Eine Einstufung als nicht trainingsrelevant ist zu begründen und darf nicht im Widerspruch zur gueltigen SOP oder zum Batch Record stehen.",
+        "source_name": "EU GMP Kapitel 2 und 4",
+        "section": "training-before-effective-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_spec_acceptance_limits",
+        "requirement_title": "Einhaltung von Spezifikationen und Akzeptanzkriterien",
+        "requirement_text": "Mess- und Prüfergebnisse müssen gegen die gueltige interne Spezifikation bewertet werden. Eine Verletzung interner Akzeptanzkriterien ist auch dann als Abweichung zu behandeln, wenn ein Lieferanten-Zertifikat Konformitaet ausweist.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Zitate belegen, dass die Manteltemperatur während der Phase B auf 34,2 °C sank, während die interne Spezifikation 40 °C bis 45 °C vorsieht (Zitat 2). Dies stellt eine Verletzung der internen Akzeptanzkriterien dar. Die Anforderung verlangt, dass Mess- und Prüfergebnisse gegen die gültige interne Spezifikation bewertet werden und eine Verletzung als Abweichung behandelt wird. Zwar wurde die Abweichung DEV-2026-891 dokumentiert und die Charge freigegeben (Zitat 0), jedoch fehlt in den vorliegenden Auszügen der konkrete Nachweis, dass die Mess- und Prüfergebnisse (z. B. Stabilität, Freisetzungskinetik) tatsächlich quantitativ gegen die interne Spezifikation bewertet wurden, um die Freigabe trotz der Temperaturabweichung zu rechtfertigen. Die bloße Aussage, ein negativer Einfluss sei 'durch die visuelle Homogenität ausgeschlossen' (Zitat 0), ist keine Primärevidenz für die Erfüllung der spezifischen Prüfkriterien der internen Spezifikation. Da der geforderte Nachweis der Bewertung gegen die interne Spezifikation fehlt, ist die Anforderung nicht erfüllt.",
+        "evidence": [
+          {
+            "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+            "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+            "page": 1,
+            "quote": "Ein negativer Einfluss auf die Stabilität oder die Freisetzungskinetik des Wirkstoffs konnte durch die visuelle Homogenität ausgeschlossen werden.",
+            "document_name": "document_04_quality_approval_note.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Solltemperatur laut Herstellanweisung beträgt 40°C bis 45°C.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "10:30 | 1200 | 34,2 | 2850 | Homogen | MM",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "10:45 | 1200 | 34,2 | 2900 | Homogen | MM",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "11:00 | 1200 | 34,2 | 2910 | Homogen, zähflüssig | MM",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "sank die Manteltemperatur für einen Zeitraum von 45 Minuten auf 34,2°C ab",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 2 belegt die interne Spezifikation (40–45 °C), was die Abweichung der in der Rationale genannten Temperatur (34,2 °C) als Verletzung der Akzeptanzkriterien bestätigt. Zitat 0 belegt, dass die Freigabe auf der Aussage beruht, ein negativer Einfluss sei durch 'visuelle Homogenität' ausgeschlossen worden. Dies stützt den Kern der Behauptung, dass es an einem konkreten, quantitativen Nachweis der Bewertung gegen die spezifischen Prüfkriterien (Stabilität/Freisetzung) mangelt und stattdessen auf eine visuelle Prüfung abgestellt wurde, was als unzureichende Primärevidenz für die spezifischen Anforderungen der internen Spezifikation gewertet wird.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": true,
+        "validator_flags": [
+          "measurement_outside_specification",
+          "measurement_outside_specification",
+          "measurement_outside_specification",
+          "measurement_outside_specification"
+        ],
+        "validator_statements": [
+          "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+          "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+          "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+          "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45)."
+        ],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_supplier_change_impact",
+        "requirement_title": "Bewertung von Lieferanten- und Materialänderungen",
+        "requirement_text": "Änderungen an Lieferant, Material, Spezifikation, Methode oder Quelle duerfen nicht ohne Begründung als 'no impact' gewertet werden; die Auswirkung auf Qualität und Validierung ist zu bewerten.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.27",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Laut Belegsuche nicht einschlägig: Der dokumentierte Vorgang bezieht sich auf eine Prozessabweichung bei der Temperaturkontrolle und enthält keine Hinweise auf Änderungen an Lieferanten, Materialien oder Spezifikationen, die eine Bewertung der Auswirkungen auf die Qualität erfordern würden.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_training_effectiveness",
+        "requirement_title": "Wirksames Training nach SOP-Änderung",
+        "requirement_text": "Wird eine SOP aktualisiert, muss das betroffene Personal nachweislich und wirksam geschult sein, bevor die geänderte Taetigkeit ausgeführt wird.",
+        "source_name": "EU GMP Kapitel 2",
+        "section": "2.x",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Laut Belegsuche nicht einschlägig: Der Vorgang dokumentiert eine Abweichung und eine darauf folgende Refresher-Schulung, enthält jedoch keine Hinweise auf eine Änderung oder Aktualisierung einer SOP, die die Pflicht zur Schulung vor der Ausführung der geänderten Tätigkeit auslösen würde.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_val_cleaning_sterility",
+        "requirement_title": "Reinigungsvalidierung und Sterilitaetssicherung",
+        "requirement_text": "Reinigungs- und Sterilitaetsrisiken müssen explizit adressiert und durch geeignete Validierung und Kontaminationskontrollstrategie belegt sein; eine nur indirekte Erwaehnung ist nicht ausreichend.",
+        "source_name": "EU GMP Annex 1",
+        "section": "Kontaminationskontrolle",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Laut Belegsuche nicht einschlägig: Der Vorgang befasst sich mit einer Temperaturabweichung bei der Formulierung einer Salbe, wobei keine Hinweise auf Reinigungs- oder Sterilitätsanforderungen vorliegen.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_val_coverage_current_state",
+        "requirement_title": "Validierungsabdeckung des aktuellen Zustands",
+        "requirement_text": "Validierungs-, Reinigungsvalidierungs- und Sterilisationsnachweise müssen den aktuellen Prozess-, Equipment- und Standortzustand abdecken. Veraltete oder nicht übertragbare Evidenz (anderes Equipment, anderer Standort, abgelaufene Version) ist kein gueltiger Nachweis.",
+        "source_name": "EU GMP Annex 15",
+        "section": "Validierung",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Auszüge (Fallzusammenfassung, Abweichungsbericht, Chargenprotokoll) dokumentieren eine Temperaturabweichung während der Formulierung. Es fehlen jedoch jegliche Nachweise über die Validierung des Prozesses, des Equipments (Reaktor R-02) oder des Standorts. Da die Anforderung explizit die Abdeckung des aktuellen Zustands durch Validierungsnachweise verlangt und diese in den bereitgestellten Dokumenten nicht enthalten sind, kann die Erfüllung nicht belegt werden. Es liegt ein Verstoß vor, da der geforderte Nachweis im Kontext der dokumentierten Abweichung fehlt.",
+        "evidence": [
+          {
+            "document_id": "doc_eb3f9e7c70944596a410d97464818647",
+            "chunk_id": "chunk_eb3f9e7c70944596a410d97464818647_p1",
+            "page": 1,
+            "quote": "Prozessschritt:** Formulierung / Mischen",
+            "document_name": "case_summary.md"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Während der Haltezeit der Salbenbasis in Reaktor R-02 sank die Manteltemperatur für einen Zeitraum von 45 Minuten auf 34,2°C ab.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "Prozessschritt:** Phase B – Einrühren Wirkstoff",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den Prozessschritt (Formulierung) und die aufgetretene Temperaturabweichung (34,2°C) im Reaktor R-02. Die Behauptung (Rationale) stützt sich darauf, dass in den vorliegenden Dokumenten keine Validierungsnachweise enthalten sind. Da die Zitate den auslösenden Vorgang (die Abweichung) belegen und keines der Zitate einen Validierungsnachweis zeigt, tragen die Zitate die Behauptung einer fehlenden Dokumentation im Kontext der Abweichung.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      }
+    ],
+    "status_counts": {
+      "violated": 12,
+      "unclear": 5,
+      "fulfilled": 2,
+      "not_applicable": 9
+    },
+    "failed_model_call_count": 0,
+    "validator_findings": [
+      {
+        "validator_id": "measurement_outside_specification",
+        "requirement_ids": [
+          "req_process_parameter_limits",
+          "req_spec_acceptance_limits"
+        ],
+        "severity": "high",
+        "statement": "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+        "locations": [
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "10:30 | 1200 | 34,2 | 2850 | Homogen | MM"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Solltemperatur laut Herstellanweisung beträgt 40°C bis 45°C."
+          }
+        ]
+      },
+      {
+        "validator_id": "measurement_outside_specification",
+        "requirement_ids": [
+          "req_process_parameter_limits",
+          "req_spec_acceptance_limits"
+        ],
+        "severity": "high",
+        "statement": "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+        "locations": [
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "10:45 | 1200 | 34,2 | 2900 | Homogen | MM"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Solltemperatur laut Herstellanweisung beträgt 40°C bis 45°C."
+          }
+        ]
+      },
+      {
+        "validator_id": "measurement_outside_specification",
+        "requirement_ids": [
+          "req_process_parameter_limits",
+          "req_spec_acceptance_limits"
+        ],
+        "severity": "high",
+        "statement": "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+        "locations": [
+          {
+            "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+            "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+            "page": 1,
+            "quote": "11:00 | 1200 | 34,2 | 2910 | Homogen, zähflüssig | MM"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Solltemperatur laut Herstellanweisung beträgt 40°C bis 45°C."
+          }
+        ]
+      },
+      {
+        "validator_id": "measurement_outside_specification",
+        "requirement_ids": [
+          "req_process_parameter_limits",
+          "req_spec_acceptance_limits"
+        ],
+        "severity": "high",
+        "statement": "Der Messwert 34,2 °C für 'Manteltemperatur' liegt außerhalb der deklarierten Grenze (Bereich 40–45).",
+        "locations": [
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "sank die Manteltemperatur für einen Zeitraum von 45 Minuten auf 34,2°C ab"
+          },
+          {
+            "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+            "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Solltemperatur laut Herstellanweisung beträgt 40°C bis 45°C."
+          }
+        ]
+      }
+    ],
+    "extracted_evidence": {
+      "counts": {
+        "signatures": 2,
+        "measurements": 19,
+        "specifications": 1,
+        "action_items": 1,
+        "events": 7
+      },
+      "dropped_unverifiable": {},
+      "rows": {
+        "signatures": [
+          {
+            "field_label": "Erfasst durch",
+            "role": "Produktion",
+            "signer": "Max Mustermann",
+            "date": "12.03.2026",
+            "is_empty": false,
+            "requirement_ids": [
+              "req_di_signature_plausibility",
+              "req_di_alcoa_completeness"
+            ],
+            "location": {
+              "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+              "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+              "page": 1,
+              "quote": "Erfasst durch:** Max Mustermann (Produktion) – Digitale Signatur am 12.03.2026"
+            }
+          },
+          {
+            "field_label": "Geprüft durch",
+            "role": "Qualitätssicherung",
+            "signer": "Dr. Anna Klar",
+            "date": "14.12.2026",
+            "is_empty": false,
+            "requirement_ids": [
+              "req_di_signature_plausibility",
+              "req_di_alcoa_completeness"
+            ],
+            "location": {
+              "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+              "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+              "page": 1,
+              "quote": "Geprüft durch:** Dr. Anna Klar (Qualitätssicherung) – Digitale Signatur am 14.12.2026"
+            }
+          }
+        ],
+        "measurements": [
+          {
+            "parameter": "Rührerdrehzahl",
+            "value": "1200",
+            "unit": "UpM",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:00 | 1200 | 42,1 | 2400 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Manteltemperatur",
+            "value": "42,1",
+            "unit": "°C",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:00 | 1200 | 42,1 | 2400 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Viskosität",
+            "value": "2400",
+            "unit": "mPa·s",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:00 | 1200 | 42,1 | 2400 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Rührerdrehzahl",
+            "value": "1200",
+            "unit": "UpM",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:15 | 1200 | 41,8 | 2410 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Manteltemperatur",
+            "value": "41,8",
+            "unit": "°C",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:15 | 1200 | 41,8 | 2410 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Viskosität",
+            "value": "2410",
+            "unit": "mPa·s",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:15 | 1200 | 41,8 | 2410 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Rührerdrehzahl",
+            "value": "1200",
+            "unit": "UpM",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:30 | 1200 | 34,2 | 2850 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Manteltemperatur",
+            "value": "34,2",
+            "unit": "°C",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:30 | 1200 | 34,2 | 2850 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Viskosität",
+            "value": "2850",
+            "unit": "mPa·s",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:30 | 1200 | 34,2 | 2850 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Rührerdrehzahl",
+            "value": "1200",
+            "unit": "UpM",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:45 | 1200 | 34,2 | 2900 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Manteltemperatur",
+            "value": "34,2",
+            "unit": "°C",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:45 | 1200 | 34,2 | 2900 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Viskosität",
+            "value": "2900",
+            "unit": "mPa·s",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "10:45 | 1200 | 34,2 | 2900 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Rührerdrehzahl",
+            "value": "1200",
+            "unit": "UpM",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "11:00 | 1200 | 34,2 | 2910 | Homogen, zähflüssig | MM"
+            }
+          },
+          {
+            "parameter": "Manteltemperatur",
+            "value": "34,2",
+            "unit": "°C",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "11:00 | 1200 | 34,2 | 2910 | Homogen, zähflüssig | MM"
+            }
+          },
+          {
+            "parameter": "Viskosität",
+            "value": "2910",
+            "unit": "mPa·s",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "11:00 | 1200 | 34,2 | 2910 | Homogen, zähflüssig | MM"
+            }
+          },
+          {
+            "parameter": "Rührerdrehzahl",
+            "value": "1200",
+            "unit": "UpM",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "11:15 | 1200 | 41,5 | 2450 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Manteltemperatur",
+            "value": "41,5",
+            "unit": "°C",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "11:15 | 1200 | 41,5 | 2450 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Viskosität",
+            "value": "2450",
+            "unit": "mPa·s",
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "11:15 | 1200 | 41,5 | 2450 | Homogen | MM"
+            }
+          },
+          {
+            "parameter": "Manteltemperatur",
+            "value": "34,2",
+            "unit": "°C",
+            "requirement_ids": [
+              "req_process_parameter_limits",
+              "req_spec_acceptance_limits"
+            ],
+            "location": {
+              "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+              "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+              "page": 1,
+              "quote": "sank die Manteltemperatur für einen Zeitraum von 45 Minuten auf 34,2°C ab"
+            }
+          }
+        ],
+        "specifications": [
+          {
+            "parameter": "Manteltemperatur",
+            "operator": "range",
+            "limit_low": "40",
+            "limit_high": "45",
+            "unit": "°C",
+            "requirement_ids": [
+              "req_process_parameter_limits",
+              "req_spec_acceptance_limits"
+            ],
+            "location": {
+              "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+              "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+              "page": 1,
+              "quote": "Die spezifizierte Solltemperatur laut Herstellanweisung beträgt 40°C bis 45°C."
+            }
+          }
+        ],
+        "action_items": [
+          {
+            "list_label": "Vorgesehene Maßnahmen",
+            "item_label": "Refresher-Schulung: Der Operator Max Mustermann wird bezüglich der Reaktorsystembedienung und der Temperaturüberwachung nachgeschult.",
+            "responsible": "Leitung Produktion",
+            "due_date": "30.04.2026",
+            "requirement_ids": [
+              "req_capa_responsible_timeline",
+              "req_training_effectiveness"
+            ],
+            "location": {
+              "document_id": "doc_0c0ef842bce042428943861d76075af4",
+              "chunk_id": "chunk_0c0ef842bce042428943861d76075af4_p1",
+              "page": 1,
+              "quote": "1. **Refresher-Schulung:** Der Operator Max Mustermann wird bezüglich der Reaktorsystembedienung und der Temperaturüberwachung nachgeschult."
+            }
+          }
+        ],
+        "events": [
+          {
+            "description": "Prozessschritt Phase B – Einrühren Wirkstoff durchgeführt",
+            "timestamp": null,
+            "actor": null,
+            "role": "other",
+            "refers_to": "XYL-2026-004A",
+            "activity_key": null,
+            "requirement_ids": [],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "Prozessschritt:** Phase B – Einrühren Wirkstoff"
+            }
+          },
+          {
+            "description": "Manueller Eingriff zur Wiederherstellung der Manteltemperatur nach unvorhergesehenem Kühlungsabfall",
+            "timestamp": null,
+            "actor": null,
+            "role": "implementation",
+            "refers_to": "XYL-2026-004A",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_root_cause",
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_010e5c1a356e4e86b83b3702c12896cc",
+              "chunk_id": "chunk_010e5c1a356e4e86b83b3702c12896cc_p1",
+              "page": 1,
+              "quote": "Nach manuellem Eingriff stieg die Temperatur wieder in den Sollbereich."
+            }
+          },
+          {
+            "description": "Eine Überprüfung der folgenden drei Chargen auf Temperaturstabilität während des Halteschritts wird durchgeführt.",
+            "timestamp": null,
+            "actor": null,
+            "role": "effectiveness_check",
+            "refers_to": "DEV-2026-891",
+            "activity_key": "effectiveness_check_DEV-2026-891",
+            "requirement_ids": [
+              "req_capa_effectiveness"
+            ],
+            "location": {
+              "document_id": "doc_0c0ef842bce042428943861d76075af4",
+              "chunk_id": "chunk_0c0ef842bce042428943861d76075af4_p1",
+              "page": 1,
+              "quote": "Eine Überprüfung der folgenden drei Chargen auf Temperaturstabilität während des Halteschritts wird durchgeführt."
+            }
+          },
+          {
+            "description": "Die Abweichung DEV-2026-891 wurde ordnungsgemäß untersucht.",
+            "timestamp": null,
+            "actor": null,
+            "role": "investigation",
+            "refers_to": "DEV-2026-891",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_root_cause",
+              "req_dev_impact_assessment"
+            ],
+            "location": {
+              "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+              "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+              "page": 1,
+              "quote": "Die Abweichung DEV-2026-891 wurde ordnungsgemäß untersucht."
+            }
+          },
+          {
+            "description": "Die Charge XYL-2026-004A wird für die Verpackung freigegeben.",
+            "timestamp": "25.03.2026",
+            "actor": null,
+            "role": "release",
+            "refers_to": "XYL-2026-004A",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_qa_approval_documented",
+              "req_batch_disposition_trace"
+            ],
+            "location": {
+              "document_id": "doc_7925d4c3de354fef8e8a9235a04c8a9a",
+              "chunk_id": "chunk_7925d4c3de354fef8e8a9235a04c8a9a_p1",
+              "page": 1,
+              "quote": "Die Charge wird für die Verpackung freigegeben."
+            }
+          },
+          {
+            "description": "Erfassung der Abweichung DEV-2026-891 durch Max Mustermann",
+            "timestamp": "12.03.2026",
+            "actor": null,
+            "role": "event",
+            "refers_to": "DEV-2026-891",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_di_alcoa_completeness",
+              "req_di_signature_plausibility"
+            ],
+            "location": {
+              "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+              "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+              "page": 1,
+              "quote": "Erfasst durch:** Max Mustermann (Produktion) – Digitale Signatur am 12.03.2026"
+            }
+          },
+          {
+            "description": "Prüfung der Abweichung DEV-2026-891 durch Dr. Anna Klar",
+            "timestamp": "14.12.2026",
+            "actor": null,
+            "role": "review",
+            "refers_to": "DEV-2026-891",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_di_alcoa_completeness",
+              "req_di_signature_plausibility"
+            ],
+            "location": {
+              "document_id": "doc_cc3764ee733f423a91661d3e0c746af5",
+              "chunk_id": "chunk_cc3764ee733f423a91661d3e0c746af5_p1",
+              "page": 1,
+              "quote": "Geprüft durch:** Dr. Anna Klar (Qualitätssicherung) – Digitale Signatur am 14.12.2026"
+            }
+          }
+        ]
+      }
+    },
+    "model_calls": []
+  }
+}

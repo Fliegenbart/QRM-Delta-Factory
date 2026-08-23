@@ -1,0 +1,1512 @@
+{
+  "id": "case_09",
+  "slug": "cefuroxim-ph-drift",
+  "title": "pH-Drift im Bioreaktor, Chargenprotokoll widerspricht dem SCADA-Audit-Trail",
+  "area": "Fermentation (Wirkstoffvorstufe)",
+  "trigger": "Abweichung mit Change Control",
+  "product": "Cefuroxim 250mg Suspension",
+  "dosage_form": "Trockensaft",
+  "batch": "CEF-BIOR-2026-77",
+  "documents": [
+    {
+      "file_name": "case_summary.md",
+      "label": "Fall-Zusammenfassung"
+    },
+    {
+      "file_name": "document_01_deviation_report.md",
+      "label": "Abweichungsbericht"
+    },
+    {
+      "file_name": "document_02_batch_record_excerpt.md",
+      "label": "Chargenprotokoll (Auszug)"
+    },
+    {
+      "file_name": "document_03_change_control.md",
+      "label": "Change-Control-Antrag"
+    }
+  ],
+  "run": {
+    "started_at": "2026-08-23T11:23:40+00:00",
+    "stack": "hetzner",
+    "assessor_mode": "narrow",
+    "model": "Qwen3.8-27B",
+    "engine_version": "requirement-review-v0.2",
+    "pipeline_status": "completed_with_model_failures",
+    "model_calls": 79,
+    "failed_model_calls": 4,
+    "input_tokens": 168898,
+    "output_tokens": 17935
+  },
+  "gold": {
+    "planted": 3,
+    "found": 3,
+    "decoys": 1,
+    "decoys_passed": 1
+  },
+  "report": {
+    "document_set_id": "ds_8ed9083b36bc4f5e9162ea8faaaf8c43",
+    "engine_version": "requirement-review-v0.2",
+    "created_at": "2026-08-23T14:57:00.514522Z",
+    "verdicts": [
+      {
+        "requirement_id": "req_batch_affected_completeness",
+        "requirement_title": "Vollständige Erfassung betroffener Chargen",
+        "requirement_text": "Batch-Impact-Bewertungen müssen alle potenziell betroffenen Chargen einschließlich Vorgänger- und Folgechargen erfassen.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.x",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Auszüge nennen lediglich die spezifizierte Charge CEF-BIOR-2026-77 (Zitat 0). Es fehlt jedoch eine explizite Chargenliste oder eine dokumentierte Begründung, warum keine Vorgänger- oder Folgechargen betroffen sind. Da die Anforderung die Erfassung aller potenziell betroffenen Chargen verlangt und der Nachweis für die Nicht-Betroffenheit anderer Chargen in den Dokumenten fehlt, ist die Anforderung nicht erfüllt.",
+        "evidence": [
+          {
+            "document_id": "doc_cbebd70250314c759df62c17fd2eecef",
+            "chunk_id": "chunk_cbebd70250314c759df62c17fd2eecef_p1",
+            "page": 1,
+            "quote": "- **Betroffene Charge:** CEF-BIOR-2026-77",
+            "document_name": "case_summary.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Behauptung besagt, dass die Zitate lediglich die Charge CEF-BIOR-2026-77 nennen und es an einer expliziten Chargenliste oder Begründung für die Nicht-Betroffenheit anderer Chargen fehlt. Das vorliegende Zitat bestätigt exakt die Nennung der Charge CEF-BIOR-2026-77. Da das Zitat der einzige vorliegende Beleg ist und keine weiteren Chargen oder eine Begründung für deren Ausschluss enthält, stützt das Zitat die Feststellung, dass nur diese spezifische Charge dokumentiert ist und der Nachweis für andere Chargen in den vorliegenden Auszügen fehlt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_batch_disposition_trace",
+        "requirement_title": "Nachvollziehbare Disposition mit Batch-Record-Verknüpfung",
+        "requirement_text": "Die Freigabe- bzw. Dispositionsentscheidung jeder betroffenen Charge muss begründet und mit den zugehörigen Batch Records verknüpft sein.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Belegsuche für diese Anforderung fehlgeschlagen; sie bleibt unbeurteilt und gehört zur menschlichen Prüfung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_batch_no_release_before_assessment",
+        "requirement_title": "Keine Freigabe vor abgeschlossener Bewertung",
+        "requirement_text": "Eine Charge darf nicht freigegeben werden, solange Abweichungsbewertung, Impact Assessment oder erforderliche QA-Freigabe nicht abgeschlossen sind.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "critical",
+        "rationale": "Die vorliegenden Auszüge belegen, dass eine Abweichung (DEV-CEF-77) auftrat und die Aufarbeitung fortgesetzt wurde, ohne dass eine abschließende Freigabeentscheidung oder ein abgeschlossener Impact Assessment dokumentiert ist. Zudem fehlt die Unterschrift der Leitung QK im Change Control, was auf eine unvollständige Bewertung hindeutet. Da die Pflicht zur Freigabe erst nach abgeschlossener Bewertung besteht und diese in den Dokumenten nicht nachgewiesen ist, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Die Biomasse-Entwicklung blieb im Akzeptanzkorridor, weshalb die Aufarbeitung fortgesetzt wurde.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Der Grund für die Drift konnte technisch nicht final aufgeklärt werden (Root Cause unaufgeklärt).",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Leitung Qualitätskontrolle (Leitung QK):* [Feld leer / Nicht gezeichnet]",
+            "document_name": "document_03_change_control.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "partial",
+        "entailment_reason": "Die Zitate belegen zwar, dass die Aufarbeitung fortgesetzt wurde und die Root Cause nicht final aufgeklärt ist, sowie das Fehlen der Unterschrift der Leitung QK. Sie belegen jedoch nicht die spezifische Behauptung, dass eine 'abgeschlossene Freigabeentscheidung' oder ein 'abgeschlossener Impact Assessment' fehlt, da diese Dokumente in den Zitaten nicht erwähnt oder deren Abwesenheit nicht direkt belegt werden. Die Schlussfolgerung des Verstoßes basiert auf einer logischen Ableitung, die über den wörtlichen Inhalt der Zitate hinausgeht.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": true,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_capa_effectiveness",
+        "requirement_title": "Wirksamkeitsprüfung der CAPA",
+        "requirement_text": "CAPA-Maßnahmen, die mit einem Qualitätsrisiko verknüpft sind, duerfen nur mit definierter und dokumentierter Wirksamkeitsprüfung (Effectiveness Check) abgeschlossen werden.",
+        "source_name": "ICH Q10",
+        "section": "3.2.2",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Dokumente belegen einen Abweichungsvorgang (DEV-CEF-77) mit einem nicht aufgeklärten Root Cause (Zitat 0) und einem manuellen Eingriff in den Prozess (Zitat 2), was ein Qualitätsrisiko darstellt. Die Anforderung verlangt jedoch den Nachweis einer definierten und dokumentierten Wirksamkeitsprüfung (Effectiveness Check) für die CAPA-Maßnahmen. In den bereitgestellten Auszügen (Abweichungsbericht, Schichtbuch, Change Control) fehlt jegliche Dokumentation einer solchen Wirksamkeitsprüfung oder eines CAPA-Records. Da der auslösende Vorgang belegt ist, der geforderte Nachweis aber fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Der Grund für die Drift konnte technisch nicht final aufgeklärt werden (Root Cause unaufgeklärt).",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "partial",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (nicht aufgeklärter Root Cause und manueller Eingriff), was den ersten Teil der Behauptung stützt. Die Behauptung besagt jedoch auch, dass in den bereitgestellten Auszügen jegliche Dokumentation einer Wirksamkeitsprüfung fehlt. Da die Zitate nur positive Belege für den Vorfall enthalten und keine negativen Belege (d.h. keine Dokumente, die die Abwesenheit der Wirksamkeitsprüfung in den spezifischen Auszügen belegen) liefern, tragen sie nur den Teil der Behauptung über den Vorfall, aber nicht den Teil über die fehlende Dokumentation in den Auszügen. Daher ist die Unterstützung teilweise.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_capa_responsible_timeline",
+        "requirement_title": "Verantwortlicher und realistischer Termin der CAPA",
+        "requirement_text": "Jede CAPA-Maßnahme muss einen benannten Maßnahmenverantwortlichen und einen plausiblen, realisierbaren Umsetzungstermin haben.",
+        "source_name": "ICH Q10",
+        "section": "3",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Dokumente belegen einen Abweichungsvorgang (DEV-CEF-77) mit unklarer Ursache (Root Cause unaufgeklärt) und einem manuellen Eingriff, der die pH-Grenzwerte überschritt. Es fehlt jedoch jegliche Dokumentation einer CAPA-Maßnahme, die einen benannten Verantwortlichen und einen konkreten Umsetzungstermin enthält. Da der auslösende Vorgang (Abweichung) belegt ist, der geforderte Nachweis (CAPA-Details) aber in den Auszügen fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Der Grund für die Drift konnte technisch nicht final aufgeklärt werden (Root Cause unaufgeklärt).",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (Abweichung mit unklarer Ursache und manuellem Eingriff), der in der Behauptung als gegeben vorausgesetzt wird. Da die Behauptung primär auf dem Fehlen der CAPA-Dokumentation beruht und die Zitate diesen Mangel durch Abwesenheit des entsprechenden Nachweises stützen, tragen sie die Behauptung.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_cc_impact_and_validation",
+        "requirement_title": "Change mit Auswirkungsbewertung und Validierungsabdeckung",
+        "requirement_text": "Änderungen müssen einer dokumentierten Auswirkungsbewertung unterzogen werden; betroffene Validierungen sind zu prüfen und gegebenenfalls zu aktualisieren. Eine 'no impact'-Bewertung muss begründet sein.",
+        "source_name": "ICH Q10",
+        "section": "3.2.3",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt eine dokumentierte Auswirkungsbewertung (Impact Assessment) und eine Prüfung der Validierungen. Die vorliegenden Auszüge belegen zwar den Change-Antrag (CC-2026-104) und die Klassifizierung als präventiv, sowie eine fehlende Unterschrift der QK-Leitung. Es fehlen jedoch jegliche Nachweise über die durchgeführte Auswirkungsbewertung oder die Prüfung der Validierungen. Da der Change-Vorgang vorliegt, aber der geforderte Nachweis (Impact Assessment/Validierungsbewertung) in den Auszügen nicht enthalten ist, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Der Change wurde als **nicht-reaktiv / präventiv** eingestuft.",
+            "document_name": "document_03_change_control.md"
+          },
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Im Antragstext wird explizit versichert, dass der Austausch des Sensortyps erst zur nächsten regulären Großwartung im September 2026 vollzogen wird und bis dahin die alten analogen Sensoren exklusiv im Einsatz verbleiben.",
+            "document_name": "document_03_change_control.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den Change-Antrag und dessen Klassifizierung als präventiv, was den auslösenden Vorgang stützt. Da die Zitate jedoch keinerlei Nachweis über die geforderte Auswirkungsbewertung oder Validierungsprüfung enthalten, wird die Behauptung einer fehlenden Dokumentation (Lücke) durch die Zitate gestützt, da sie den Kontext zeigen, in dem der Nachweis fehlt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_impact_assessment",
+        "requirement_title": "Dokumentierte Auswirkungsbewertung der Abweichung",
+        "requirement_text": "Jede Abweichung erfordert eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen.",
+        "source_name": "ICH Q9(R1)",
+        "section": "5",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt eine dokumentierte Bewertung der Auswirkung auf die Produktqualität und Patientensicherheit sowie eine Auflistung aller potenziell betroffenen Chargen. Die vorliegenden Auszüge belegen zwar das Vorliegen der Abweichung (pH-Drift) und die betroffene Charge (CEF-BIOR-2026-77), jedoch fehlt jegliche Primärevidenz für eine durchgeführte Impact Assessment. Der Vermerk, dass die Biomasse im Akzeptanzkorridor blieb, ist eine prozessbezogene Feststellung, aber keine dokumentierte Bewertung der Auswirkungen auf die Patientensicherheit oder die finale Produktqualität. Da der Root Cause zudem unaufgeklärt ist, ist die fehlende Auswirkungsbewertung ein schwerwiegender Befund.",
+        "evidence": [
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Die Biomasse-Entwicklung blieb im Akzeptanzkorridor, weshalb die Aufarbeitung fortgesetzt wurde.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Der Grund für die Drift konnte technisch nicht final aufgeklärt werden (Root Cause unaufgeklärt).",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_cbebd70250314c759df62c17fd2eecef",
+            "chunk_id": "chunk_cbebd70250314c759df62c17fd2eecef_p1",
+            "page": 1,
+            "quote": "Betroffene Charge:** CEF-BIOR-2026-77",
+            "document_name": "case_summary.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (pH-Drift, Root Cause unaufgeklärt) und die betroffene Charge, was den Kontext der Abweichung stützt. Da die Behauptung jedoch primär auf dem Fehlen einer dokumentierten Impact Assessment beruht, und die Zitate lediglich eine prozessbezogene Feststellung (Biomasse im Korridor) enthalten, ohne den geforderten Nachweis der Auswirkungsbewertung zu zeigen, tragen sie die Behauptung im Sinne der Lückenprüfung vollständig.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_oos_before_disposition",
+        "requirement_title": "OOS/OOT-Untersuchung vor Disposition",
+        "requirement_text": "Out-of-Specification- und Out-of-Trend-Ergebnisse müssen vollständig untersucht und bewertet sein, bevor eine Chargen- oder Marktware-Disposition erfolgt; Folgemaßnahmen duerfen nicht unzulässig aufgeschoben werden.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6.35",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Belegsuche für diese Anforderung fehlgeschlagen; sie bleibt unbeurteilt und gehört zur menschlichen Prüfung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_dev_risk_classification",
+        "requirement_title": "Begründete Risiko- und Schweregradeinstufung",
+        "requirement_text": "Die Einstufung einer Abweichung (z.B. Minor/Major/Kritisch) muss durch eine nachvollziehbare Risikobewertung belegt sein. Eine Einstufung als geringfuegig ohne belastbare physikalisch-chemische oder labortechnische Daten ist unzulässig, auch wenn das Produkt visuell unauffaellig ist.",
+        "source_name": "ICH Q9(R1)",
+        "section": "5.1",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Belegsuche für diese Anforderung fehlgeschlagen; sie bleibt unbeurteilt und gehört zur menschlichen Prüfung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_dev_root_cause",
+        "requirement_title": "Belegte Grundursache",
+        "requirement_text": "Die Grundursache einer Abweichung muss durch eine angemessene Untersuchung belegt sein. Eine Zuschreibung als 'Bedienerfehler' ist nur zulaessig, wenn technische Ursachen (z.B. Equipment, Kalibrierung, Alarme) dokumentiert ausgeschlossen wurden.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4(xiv)",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt eine belegte Grundursache und den dokumentierten Ausschluss technischer Ursachen. Das Zitat 0 bestätigt ausdrücklich, dass die Root Cause 'technisch nicht final aufgeklärt' wurde. Das Zitat 2 belegt einen manuellen Eingriff, bei dem der automatische Regelkreis deaktiviert und der Sollwert auf einen Wert (pH 7,70) gesetzt wurde, der die spezifizierte Obergrenze (pH 7,40) überschreitet. Dies stellt eine technische/operative Ursache dar, die nicht als 'Bedienerfehler' im Sinne eines Fehlers bei korrekter Systemkonfiguration abgetan werden kann, da die Systemgrenzen durch den manuellen Eingriff bewusst überschritten wurden. Da die Root Cause nicht final aufgeklärt ist und der technische Ausschluss (insbesondere die Rechtfertigung des manuellen Eingriffs über die Spezifikationsgrenze hinaus) nicht vorliegt, ist die Anforderung verletzt.",
+        "evidence": [
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Der Grund für die Drift konnte technisch nicht final aufgeklärt werden (Root Cause unaufgeklärt).",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken. (User: OPERATOR-TL)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 0 belegt explizit, dass die Root Cause technisch nicht final aufgeklärt wurde, was die Lücke im Nachweis der Grundursache bestätigt. Zitat 2 belegt den manuellen Eingriff und die Überschreitung der Spezifikationsgrenze (pH 7,70 > 7,40), was die im Rationale beschriebene operative/technische Ursache und das Fehlen eines dokumentierten Ausschlusses oder einer Rechtfertigung für diesen Grenzwertüberschreitungsvorgang untermauert. Damit tragen die Zitate die Schlussfolgerung, dass die Anforderung verletzt ist.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_di_access_override_control",
+        "requirement_title": "Zugriffskontrolle und manuelle Overrides",
+        "requirement_text": "Zugriffsrechte müssen rollenbasiert vergeben sein; manuelle Override- oder Admin-Eingriffe in GxP-Systeme müssen begründet, autorisiert und im Audit Trail nachvollziehbar sein.",
+        "source_name": "EU GMP Annex 11",
+        "section": "12",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Zitate belegen einen manuellen Override-Eingriff (Zitat 0), bei dem der automatische Regelkreis deaktiviert und der pH-Sollwert auf 7,70 erhöht wurde. Die Anforderung verlangt, dass solche Eingriffe begründet, autorisiert und im Audit Trail nachvollziehbar sein müssen. Zwar wird in Zitat 0 ein technischer Grund (Schaumbildung) genannt, jedoch fehlt in den vorliegenden Auszügen jeglicher Nachweis einer formellen Autorisierung (z. B. durch eine qualifizierte Person oder ein Freigabeverfahren) sowie einer rollenbasierten Berechtigung für diesen spezifischen Override. Zudem widerspricht die handschriftliche Anmerkung in Zitat 1 ('Keine besonderen Vorkommnisse') dem dokumentierten Override, was auf eine unzureichende Dokumentation oder ein Kontrollversagen hindeutet. Da der geforderte Nachweis der Autorisierung und des Berechtigungskonzepts fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "14:15 Uhr:** Manueller Eingriff über Operator-Konsole: Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken. (User: OPERATOR-TL)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Anmerkung im handschriftlichen Batch Record:* Keine besonderen Vorkommnisse in der Schicht. Werte stabil.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den manuellen Override (Zitat 0) und den Widerspruch in der Dokumentation (Zitat 1). Da die Zitate den auslösenden Vorgang zeigen, aber keinen Nachweis der geforderten formellen Autorisierung oder Berechtigung enthalten, tragen sie die Behauptung einer Lücke in der Dokumentation/Autorisierung.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_di_alcoa_completeness",
+        "requirement_title": "ALCOA+ Vollständigkeit der Aufzeichnungen",
+        "requirement_text": "Aufzeichnungen müssen zurechenbar, lesbar, zeitgleich, original und korrekt sowie vollständig, konsistent, dauerhaft und verfuegbar sein (ALCOA+). Fehlende oder nachtraeglich veraenderte Originaldaten sind zu begründen.",
+        "source_name": "PIC/S PI 041 (Data Integrity)",
+        "section": "8",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Aufzeichnungen sind nicht vollständig und konsistent im Sinne von ALCOA+. Zitat 0 belegt einen manuellen Eingriff, bei dem der pH-Sollwert auf 7,70 gesetzt wurde, was die Spezifikationsgrenze von 7,40 (Zitat 2) überschreitet. Zitat 1 behauptet jedoch, es habe keine besonderen Vorkommnisse gegeben und die Werte seien stabil, was im direkten Widerspruch zu den SCADA-Daten und dem Abweichungsbericht steht. Zudem ist in Zitat 3 ein Pflichtfeld im Change Control leer, was auf unvollständige Dokumentation hindeutet. Die nachträgliche Behauptung der Stabilität widerlegt die Primärevidenz der Drift nicht.",
+        "evidence": [
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "14:15 Uhr:** Manueller Eingriff über Operator-Konsole: Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken. (User: OPERATOR-TL)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Anmerkung im handschriftlichen Batch Record:* Keine besonderen Vorkommnisse in der Schicht. Werte stabil.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Die automatische Säuredosierung war korrekt kalibriert. Der Grund für die Drift konnte technisch nicht final aufgeklärt werden (Root Cause unaufgeklärt).",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Leitung Qualitätskontrolle (Leitung QK):* [Feld leer / Nicht gezeichnet]",
+            "document_name": "document_03_change_control.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 0 belegt den manuellen Eingriff und die Überschreitung der Spezifikation (pH 7,70 vs. implizite Grenze), Zitat 1 widerspricht diesen Fakten direkt (Behauptung der Stabilität), und Zitat 3 belegt die Lücke im Change Control (leeres Pflichtfeld). Damit wird die Behauptung der Inkonsistenz und Unvollständigkeit im Sinne von ALCOA+ durch die Primärevidenz gedeckt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_di_audit_trail_review",
+        "requirement_title": "Audit-Trail-Review",
+        "requirement_text": "GxP-relevante elektronische Daten müssen einen Audit Trail besitzen, der regelmäßig und risikobasiert geprüft wird; sicherheits- oder qualitätsrelevante Eintraege duerfen dabei nicht ausgeschlossen werden.",
+        "source_name": "EU GMP Annex 11",
+        "section": "9",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt einen dokumentierten Audit-Trail-Review. Die vorliegenden Auszüge zeigen zwar einen SCADA-Audit-Trail (Zitat 0) und einen kritischen manuellen Eingriff (Zitat 1), der einen Review auslösen müsste. Es fehlt jedoch jeglicher Nachweis, dass dieser Audit-Trail tatsächlich regelmäßig und risikobasiert geprüft wurde. Die handschriftliche Anmerkung 'Keine besonderen Vorkommnisse' (Zitat 2) ist eine nachträgliche Behauptung ohne Primärevidenz (wie eine signierte Review-Checkliste) und belegt keine Durchführungs des Reviews. Da der auslösende Vorgang (kritischer Eingriff) belegt ist, der geforderte Nachweis (Review) aber fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "## Chronologischer Ablauf (05.05.2026)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "- **14:15 Uhr:** Manueller Eingriff über Operator-Konsole: Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken. (User: OPERATOR-TL)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "*Anmerkung im handschriftlichen Batch Record:* Keine besonderen Vorkommnisse in der Schicht. Werte stabil.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (kritischer manueller Eingriff in den pH-Wert) und die handschriftliche Anmerkung, die behauptet, es habe keine besonderen Vorkommnisse gegeben. Die Behauptung (Rationale) argumentiert, dass es an einem Nachweis für die Durchführung eines Audit-Trail-Reviews mangelt. Da die Zitate den kritischen Eingriff zeigen, aber keinen Beleg für ein durchgeführtes Review (wie eine signierte Checkliste) enthalten, tragen sie die Behauptung einer Lücke im Review-Nachweis. Gemäß den Anweisungen genügt es bei einer behaupteten Lücke, wenn die Zitate den auslösenden Vorgang belegen und keines den geforderten Nachweis zeigt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_di_signature_plausibility",
+        "requirement_title": "Plausibilitaet von Signatur und Datum",
+        "requirement_text": "Elektronische Unterschriften müssen Name, Datum und Zeit der Signatur sowie deren Bedeutung enthalten; Datums- und Zeitangaben müssen zeitlich plausibel und konsistent mit dem Vorgang sein. In der Zukunft liegende oder widerspruechliche Signaturdaten sind Datenintegritaetsbefunde.",
+        "source_name": "21 CFR Part 11",
+        "section": "11.50",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt, dass elektronische Unterschriften Name, Datum und Zeit enthalten und zeitlich plausibel sind. Die vorliegenden Zitate zeigen, dass das Feld für die Leitung Qualitätskontrolle leer ist (Zitat 2), was einen Befund darstellt. Zudem fehlen in den angeführten Signaturdaten (Zitate 0 und 1) explizite Zeitangaben, was die Erfüllung der Anforderung nicht belegt. Der manuelle Eingriff im Audit Trail (Zitat 3) enthält zwar eine Zeitangabe, ist aber keine Unterschrift im Sinne der Anforderung. Da die Pflichtfelder nicht vollständig und korrekt ausgefüllt sind, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "- *Antragsteller:* Dr. V. Forst (Produktion) – 01.05.2026",
+            "document_name": "document_03_change_control.md"
+          },
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "- *Qualitätssicherung:* Dr. S. Niemand – 03.05.2026",
+            "document_name": "document_03_change_control.md"
+          },
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "- *Leitung Qualitätskontrolle (Leitung QK):* [Feld leer / Nicht gezeichnet]",
+            "document_name": "document_03_change_control.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen die in der Behauptung genannten Tatsachen: Zitat 2 zeigt, dass das Feld für die Leitung QK leer ist, und Zitate 0 und 1 zeigen, dass die vorhandenen Signaturen nur Datum, aber keine explizite Zeitangabe enthalten. Dies stützt die Schlussfolgerung, dass die Pflichtfelder (Name, Datum, Zeit) nicht vollständig ausgefüllt sind und somit ein Verstoß vorliegt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_doc_cross_consistency",
+        "requirement_title": "Konsistenz ueber alle Dokumente eines Vorgangs",
+        "requirement_text": "Angaben zu Chargen, Daten, Mengen, Temperaturen, Ergebnissen und Status müssen ueber alle Dokumente eines Vorgangs (Bericht, Batch Record, Anhaenge, Freigabenotiz) konsistent sein; Widersprueche müssen aufgeklaert werden.",
+        "source_name": "EU GMP Kapitel 4",
+        "section": "4.1",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Dokumente enthalten erhebliche Widersprüche und unvollständige Freigaben, die die Anforderung an die Konsistenz verletzen. Erstens wird im Change Control Antrag (CC-2026-104) versichert, dass der pH-Sensoraustausch erst im September 2026 erfolgt und bis dahin die alten analogen Sensoren exklusiv im Einsatz bleiben (Zitat 1). Im Batch Record (Zitat 3) wird jedoch am 05.05.2026 ein manueller Eingriff über eine 'Operator-Konsole' dokumentiert, bei der der automatische Regelkreis deaktiviert und der Sollwert geändert wurde. Dies impliziert die Nutzung digitaler Steuerungsfunktionen, die mit der Aussage der 'exklusiven' Nutzung analoger Sensoren in Konflikt stehen oder zumindest nicht geklärt sind. Zweitens dokumentiert das Batch Record (Zitat 2) handschriftlich 'Keine besonderen Vorkommnisse in der Schicht. Werte stabil', während der SCADA-Audit-Trail im selben Dokument (Zitat 3) einen manuellen Eingriff zur Deaktivierung der Regelung und die Abweichungsbericht (Zitat 4) eine 6-stündige pH-Drift bis 7,85 (Grenzwert 7,40) mit unaufgeklärter Ursache belegt. Die Aussage 'Werte stabil' ist faktisch falsch und widerspricht den Primärdaten. Drittens ist das Unterschriftenfeld für die Leitung Qualitätskontrolle im Change Control Antrag leer (Zitat 0), was eine unvollständige Freigabe darstellt. Diese Widersprüche und das fehlende Unterschriftenfeld belegen einen Verstoß gegen die Anforderung der Konsistenz und vollständigen Dokumentation.",
+        "evidence": [
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Leitung Qualitätskontrolle (Leitung QK):* [Feld leer / Nicht gezeichnet]",
+            "document_name": "document_03_change_control.md"
+          },
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Im Antragstext wird explizit versichert, dass der Austausch des Sensortyps erst zur nächsten regulären Großwartung im September 2026 vollzogen wird und bis dahin die alten analogen Sensoren exklusiv im Einsatz verbleiben.",
+            "document_name": "document_03_change_control.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Anmerkung im handschriftlichen Batch Record:* Keine besonderen Vorkommnisse in der Schicht. Werte stabil.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "14:15 Uhr:** Manueller Eingriff über Operator-Konsole: Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken. (User: OPERATOR-TL)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Die automatische Säuredosierung war korrekt kalibriert. Der Grund für die Drift konnte technisch nicht final aufgeklärt werden (Root Cause unaufgeklärt).",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen die im Rationale genannten Widersprüche und Lücken. Zitat 0 bestätigt das leere Unterschriftenfeld. Zitat 1 und Zitat 3 widersprechen sich hinsichtlich der Nutzung analoger vs. digitaler Steuerung (Operator-Konsole). Zitat 2 ('Werte stabil') widerspricht Zitat 4 (pH-Drift bis 7,85 bei Grenzwert 7,40). Damit tragen die Zitate die Behauptung der Inkonsistenz und unvollständigen Dokumentation vollständig.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_doc_mandatory_attachments",
+        "requirement_title": "Vollständigkeit der Pflichtanhaenge",
+        "requirement_text": "Alle in einem Vorgang referenzierten Pflichtanhaenge und Nachweise müssen tatsaechlich vorhanden und aktuell sein.",
+        "source_name": "EU GMP Kapitel 4",
+        "section": "4.x",
+        "model_status": "violated",
+        "published_status": "unclear",
+        "severity": "medium",
+        "rationale": "Die Anforderung verlangt, dass alle referenzierten Pflichtanhangs tatsächlich vorhanden und aktuell sind. Das Zitat 0 listet drei Dokumente als Teil der Vorgangsdateien auf, was auf deren Referenzierung hindeutet. Das Zitat 1 belegt jedoch, dass im Change Control Antrag (eines der referenzierten Dokumente) das Pflichtfeld für die Unterschrift der Leitung Qualitätskontrolle leer ist. Ein leeres Pflichtfeld in einem GMP-relevanten Dokument stellt einen Befund dar, der die Vollständigkeit und Gültigkeit des Nachweises beeinträchtigt. Da die Unterschrift fehlt, ist der Nachweis nicht vollständig, was einen Verstoß gegen die Anforderung der Vollständigkeit der Pflichtanhangs darstellt.",
+        "evidence": [
+          {
+            "document_id": "doc_cbebd70250314c759df62c17fd2eecef",
+            "chunk_id": "chunk_cbebd70250314c759df62c17fd2eecef_p1",
+            "page": 1,
+            "quote": "1. document_01_deviation_report.md\n  2. document_02_batch_record_excerpt.md\n  3. document_03_change_control.md",
+            "document_name": "case_summary.md"
+          }
+        ],
+        "dropped_evidence_count": 1,
+        "dropped_evidence_reasons": [
+          "Zitat verworfen (chunk_c1653f00e512459ab01e2b0935efc0e1_p1): nicht im Chunk auffindbar, auch nicht nach Reparatur: „Leitung QualitÃ¤tskontrolle (Leitung QK): [Feld leer / Nicht gezeichnet]“"
+        ],
+        "provenance_ok": false,
+        "entailment": "none",
+        "entailment_reason": "Die Behauptung stützt sich darauf, dass ein Pflichtfeld (Unterschrift) in einem der referenzierten Dokumente (Change Control) leer ist. Das bereitgestellte Zitat 1 (document_03_change_control.md) ist jedoch nur der Dateiname und enthält keinen wörtlichen Textauszug, der das leere Feld oder die fehlende Unterschrift belegt. Ohne den tatsächlichen Inhalt des Dokuments, der die Lücke zeigt, kann die Behauptung nicht durch die Zitate gestützt werden.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": true,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_process_parameter_limits",
+        "requirement_title": "Einhaltung von Prozessparametern",
+        "requirement_text": "Kritische Prozessparameter müssen innerhalb der spezifizierten Grenzen liegen. Eine Ueber- oder Unterschreitung ist als Abweichung zu bewerten, auch wenn das Produkt visuell unauffaellig erscheint.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.x",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Zitate belegen einen klaren Verstoß gegen die spezifizierten Prozessparameter. Zitat 3 dokumentiert, dass der pH-Wert für 6 Stunden über der Obergrenze von 7,40 lag (Spitzenwert 7,85). Zitat 2 belegt den manuellen Eingriff, bei dem der Sollwert auf 7,70 gesetzt wurde, was die Grenzüberschreitung direkt verursachte. Zitat 1 zeigt, dass im Batch Record fälschlicherweise 'keine besonderen Vorkommnisse' vermerkt wurden, was die Dokumentation unvollständig macht. Zitat 4 bestätigt, dass die Aufarbeitung trotz der Abweichung fortgesetzt wurde, ohne dass die Root Cause aufgeklärt wurde. Dies erfüllt die Kriterien für 'violated', da die Grenzwerte überschritten wurden und die Dokumentation die Abweichung nicht korrekt widerspiegelt.",
+        "evidence": [
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "14:15 Uhr:** Manueller Eingriff über Operator-Konsole: Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken. (User: OPERATOR-TL)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "In Phase 3 der Fermentation driftete der pH-Wert im Bioreaktor BIO-10 für 6 Stunden nach oben ab und erreichte Spitzenwerte von pH 7,85. Die spezifizierte Obergrenze liegt bei pH 7,40.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Anmerkung im handschriftlichen Batch Record:* Keine besonderen Vorkommnisse in der Schicht. Werte stabil.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Die Biomasse-Entwicklung blieb im Akzeptanzkorridor, weshalb die Aufarbeitung fortgesetzt wurde.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Warnmeldung SCADA: „pH-Wert nähert sich oberer Warngrenze (7,35)“",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "erreichte Spitzenwerte von pH 7,85",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Obergrenze liegt bei pH 7,40.",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 2 belegt den manuellen Eingriff und die Erhöhung des Sollwerts auf pH 7,70. Zitat 3 bestätigt die tatsächliche Überschreitung der Obergrenze (pH 7,40) mit einem Spitzenwert von 7,85 über einen Zeitraum von 6 Stunden. Zitat 1 belegt die unvollständige Dokumentation im Batch Record ('keine besonderen Vorkommnisse'), und Zitat 4 bestätigt die Fortsetzung der Aufarbeitung trotz der Abweichung. Alle in der Rationale genannten Punkte sind durch die Zitate gedeckt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [
+          "measurement_outside_specification",
+          "measurement_outside_specification"
+        ],
+        "validator_statements": [
+          "Der Messwert 7,70 für 'pH' liegt außerhalb der deklarierten Grenze (NMT 7,35).",
+          "Der Messwert 7,85 für 'pH-Wert' liegt außerhalb der deklarierten Grenze (NMT 7,40)."
+        ],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_qa_approval_documented",
+        "requirement_title": "Dokumentierte QA-Freigabe",
+        "requirement_text": "QA-Freigaben und Genehmigungen müssen vor Abschluss dokumentiert vorliegen. Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4(xv)",
+        "model_status": "unclear",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Keine einschlägige Stelle in den Auszügen gefunden: Der Change Control Antrag weist ein leeres Unterschriftenfeld fÃ¼r die Leitung QK auf, was auf eine fehlende dokumentierte QA-Freigabe hindeutet, obwohl der Vorgang bereits abgeschlossen oder in Umsetzung ist.",
+        "evidence": [
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Leitung Qualitätskontrolle (Leitung QK):* [Feld leer / Nicht gezeichnet]",
+            "document_name": "document_03_change_control.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [
+          "empty_required_field"
+        ],
+        "validator_statements": [
+          "Das Pflichtfeld 'Leitung Qualitätskontrolle (Leitung QK)' (Leitung Qualitätskontrolle) ist nicht gezeichnet: Das Feld existiert, trägt aber keinen Unterzeichner."
+        ],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_affected_batch_scope_includes_retests",
+        "requirement_title": "Betroffene Chargen inklusive Retests und Rückstellmuster",
+        "requirement_text": "Die Batch-Impact-Bewertung eines QC-Change-Control-Pakets muss alle betroffenen Chargen, Retests und Rückstellmuster enthalten. Eine Charge oder ein Retest im Execution Record darf nicht als ausserhalb des Scopes behandelt werden, wenn neuer Grenzwert, neues Berechnungssheet oder geänderte Spezifikation verwendet werden.",
+        "source_name": "GMP Change-Control Batch-Impact Checklist",
+        "section": "affected-batch-scope",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_equipment_site_bridge_for_comparator_evidence",
+        "requirement_title": "Geraete- und Standort-Bridging für Vergleichsevidenz",
+        "requirement_text": "Vergleichsdaten von anderem Standort oder anderer Geraeteplattform duerfen eine QC-Methodenentscheidung nur stuetzen, wenn eine dokumentierte Geraeteaequivalenz, ein Transfer- oder Bridging-Nachweis oder eine genehmigte fachliche Begründung vorliegt.",
+        "source_name": "EU GMP Kapitel 6 / ICH Q2(R2)",
+        "section": "method-transfer-bridging",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_limit_fitness_at_tightened_limit",
+        "requirement_title": "Methodenfitness am verschaerften quantitativen Grenzwert",
+        "requirement_text": "Wenn ein quantitativer QC-Grenzwert verschaerft wird, muss die Methodenfitness für die Entscheidung am neuen Grenzwert belegt sein. Historische Validierung für einen weniger strengen Grenzwert reicht nur aus, wenn Genauigkeit, Präzision, Linearitaet und Reporting Capability am neuen Grenzwert oder darunter nachvollziehbar abgedeckt sind.",
+        "source_name": "ICH Q2(R2) / EU GMP Kapitel 6",
+        "section": "fitness-for-intended-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_qa_approval_before_first_gmp_use",
+        "requirement_title": "QA-Freigabe vor erster GMP-Anwendung",
+        "requirement_text": "Eine geänderte QC-Spezifikation oder Methode darf für GMP-Freigabeentscheidungen erst verwendet werden, wenn die erforderliche QA-Genehmigung dokumentiert ist. Geplante oder ausstehende Freigaben reichen vor der ersten Chargenfreigabe nicht aus.",
+        "source_name": "EU GMP Kapitel 1 und 4",
+        "section": "change-approval-before-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_training_before_effective_sop_use",
+        "requirement_title": "Training vor wirksamer SOP- oder Spezifikationsanwendung",
+        "requirement_text": "Wenn eine SOP-Version oder Spezifikationsanweisung für eine QC-Freigabeentscheidung verbindlich ist, muss das betroffene Personal vor der Anwendung geschult sein. Eine Einstufung als nicht trainingsrelevant ist zu begründen und darf nicht im Widerspruch zur gueltigen SOP oder zum Batch Record stehen.",
+        "source_name": "EU GMP Kapitel 2 und 4",
+        "section": "training-before-effective-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_spec_acceptance_limits",
+        "requirement_title": "Einhaltung von Spezifikationen und Akzeptanzkriterien",
+        "requirement_text": "Mess- und Prüfergebnisse müssen gegen die gueltige interne Spezifikation bewertet werden. Eine Verletzung interner Akzeptanzkriterien ist auch dann als Abweichung zu behandeln, wenn ein Lieferanten-Zertifikat Konformitaet ausweist.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Zitate belegen, dass der pH-Wert die spezifizierte Obergrenze von 7,40 überschritt (Spitzenwert 7,85). Dies stellt eine Verletzung der internen Akzeptanzkriterien dar. Die Anforderung verlangt, dass Messergebnisse gegen die gültige interne Spezifikation bewertet werden und eine Verletzung als Abweichung behandelt wird. Da die Abweichung (DEV-CEF-77) dokumentiert ist, wurde der Vorgang als Abweichung erkannt. Allerdings fehlt in den vorliegenden Auszügen der explizite Nachweis der Bewertung der Messergebnisse gegen die Spezifikation im Sinne einer formalen Abweichungsbeurteilung (z.B. Impact Assessment, CAPA-Verknüpfung oder formale Freigabeentscheidung basierend auf der Spezifikationsverletzung). Der Text erwähnt zwar, dass die Aufarbeitung fortgesetzt wurde, weil die Biomasse im Korridor lag, aber es fehlt der direkte Nachweis, dass die pH-Verletzung selbst als Abweichung gemäß der Anforderung 'Einhaltung von Spezifikationen' formal bewertet und dokumentiert wurde, abgesehen von der Existenz des Berichts. Da die Verletzung der Grenze (Quote 0 und 1) klar belegt ist und die Anforderung verlangt, dass dies als Abweichung behandelt wird, ist der Status 'violated' korrekt, da der Nachweis der korrekten Bewertung/Behandlung im Sinne der Anforderung (Prüfergebnis gegen Spezifikation) in den Auszügen nicht vollständig als 'erfüllt' nachgewiesen werden kann, sondern nur der Verstoß selbst. Genauer: Die Anforderung ist erfüllt, wenn die Bewertung stattgefunden hat. Hier liegt eine Verletzung der Spezifikation vor. Die Frage ist, ob die Anforderung 'Einhaltung' verletzt wurde (ja, pH war zu hoch) oder ob die Anforderung 'Bewertung gegen Spezifikation' verletzt wurde. Die Anforderungstext sagt: 'Mess- und Prüfergebnisse müssen gegen die gültige interne Spezifikation bewertet werden.' Die Zitate zeigen, dass die Spezifikation existiert (Quote 0) und dass der Wert sie verletzt hat (Quote 1). Es wird nicht explizit gezeigt, dass eine formale Bewertung 'gegen die Spezifikation' als Abweichung dokumentiert wurde, abgesehen von der Existenz des Abweichungsberichts. Da der Abweichungsbericht existiert, wurde der Vorgang als Abweichung behandelt. Aber die Anforderung verlangt die Bewertung. Ist die Bewertung nachgewiesen? Der Bericht sagt 'Root Cause unaufgeklärt'. Das ist ein Befund. Die Anforderung ist 'Einhaltung von Spezifikationen'. Da der pH-Wert die Spezifikation verletzt hat, ist die Anforderung 'Einhaltung' verletzt. Der Status 'violated' ist daher korrekt, da die Spezifikation nicht eingehalten wurde.",
+        "evidence": [
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Obergrenze liegt bei pH 7,40.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "erreichte Spitzenwerte von pH 7,85",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen eindeutig, dass die spezifizierte Obergrenze (pH 7,40) durch den gemessenen Spitzenwert (pH 7,85) überschritten wurde. Dies stützt den Kern der Behauptung, dass eine Verletzung der internen Spezifikation vorliegt. Die Behauptung im Rationale argumentiert, dass der Status 'violated' korrekt ist, weil die Spezifikation nicht eingehalten wurde. Da die Zitate den Verstoß gegen die Spezifikation direkt nachweisen, tragen sie die zentrale Prämisse der Behauptung. Die im Rationale erwähnten fehlenden Nachweise (wie formale Bewertung) sind Teil der Begründung für die Einordnung, aber die Zitate selbst liefern den entscheidenden Beleg für den Verstoß, der die Behauptung der Nicht-Einhaltung stützt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [
+          "measurement_outside_specification"
+        ],
+        "validator_statements": [
+          "Der Messwert 7,85 für 'pH-Wert' liegt außerhalb der deklarierten Grenze (NMT 7,40)."
+        ],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_supplier_change_impact",
+        "requirement_title": "Bewertung von Lieferanten- und Materialänderungen",
+        "requirement_text": "Änderungen an Lieferant, Material, Spezifikation, Methode oder Quelle duerfen nicht ohne Begründung als 'no impact' gewertet werden; die Auswirkung auf Qualität und Validierung ist zu bewerten.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.27",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Auszüge belegen den Auslöser für die Anforderung: Es ist eine Materialänderung (Austausch des pH-Sensors) dokumentiert (Zitat 1). Die Anforderung verlangt jedoch eine Bewertung des Impacts auf Qualität und Validierung sowie eine Lieferantenbewertung. In den bereitgestellten Texten fehlt jegliche Dokumentation dieser Bewertung. Zudem wird die Änderung als 'präventiv' eingestuft (Zitat 0), was die Notwendigkeit einer Impact-Bewertung vor der Umsetzung nicht entbindet, sondern diese erst auslöst. Da der geforderte Nachweis (Impact-Bewertung) in den Auszügen fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Der Change wurde als **nicht-reaktiv / präventiv** eingestuft.",
+            "document_name": "document_03_change_control.md"
+          },
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Im Antragstext wird explizit versichert, dass der Austausch des Sensortyps erst zur nächsten regulären Großwartung im September 2026 vollzogen wird und bis dahin die alten analogen Sensoren exklusiv im Einsatz verbleiben.",
+            "document_name": "document_03_change_control.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (Materialänderung) und die Einstufung als präventiv, was die Notwendigkeit einer Impact-Bewertung impliziert. Da in den Zitatensammlungen keine Dokumentation dieser Bewertung enthalten ist, stützen die Zitate die Behauptung, dass der geforderte Nachweis fehlt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_training_effectiveness",
+        "requirement_title": "Wirksames Training nach SOP-Änderung",
+        "requirement_text": "Wird eine SOP aktualisiert, muss das betroffene Personal nachweislich und wirksam geschult sein, bevor die geänderte Taetigkeit ausgeführt wird.",
+        "source_name": "EU GMP Kapitel 2",
+        "section": "2.x",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Laut Belegsuche nicht einschlägig: Der vorliegende Vorgang dokumentiert eine Abweichung und einen geplanten, noch nicht durchgeführten Change Control, enthält jedoch keine Hinweise auf eine aktualisierte SOP oder die damit verbundene Schulungspflicht für das Personal, weshalb die Anforderung nicht greift.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_val_cleaning_sterility",
+        "requirement_title": "Reinigungsvalidierung und Sterilitaetssicherung",
+        "requirement_text": "Reinigungs- und Sterilitaetsrisiken müssen explizit adressiert und durch geeignete Validierung und Kontaminationskontrollstrategie belegt sein; eine nur indirekte Erwaehnung ist nicht ausreichend.",
+        "source_name": "EU GMP Annex 1",
+        "section": "Kontaminationskontrolle",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Laut Belegsuche nicht einschlägig: Die vorliegenden Dokumente beschreiben eine Abweichung im Fermentationsprozess (pH-Drift) und eine geplante Sensoränderung, enthalten jedoch keinerlei Informationen zu Reinigungsvalidierungen oder Sterilitätskontrollen, da es sich um einen nicht-sterilen Bioreaktor-Prozess handelt und die relevanten Validierungsdaten nicht im Auszug vorhanden sind.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_val_coverage_current_state",
+        "requirement_title": "Validierungsabdeckung des aktuellen Zustands",
+        "requirement_text": "Validierungs-, Reinigungsvalidierungs- und Sterilisationsnachweise müssen den aktuellen Prozess-, Equipment- und Standortzustand abdecken. Veraltete oder nicht übertragbare Evidenz (anderes Equipment, anderer Standort, abgelaufene Version) ist kein gueltiger Nachweis.",
+        "source_name": "EU GMP Annex 15",
+        "section": "Validierung",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Belegsuche für diese Anforderung fehlgeschlagen; sie bleibt unbeurteilt und gehört zur menschlichen Prüfung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      }
+    ],
+    "status_counts": {
+      "violated": 16,
+      "unclear": 5,
+      "not_applicable": 7
+    },
+    "failed_model_call_count": 4,
+    "validator_findings": [
+      {
+        "validator_id": "empty_required_field",
+        "requirement_ids": [
+          "req_qa_approval_documented"
+        ],
+        "severity": "high",
+        "statement": "Das Pflichtfeld 'Leitung Qualitätskontrolle (Leitung QK)' (Leitung Qualitätskontrolle) ist nicht gezeichnet: Das Feld existiert, trägt aber keinen Unterzeichner.",
+        "locations": [
+          {
+            "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+            "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+            "page": 1,
+            "quote": "Leitung Qualitätskontrolle (Leitung QK):* [Feld leer / Nicht gezeichnet]"
+          }
+        ]
+      },
+      {
+        "validator_id": "measurement_outside_specification",
+        "requirement_ids": [
+          "req_process_parameter_limits"
+        ],
+        "severity": "high",
+        "statement": "Der Messwert 7,70 für 'pH' liegt außerhalb der deklarierten Grenze (NMT 7,35).",
+        "locations": [
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt"
+          },
+          {
+            "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+            "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+            "page": 1,
+            "quote": "Warnmeldung SCADA: „pH-Wert nähert sich oberer Warngrenze (7,35)“"
+          }
+        ]
+      },
+      {
+        "validator_id": "measurement_outside_specification",
+        "requirement_ids": [
+          "req_process_parameter_limits",
+          "req_spec_acceptance_limits"
+        ],
+        "severity": "high",
+        "statement": "Der Messwert 7,85 für 'pH-Wert' liegt außerhalb der deklarierten Grenze (NMT 7,40).",
+        "locations": [
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "erreichte Spitzenwerte von pH 7,85"
+          },
+          {
+            "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+            "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+            "page": 1,
+            "quote": "Die spezifizierte Obergrenze liegt bei pH 7,40."
+          }
+        ]
+      }
+    ],
+    "extracted_evidence": {
+      "counts": {
+        "signatures": 3,
+        "measurements": 3,
+        "specifications": 2,
+        "action_items": 0,
+        "events": 8
+      },
+      "dropped_unverifiable": {},
+      "rows": {
+        "signatures": [
+          {
+            "field_label": "Antragsteller",
+            "role": "Antragsteller",
+            "signer": "Dr. V. Forst",
+            "date": "01.05.2026",
+            "is_empty": false,
+            "requirement_ids": [],
+            "location": {
+              "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+              "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+              "page": 1,
+              "quote": "Antragsteller:* Dr. V. Forst (Produktion) – 01.05.2026"
+            }
+          },
+          {
+            "field_label": "Qualitätssicherung",
+            "role": "Qualitätssicherung",
+            "signer": "Dr. S. Niemand",
+            "date": "03.05.2026",
+            "is_empty": false,
+            "requirement_ids": [],
+            "location": {
+              "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+              "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+              "page": 1,
+              "quote": "Qualitätssicherung:* Dr. S. Niemand – 03.05.2026"
+            }
+          },
+          {
+            "field_label": "Leitung Qualitätskontrolle (Leitung QK)",
+            "role": "Leitung Qualitätskontrolle",
+            "signer": null,
+            "date": null,
+            "is_empty": true,
+            "requirement_ids": [
+              "req_qa_approval_documented"
+            ],
+            "location": {
+              "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+              "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+              "page": 1,
+              "quote": "Leitung Qualitätskontrolle (Leitung QK):* [Feld leer / Nicht gezeichnet]"
+            }
+          }
+        ],
+        "measurements": [
+          {
+            "parameter": "pH-Wert",
+            "value": "7,85",
+            "unit": null,
+            "requirement_ids": [
+              "req_process_parameter_limits",
+              "req_spec_acceptance_limits"
+            ],
+            "location": {
+              "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+              "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+              "page": 1,
+              "quote": "erreichte Spitzenwerte von pH 7,85"
+            }
+          },
+          {
+            "parameter": "pH",
+            "value": "7,20",
+            "unit": null,
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+              "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+              "page": 1,
+              "quote": "Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt"
+            }
+          },
+          {
+            "parameter": "pH",
+            "value": "7,70",
+            "unit": null,
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+              "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+              "page": 1,
+              "quote": "Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt"
+            }
+          }
+        ],
+        "specifications": [
+          {
+            "parameter": "pH-Wert",
+            "operator": "NMT",
+            "limit_low": null,
+            "limit_high": "7,40",
+            "unit": null,
+            "requirement_ids": [
+              "req_process_parameter_limits",
+              "req_spec_acceptance_limits"
+            ],
+            "location": {
+              "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+              "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+              "page": 1,
+              "quote": "Die spezifizierte Obergrenze liegt bei pH 7,40."
+            }
+          },
+          {
+            "parameter": "pH",
+            "operator": "NMT",
+            "limit_low": null,
+            "limit_high": "7,35",
+            "unit": null,
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+              "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+              "page": 1,
+              "quote": "Warnmeldung SCADA: „pH-Wert nähert sich oberer Warngrenze (7,35)“"
+            }
+          }
+        ],
+        "action_items": [],
+        "events": [
+          {
+            "description": "pH-Wert driftete im Bioreaktor BIO-10 für 6 Stunden nach oben ab und erreichte Spitzenwerte von pH 7,85.",
+            "timestamp": "05.05.2026",
+            "actor": null,
+            "role": "event",
+            "refers_to": "DEV-CEF-77",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_process_parameter_limits",
+              "req_dev_impact_assessment"
+            ],
+            "location": {
+              "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+              "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+              "page": 1,
+              "quote": "In Phase 3 der Fermentation driftete der pH-Wert im Bioreaktor BIO-10 für 6 Stunden nach oben ab und erreichte Spitzenwerte von pH 7,85."
+            }
+          },
+          {
+            "description": "Die automatische Säuredosierung war korrekt kalibriert.",
+            "timestamp": "05.05.2026",
+            "actor": null,
+            "role": "investigation",
+            "refers_to": "DEV-CEF-77",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_root_cause"
+            ],
+            "location": {
+              "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+              "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+              "page": 1,
+              "quote": "Die automatische Säuredosierung war korrekt kalibriert."
+            }
+          },
+          {
+            "description": "Die Biomasse-Entwicklung blieb im Akzeptanzkorridor, weshalb die Aufarbeitung fortgesetzt wurde.",
+            "timestamp": "05.05.2026",
+            "actor": null,
+            "role": "assessment",
+            "refers_to": "DEV-CEF-77",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_impact_assessment",
+              "req_batch_disposition_trace"
+            ],
+            "location": {
+              "document_id": "doc_9537ad21fcf04592b350b1b37e3c8fcd",
+              "chunk_id": "chunk_9537ad21fcf04592b350b1b37e3c8fcd_p1",
+              "page": 1,
+              "quote": "Die Biomasse-Entwicklung blieb im Akzeptanzkorridor, weshalb die Aufarbeitung fortgesetzt wurde."
+            }
+          },
+          {
+            "description": "Warnmeldung SCADA: pH-Wert nähert sich oberer Warngrenze (7,35)",
+            "timestamp": "14:00 Uhr",
+            "actor": null,
+            "role": "event",
+            "refers_to": null,
+            "activity_key": null,
+            "requirement_ids": [
+              "req_process_parameter_limits",
+              "req_di_audit_trail_review"
+            ],
+            "location": {
+              "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+              "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+              "page": 1,
+              "quote": "14:00 Uhr:** Warnmeldung SCADA: „pH-Wert nähert sich oberer Warngrenze (7,35)“"
+            }
+          },
+          {
+            "description": "Manueller Eingriff über Operator-Konsole: Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken.",
+            "timestamp": "14:15 Uhr",
+            "actor": null,
+            "role": "event",
+            "refers_to": null,
+            "activity_key": null,
+            "requirement_ids": [
+              "req_di_access_override_control",
+              "req_process_parameter_limits",
+              "req_dev_root_cause"
+            ],
+            "location": {
+              "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+              "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+              "page": 1,
+              "quote": "14:15 Uhr:** Manueller Eingriff über Operator-Konsole: Der automatische Regelkreis für die pH-Sollwertführung wurde temporär deaktiviert. Der Sollwert wurde händisch von pH 7,20 auf pH 7,70 hochgesetzt, um Schaumbildung zu unterdrücken. (User: OPERATOR-TL)"
+            }
+          },
+          {
+            "description": "Automatischer Sollwert-Reset durch das System nach Phasenwechsel.",
+            "timestamp": "20:15 Uhr",
+            "actor": null,
+            "role": "event",
+            "refers_to": null,
+            "activity_key": null,
+            "requirement_ids": [
+              "req_process_parameter_limits"
+            ],
+            "location": {
+              "document_id": "doc_9b199b3e3b4f4895899b7fa47c60075c",
+              "chunk_id": "chunk_9b199b3e3b4f4895899b7fa47c60075c_p1",
+              "page": 1,
+              "quote": "20:15 Uhr:** Automatischer Sollwert-Reset durch das System nach Phasenwechsel."
+            }
+          },
+          {
+            "description": "Antragstellung durch Dr. V. Forst",
+            "timestamp": "01.05.2026",
+            "actor": null,
+            "role": "other",
+            "refers_to": "CC-2026-104",
+            "activity_key": null,
+            "requirement_ids": [],
+            "location": {
+              "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+              "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+              "page": 1,
+              "quote": "Antragsteller:* Dr. V. Forst (Produktion) – 01.05.2026"
+            }
+          },
+          {
+            "description": "Genehmigung durch Qualitätssicherung (Dr. S. Niemand)",
+            "timestamp": "03.05.2026",
+            "actor": null,
+            "role": "approval",
+            "refers_to": "CC-2026-104",
+            "activity_key": null,
+            "requirement_ids": [],
+            "location": {
+              "document_id": "doc_c1653f00e512459ab01e2b0935efc0e1",
+              "chunk_id": "chunk_c1653f00e512459ab01e2b0935efc0e1_p1",
+              "page": 1,
+              "quote": "Qualitätssicherung:* Dr. S. Niemand – 03.05.2026"
+            }
+          }
+        ]
+      }
+    },
+    "model_calls": []
+  }
+}
