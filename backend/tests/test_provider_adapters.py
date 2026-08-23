@@ -1458,3 +1458,36 @@ def test_hetzner_routes_through_both_engines_with_its_own_timeout(
     assert engine.entailment_provider.provider_name == "anthropic"
     assert engine.entailment_provider.runtime_options.timeout_seconds == 240
 
+
+
+def test_breaker_opening_is_logged_and_posted_once(monkeypatch: pytest.MonkeyPatch, caplog: Any) -> None:
+    """Three failures open the breaker; the alert fires exactly at the third."""
+    import logging
+
+    from app.agents.providers import base as base_module
+
+    monkeypatch.setenv("QRM_EXTERNAL_MODEL_CALLS_ENABLED", "true")
+    monkeypatch.setenv("QRM_ALLOWED_MODEL_PROVIDERS", "openai")
+    monkeypatch.setenv("QRM_OPENAI_API_KEY", "k")
+    monkeypatch.setenv("QRM_ALERT_WEBHOOK_URL", "https://alerts.example/hook")
+    get_settings.cache_clear()
+    posted: list[dict[str, Any]] = []
+    monkeypatch.setattr(base_module.httpx, "post", lambda url, **kw: posted.append({"url": url, **kw}))
+    provider = OpenAIProvider(
+        configured_model_id="gpt-alert-test",
+        runtime_options=ProviderRuntimeOptions(max_retries=0, circuit_breaker_failure_threshold=3),
+    )
+    provider._clear_failures()
+    monkeypatch.setattr(provider, "_post_json", lambda **_: (_ for _ in ()).throw(ProviderCallError("openai provider call failed with HTTP 503", retryable=True)))
+
+    with caplog.at_level(logging.ERROR, logger="qrm.providers"):
+        for _ in range(3):
+            with pytest.raises(ProviderCallError):
+                provider.run_structured("x", {}, SimpleOutput)
+
+    assert len(posted) == 1
+    assert posted[0]["url"] == "https://alerts.example/hook"
+    assert posted[0]["json"]["provider"] == "openai"
+    assert posted[0]["json"]["consecutive_failures"] == 3
+    assert "circuit breaker opened" in caplog.text
+    provider._clear_failures()

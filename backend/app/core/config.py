@@ -156,6 +156,9 @@ class Settings(BaseSettings):
     # Anthropic call, so a 1,600 cap truncated nearly every reviewer.
     model_provider_max_output_tokens: int = Field(default=8192, ge=256, le=8192)
     model_provider_circuit_breaker_threshold: int = Field(default=3, gt=0)
+    # Where to POST when a provider's circuit breaker opens. Empty disables
+    # the webhook; the ERROR log line is written either way.
+    alert_webhook_url: str = Field(default="")
     # How long an open breaker stays open before one probe call is admitted.
     model_provider_circuit_breaker_cooldown_seconds: float = Field(default=60.0, gt=0)
     reviewer_max_claims_per_agent: int = Field(default=20, ge=8, le=200)

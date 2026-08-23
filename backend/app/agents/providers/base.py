@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import json
+import logging
 import random
 import time
 from abc import ABC, abstractmethod
@@ -10,6 +11,7 @@ from hashlib import sha256
 from threading import Lock, Semaphore
 from typing import Any
 
+import httpx
 from pydantic import BaseModel, Field, ValidationError
 
 from app.core.config import get_settings
@@ -17,6 +19,46 @@ from app.core.config import get_settings
 
 class ExternalModelCallsDisabledError(Exception):
     pass
+
+
+logger = logging.getLogger("qrm.providers")
+
+
+def _alert_breaker_opened(provider_name: str, model_id: str, failures: int) -> None:
+    """Log at ERROR, and POST to the alert webhook when one is configured.
+
+    Fire-and-forget with a short timeout: an alert that could fail the call
+    it reports on would be worse than none. The webhook body is plain JSON
+    so any receiver -- Slack, a pager, a log sink -- can take it.
+    """
+    logger.error(
+        "circuit breaker opened for provider=%s model=%s after %d consecutive failures",
+        provider_name,
+        model_id,
+        failures,
+    )
+    url = get_settings().alert_webhook_url.strip()
+    if not url:
+        return
+    try:
+        httpx.post(
+            url,
+            json={
+                "event": "model_provider_circuit_open",
+                "provider": provider_name,
+                "model_id": model_id,
+                "consecutive_failures": failures,
+                "environment": get_settings().environment,
+                "text": (
+                    f"QRM: Modellanbieter {provider_name} ({model_id}) nach {failures} "
+                    "Fehlern in Folge abgeschaltet. Laufende Prüfungen werden "
+                    "fail-secure mit 'unklar' abgeschlossen."
+                ),
+            },
+            timeout=5.0,
+        )
+    except Exception as exc:  # noqa: BLE001 - alerting must never fail the caller
+        logger.warning("alert webhook failed: %s", type(exc).__name__)
 
 
 class ModelProviderNotAllowedError(Exception):
@@ -289,8 +331,17 @@ class BaseModelProvider(ABC):
     def _record_failure(self) -> None:
         with self._circuit_lock:
             key = self._provider_key()
-            self._provider_failure_counts[key] = self._provider_failure_counts.get(key, 0) + 1
+            count = self._provider_failure_counts.get(key, 0) + 1
+            self._provider_failure_counts[key] = count
             self._provider_opened_at[key] = time.monotonic()
+            just_opened = count == self.runtime_options.circuit_breaker_failure_threshold
+        if just_opened:
+            # Until 2026-08-23 a breaker opened in silence: the run completed,
+            # every affected row read "Beurteilung fehlgeschlagen", and the
+            # customer saw a thinner Prüfmappe without knowing why. The 68
+            # upstream 5xx of one afternoon were found in an eval log, not by
+            # anyone operating the system.
+            _alert_breaker_opened(self.provider_name, self.configured_model_id, count)
 
     def _clear_failures(self) -> None:
         with self._circuit_lock:
