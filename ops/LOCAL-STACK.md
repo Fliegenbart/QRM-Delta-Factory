@@ -87,6 +87,12 @@ Was Hetzner Inference im August 2026 gezeigt hat:
   lassen.
 - Öffnet ein Breaker, steht es im Log (`ERROR qrm.providers`) und geht an
   `QRM_ALERT_WEBHOOK_URL`, wenn gesetzt.
+- Stirbt ein einzelner Modellaufruf, bleibt die betroffene Anforderung als
+  Platzhalter („Beurteilung fehlgeschlagen“, `needs_retry`) im Bericht. Der
+  Bericht bietet **Erneut prüfen** an: Nur diese Zeilen werden neu beurteilt,
+  alles andere bleibt stehen — zwei Minuten statt eines neuen 25-Minuten-Laufs.
+- Während eines Laufs zeigt der Prüffall, wo er steht: Schritt x von 13 und
+  „Anforderung 12 von 26 beurteilt“ (Polling alle 5 Sekunden).
 
 ## Stufe 2: Eigener GPU-Server (vLLM)
 
