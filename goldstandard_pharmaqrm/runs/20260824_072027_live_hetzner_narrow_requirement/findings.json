@@ -1,0 +1,3138 @@
+{
+  "CASE_11": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente (Abweichungsbericht, Filterprotokoll, QA-Notiz) beziehen sich ausschließlich auf die Charge OND-2026-F031. Es fehlt eine explizite Chargenliste, die potenziell betroffene Vorgänger- oder Folgechargen (z. B. durch denselben Filter oder denselben Prozessschritt) umfasst, sowie eine Begründung, warum keine weiteren Chargen betroffen sind. Die Anforderung an die Vollständigkeit der Chargenauswahl ist daher nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_cd27f7d855b24143ac25bac7b13a571e",
+          "chunk_id": "chunk_cd27f7d855b24143ac25bac7b13a571e_p1",
+          "page": 1,
+          "quote": "- **Betroffene Charge:** OND-2026-F031"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "- **Produkt / Charge:** Ondansetron 2 mg/ml Injektionslösung, Charge OND-2026-F031"
+        },
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "- **Charge:** OND-2026-F031"
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "- **Bezug:** DEV-OND-26-031, Charge OND-2026-F031"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "high",
+      "risk_statement": "Die Maßnahme 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Die Anforderung verlangt, dass eine Charge nicht freigegeben wird, solange die Bewertung nicht abgeschlossen ist. Das Zitat belegt zwar, dass die Charge gesperrt bleibt, bis die Untersuchung abgeschlossen ist, was die Einhaltung der Vorgabe im aktuellen Moment stützt. Es fehlen jedoch die erforderlichen Nachweise für die 'Freigabeentscheidung' und die 'abgeschlossene Bewertung' selbst, da der Bericht explizit auf eine noch laufende Untersuchung hinweist. Da die primäre Evidenz für den Abschluss der Bewertung fehlt, kann die vollständige Erfüllung der Anforderung nicht bestätigt werden. Die Maßnahme 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Bis zum Abschluss der Untersuchung bleibt die Charge gesperrt."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Charge OND-2026-F031 in Quarantäne (Status \"Hold\") gesetzt."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Filtermembran und Filtergehäuse gesichert."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Umgebungsmonitoring der Abfüllung (Luftkeime, Sedimentationsplatten, Partikel) für den Zeitraum 05.06.2026 ausgewertet: alle Ergebnisse innerhalb der Aktionslimits (Partikel ≥0,5 µm: 1.120/m³ bei Limit 3.520/m³)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.'. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Charge OND-2026-F031 in Quarantäne (Status \"Hold\") gesetzt."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Filtermembran und Filtergehäuse gesichert."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Umgebungsmonitoring der Abfüllung (Luftkeime, Sedimentationsplatten, Partikel) für den Zeitraum 05.06.2026 ausgewertet: alle Ergebnisse innerhalb der Aktionslimits (Partikel ≥0,5 µm: 1.120/m³ bei Limit 3.520/m³)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_capa_responsible_timeline",
+      "severity": "medium",
+      "risk_statement": "Die Anforderung verlangt für jede CAPA-Maßnahme einen benannten Verantwortlichen und einen plausiblen Termin. Der vorliegende Abweichungsbericht dokumentiert lediglich das Ereignis und Sofortmaßnahmen. Es werden keine CAPA-Maßnahmen definiert, es ist kein Maßnahmenverantwortlicher benannt und kein Umsetzungstermin angegeben. Da der Bericht explizit auf eine laufende Untersuchung verweist, in der die Ursache noch nicht ermittelt ist, fehlt der geforderte Nachweis vollständig in den Auszügen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Die Ursache des abweichenden Post-Use-Wertes ist noch nicht ermittelt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_responsible_timeline"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine dokumentierte Bewertung der Auswirkung auf die Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen. Die vorliegenden Zitate und Dokumente belegen zwar die Feststellung der Abweichung (Zitat 0), die Einleitung der Untersuchung und die Quarantäne der spezifischen Charge OND-2026-F031 (Zitat 1 und 2). Es fehlt jedoch in den Auszügen eine explizite, dokumentierte Risiko- oder Auswirkungsbewertung (Impact Assessment), die die potenzielle Beeinträchtigung der Produktqualität und Patientensicherheit analysiert. Zudem wird keine Liste oder Bewertung anderer potenziell betroffener Chargen (z. B. durch denselben Filter oder Prozess) vorgelegt. Da der geforderte Nachweis der Auswirkungsbewertung in den Auszügen fehlt, während der auslösende Vorgang (Abweichung) belegt ist, liegt ein Verstoß vor. Die Maßnahme 'Umgebungsmonitoring der Abfüllung (Luftkeime, Sedimentationsplatten, Partikel) für den Zeitraum 05.06.2026 ausgewertet: alle Ergebnisse innerhalb der Aktionslimits (Partikel ≥0,5 µm: 1.120/m³ bei Limit 3.520/m³).' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "Post-Use Bubble Point | 05.06.2026, 14:05 | 2,9 bar | NLT 3,2 bar | bestanden"
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "Die Untersuchung der Ursache (Benetzung vs. Membrandefekt) ist durch die Technik bis zum 19.06.2026 abzuschließen. Eine Entscheidung über die Charge erfolgt erst nach Vorliegen des Untersuchungsberichts. Die Charge bleibt im Status \"Hold\"."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Die Ursache des abweichenden Post-Use-Wertes ist noch nicht ermittelt. Eine mögliche Benetzungsproblematik (unvollständige Spülung vor dem Test) wird geprüft. Bis zum Abschluss der Untersuchung bleibt die Charge gesperrt."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Umgebungsmonitoring der Abfüllung (Luftkeime, Sedimentationsplatten, Partikel) für den Zeitraum 05.06.2026 ausgewertet: alle Ergebnisse innerhalb der Aktionslimits (Partikel ≥0,5 µm: 1.120/m³ bei Limit 3.520/m³)."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Charge OND-2026-F031 in Quarantäne (Status \"Hold\") gesetzt."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Filtermembran und Filtergehäuse gesichert."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die Zitate belegen, dass ein OOS-Ergebnis (Bubble Point 2,9 bar < 3,2 bar) vorliegt und die Charge in Quarantäne (Hold) gesetzt wurde. Es wird jedoch explizit festgehalten, dass die Disposition erst nach Abschluss der Untersuchung (Frist 19.06.2026) erfolgt. Da in den vorliegenden Auszügen weder der OOS-Untersuchungsbericht noch die finale Dispositionsentscheidung enthalten sind, fehlt der geforderte Nachweis der vollständigen Bewertung vor der Disposition. Der Vorgang ist somit nicht abgeschlossen, was einen Verstoß gegen die Anforderung darstellt, dass die Untersuchung vor der Disposition abgeschlossen sein muss. Die Maßnahme 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "Post-Use Bubble Point | 05.06.2026, 14:05 | 2,9 bar | NLT 3,2 bar | bestanden"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Nach Abschluss der Sterilfiltration der Charge OND-2026-F031 wurde beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert."
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "Die Untersuchung der Ursache (Benetzung vs. Membrandefekt) ist durch die Technik bis zum 19.06.2026 abzuschließen."
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "Eine Entscheidung über die Charge erfolgt erst nach Vorliegen des Untersuchungsberichts."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Charge OND-2026-F031 in Quarantäne (Status "
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Charge OND-2026-F031 in Quarantäne (Status \"Hold\") gesetzt."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Filtermembran und Filtergehäuse gesichert."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Umgebungsmonitoring der Abfüllung (Luftkeime, Sedimentationsplatten, Partikel) für den Zeitraum 05.06.2026 ausgewertet: alle Ergebnisse innerhalb der Aktionslimits (Partikel ≥0,5 µm: 1.120/m³ bei Limit 3.520/m³)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Maßnahme 'Eine mögliche Benetzungsproblematik (unvollständige Spülung vor dem Test) wird geprüft.' in 'Vorläufige Bewertung' hat keinen benannten Verantwortlichen. Die Maßnahme 'Eine mögliche Benetzungsproblematik (unvollständige Spülung vor dem Test) wird geprüft.' in 'Vorläufige Bewertung' hat keinen benannten Verantwortlichen. Die Maßnahme 'Filtermembran und Filtergehäuse gesichert.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Charge OND-2026-F031 in Quarantäne (Status 'Hold') gesetzt.'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Eine mögliche Benetzungsproblematik (unvollständige Spülung vor dem Test) wird geprüft."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Filtermembran und Filtergehäuse gesichert."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Charge OND-2026-F031 in Quarantäne (Status \"Hold\") gesetzt."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Umgebungsmonitoring der Abfüllung (Luftkeime, Sedimentationsplatten, Partikel) für den Zeitraum 05.06.2026 ausgewertet: alle Ergebnisse innerhalb der Aktionslimits (Partikel ≥0,5 µm: 1.120/m³ bei Limit 3.520/m³)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Abweichung festgestellt und gemeldet.' erst auf 05.06.2026 14:20. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Abweichung festgestellt und gemeldet.' erst auf 05.06.2026 14:20. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review durchgeführt' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Abweichung festgestellt und gemeldet.' erst auf 05.06.2026 14:20. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft.",
+      "evidence_items": [
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review abgeschlossen:* 03.06.2026, Dr. A. Lindner"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Festgestellt am: 05.06.2026, 14:20 Uhr ... Gemeldet von: T. Vogel (Schichtleitung Abfüllung)"
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review durchgeführt am:** 03.06.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "high",
+      "risk_statement": "'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Abweichung festgestellt und gemeldet.' erst auf 05.06.2026 14:20. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Abweichung festgestellt und gemeldet.' erst auf 05.06.2026 14:20. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review durchgeführt' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Abweichung festgestellt und gemeldet.' erst auf 05.06.2026 14:20. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review durchgeführt' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft.",
+      "evidence_items": [
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review abgeschlossen:* 03.06.2026, Dr. A. Lindner"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Festgestellt am: 05.06.2026, 14:20 Uhr ... Gemeldet von: T. Vogel (Schichtleitung Abfüllung)"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Nach Abschluss der Sterilfiltration der Charge OND-2026-F031 wurde beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert."
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review durchgeführt am:** 03.06.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_doc_cross_consistency",
+      "severity": "high",
+      "risk_statement": "Es liegt ein schwerwiegender chronologischer Widerspruch vor: Das QA-Review (Zitat 1) wurde am 03.06.2026 durchgeführt, während das Ereignis und der zugehörige Integritätstest erst am 05.06.2026 stattfanden (Zitate 0, 3, 4). Zudem wird im QA-Review (Zitat 2) behauptet, der Test sei bewertet worden, obwohl die Bewertung des Tests erst nach dessen Durchführung am 05.06.2026 erfolgen konnte. Diese Inkonsistenz in den Daten und dem Prozessverlauf ist nicht geklärt und stellt einen Verstoß gegen die Anforderung der Dokumentenkonsistenz dar.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Festgestellt am:** 05.06.2026, 14:20 Uhr"
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review durchgeführt am:** 03.06.2026"
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "Der Post-Use-Integritätstest des Sterilfilters SF-0.2-A wurde gemäß Protokoll FIT-2026-0412 bewertet."
+        },
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "| Post-Use Bubble Point | 05.06.2026, 14:05 | 2,9 bar | NLT 3,2 bar | bestanden |"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Nach Abschluss der Sterilfiltration der Charge OND-2026-F031 wurde beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_cross_consistency"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Zitate belegen lediglich die Nennung der drei Dokumente in der Fallzusammenfassung. Es fehlen jedoch die eigentlichen Inhalte, Prüfprotokolle oder Bestätigungen, die belegen, dass diese Anhänge tatsächlich vorhanden, vollständig und aktuell sind. Da die Primärevidenz für die Vollständigkeit fehlt, kann die Anforderung nicht als erfüllt gelten.",
+      "evidence_items": [
+        {
+          "document_id": "doc_cd27f7d855b24143ac25bac7b13a571e",
+          "chunk_id": "chunk_cd27f7d855b24143ac25bac7b13a571e_p1",
+          "page": 1,
+          "quote": "1. document_01_deviation_report.md"
+        },
+        {
+          "document_id": "doc_cd27f7d855b24143ac25bac7b13a571e",
+          "chunk_id": "chunk_cd27f7d855b24143ac25bac7b13a571e_p1",
+          "page": 1,
+          "quote": "2. document_02_filter_integrity_record.md"
+        },
+        {
+          "document_id": "doc_cd27f7d855b24143ac25bac7b13a571e",
+          "chunk_id": "chunk_cd27f7d855b24143ac25bac7b13a571e_p1",
+          "page": 1,
+          "quote": "3. document_03_qa_review_note.md"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review durchgeführt' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft.",
+      "evidence_items": [
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review abgeschlossen:* 03.06.2026, Dr. A. Lindner"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Nach Abschluss der Sterilfiltration der Charge OND-2026-F031 wurde beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert."
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review durchgeführt am:** 03.06.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_qa_approval_documented",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine dokumentierte QA-Freigabe vor Abschluss. Der vorliegende Abweichungsbericht dokumentiert lediglich die Sperrung der Charge und die Einleitung der Untersuchung. Es fehlt jeglicher Nachweis über eine durchgeführte oder geplante QA-Freigabe. Da der geforderte Nachweis in den Auszügen fehlt, während der auslösende Vorgang (Abweichung/Sperrung) belegt ist, liegt ein Verstoß vor. 'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Abweichung festgestellt und gemeldet.' erst auf 05.06.2026 14:20. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review durchgeführt' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Abweichung festgestellt und gemeldet.' erst auf 05.06.2026 14:20. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review durchgeführt' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Bis zum Abschluss der Untersuchung bleibt die Charge gesperrt."
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review abgeschlossen:* 03.06.2026, Dr. A. Lindner"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Festgestellt am: 05.06.2026, 14:20 Uhr ... Gemeldet von: T. Vogel (Schichtleitung Abfüllung)"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Nach Abschluss der Sterilfiltration der Charge OND-2026-F031 wurde beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert."
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review durchgeführt am:** 03.06.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_qa_approval_documented"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Die Zitate belegen einen Widerspruch zwischen dem Protokoll (Bewertung 'bestanden' bei 2,9 bar) und der Abweichung (Wert unterhalb des Erwartungsbereichs). Das interne Akzeptanzkriterium (NLT 3,2 bar) wurde nicht eingehalten, was die Anforderung verletzt. Der Messwert 2,9 bar für 'Post-Use Bubble Point' liegt außerhalb der deklarierten Grenze (NLT 3,2). 'QA-Review abgeschlossen' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft. 'QA-Review durchgeführt' ist auf 03.06.2026 datiert, das zugehörige Ereignis 'Beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) wurde ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert.' erst auf 05.06.2026. Ein Schritt kann nicht vor dem Ereignis liegen, das er betrifft.",
+      "evidence_items": [
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "Bubble Point NLT 3,2 bar gemäß Herstellerspezifikation (Zertifikat Lot 7F22) und SOP-STF-014, Abschnitt 6.3."
+        },
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "Post-Use Bubble Point | 05.06.2026, 14:05 | 2,9 bar | NLT 3,2 bar | bestanden"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Nach Abschluss der Sterilfiltration der Charge OND-2026-F031 wurde beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert."
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review abgeschlossen:* 03.06.2026, Dr. A. Lindner"
+        },
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "QA-Review durchgeführt am:** 03.06.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_val_cleaning_sterility",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente (Abweichungsbericht, Filterintegritätsprotokoll, QA-Review) belegen ausschließlich die Untersuchung der Filterintegrität und die Quarantäne der Charge. Es fehlen jedoch explizite Nachweise für die geforderte Reinigungsvalidierung und das Sterilisationsprotokoll. Da die Anforderung explizit auf die Belegung von Reinigungs- und Sterilitätsrisiken durch Validierung und Kontaminationskontrolle abzielt und diese Primärevidenz in den Auszügen nicht enthalten ist, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_7a0fb188b6f2456984a18a166a81e000",
+          "chunk_id": "chunk_7a0fb188b6f2456984a18a166a81e000_p1",
+          "page": 1,
+          "quote": "Die Untersuchung der Ursache (Benetzung vs. Membrandefekt) ist durch die Technik bis zum 19.06.2026 abzuschließen."
+        },
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "Post-Use Bubble Point | 05.06.2026, 14:05 | 2,9 bar | NLT 3,2 bar | bestanden"
+        },
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "Bubble Point NLT 3,2 bar gemäß Herstellerspezifikation (Zertifikat Lot 7F22) und SOP-STF-014, Abschnitt 6.3."
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Nach Abschluss der Sterilfiltration der Charge OND-2026-F031 wurde beim Post-Use-Integritätstest des Sterilfilters SF-0.2-A (Serien-Nr. 7F22-01983) ein Bubble-Point-Wert unterhalb des Erwartungsbereichs registriert."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_cleaning_sterility"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge belegen den Prozessschritt (Sterilfiltration) und die Durchführung eines Filterintegritätstests, enthalten jedoch keinerlei Validierungsberichte, Reinigungsvalidierungen oder Sterilisationsnachweise. Da die geforderte Evidenz für die Abdeckung des aktuellen Zustands in den Dokumenten fehlt, ist die Anforderung nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_cd27f7d855b24143ac25bac7b13a571e",
+          "chunk_id": "chunk_cd27f7d855b24143ac25bac7b13a571e_p1",
+          "page": 1,
+          "quote": "Prozessschritt:** Sterilfiltration und aseptische Abfüllung"
+        },
+        {
+          "document_id": "doc_d93e144d2b304d8fb637e5ac7ea135ce",
+          "chunk_id": "chunk_d93e144d2b304d8fb637e5ac7ea135ce_p1",
+          "page": 1,
+          "quote": "Bereich:** Sterilfiltration / aseptische Abfüllung, Reinraumklasse A in B"
+        },
+        {
+          "document_id": "doc_113d5800f9134104aa45209f5c89ffe3",
+          "chunk_id": "chunk_113d5800f9134104aa45209f5c89ffe3_p1",
+          "page": 1,
+          "quote": "Filter:** Sterilfilter SF-0.2-A, PVDF 0,2 µm, Serien-Nr. 7F22-01983"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    }
+  ],
+  "CASE_12": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente (Abweichungsbericht, Risikobewertung, Chargenfreigabe) beziehen sich ausschließlich auf die Charge LOS-API-2026-017. Es fehlt eine explizite Begründung oder eine Liste, die darlegt, warum keine Vorgänger- oder Folgechargen betroffen sind (z. B. durch Angabe der betroffenen Anlagenfenster und Prüfung der darin produzierten Chargen). Da die Anforderung die Erfassung aller potenziell betroffenen Chargen verlangt und dieser Nachweis in den Auszügen fehlt, ist die Anforderung nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Produkt / Charge:** Losartan-Kalium (API), Charge LOS-API-2026-017"
+        },
+        {
+          "document_id": "doc_1efa5f0b7b194802859e36b649ed7c54",
+          "chunk_id": "chunk_1efa5f0b7b194802859e36b649ed7c54_p1",
+          "page": 1,
+          "quote": "Bezug:** DEV-API-2026-0088, Charge LOS-API-2026-017"
+        },
+        {
+          "document_id": "doc_d52fde885b874de69ebbfd27e9111333",
+          "chunk_id": "chunk_d52fde885b874de69ebbfd27e9111333_p1",
+          "page": 1,
+          "quote": "Charge:** LOS-API-2026-017"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "medium",
+      "risk_statement": "Die Anforderung verlangt, dass die Dispositionsentscheidung mit den zugehörigen Batch Records verknüpft ist. Die vorliegenden Auszüge belegen zwar die Freigabeentscheidung (Zitat 0) und deren Begründung durch die Risikobewertung (Zitat 1, 2), sowie die relevanten Prozessdaten (Zitat 3). Es fehlt jedoch in den bereitgestellten Texten ein expliziter Verweis auf die Batch Record-Nummer oder eine direkte Verknüpfung zur Chargendokumentation (Batch Record). Da die geforderte Evidenz für die Verknüpfung fehlt, kann die Erfüllung nicht bestätigt werden.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d52fde885b874de69ebbfd27e9111333",
+          "chunk_id": "chunk_d52fde885b874de69ebbfd27e9111333_p1",
+          "page": 1,
+          "quote": "Freigabeentscheidung:** freigegeben"
+        },
+        {
+          "document_id": "doc_d52fde885b874de69ebbfd27e9111333",
+          "chunk_id": "chunk_d52fde885b874de69ebbfd27e9111333_p1",
+          "page": 1,
+          "quote": "Alle Prüfergebnisse des Prüfzertifikats CoA-LOS-017 liegen innerhalb der Spezifikation. Die Abweichung DEV-API-2026-0088 wurde zur Kenntnis genommen; gemäß Risikobewertung besteht kein Einfluss auf die Produktqualität."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine definierte und dokumentierte Wirksamkeitsprüfung (Effectiveness Check) für CAPA-Maßnahmen, die mit einem Qualitätsrisiko verknüpft sind. Die vorliegenden Zitate belegen zwar die Sofortmaßnahme (Tausch des Regelventils HV-210-3) und deren Aufnahme in das Wartungsprogramm (WA-26-1190), sowie die Feststellung, dass die Abweichung ohne weitere Maßnahmen geschlossen werden kann. Es fehlt jedoch jeglicher Nachweis einer spezifischen Wirksamkeitsprüfung der ergriffenen Korrekturmaßnahme (z. B. Verifikation, dass das Ventil unter Last korrekt regelt, oder statistische Auswertung zukünftiger Chargen zur Bestätigung der Wirksamkeit). Die bloße Feststellung, dass die Produktqualität der betroffenen Charge konform ist, belegt nicht die Wirksamkeit der CAPA-Maßnahme zur Vermeidung zukünftiger Abweichungen. Da der geforderte Nachweis in den Auszügen fehlt, liegt ein Verstoß vor. Die Maßnahme 'Regelventil HV-210-3 getauscht, Funktionsprüfung dokumentiert (Wartungsauftrag WA-26-1190)' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Die Maßnahme 'Regelventil in das vorbeugende Wartungsprogramm aufgenommen (WA-26-1190)' in 'Ergebnis' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 1 Maßnahme(n), z. B. 'Regelventil HV-210-3 getauscht, Funktionsprüfung dokumentiert (Wartungsauftrag WA-26-1190)'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_1efa5f0b7b194802859e36b649ed7c54",
+          "chunk_id": "chunk_1efa5f0b7b194802859e36b649ed7c54_p1",
+          "page": 1,
+          "quote": "Die Abweichung kann ohne weitere Maßnahmen geschlossen werden; das Regelventil ist in das vorbeugende Wartungsprogramm aufgenommen (WA-26-1190)."
+        },
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Regelventil HV-210-3 getauscht, Funktionsprüfung dokumentiert (Wartungsauftrag WA-26-1190)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_responsible_timeline",
+      "severity": "medium",
+      "risk_statement": "Die vorliegenden Auszüge belegen zwar die Durchführung einer Sofortmaßnahme (Tausch des Regelventils, Zitat 1) und die Aufnahme in das Wartungsprogramm (Zitat 0), jedoch fehlt in den Dokumenten ein explizit benannter Maßnahmenverantwortlicher für die CAPA sowie ein konkreter, plausibler Umsetzungstermin. Die Anforderung verlangt zwingend beide Elemente. Da der Nachweis in den Auszügen fehlt, liegt ein Verstoß vor. Die Maßnahme 'Regelventil HV-210-3 getauscht, Funktionsprüfung dokumentiert (Wartungsauftrag WA-26-1190)' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Die Maßnahme 'Regelventil in das vorbeugende Wartungsprogramm aufgenommen (WA-26-1190)' in 'Ergebnis' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 1 Maßnahme(n), z. B. 'Regelventil HV-210-3 getauscht, Funktionsprüfung dokumentiert (Wartungsauftrag WA-26-1190)'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Regelventil HV-210-3 getauscht, Funktionsprüfung dokumentiert (Wartungsauftrag WA-26-1190)."
+        },
+        {
+          "document_id": "doc_1efa5f0b7b194802859e36b649ed7c54",
+          "chunk_id": "chunk_1efa5f0b7b194802859e36b649ed7c54_p1",
+          "page": 1,
+          "quote": "Die Abweichung kann ohne weitere Maßnahmen geschlossen werden; das Regelventil ist in das vorbeugende Wartungsprogramm aufgenommen (WA-26-1190)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_capa_responsible_timeline"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_cc_impact_and_validation",
+      "severity": "high",
+      "risk_statement": "Die Auszüge belegen, dass ein Lieferantenwechsel für Ethanol gemäß CC-2026-004 freigegeben wurde (Zitat 0). Die Anforderung verlangt jedoch eine dokumentierte Auswirkungsbewertung (Change-Impact-Assessment) und eine Prüfung der betroffenen Validierungen. Die vorliegende Risikobewertung (Zitat 1) bezieht sich explizit auf die Abweichung DEV-API-2026-0088 (Temperaturstörung) und nicht auf den Lieferantenwechsel. Es fehlt in den bereitgestellten Dokumenten der Nachweis, dass der Lieferantenwechsel einer eigenen Auswirkungsbewertung unterzogen wurde oder dass die Validierung des Lösungsmittels für den neuen Lieferanten geprüft wurde. Da der auslösende Vorgang (Lieferantenwechsel) belegt ist, der geforderte Nachweis (Impact Assessment/Validierungsprüfung) aber fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Lösungsmittelwechsel: Ethanol Lieferant B, Lieferantenwechsel gemäß CC-2026-004 freigegeben"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_cc_impact_and_validation"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die Anforderung verlangt, dass Out-of-Specification- und Out-of-Trend-Ergebnisse vollständig untersucht und bewertet sein müssen, bevor eine Disposition erfolgt. Die vorliegenden Dokumente belegen, dass die Charge LOS-API-2026-017 am 12.03.2026 freigegeben wurde (Zitat 4). Die Risikobewertung (Zitat 1) bestätigt, dass die Endfeuchte innerhalb der Spezifikation lag. Die Ergebnisse für Restlösemittel (Zitat 2) und Polymorphie (Zitat 3) wurden jedoch erst am 14.03.2026 bzw. 15.03.2026 erhalten. Da die Freigabe (Disposition) vor dem Abschluss der Untersuchung und Bewertung dieser kritischen Parameter erfolgte, liegt ein Verstoß gegen die zeitliche Reihenfolge der OOS/OOT-Untersuchung vor der Disposition vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d52fde885b874de69ebbfd27e9111333",
+          "chunk_id": "chunk_d52fde885b874de69ebbfd27e9111333_p1",
+          "page": 1,
+          "quote": "Freigabeentscheidung:** freigegeben"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt den Nachweis einer Grundursache durch eine angemessene Untersuchung, insbesondere den dokumentierten Ausschluss technischer Ursachen. Die vorliegenden Zitate und Chunks belegen zwar die technische Ursache (klemmendes Regelventil) und die Sofortmaßnahme (Tausch des Ventils), jedoch fehlt in den Auszügen der explizite Nachweis, dass andere technische Ursachen (z. B. Kalibrierungsfehler, Alarmausfälle) systematisch untersucht und ausgeschlossen wurden. Da die geforderte Evidenz für den vollständigen Ausschluss technischer Ursachen in den Auszügen fehlt, ist die Anforderung nicht als erfüllt zu werten.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Regelventil HV-210-3 getauscht, Funktionsprüfung dokumentiert (Wartungsauftrag WA-26-1190)."
+        },
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "da ein Regelventil der Heizmittelversorgung klemmte"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Fallzusammenfassung listet drei Dokumente als Bestandteile des Vorgangs auf (Zitate 0, 1, 2). In den bereitgestellten Auszügen sind jedoch nur der Abweichungsbericht (Zitat 0) und die Chargenfreigabe (Zitat 2) enthalten. Das in der Liste referenzierte Dokument 'document_02_risk_assessment.md' (Zitat 1) fehlt in den Auszügen vollständig. Da die Anforderung verlangt, dass alle referenzierten Pflichtanhang tatsächlich vorhanden sind, und der Nachweis für das Risikodokument in den Auszügen fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f99449e15564e0da9d1c1ac353a2def",
+          "chunk_id": "chunk_6f99449e15564e0da9d1c1ac353a2def_p1",
+          "page": 1,
+          "quote": "1. document_01_deviation_report.md"
+        },
+        {
+          "document_id": "doc_6f99449e15564e0da9d1c1ac353a2def",
+          "chunk_id": "chunk_6f99449e15564e0da9d1c1ac353a2def_p1",
+          "page": 1,
+          "quote": "2. document_02_risk_assessment.md"
+        },
+        {
+          "document_id": "doc_6f99449e15564e0da9d1c1ac353a2def",
+          "chunk_id": "chunk_6f99449e15564e0da9d1c1ac353a2def_p1",
+          "page": 1,
+          "quote": "3. document_03_batch_release_note.md"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": "none"
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "Die Zitate belegen, dass die Manteltemperatur für 35 Minuten auf 61 °C fiel, während der Sollbereich 70–80 °C beträgt. Dies stellt eine Unterschreitung der spezifizierten Prozessparameter dar. Die Anforderung verlangt, dass kritische Prozessparameter innerhalb der Grenzen liegen. Da eine Abweichung vorliegt, ist die Anforderung nicht erfüllt. Die Risikobewertung (Zitat 3) stellt zwar fest, dass kein Einfluss auf die Produktqualität nachweisbar ist, dies ändert jedoch nichts an der Tatsache, dass der Prozessparameter außerhalb der Grenzen lag und somit die Anforderung an die Einhaltung der Parameter verletzt wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "fiel die Manteltemperatur für 35 Minuten auf 61 °C (Sollbereich 70–80 °C)"
+        },
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Manteltemperatur während der Störung: 61 °C (Sollbereich 70–80 °C)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_supplier_change_impact",
+      "severity": "high",
+      "risk_statement": "Die Zitate belegen, dass ein Lieferantenwechsel für Ethanol (Lieferant B) gemäß CC-2026-004 freigegeben wurde (Zitat 0). Die Anforderung verlangt jedoch, dass die Auswirkung auf die Qualität und Validierung bewertet wird und nicht ohne Begründung als 'no impact' gewertet werden darf. In den vorliegenden Auszügen fehlt jegliche Dokumentation einer spezifischen Impact-Bewertung oder Lieferantenbewertung, die die Auswirkungen dieses Materialwechsels auf die Produktqualität oder die Validierung des Prozesses analysiert. Die allgemeine Feststellung in Zitat 1, dass kein Einfluss auf die Produktqualität nachweisbar sei, bezieht sich auf die Gesamtabweichung (Temperatursturz) und liefert keine spezifische Begründung oder Evidenz für den Lieferantenwechsel. Da der geforderte Nachweis der Impact-Bewertung fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Lösungsmittelwechsel: Ethanol Lieferant B, Lieferantenwechsel gemäß CC-2026-004 freigegeben"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_supplier_change_impact"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt den Nachweis, dass Validierungs-, Reinigungsvalidierungs- und Sterilisationsnachweise den aktuellen Prozess-, Equipment- und Standortzustand abdecken. Die vorliegenden Dokumente (Abweichungsbericht und Risikobewertung) beschreiben eine Abweichung bei der Trocknungstemperatur und die darauf folgende Risikobewertung (Endfeuchte, Restlösemittel, Polymorphie). Es werden jedoch keine Validierungsberichte, Reinigungsvalidierungen oder Sterilisationsnachweise referenziert oder deren Gültigkeit für den aktuellen Zustand (z. B. nach dem Austausch des Regelventils oder dem Lieferantenwechsel) belegt. Da die geforderte Evidenz in den Auszügen fehlt, kann die Erfüllung nicht bestätigt werden. Da es sich um einen kritischen Aspekt der GMP-Konformität handelt und die Abwesenheit der Nachweise in den bereitgestellten Dokumenten einen potenziellen Verstoß darstellt, ist der Status 'violated' zu vergeben, da der auslösende Vorgang (Änderung/Abweichung) dokumentiert ist, der geforderte Nachweis aber fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Regelventil HV-210-3 getauscht, Funktionsprüfung dokumentiert (Wartungsauftrag WA-26-1190)."
+        },
+        {
+          "document_id": "doc_1efa5f0b7b194802859e36b649ed7c54",
+          "chunk_id": "chunk_1efa5f0b7b194802859e36b649ed7c54_p1",
+          "page": 1,
+          "quote": "das Regelventil ist in das vorbeugende Wartungsprogramm aufgenommen (WA-26-1190)."
+        },
+        {
+          "document_id": "doc_3ab0e52064434aee994a5213d66756c2",
+          "chunk_id": "chunk_3ab0e52064434aee994a5213d66756c2_p1",
+          "page": 1,
+          "quote": "Lösungsmittelwechsel: Ethanol Lieferant B, Lieferantenwechsel gemäß CC-2026-004 freigegeben"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    }
+  ],
+  "CASE_13": [
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine begründete Dispositionsentscheidung, die mit den Batch Records verknüpft ist. Die vorliegenden Auszüge belegen zwar die Analyse und die QA-Freigabe des Prüfberichts (Zitat 1), sowie die betroffene Charge (Zitat 0 und 2). Es fehlen jedoch explizite Nachweise über die Dispositionsentscheidung der Charge selbst (z. B. Freigabe zur Abgabe) und die direkte Verknüpfung mit den Batch Records. Da die geforderten Primärevidenzen (Batch Record, Dispositionsentscheidung) in den Auszügen nicht enthalten sind, kann die Erfüllung nicht bestätigt werden. Gemäß den konservativen Regeln ist dies ein Verstoß bzw. ein fehlender Nachweis.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6d1a956bb36f43039da1c6f1edd83d12",
+          "chunk_id": "chunk_6d1a956bb36f43039da1c6f1edd83d12_p1",
+          "page": 1,
+          "quote": "Betroffene Prüfung:** Gehalt Amlodipin 5 mg Tabletten, Charge AML-2026-B112"
+        },
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "Freigabe zur Verwendung:* B. Roth (QA), 25.04.2026"
+        },
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "Charge:** AML-2026-B112"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_cc_impact_and_validation",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine dokumentierte Auswirkungsbewertung (Impact Assessment) und die Prüfung betroffener Validierungen. Das Dokument CC-QC-2026-019 dokumentiert zwar die Durchführung einer Methodenverifizierung (Zitat 0) und die Klassifizierung als Minor Change (Zitat 1), jedoch fehlt in den vorliegenden Auszügen eine explizite, begründete Auswirkungsbewertung auf andere Prozesse oder Produkte sowie eine detaillierte Prüfung der Validierungsabdeckung im Sinne eines Impact Assessments. Die bloße Angabe 'keine Änderung der Spezifikation' ist keine vollständige Auswirkungsbewertung. Da der geforderte Nachweis (Change-Impact-Assessment) in den Auszügen fehlt, obwohl der Vorgang (Änderung) dokumentiert ist, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Die Methodenverifizierung gemäß Protokoll MV-2026-07 wurde am 15.04.2026 abgeschlossen; alle Kriterien erfüllt."
+        },
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Klassifizierung:** Minor Change (Methodenoptimierung, keine Änderung der Spezifikation)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_cc_impact_and_validation"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen. Die vorliegenden Auszüge belegen zwar die Durchführung einer Methodenverifizierung und die Klassifizierung als 'Minor Change', jedoch fehlt eine explizite Auswirkungsbewertung (Impact Assessment) auf die Patientensicherheit sowie eine Auflistung der potenziell betroffenen Chargen. Da der geforderte Nachweis in den Auszügen fehlt, wird dies als Verstoß gewertet.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Klassifizierung:** Minor Change (Methodenoptimierung, keine Änderung der Spezifikation)"
+        },
+        {
+          "document_id": "doc_6d1a956bb36f43039da1c6f1edd83d12",
+          "chunk_id": "chunk_6d1a956bb36f43039da1c6f1edd83d12_p1",
+          "page": 1,
+          "quote": "Vorgang:** Change Control CC-QC-2026-019 (Änderung der Prüfmethode PM-HPLC-044, Gradientenprofil)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "medium",
+      "risk_statement": "Die Anforderung verlangt, dass die Einstufung einer Abweichung (hier als Minor Change) durch eine nachvollziehbare Risikobewertung und belastbare Labordaten belegt ist. Die vorliegenden Zitate belegen zwar die Klassifizierung als 'Minor Change' (Zitat 3) und die erfolgreiche Abschluss der Methodenverifizierung (Zitat 2), sowie die Erfüllung der Systemeignungskriterien (Zitate 0 und 1). Es fehlt jedoch in den Auszügen eine explizite, dokumentierte Risikobewertung, die die Einstufung als 'Minor' begründet. Die bloße Erfüllung der analytischen Kriterien ist nicht gleichbedeutend mit einer dokumentierten Risikobewertung im Sinne der GMP-Anforderungen an die Klassifizierung von Änderungen. Da die spezifische Risikobewertung nicht als Primärevidenz vorliegt, ist die Anforderung nicht vollständig erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Die Methodenverifizierung gemäß Protokoll MV-2026-07 wurde am 15.04.2026 abgeschlossen; alle Kriterien erfüllt."
+        },
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Klassifizierung:** Minor Change (Methodenoptimierung, keine Änderung der Spezifikation)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Das Zitat (Index 0) behauptet zwar, dass ein Audit-Trail-Review durchgeführt wurde und keine Auffälligkeiten vorlagen, es handelt sich dabei jedoch um eine nachträgliche Selbstauskunft im Rahmen der Änderungskontrolle. Gemäß den Review-Regeln belegt eine solche Behauptung ohne Primärevidenz (wie z. B. einen Auszug aus dem Audit Trail, eine signierte Checkliste oder Rohdaten) keine tatsächliche Durchführung. Da die geforderte Primärevidenz in den vorliegenden Auszügen fehlt, kann die Erfüllung der Anforderung nicht bestätigt werden. Da es sich um einen GxP-relevanten Vorgang handelt und der Nachweis fehlt, ist der Status 'unclear' mit der Schwere 'high' zu vergeben, da die Anforderung eine hohe Kritikalität besitzt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Ein Audit-Trail-Review des Chromatographie-Datensystems wurde durchgeführt; es ergaben sich keine Auffälligkeiten."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "high",
+      "risk_statement": "'Dr. F. Maier' hat denselben Vorgang sowohl ausgeführt bzw. erstellt als auch geprüft oder freigegeben. Das Vier-Augen-Prinzip ist damit nicht erkennbar gewahrt. 'Dr. F. Maier' hat denselben Vorgang sowohl ausgeführt bzw. erstellt als auch geprüft oder freigegeben. Das Vier-Augen-Prinzip ist damit nicht erkennbar gewahrt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_08e2044cf1bc40578dad6c8235f06fc3",
+          "chunk_id": "chunk_08e2044cf1bc40578dad6c8235f06fc3_p1",
+          "page": 1,
+          "quote": "Erstellt von:* Dr. F. Maier, 22.04.2026"
+        },
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Geprüft von (QC-Leitung):* Dr. F. Maier, 03.04.2026"
+        },
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "Ergebnis geprüft (QC):* Dr. F. Maier, 21.04.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Zitate belegen, dass im Change Control drei Dokumente (Change Control, Schulungsnachweis, Analysebericht) als Anhänge referenziert werden. Die Anforderung verlangt jedoch, dass diese Anhänge tatsächlich vorhanden und aktuell sind. Da die Auszüge nur die Referenzierung enthalten, aber keine Primärevidenz (wie die Dokumente selbst oder Verweise auf deren physische/digitale Existenz im System) liefern, kann die tatsächliche Anwesenheit und Aktualität nicht bestätigt werden. Gemäß den konservativen Regeln ist ein fehlender Nachweis der Anwesenheit ein Verstoß, da die bloße Nennung in der Liste die Existenz nicht belegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6d1a956bb36f43039da1c6f1edd83d12",
+          "chunk_id": "chunk_6d1a956bb36f43039da1c6f1edd83d12_p1",
+          "page": 1,
+          "quote": "Dokumentenliste:"
+        },
+        {
+          "document_id": "doc_6d1a956bb36f43039da1c6f1edd83d12",
+          "chunk_id": "chunk_6d1a956bb36f43039da1c6f1edd83d12_p1",
+          "page": 1,
+          "quote": "1. document_01_change_control.md"
+        },
+        {
+          "document_id": "doc_6d1a956bb36f43039da1c6f1edd83d12",
+          "chunk_id": "chunk_6d1a956bb36f43039da1c6f1edd83d12_p1",
+          "page": 1,
+          "quote": "2. document_02_training_record.md"
+        },
+        {
+          "document_id": "doc_6d1a956bb36f43039da1c6f1edd83d12",
+          "chunk_id": "chunk_6d1a956bb36f43039da1c6f1edd83d12_p1",
+          "page": 1,
+          "quote": "3. document_03_analysis_report.md"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_process_parameter_limits",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt die Einhaltung kritischer Prozessparameter innerhalb spezifizierter Grenzen. Die vorliegenden Auszüge belegen die Einhaltung der Systemeignungskriterien (RSD und Auflösung) für die HPLC-Methode. Es fehlen jedoch die spezifischen Prozessparameter (z. B. Temperatur, Druck, Flussrate) und deren Grenzen, die für die Beurteilung der Prozessparameter-Einhaltung erforderlich sind. Da die geforderte Primärevidenz für die Prozessparameter in den Auszügen nicht enthalten ist, kann die Erfüllung nicht bestätigt werden.",
+      "evidence_items": [
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "RSD der Standardinjektionen (n=6): 0,8 % (Kriterium ≤ 2,0 %) — erfüllt"
+        },
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "Auflösung Amlodipin / Verunreinigung D: 3,1 (Kriterium ≥ 2,0) — erfüllt"
+        },
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Systemeignungskriterien bleiben unverändert (RSD ≤ 2,0 %, Auflösung ≥ 2,0)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_process_parameter_limits"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_qc_training_before_effective_sop_use",
+      "severity": "medium",
+      "risk_statement": "Die vorliegenden Dokumente belegen einen Verstoß gegen die zeitliche Reihenfolge der Schulung und Anwendung. Die Analyse (PB-2026-1147) wurde am 20.04.2026 unter Verwendung der neuen Methode PM-HPLC-044 Rev. 5 durchgeführt (Zitat 2 und 3). Die Schulung des betroffenen Personals auf diese Revision fand jedoch erst am 22.04.2026 statt (Zitat 0 und 1). Damit wurde die SOP-Version vor der geforderten Schulung angewendet. Zudem fehlt in den Auszügen eine begründete Einstufung als nicht trainingsrelevant, die diesen Widerspruch hätte rechtfertigen können.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Schulung der Analytiker auf PM-HPLC-044 Rev. 5 | QC-Laborleitung | 22.04.2026"
+        },
+        {
+          "document_id": "doc_08e2044cf1bc40578dad6c8235f06fc3",
+          "chunk_id": "chunk_08e2044cf1bc40578dad6c8235f06fc3_p1",
+          "page": 1,
+          "quote": "Datum der Schulung:** 22.04.2026"
+        },
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "Datum der Analyse:** 20.04.2026"
+        },
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "Prüfmethode:** PM-HPLC-044 Rev. 5 (Gradient 25→55 % ACN in 12 min)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_qc_training_before_effective_sop_use"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_supplier_change_impact",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine Bewertung der Auswirkungen von Änderungen an Lieferanten, Materialien, Spezifikationen oder Methoden auf die Qualität und Validierung. Das vorliegende Dokument beschreibt eine Änderung des HPLC-Gradienten (Methode). Es wird zwar eine Methodenverifizierung (MV-2026-07) erwähnt, die abgeschlossen wurde, und es wird behauptet, dass alle Kriterien erfüllt sind. Es fehlt jedoch eine explizite Begründung oder eine detaillierte Bewertung, warum diese spezifische Änderung keinen negativen Einfluss auf die Qualität hat oder wie die Validierung davon betroffen ist, abgesehen von der bloßen Nennung der Verifizierung. Die Zitate belegen den Vorgang (Änderung der Methode), aber nicht die geforderte tiefgehende Impact-Bewertung im Sinne der Anforderung, die verlangt, dass Änderungen nicht ohne Begründung als 'no impact' gewertet werden dürfen. Da die primäre Evidenz für die detaillierte Bewertung fehlt, ist der Status 'violated' (fehlender Nachweis der geforderten Bewertung) oder 'unclear'. Da die Anforderung explizit nach der Bewertung der Auswirkung fragt und diese im Text nur implizit durch den Verweis auf die Verifizierung angedeutet wird, ohne die eigentliche Bewertung zu zeigen, ist der Nachweis unzureichend. Gemäß den Regeln ist ein fehlender Nachweis für einen auslösenden Vorgang 'violated'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Die Methodenverifizierung gemäß Protokoll MV-2026-07 wurde am 15.04.2026 abgeschlossen; alle Kriterien erfüllt."
+        },
+        {
+          "document_id": "doc_6deae4b15b124a049151d94d6959c6b6",
+          "chunk_id": "chunk_6deae4b15b124a049151d94d6959c6b6_p1",
+          "page": 1,
+          "quote": "Klassifizierung:** Minor Change (Methodenoptimierung, keine Änderung der Spezifikation)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_supplier_change_impact"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "medium",
+      "risk_statement": "Die Anforderung verlangt, dass das Personal nachweislich und wirksam geschult ist, bevor die geänderte Tätigkeit ausgeführt wird. Der Schulungsnachweis SN-2026-0231 belegt die Schulung am 22.04.2026 (Zitat 2) und die Wirksamkeit durch bestandene Verständnisfragen (Zitat 3). Die Analyse mit der geänderten Methode (PM-HPLC-044 Rev. 5) wurde am 20.04.2026 durchgeführt (Zitat 1). Da die Analyse vor der dokumentierten Schulung stattfand, wurde die geänderte Tätigkeit ausgeführt, bevor das Personal nachweislich geschult war. Dies stellt einen Verstoß gegen die zeitliche Abfolge der Anforderung dar.",
+      "evidence_items": [
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "Datum der Analyse:** 20.04.2026"
+        },
+        {
+          "document_id": "doc_08e2044cf1bc40578dad6c8235f06fc3",
+          "chunk_id": "chunk_08e2044cf1bc40578dad6c8235f06fc3_p1",
+          "page": 1,
+          "quote": "Datum der Schulung:** 22.04.2026"
+        },
+        {
+          "document_id": "doc_08e2044cf1bc40578dad6c8235f06fc3",
+          "chunk_id": "chunk_08e2044cf1bc40578dad6c8235f06fc3_p1",
+          "page": 1,
+          "quote": "Wirksamkeit der Schulung: Verständnisfragen mündlich, alle Teilnehmer bestanden (dokumentiert im Schulungsprotokoll)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt den Nachweis, dass die Validierung den aktuellen Prozess-, Equipment- und Standortzustand abdeckt. Das vorliegende Zitat (Index 0) belegt lediglich die Verwendung der Prüfmethode PM-HPLC-044 Rev. 5. Es fehlen jedoch die geforderten Primärevidenzen, wie ein aktueller Validierungsbericht oder eine Übertragbarkeitsbegründung, die belegen, dass die Methode für das spezifische Equipment (HPLC-12) und den aktuellen Standort validiert ist. Da die Auszüge den auslösenden Vorgang (Analyse) belegen, aber den geforderten Nachweis der Validierungsabdeckung nicht enthalten, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_c319b7234768432c8eba92be8f7f27b2",
+          "chunk_id": "chunk_c319b7234768432c8eba92be8f7f27b2_p1",
+          "page": 1,
+          "quote": "Prüfmethode:** PM-HPLC-044 Rev. 5 (Gradient 25→55 % ACN in 12 min)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    }
+  ],
+  "CASE_14": [
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die Maßnahme 'Aussortierte Faltschachteln zur Vernichtung vorgesehen.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Die Maßnahme 'Aussortierte Faltschachteln zur Vernichtung vorgesehen.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Die Maßnahme 'Vernichtung der aussortierten Faltschachteln' in 'Entscheidung' hat keinen benannten Verantwortlichen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_074bc4e9364941b7aad64dcb585d5f20",
+          "chunk_id": "chunk_074bc4e9364941b7aad64dcb585d5f20_p1",
+          "page": 1,
+          "quote": "Aussortierte Faltschachteln zur Vernichtung vorgesehen."
+        },
+        {
+          "document_id": "doc_738d2ed562ce4f85855c594eb66db528",
+          "chunk_id": "chunk_738d2ed562ce4f85855c594eb66db528_p1",
+          "page": 1,
+          "quote": "Die Charge PAN-2026-K058 kann nach Abschluss der Vernichtung der aussortierten Faltschachteln freigegeben werden."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die Maßnahme 'CAPA CAPA-VP-2026-031' in 'Entscheidung' hat keinen benannten Verantwortlichen. Die Maßnahme 'CAPA CAPA-VP-2026-031' in 'Entscheidung' hat keinen benannten Verantwortlichen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_738d2ed562ce4f85855c594eb66db528",
+          "chunk_id": "chunk_738d2ed562ce4f85855c594eb66db528_p1",
+          "page": 1,
+          "quote": "Die CAPA CAPA-VP-2026-031 ist eröffnet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_capa_responsible_timeline",
+      "severity": "medium",
+      "risk_statement": "Die Maßnahme 'CAPA CAPA-VP-2026-031' in 'Entscheidung' hat keinen benannten Verantwortlichen. Die Zitate belegen, dass für jede der drei CAPA-Maßnahmen ein konkreter Verantwortlicher (Leitung Technik, Linienführer, QA-Schulung) und ein spezifischer Umsetzungstermin (25.07.2026, 04.07.2026, 10.07.2026) benannt ist. Die Termine sind chronologisch plausibel (interne Maßnahme vor der technischen Schnittstelle) und erfüllen die Anforderung an einen benannten Verantwortlichen und einen realisierbaren Terminplan. Die Maßnahme 'CAPA CAPA-VP-2026-031' in 'Entscheidung' hat keinen benannten Verantwortlichen. Die Maßnahme 'Linie gestoppt, Druckbild korrigiert, Freigabe des Neustarts durch IPC nach Erstmusterprüfung.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e1d851ec8740482fb2b48129e3c516c8",
+          "chunk_id": "chunk_e1d851ec8740482fb2b48129e3c516c8_p1",
+          "page": 1,
+          "quote": "| 1 | Druckereingabe TIJ-4 an Auftragsdaten des MES koppeln (Schnittstelle) | Leitung Technik (P. Albrecht) | 25.07.2026 |"
+        },
+        {
+          "document_id": "doc_e1d851ec8740482fb2b48129e3c516c8",
+          "chunk_id": "chunk_e1d851ec8740482fb2b48129e3c516c8_p1",
+          "page": 1,
+          "quote": "| 2 | Bis zur Umsetzung: Vier-Augen-Prüfung jeder manuellen Druckereingabe, Formblatt FB-VP-017 | Linienführer | 04.07.2026 |"
+        },
+        {
+          "document_id": "doc_e1d851ec8740482fb2b48129e3c516c8",
+          "chunk_id": "chunk_e1d851ec8740482fb2b48129e3c516c8_p1",
+          "page": 1,
+          "quote": "| 3 | Schulung aller Linienführer auf FB-VP-017 | QA-Schulung | 10.07.2026 |"
+        },
+        {
+          "document_id": "doc_738d2ed562ce4f85855c594eb66db528",
+          "chunk_id": "chunk_738d2ed562ce4f85855c594eb66db528_p1",
+          "page": 1,
+          "quote": "Die CAPA CAPA-VP-2026-031 ist eröffnet."
+        },
+        {
+          "document_id": "doc_074bc4e9364941b7aad64dcb585d5f20",
+          "chunk_id": "chunk_074bc4e9364941b7aad64dcb585d5f20_p1",
+          "page": 1,
+          "quote": "Linie gestoppt, Druckbild korrigiert, Freigabe des Neustarts durch IPC nach Erstmusterprüfung."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_responsible_timeline"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge belegen den Vorfall (falscher Chargenaufdruck) und die getroffenen Sofortmaßnahmen (Aussortierung, Vernichtung), enthalten jedoch keine explizite Risikobewertung oder Schweregradeinstufung (z. B. Minor/Major/Kritisch). Zudem fehlen die in der Anforderung geforderten stützenden physikalisch-chemischen oder labortechnischen Daten, die eine Einstufung als geringfügig oder die Bewertung des Risikos untermauern würden. Da der geforderte Nachweis der nachvollziehbaren Risikobewertung in den Dokumenten fehlt, ist die Anforderung nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_738d2ed562ce4f85855c594eb66db528",
+          "chunk_id": "chunk_738d2ed562ce4f85855c594eb66db528_p1",
+          "page": 1,
+          "quote": "Die Abweichung betrifft ausschließlich den Chargenaufdruck auf der Faltschachtel; Blister und Beipackzettel waren korrekt."
+        },
+        {
+          "document_id": "doc_074bc4e9364941b7aad64dcb585d5f20",
+          "chunk_id": "chunk_074bc4e9364941b7aad64dcb585d5f20_p1",
+          "page": 1,
+          "quote": "Bei der Inprozesskontrolle der Faltschachteln wurde festgestellt, dass der Tintenstrahldrucker TIJ-4 die Chargenbezeichnung "
+        },
+        {
+          "document_id": "doc_074bc4e9364941b7aad64dcb585d5f20",
+          "chunk_id": "chunk_074bc4e9364941b7aad64dcb585d5f20_p1",
+          "page": 1,
+          "quote": "Von Produktionsbeginn 08:30 Uhr bis zum Stopp 10:45 Uhr wurden 2.400 Faltschachteln mit dem fehlerhaften Aufdruck produziert."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Maßnahme 'Linie gestoppt, Druckbild korrigiert, Freigabe des Neustarts durch IPC nach Erstmusterprüfung.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Die Maßnahme 'Linie gestoppt, Druckbild korrigiert, Freigabe des Neustarts durch IPC nach Erstmusterprüfung.' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_074bc4e9364941b7aad64dcb585d5f20",
+          "chunk_id": "chunk_074bc4e9364941b7aad64dcb585d5f20_p1",
+          "page": 1,
+          "quote": "Linie gestoppt, Druckbild korrigiert, Freigabe des Neustarts durch IPC nach Erstmusterprüfung."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente (Abweichungsbericht, CAPA-Plan, QA-Bewertung) belegen die manuelle Eingabe der Chargennummer und die daraus resultierende Abweichung. Es fehlen jedoch jegliche Nachweise über die Prüfung des Audit Trails der elektronischen Systeme (MES, Kartonierer, Drucker) im Rahmen der Abweichungsuntersuchung oder der CAPA-Wirksamkeitsprüfung. Da die Anforderung eine regelmäßige und risikobasierte Prüfung des Audit Trails für GxP-relevante Daten verlangt und die Dokumente keine Evidenz für eine solche Prüfung im Kontext dieses Vorfalls liefern, ist die Erfüllung nicht nachgewiesen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_e1d851ec8740482fb2b48129e3c516c8",
+          "chunk_id": "chunk_e1d851ec8740482fb2b48129e3c516c8_p1",
+          "page": 1,
+          "quote": "Druckereingabe TIJ-4 an Auftragsdaten des MES koppeln (Schnittstelle)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "unclear",
+      "entailment": "none"
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Zitate und Dokumentauszüge enthalten zwar Namen und Daten der Unterschriften, jedoch fehlen die zwingend erforderlichen Zeitangaben (Uhrzeit) sowie die explizite Angabe der Signaturbedeutung (z. B. 'Erstellt', 'Geprüft'). Zudem ist der Audit Trail nicht als Primärevidenz in den Auszügen enthalten. Da die geforderten Nachweise (Signaturdaten mit Zeit, Audit Trail) in den Auszügen fehlen, liegt ein Verstoß gegen die Anforderung vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_074bc4e9364941b7aad64dcb585d5f20",
+          "chunk_id": "chunk_074bc4e9364941b7aad64dcb585d5f20_p1",
+          "page": 1,
+          "quote": "- *Erstellt von:* R. Dietrich, 03.07.2026"
+        },
+        {
+          "document_id": "doc_e1d851ec8740482fb2b48129e3c516c8",
+          "chunk_id": "chunk_e1d851ec8740482fb2b48129e3c516c8_p1",
+          "page": 1,
+          "quote": "- *Erstellt von:* P. Albrecht, 05.07.2026"
+        },
+        {
+          "document_id": "doc_738d2ed562ce4f85855c594eb66db528",
+          "chunk_id": "chunk_738d2ed562ce4f85855c594eb66db528_p1",
+          "page": 1,
+          "quote": "- *Freigabe Leitung QA:* Dr. H. Winter, 08.07.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "unclear",
+      "entailment": "none"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Fallzusammenfassung listet drei Dokumente als Teil des Vorgangs auf (Zitate 0, 1, 2). In den bereitgestellten Auszügen sind jedoch nur der Abweichungsbericht (Zitat 0) und der CAPA-Plan (Zitat 1) enthalten. Das in Zitat 2 referenzierte Dokument 'document_03_qa_assessment.md' fehlt in den Auszügen vollständig. Da die Anforderung verlangt, dass alle referenzierten Pflichtanhangs tatsächlich vorhanden sind, und ein zentrales Dokument (QA-Bewertung) nicht vorliegt, ist die Anforderung nicht erfüllt. Es handelt sich um einen Verstoß, da ein wesentlicher Nachweis fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_ec495b960ff647c38c1e85bb63fa3246",
+          "chunk_id": "chunk_ec495b960ff647c38c1e85bb63fa3246_p1",
+          "page": 1,
+          "quote": "1. document_01_deviation_report.md"
+        },
+        {
+          "document_id": "doc_ec495b960ff647c38c1e85bb63fa3246",
+          "chunk_id": "chunk_ec495b960ff647c38c1e85bb63fa3246_p1",
+          "page": 1,
+          "quote": "2. document_02_capa_plan.md"
+        },
+        {
+          "document_id": "doc_ec495b960ff647c38c1e85bb63fa3246",
+          "chunk_id": "chunk_ec495b960ff647c38c1e85bb63fa3246_p1",
+          "page": 1,
+          "quote": "3. document_03_qa_assessment.md"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": "none"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt, dass Mess- und Prüfergebnisse gegen die gültige interne Spezifikation bewertet werden. Die vorliegenden Auszüge beschreiben eine Abweichung bei der Chargenbezeichnung (Zahlendreher) und die daraufhin ergriffenen Sofortmaßnahmen (Aussortierung, Vernichtung). Es werden jedoch keine spezifischen Messwerte (z. B. Druckqualität, Farbdichte) genannt, die gegen numerische oder qualitative Grenzen einer internen Spezifikation geprüft wurden. Zudem fehlt der explizite Verweis auf die verwendete interne Spezifikation oder das konkrete Prüfergebnis, das die Konformität der korrigierten Drucke nachweist. Da der Nachweis der Bewertung gegen die Spezifikation in den Auszügen fehlt, ist die Anforderung nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_074bc4e9364941b7aad64dcb585d5f20",
+          "chunk_id": "chunk_074bc4e9364941b7aad64dcb585d5f20_p1",
+          "page": 1,
+          "quote": "Freigabe des Neustarts durch IPC nach Erstmusterprüfung."
+        },
+        {
+          "document_id": "doc_074bc4e9364941b7aad64dcb585d5f20",
+          "chunk_id": "chunk_074bc4e9364941b7aad64dcb585d5f20_p1",
+          "page": 1,
+          "quote": "Bei der Inprozesskontrolle der Faltschachteln wurde festgestellt, dass der Tintenstrahldrucker TIJ-4 die Chargenbezeichnung "
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    }
+  ],
+  "CASE_15": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt die vollständige Erfassung aller potenziell betroffenen Chargen, einschließlich Vorgänger- und Folgechargen, sowie die Begründung der Auswahl. Die vorliegenden Auszüge nennen zwar die Stabilitätscharge LEV-2025-S007 und die Marktcharge LEV-2025-M041, enthalten jedoch keine umfassende Chargenliste und keine explizite Begründung, warum genau diese Chargen ausgewählt wurden oder warum andere (z. B. Vorgänger/Folge) nicht betroffen sind. Da der geforderte Nachweis der Vollständigkeit und Begründung in den Auszügen fehlt, ist die Anforderung nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Die Marktcharge LEV-2025-M041 aus derselben Kampagne befindet sich mit Verfall 08/2027 im Markt."
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Eine Bewertung der Marktcharge erfolgt nach Vorliegen des 18-Monats-Ergebnisses."
+        },
+        {
+          "document_id": "doc_d3f08e090017432cad0fad34095ee163",
+          "chunk_id": "chunk_d3f08e090017432cad0fad34095ee163_p1",
+          "page": 1,
+          "quote": "Betroffene Charge:** LEV-2025-S007 (Stabilitätscharge)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge belegen zwar die Dispositionsentscheidung für die Stabilitätscharge (Fortsetzung der Studie) und die Verzögerung der Bewertung der Marktcharge, jedoch fehlt der explizite Nachweis der Verknüpfung mit den zugehörigen Batch Records. Die Anforderung verlangt eine begründete Entscheidung, die mit den Batch Records verknüpft ist. Da in den Texten keine Referenzen auf Batch Records oder deren Verknüpfungssysteme enthalten sind, kann die Erfüllung nicht bestätigt werden. Es handelt sich um einen fehlenden Nachweis im Kontext eines kritischen Prozesses (OOS/Disposition).",
+      "evidence_items": [
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Da es sich um eine Stabilitätscharge handelt und alle weiteren Parameter konform sind, wird die Stabilitätsstudie planmäßig mit dem 18-Monats-Prüfpunkt fortgesetzt. Eine Bewertung der Marktcharge erfolgt nach Vorliegen des 18-Monats-Ergebnisses."
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Die Marktcharge LEV-2025-M041 aus derselben Kampagne befindet sich mit Verfall 08/2027 im Markt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die vorliegenden Auszüge belegen, dass die Bewertung der Stabilitätscharge (OOS-2026-027) abgeschlossen und freigegeben wurde (Dr. U. Berger, 19.08.2026). Es wird jedoch explizit festgehalten, dass die Bewertung der Marktcharge LEV-2025-M041 erst nach Vorliegen des 18-Monats-Ergebnisses erfolgt. Da die Anforderung besagt, dass keine Charge freigegeben werden darf, solange die Bewertung nicht abgeschlossen ist, und die Bewertung der Marktcharge noch aussteht, liegt ein Verstoß vor, sofern die Marktcharge in der Zwischenzeit freigegeben oder im Markt belassen wird, ohne dass die Bewertung abgeschlossen ist. Die Zitate belegen den auslösenden Vorgang (ausstehende Bewertung), während der Nachweis der Nicht-Freigabe oder der korrekten Handhabung in den Auszügen fehlt. Da es sich um eine kritische Anforderung handelt und die Bewertung der Marktcharge noch nicht abgeschlossen ist, wird dies als Verstoß gewertet, da die Voraussetzung für eine Freigabe (abgeschlossene Bewertung) nicht erfüllt ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Die Marktcharge LEV-2025-M041 aus derselben Kampagne befindet sich mit Verfall 08/2027 im Markt."
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Eine Bewertung der Marktcharge erfolgt nach Vorliegen des 18-Monats-Ergebnisses."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_responsible_timeline",
+      "severity": "medium",
+      "risk_statement": "Die Maßnahme 'Prüfung der Blisterdichtigkeit an Rückstellmustern' in 'Maßnahmen' hat keinen benannten Verantwortlichen. Die Maßnahme 'Prüfung der Blisterdichtigkeit an Rückstellmustern' in 'Maßnahmen' hat keinen benannten Verantwortlichen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_bd6d0e134a4a44a4b1710c5f8b6782ba",
+          "chunk_id": "chunk_bd6d0e134a4a44a4b1710c5f8b6782ba_p1",
+          "page": 1,
+          "quote": "2 | Prüfung der Blisterdichtigkeit an Rückstellmustern | — | offen"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_capa_responsible_timeline"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine dokumentierte Bewertung der Auswirkung auf die Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen. Die vorliegenden Auszüge (OOS-Untersuchung und CAPA-Plan) belegen zwar die Identifikation der betroffenen Marktcharge LEV-2025-M041 (Zitat 0) und die Planung einer Bewertung (Zitat 1, 2). Es fehlt jedoch der eigentliche Inhalt der Auswirkungsbewertung (Impact Assessment) auf die Patientensicherheit und die Produktqualität. Die Aussage, dass die Bewertung erst nach Vorliegen weiterer Ergebnisse erfolgt, belegt nicht die Erfüllung der Anforderung, da die Bewertung selbst nicht dokumentiert vorliegt. Da die Auszüge den auslösenden Vorgang belegen, aber den geforderten Nachweis der Bewertung fehlen, ist der Status 'violated' korrekt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Die Marktcharge LEV-2025-M041 aus derselben Kampagne befindet sich mit Verfall 08/2027 im Markt."
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Eine Bewertung der Marktcharge erfolgt nach Vorliegen des 18-Monats-Ergebnisses."
+        },
+        {
+          "document_id": "doc_bd6d0e134a4a44a4b1710c5f8b6782ba",
+          "chunk_id": "chunk_bd6d0e134a4a44a4b1710c5f8b6782ba_p1",
+          "page": 1,
+          "quote": "Bewertung der Haltbarkeitsdauer (Shelf-Life-Review)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die Anforderung verlangt, dass OOS-Ergebnisse vollständig untersucht und bewertet sind, bevor eine Disposition erfolgt. Die vorliegenden Dokumente belegen zwar die Durchführung der OOS-Untersuchung (Phase I und II) und die Bewertung als valides OOS (Zitat 1). Die Disposition der Stabilitätscharge wurde jedoch nicht getroffen, sondern die Studie wurde lediglich fortgesetzt (Zitat 0). Die eigentliche Disposition der betroffenen Marktware (LEV-2025-M041) wurde explizit aufgeschoben, bis das 18-Monats-Ergebnis vorliegt (Zitat 0). Da die Marktware im Umlauf ist und die Ursache des Gehaltsverlusts noch nicht abschließend bewertet ist (Zitat 2), stellt das Aufschieben der Bewertung der Marktware eine potenzielle Verletzung der Anforderung dar, dass Folgemaßnahmen nicht unzulässig aufgeschoben werden dürfen. Es fehlt der Nachweis, dass die Marktware zwischenzeitlich sicher bewertet oder zurückgerufen wurde, was zu einem Verstoß führt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Da es sich um eine Stabilitätscharge handelt und alle weiteren Parameter konform sind, wird die Stabilitätsstudie planmäßig mit dem 18-Monats-Prüfpunkt fortgesetzt. Eine Bewertung der Marktcharge erfolgt nach Vorliegen des 18-Monats-Ergebnisses."
+        },
+        {
+          "document_id": "doc_bd6d0e134a4a44a4b1710c5f8b6782ba",
+          "chunk_id": "chunk_bd6d0e134a4a44a4b1710c5f8b6782ba_p1",
+          "page": 1,
+          "quote": "Ursache:** Beschleunigter Gehaltsverlust von Levothyroxin unter Langzeitbedingungen; Ursache noch nicht abschließend bewertet (Hypothese: Feuchteeintrag trotz Alu/Alu-Blister)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine nachvollziehbare Risikobewertung zur Begründung der Schweregradeinstufung (z. B. Minor/Major/Kritisch). Die vorliegenden Dokumente (OOS-Untersuchung, Stabilitätsbericht, CAPA-Plan) belegen zwar die labortechnische Validierung des OOS-Ergebnisses (RSD 0,6 %, Re-Messung) und die physikalisch-chemischen Daten (Gehalt 93,8 %, Abbauprodukt 0,9 %), jedoch fehlt in den Auszügen eine explizite, dokumentierte Risikobewertung, die die Einstufung der Abweichung begründet. Es wird lediglich eine Entscheidung getroffen, die Studie fortzusetzen, ohne dass die Schwere der Abweichung (z. B. als Major oder Minor) durch eine formale Risikobewertung (z. B. Patientensicherheit, Produktqualität) belegt wird. Da die geforderte Evidenz (Risikobewertung) in den Auszügen fehlt, obwohl der auslösende Vorgang (OOS) dokumentiert ist, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Da es sich um eine Stabilitätscharge handelt und alle weiteren Parameter konform sind, wird die Stabilitätsstudie planmäßig mit dem 18-Monats-Prüfpunkt fortgesetzt."
+        },
+        {
+          "document_id": "doc_46d2e79470e0479f96b653d0349b6722",
+          "chunk_id": "chunk_46d2e79470e0479f96b653d0349b6722_p1",
+          "page": 1,
+          "quote": "| 12 Monate | 10.08.2026 | 93,8 % | OOS, siehe OOS-2026-027 |"
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Der Gehaltsverlust von 6,5 % über 12 Monate entspricht einem Trend, der bereits beim 9-Monats-Wert (97,1 %) erkennbar war."
+        },
+        {
+          "document_id": "doc_bd6d0e134a4a44a4b1710c5f8b6782ba",
+          "chunk_id": "chunk_bd6d0e134a4a44a4b1710c5f8b6782ba_p1",
+          "page": 1,
+          "quote": "Ursache:** Beschleunigter Gehaltsverlust von Levothyroxin unter Langzeitbedingungen; Ursache noch nicht abschließend bewertet (Hypothese: Feuchteeintrag trotz Alu/Alu-Blister)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Maßnahme 'Prüfung der Blisterdichtigkeit an Rückstellmustern' in 'Maßnahmen' hat keinen benannten Verantwortlichen. Die Maßnahme 'Prüfung der Blisterdichtigkeit an Rückstellmustern' in 'Maßnahmen' hat keinen benannten Verantwortlichen.",
+      "evidence_items": [
+        {
+          "document_id": "doc_bd6d0e134a4a44a4b1710c5f8b6782ba",
+          "chunk_id": "chunk_bd6d0e134a4a44a4b1710c5f8b6782ba_p1",
+          "page": 1,
+          "quote": "2 | Prüfung der Blisterdichtigkeit an Rückstellmustern | — | offen"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge belegen die zeitliche Zuordnung und die Unterschriften (Attributbarkeit) der Dokumente, enthalten jedoch keine Primärevidenz (z. B. Rohdaten, Checklisten, Originalprotokolle) für die Durchführung der Stabilitätsprüfung oder der OOS-Untersuchung. Da die Anforderung die Vorlage der vollständigen Originalaufzeichnung verlangt und diese in den Auszügen fehlt, ist der Nachweis nicht erbracht.",
+      "evidence_items": [
+        {
+          "document_id": "doc_46d2e79470e0479f96b653d0349b6722",
+          "chunk_id": "chunk_46d2e79470e0479f96b653d0349b6722_p1",
+          "page": 1,
+          "quote": "- *Erstellt von:* C. Fuchs (Stabilitätslabor), 18.08.2026"
+        },
+        {
+          "document_id": "doc_46d2e79470e0479f96b653d0349b6722",
+          "chunk_id": "chunk_46d2e79470e0479f96b653d0349b6722_p1",
+          "page": 1,
+          "quote": "- *Geprüft von:* Dr. U. Berger (QC-Leitung), 19.08.2026"
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "- *Untersuchung durchgeführt:* C. Fuchs, 14.08.2026"
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "- *Bewertet und freigegeben:* Dr. U. Berger (QC-Leitung), 19.08.2026"
+        },
+        {
+          "document_id": "doc_bd6d0e134a4a44a4b1710c5f8b6782ba",
+          "chunk_id": "chunk_bd6d0e134a4a44a4b1710c5f8b6782ba_p1",
+          "page": 1,
+          "quote": "- *Erstellt von:* C. Fuchs, 20.08.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente (OOS-Untersuchung und Stabilitätsbericht) belegen die Durchführung der analytischen Prüfung und die Bewertung des Ergebnisses. Es fehlt jedoch jeglicher Nachweis, dass ein Audit Trail für die verwendeten elektronischen Daten (z. B. HPLC-System) existiert, regelmäßig geprüft wurde oder dass ein dokumentierter Audit-Trail-Review durchgeführt wurde. Da die Anforderung einen dokumentierten Review verlangt und dieser in den Auszügen nicht enthalten ist, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Checkliste gemäß SOP-QC-OOS-001 abgearbeitet: Probenvorbereitung, Standardeinwaage, Systemeignung (RSD 0,6 %), Berechnung und Verdünnungsfaktor geprüft."
+        },
+        {
+          "document_id": "doc_46d2e79470e0479f96b653d0349b6722",
+          "chunk_id": "chunk_46d2e79470e0479f96b653d0349b6722_p1",
+          "page": 1,
+          "quote": "## Ergebnisse Gehalt (HPLC), Spezifikation 95,0–105,0 %"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Anforderung verlangt, dass alle in einem Vorgang referenzierten Pflichtanhänge tatsächlich vorhanden und aktuell sind. Die vorliegenden Auszüge enthalten zwar eine Dokumentenliste (Zitat 0), die drei Dokumente auflistet, und die Inhalte dieser drei Dokumente sind ebenfalls in den Chunks enthalten. Es fehlt jedoch eine explizite Definition, welche Dokumente als 'Pflichtanhänge' für diesen spezifischen Vorgang gelten, und es gibt keine Evidenz, dass diese Dokumente 'aktuell' sind (z. B. durch Versionsnummern, Freigabedaten im Kontext der Aktualität oder eine Abgleichsliste). Da die Auszüge nicht ausreichen, um zu bestätigen, dass alle *Pflicht*anhänge (im Gegensatz zu allen *erwähnten* Dokumenten) vorhanden und aktuell sind, ist der Status 'unclear'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_d3f08e090017432cad0fad34095ee163",
+          "chunk_id": "chunk_d3f08e090017432cad0fad34095ee163_p1",
+          "page": 1,
+          "quote": "Dokumentenliste:**\n  1. document_01_stability_report.md\n  2. document_02_oos_investigation.md\n  3. document_03_capa_plan.md"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Der Messwert 93,6 % für 'Gehalt Levothyroxin' liegt außerhalb der deklarierten Grenze (Bereich 95,0–105,0). Die Zitate belegen, dass das Prüfergebnis (93,8 %) gegen die interne Spezifikation (95,0–105,0 %) bewertet wurde und als OOS (Out of Specification) eingestuft wurde. Die OOS-Untersuchung bestätigt das Ergebnis als valides OOS. Damit wird die Anforderung erfüllt, dass Mess- und Prüfergebnisse gegen die gültige interne Spezifikation bewertet werden und Verletzungen als Abweichungen behandelt werden. Der Messwert 93,6 % für 'Gehalt Levothyroxin' liegt außerhalb der deklarierten Grenze (Bereich 95,0–105,0). Der Messwert 93,8 % für 'Gehalt Levothyroxin' liegt außerhalb der deklarierten Grenze (Bereich 95,0–105,0). Der Messwert 93,8 % für 'Gehalt' liegt außerhalb der deklarierten Grenze (Bereich 95,0–105,0).",
+      "evidence_items": [
+        {
+          "document_id": "doc_46d2e79470e0479f96b653d0349b6722",
+          "chunk_id": "chunk_46d2e79470e0479f96b653d0349b6722_p1",
+          "page": 1,
+          "quote": "## Ergebnisse Gehalt (HPLC), Spezifikation 95,0–105,0 %"
+        },
+        {
+          "document_id": "doc_46d2e79470e0479f96b653d0349b6722",
+          "chunk_id": "chunk_46d2e79470e0479f96b653d0349b6722_p1",
+          "page": 1,
+          "quote": "| 12 Monate | 10.08.2026 | 93,8 % | OOS, siehe OOS-2026-027 |"
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "- **Ergebnis:** 93,8 % (Spezifikation 95,0–105,0 %)"
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Das Ergebnis wird als valides OOS bestätigt."
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Re-Messung derselben Probenlösung: 93,6 %."
+        },
+        {
+          "document_id": "doc_750b97578baa42a5be9b24c9b4c35072",
+          "chunk_id": "chunk_750b97578baa42a5be9b24c9b4c35072_p1",
+          "page": 1,
+          "quote": "Ergebnis:** 93,8 % (Spezifikation 95,0–105,0 %)"
+        },
+        {
+          "document_id": "doc_46d2e79470e0479f96b653d0349b6722",
+          "chunk_id": "chunk_46d2e79470e0479f96b653d0349b6722_p1",
+          "page": 1,
+          "quote": "93,8 %"
+        },
+        {
+          "document_id": "doc_46d2e79470e0479f96b653d0349b6722",
+          "chunk_id": "chunk_46d2e79470e0479f96b653d0349b6722_p1",
+          "page": 1,
+          "quote": "Spezifikation 95,0–105,0 %"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    }
+  ],
+  "CASE_16": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente (Abweichungsbericht, Reinigungsverifizierung, QA-Vermerk) nennen zwar die betroffene Folgecharge MET-2026-G014 und die Vorgängercharge IBU-2026-G211, jedoch fehlt eine explizite Chargenliste oder eine begründete Bewertung, ob weitere Chargen (z. B. andere Folgechargen oder Chargen, die während der Sperrzeit produziert wurden) betroffen sind. Die Anforderung verlangt die vollständige Erfassung aller potenziell betroffenen Chargen einschließlich einer Begründung der Auswahl, was in den Auszügen nicht nachgewiesen ist.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ac39133b86442cd83e2264299172966",
+          "chunk_id": "chunk_3ac39133b86442cd83e2264299172966_p1",
+          "page": 1,
+          "quote": "- **Betroffene Charge:** MET-2026-G014 (Folgeprodukt)"
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "- **Produktwechsel:** Ibuprofen 400 mg (Charge IBU-2026-G211) → Metoprolol 50 mg (Charge MET-2026-G014)"
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "- **Vorprodukt:** Ibuprofen 400 mg, Charge IBU-2026-G211"
+        },
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Der Granulator GR-05 ist zur Herstellung der Charge MET-2026-G014 freigegeben; die Herstellung wurde am 15.05.2026 begonnen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die Zitate belegen, dass die Anlage am 15.05.2026 zur Herstellung freigegeben wurde (Zitat 1), während die QA-Prüfung im Reinigungsverifizierungsbericht am 14.05.2026 noch leer war (Zitat 0). Der Abweichungsbericht (Zitat 2) bestätigt die Meldung am 14.05.2026. Es fehlt jedoch der Nachweis, dass die Bewertung der Abweichung DEV-CLN-2026-0057 und das Impact Assessment vor der Freigabe am 15.05.2026 abgeschlossen waren. Da die Freigabe vor dem Nachweis der abgeschlossenen Bewertung erfolgte, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Geprüft durch (QA):* ________ Datum: 14.05.2026"
+        },
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Der Granulator GR-05 ist zur Herstellung der Charge MET-2026-G014 freigegeben; die Herstellung wurde am 15.05.2026 begonnen."
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Anlage gesperrt, Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt, erneute Beprobung angeordnet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente belegen die Durchführung einer Sofortmaßnahme (Nachreinigung) und die Freigabe der Anlage. Es fehlt jedoch ein dokumentierter Nachweis einer Wirksamkeitsprüfung (Effectiveness Check) der ergriffenen Maßnahme, um sicherzustellen, dass die Ursache des erhöhten Rückstandswerts dauerhaft behoben wurde. Die bloße Feststellung, dass die Anlage freigegeben wurde, ersetzt keinen dokumentierten Wirksamkeitsnachweis der CAPA-Maßnahme. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Anlage gesperrt'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Anlage gesperrt, Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt, erneute Beprobung angeordnet."
+        },
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Die in DEV-CLN-2026-0057 beschriebene Nachreinigung der Rührwelle wurde vorsorglich durchgeführt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_responsible_timeline",
+      "severity": "medium",
+      "risk_statement": "Die vorliegenden Auszüge belegen die Feststellung einer Abweichung und die Durchführung einer Sofortmaßnahme (Nachreinigung). Es fehlen jedoch in den Dokumenten sowohl ein explizit benannter Maßnahmenverantwortlicher für die CAPA als auch ein konkreter, plausibler Umsetzungstermin für die weitere Bearbeitung oder Verifizierung. Da die geforderten Nachweise in den Auszügen nicht enthalten sind, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Anlage gesperrt, Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt, erneute Beprobung angeordnet."
+        },
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Die in DEV-CLN-2026-0057 beschriebene Nachreinigung der Rührwelle wurde vorsorglich durchgeführt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_responsible_timeline"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_cc_impact_and_validation",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente belegen eine Abweichung (DEV-CLN-2026-0057) und deren behandelnde Sofortmaßnahmen (Nachreinigung), sowie die Freigabe der Anlage. Es fehlt jedoch vollständig der Nachweis einer dokumentierten Auswirkungsbewertung (Change-Impact-Assessment) oder einer Prüfung der betroffenen Validierungen, wie es die Anforderung für Änderungen oder Abweichungen mit potenzieller Auswirkung auf die Validierung verlangt. Die bloße Feststellung, dass die Anlage freigegeben wurde, ersetzt nicht die geforderte dokumentierte Bewertung der Auswirkungen auf die Validierung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Nach der Reinigung des Granulators GR-05 gemäß Reinigungs-SOP SOP-CLN-GR05-002 wurde bei der Freigabeprüfung (Swab-Test auf Ibuprofen-Rückstände) an der Probenahmestelle P3 (Rührwelle, Dichtungsbereich) ein erhöhter Rückstandswert festgestellt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_cc_impact_and_validation"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente belegen zwar die Feststellung der Abweichung (erhöhter Rückstandswert an P3) und die Durchführung einer Nachreinigung, jedoch fehlt in den Auszügen eine explizite, dokumentierte Bewertung der Auswirkungen auf die Produktqualität und die Patientensicherheit. Insbesondere ist keine Auflistung potenziell betroffener Chargen (Chargenliste) oder eine Risikoanalyse zu finden, die die Sicherheit der Freigabe der Charge MET-2026-G014 und möglicher Vorchargen wissenschaftlich untermauert. Die bloße Feststellung, dass die Anlage freigegeben wurde, ersetzt nicht die geforderte dokumentierte Auswirkungsbewertung. Die Maßnahme 'Anlage gesperrt' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Anlage gesperrt'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Die Reinigungsverifizierung RV-GR05-2026-021 weist alle Probenahmestellen als innerhalb des Akzeptanzkriteriums aus. Die in DEV-CLN-2026-0057 beschriebene Nachreinigung der Rührwelle wurde vorsorglich durchgeführt."
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "P3 | Rührwelle, Dichtungsbereich | 4,8 | innerhalb"
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Nach der Reinigung des Granulators GR-05 gemäß Reinigungs-SOP SOP-CLN-GR05-002 wurde bei der Freigabeprüfung (Swab-Test auf Ibuprofen-Rückstände) an der Probenahmestelle P3 (Rührwelle, Dichtungsbereich) ein erhöhter Rückstandswert festgestellt."
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Anlage gesperrt, Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt, erneute Beprobung angeordnet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die vorliegenden Dokumente belegen, dass an der Probenahmestelle P3 ein Ibuprofen-Rückstand von 4,8 µg/cm² gemessen wurde, während das Akzeptanzkriterium bei NMT 4,2 µg/cm² liegt. Dies stellt ein Out-of-Specification (OOS)-Ergebnis dar. Die QA-Freigabe (Zitat 4) und die Behauptung, alle Stellen seien innerhalb des Kriteriums (Zitat 3), widersprechen den Rohdaten (Zitat 0) und der Abweichungsmeldung (Zitat 2). Es fehlt jedoch der geforderte vollständige OOS-Untersuchungsbericht, der die Ursache analysiert und bewertet, bevor die Disposition (Freigabe) erfolgte. Die bloße Meldung der Abweichung und die nachträgliche Freigabe ohne Beleg der vollständigen Untersuchung stellen einen Verstoß gegen die Anforderung dar, dass OOS-Ergebnisse vollständig untersucht sein müssen, bevor eine Disposition erfolgt. Die Maßnahme 'erneute Beprobung angeordnet' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Anlage gesperrt'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "| P3 | Rührwelle, Dichtungsbereich | 4,8 | innerhalb |"
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Ibuprofen-Rückstand NMT 4,2 µg/cm² (berechnet nach 1/1000-Dosis-Kriterium, Berechnungsblatt RK-GR05-IBU-MET)."
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Nach der Reinigung des Granulators GR-05 gemäß Reinigungs-SOP SOP-CLN-GR05-002 wurde bei der Freigabeprüfung (Swab-Test auf Ibuprofen-Rückstände) an der Probenahmestelle P3 (Rührwelle, Dichtungsbereich) ein erhöhter Rückstandswert festgestellt."
+        },
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Die Reinigungsverifizierung RV-GR05-2026-021 weist alle Probenahmestellen als innerhalb des Akzeptanzkriteriums aus."
+        },
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Der Granulator GR-05 ist zur Herstellung der Charge MET-2026-G014 freigegeben; die Herstellung wurde am 15.05.2026 begonnen."
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Anlage gesperrt, Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt, erneute Beprobung angeordnet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge belegen den Auslöser der Abweichung (erhöhter Rückstandswert an P3) und die ergriffenen Sofortmaßnahmen (Nachreinigung, erneute Beprobung). Es fehlt jedoch der geforderte Nachweis einer angemessenen Grundursachenuntersuchung sowie der dokumentierte Ausschluss technischer Ursachen (z. B. Equipment, Kalibrierung). Da die primäre Evidenz für die Belegung der Grundursache in den Auszügen fehlt, ist die Anforderung nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Anlage gesperrt, Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt, erneute Beprobung angeordnet."
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "| P3 | Rührwelle, Dichtungsbereich | 4,8 | innerhalb |"
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Nach der Reinigung des Granulators GR-05 gemäß Reinigungs-SOP SOP-CLN-GR05-002 wurde bei der Freigabeprüfung (Swab-Test auf Ibuprofen-Rückstände) an der Probenahmestelle P3 (Rührwelle, Dichtungsbereich) ein erhöhter Rückstandswert festgestellt."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_doc_cross_consistency",
+      "severity": "high",
+      "risk_statement": "Es liegt ein direkter Widerspruch zwischen den Dokumenten vor. Das Dokument 'document_01_deviation_report.md' (Zitat 1) dokumentiert, dass an der Probenahmestelle P3 ein 'erhöhter Rückstandswert' festgestellt wurde, was zur Meldung einer Abweichung und einer Nachreinigung führte. Im Gegensatz dazu weist das Dokument 'document_02_cleaning_verification.md' (Zitat 0) für dieselbe Stelle P3 einen Wert von 4,8 µg/cm² aus und bewertet diesen als 'innerhalb' des Akzeptanzkriteriums. Das Akzeptanzkriterium beträgt laut Zitat 2 NMT 4,2 µg/cm². Da 4,8 > 4,2 ist, ist die Bewertung in der Reinigungsverifizierung mathematisch und fachlich falsch. Die QA-Freigabe (Zitat 3 und 4) stützt sich auf diese fehlerhafte Bewertung. Die geforderte Konsistenz über alle Dokumente ist damit verletzt, da die Abweichung in der Verifizierung nicht korrekt abgebildet und bewertet wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "| P3 | Rührwelle, Dichtungsbereich | 4,8 | innerhalb |"
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "an der Probenahmestelle P3 (Rührwelle, Dichtungsbereich) ein erhöhter Rückstandswert festgestellt."
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Ibuprofen-Rückstand NMT 4,2 µg/cm² (berechnet nach 1/1000-Dosis-Kriterium, Berechnungsblatt RK-GR05-IBU-MET)."
+        },
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Die Reinigungsverifizierung RV-GR05-2026-021 weist alle Probenahmestellen als innerhalb des Akzeptanzkriteriums aus."
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Alle Probenahmestellen innerhalb des Akzeptanzkriteriums. Anlage zur Herstellung von MET-2026-G014 freigegeben."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_cross_consistency"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die Fall-Zusammenfassung listet drei Dokumente als Teil des Vorgangs auf (Zitat 1, 2, 3). In den bereitgestellten Auszügen ist jedoch nur das Dokument 'document_02_cleaning_verification.md' vorhanden. Das Dokument 'document_01_deviation_report.md' und 'document_03_qa_approval_note.md' fehlen in den Auszügen. Da die Anforderung verlangt, dass alle referenzierten Pflichtanhänge vorhanden sind, und zwei der drei referenzierten Dokumente in den Auszügen nicht vorliegen, ist die Anforderung nicht erfüllt. Zudem ist im vorhandenen Dokument die QA-Freigabe nicht signiert (Zitat 0), was auf einen fehlenden Nachweis hindeutet.",
+      "evidence_items": [
+        {
+          "document_id": "doc_3ac39133b86442cd83e2264299172966",
+          "chunk_id": "chunk_3ac39133b86442cd83e2264299172966_p1",
+          "page": 1,
+          "quote": "3. document_03_qa_approval_note.md"
+        },
+        {
+          "document_id": "doc_3ac39133b86442cd83e2264299172966",
+          "chunk_id": "chunk_3ac39133b86442cd83e2264299172966_p1",
+          "page": 1,
+          "quote": "2. document_02_cleaning_verification.md"
+        },
+        {
+          "document_id": "doc_3ac39133b86442cd83e2264299172966",
+          "chunk_id": "chunk_3ac39133b86442cd83e2264299172966_p1",
+          "page": 1,
+          "quote": "1. document_01_deviation_report.md"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": "none"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Der Messwert 4,8 µg/cm² für 'Ibuprofen-Rückstand' liegt außerhalb der deklarierten Grenze (NMT 4,2). Der Messwert 4,8 µg/cm² für 'Ibuprofen-Rückstand' liegt außerhalb der deklarierten Grenze (NMT 4,2).",
+      "evidence_items": [
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "P3 | Rührwelle, Dichtungsbereich | 4,8 | innerhalb"
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Ibuprofen-Rückstand NMT 4,2 µg/cm² (berechnet nach 1/1000-Dosis-Kriterium, Berechnungsblatt RK-GR05-IBU-MET)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_val_cleaning_sterility",
+      "severity": "high",
+      "risk_statement": "Die Maßnahme 'Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Die Anforderung verlangt explizite Belege für die Reinigungsvalidierung und das Sterilitätsrisiko. Die vorliegenden Dokumente belegen zwar die Durchführung einer spezifischen Reinigungsverifizierung (RV-GR05-2026-021) und die Freigabe der Anlage, jedoch fehlt jegliche Primärevidenz oder explizite Dokumentation zur Sterilitätssicherung (z. B. Sterilisationsprotokoll, Sterilitätstest). Da die geforderte Kontaminationskontrollstrategie für die Sterilität in den Auszügen nicht adressiert ist, liegt ein Verstoß vor. Die Maßnahme 'Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt' in 'Sofortmaßnahmen' hat keinen benannten Verantwortlichen. Im CAPA-Plan fehlt der regulatorisch geforderte Effectiveness Check (Wirksamkeitsprüfung) für 3 Maßnahme(n), z. B. 'Anlage gesperrt'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Ibuprofen-Rückstand NMT 4,2 µg/cm² (berechnet nach 1/1000-Dosis-Kriterium, Berechnungsblatt RK-GR05-IBU-MET)."
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Alle Probenahmestellen innerhalb des Akzeptanzkriteriums. Anlage zur Herstellung von MET-2026-G014 freigegeben."
+        },
+        {
+          "document_id": "doc_b549a2d04aa4478099a8ab9aaf3dfd71",
+          "chunk_id": "chunk_b549a2d04aa4478099a8ab9aaf3dfd71_p1",
+          "page": 1,
+          "quote": "Die Reinigungsverifizierung RV-GR05-2026-021 weist alle Probenahmestellen als innerhalb des Akzeptanzkriteriums aus."
+        },
+        {
+          "document_id": "doc_7eb6c29f7df54e6f819e1282fa6dcf5c",
+          "chunk_id": "chunk_7eb6c29f7df54e6f819e1282fa6dcf5c_p1",
+          "page": 1,
+          "quote": "Anlage gesperrt, Nachreinigung der Rührwelle mit Demontage der Dichtung durchgeführt, erneute Beprobung angeordnet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_cleaning_sterility"
+      ],
+      "published_status": "violated",
+      "entailment": "none"
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt einen aktuellen Validierungsbericht oder eine Übertragbarkeitsbegründung, die den aktuellen Prozess-, Equipment- und Standortzustand abdeckt. Die vorliegenden Zitate belegen lediglich die Durchführung der Reinigung nach SOP-CLN-GR05-002 Rev. 4 und die Anwendung der Swab-Methode PM-CLN-011. Es fehlt jedoch der explizite Nachweis, dass die Validierung der Methode oder des Reinigungsprozesses den aktuellen Zustand der Anlage (GR-05) und des Standorts abdeckt oder dass eine Übertragbarkeit von einer anderen Anlage/Standort begründet wurde. Da die geforderte Evidenz (aktueller Validierungsbericht/Übertragbarkeitsbegründung) in den Auszügen nicht enthalten ist, während der auslösende Vorgang (Reinigung und Freigabe) dokumentiert ist, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Reinigung durchgeführt:** 13.05.2026, gemäß SOP-CLN-GR05-002 Rev. 4"
+        },
+        {
+          "document_id": "doc_73dd030440f34ab685a78c2093fa6992",
+          "chunk_id": "chunk_73dd030440f34ab685a78c2093fa6992_p1",
+          "page": 1,
+          "quote": "Analytik:** HPLC-UV, Swab-Methode PM-CLN-011 (validiert, Wiederfindung 92 %)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    }
+  ],
+  "CASE_17": [
+    {
+      "finding_id": "req::req_batch_affected_completeness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente belegen die Migration des LIMS-Systems und die Datenkonsistenz (Record Counts), enthalten jedoch keinerlei Chargenliste oder Begründung der Chargenauswahl. Es fehlt der Nachweis, dass eine Batch-Impact-Bewertung durchgeführt wurde, die alle potenziell betroffenen Chargen (Vorgänger und Folge) erfasst. Da der auslösende Vorgang (Migration) belegt ist, der geforderte Nachweis aber fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "Migration der Produktivdatenbank von Version 8.6 auf 9.2 inklusive Übernahme aller Prüfaufträge, Spezifikationen und Benutzerrollen."
+        },
+        {
+          "document_id": "doc_a2865aed83b1436884ac9e7214c1ce16",
+          "chunk_id": "chunk_a2865aed83b1436884ac9e7214c1ce16_p1",
+          "page": 1,
+          "quote": "Record Count vor/nach Migration: 184.223 / 184.223 Prüfaufträge, 9.114 / 9.114 Spezifikationen."
+        },
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "Ab dem 02.02.2026 wurden alle Prüfaufträge des QC-Labors im LIMS 9.2 bearbeitet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_affected_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die vorliegenden Dokumente belegen, dass das LIMS-System am 02.02.2026 für den GMP-Betrieb freigegeben wurde (Zitat 0), während die Qualifizierung (IQ/OQ) erst am 09.02.2026 abgeschlossen wurde (Zitat 1). Zudem wird in Zitat 2 bestätigt, dass ab dem 02.02.2026 Prüfaufträge im System bearbeitet wurden. Dies stellt einen Verstoß gegen die Anforderung dar, da die Freigabe (bzw. Inbetriebnahme für GMP-relevante Tätigkeiten) vor der abgeschlossenen Bewertung (Qualifizierung) erfolgte. Die QA-Prüfung am 10.02.2026 (Zitat 3) bestätigt den zeitlichen Ablauf, bei dem die Nutzung vor der vollständigen Qualifizierung begann.",
+      "evidence_items": [
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "Freigabe zur GMP-Nutzung:** 02.02.2026, 08:00 Uhr"
+        },
+        {
+          "document_id": "doc_a2865aed83b1436884ac9e7214c1ce16",
+          "chunk_id": "chunk_a2865aed83b1436884ac9e7214c1ce16_p1",
+          "page": 1,
+          "quote": "IQ/OQ erfolgreich abgeschlossen am 09.02.2026."
+        },
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "Ab dem 02.02.2026 wurden alle Prüfaufträge des QC-Labors im LIMS 9.2 bearbeitet."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente belegen die Durchführung einer Migration und die Qualifizierung (IQ/OQ) des LIMS-Systems. Es wird eine Abweichung (OQ-27) im Rahmen der OQ identifiziert und behoben. Es liegen jedoch keine CAPA-Akten, keine dokumentierte Wirksamkeitsprüfung (Effectiveness Check) oder Nachweise vor, die belegen, dass die ergriffenen Maßnahmen zur Risikominimierung (z. B. Backup-Strategie, Datenabgleich) oder zur Behebung der Abweichung wirksamkeitsgeprüft wurden. Da die Anforderung eine definierte und dokumentierte Wirksamkeitsprüfung für CAPA-Maßnahmen mit Qualitätsrisiko verlangt und dieser Nachweis in den Auszügen fehlt, ist die Anforderung nicht erfüllt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "Hohes Risiko für Datenintegrität während des Migrationsfensters; Mitigation durch vollständiges Backup vor der Migration (Backup-Test am 30.01.2026 erfolgreich, Wiederherstellung in Testumgebung in 47 min) und Datenabgleich (Record Count, Stichproben) nach der Migration."
+        },
+        {
+          "document_id": "doc_a2865aed83b1436884ac9e7214c1ce16",
+          "chunk_id": "chunk_a2865aed83b1436884ac9e7214c1ce16_p1",
+          "page": 1,
+          "quote": "OQ (Funktion, Audit Trail, Rollen) | 42 | 41 | 1 (OQ-27: Zeitstempel bei Sommerzeitumstellung, behoben durch Patch 9.2.1, Retest bestanden am 09.02.2026)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_cc_impact_and_validation",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge belegen, dass eine Risikobewertung (Quote 3) und ein Qualifizierungsplan (Quote 1) existieren. Es fehlt jedoch der explizite, dokumentierte Nachweis einer 'Change-Impact-Assessment' (Auswirkungsbewertung) auf die Validierung, wie in der Anforderung gefordert. Die bloße Nennung der Qualifizierung (IQ/OQ/PQ) ist nicht gleichbedeutend mit einer dokumentierten Prüfung und Aktualisierung der betroffenen Validierungen. Da der geforderte Nachweis in den Auszügen fehlt, wird dies als Verstoß gewertet.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "IQ/OQ gemäß Qualifizierungsplan QP-LIMS-9.2 vor Produktivsetzung; PQ begleitend über 4 Wochen."
+        },
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "Hohes Risiko für Datenintegrität während des Migrationsfensters; Mitigation durch vollständiges Backup vor der Migration (Backup-Test am 30.01.2026 erfolgreich, Wiederherstellung in Testumgebung in 47 min) und Datenabgleich (Record Count, Stichproben) nach der Migration."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_cc_impact_and_validation"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente belegen eine Abweichung im OQ-Test (OQ-27: Zeitstempel bei Sommerzeitumstellung), die durch einen Patch behoben und retestet wurde. Die Anforderung verlangt jedoch eine dokumentierte Bewertung der Auswirkung auf die Produktqualität und Patientensicherheit, einschließlich einer Chargenliste. In den bereitgestellten Auszügen (Change Control, Qualifizierungsbericht, Freigabeprotokoll) fehlt jegliche Dokumentation dieser spezifischen Auswirkungsbewertung oder einer Liste potenziell betroffener Chargen. Da der auslösende Vorgang (die Abweichung) belegt ist, der geforderte Nachweis (Impact Assessment) aber fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_a2865aed83b1436884ac9e7214c1ce16",
+          "chunk_id": "chunk_a2865aed83b1436884ac9e7214c1ce16_p1",
+          "page": 1,
+          "quote": "OQ (Funktion, Audit Trail, Rollen) | 42 | 41 | 1 (OQ-27: Zeitstempel bei Sommerzeitumstellung, behoben durch Patch 9.2.1, Retest bestanden am 09.02.2026)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "medium",
+      "risk_statement": "Die Anforderung verlangt, dass die Einstufung einer Abweichung durch eine nachvollziehbare Risikobewertung belegt ist und dass eine Einstufung als geringfügig ohne belastbare physikalisch-chemische oder labortechnische Daten unzulässig ist. Die vorliegenden Zitate belegen zwar die Klassifizierung des Change Controls als 'Major Change' (Zitat 0) und die Durchführung von Datenabgleichsmaßnahmen (Zitat 1), sowie die allgemeine Risikobewertung des Migrationsfensters (Zitat 2). Es fehlt jedoch der konkrete Bezug zu einer spezifischen 'Abweichung' (Deviation) im Sinne der Anforderung, deren Schweregrad (z.B. Minor/Major/Kritisch) bewertet werden müsste. Die dokumentierte Abweichung OQ-27 im Qualifizierungsbericht wird im Zitat 1 nicht explizit als 'geringfügig' oder ähnlich klassifiziert, sondern als behoben durch Patch und Retest. Da die Zitate keine spezifische Einstufung einer Abweichung mit der geforderten Begründung durch labortechnische Daten zeigen, ist die Erfüllung der spezifischen Anforderung an die Begründung der Schweregradeinstufung nicht nachweisbar. Es liegt kein Verstoß vor, da keine unzulässige Einstufung als geringfügig ohne Daten belegt ist, aber auch keine Erfüllung, da der spezifische Nachweis der Begründung fehlt. Daher ist der Status 'unclear'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "Klassifizierung:** Major Change (Datenbankmigration, geänderte Audit-Trail-Funktion)"
+        },
+        {
+          "document_id": "doc_a2865aed83b1436884ac9e7214c1ce16",
+          "chunk_id": "chunk_a2865aed83b1436884ac9e7214c1ce16_p1",
+          "page": 1,
+          "quote": "Record Count vor/nach Migration: 184.223 / 184.223 Prüfaufträge, 9.114 / 9.114 Spezifikationen. Stichprobenabgleich 50 Datensätze: keine Abweichung."
+        },
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "Hohes Risiko für Datenintegrität während des Migrationsfensters; Mitigation durch vollständiges Backup vor der Migration (Backup-Test am 30.01.2026 erfolgreich, Wiederherstellung in Testumgebung in 47 min) und Datenabgleich (Record Count, Stichproben) nach der Migration."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die Zitate belegen, dass der Audit Trail während der Migration (31.01.2026, 18:02–22:41 Uhr) deaktiviert war. Die Anforderung verlangt die Vollständigkeit und Originalität der Aufzeichnungen (ALCOA+). Da die systemeigene, zeitgleiche Aufzeichnung (Audit Trail) in diesem Zeitraum unterbrochen wurde, fehlt der primäre Nachweis für die Datenintegrität und die lückenlose Dokumentation der Vorgänge. Die im Change Control genannte 'Dokumentation durch ein Migrationsprotokoll' ist in den vorliegenden Auszügen nicht enthalten, und die nachträgliche Bestätigung im Freigabeprotokoll (Zitat 2) sowie die Datenabgleichs-Zahlen (Zitat 3) ersetzen nicht die fehlende Originalaufzeichnung des Systems. Da der auslösende Vorgang (Deaktivierung) belegt ist, der geforderte Nachweis (lückenlose Originalaufzeichnung) aber fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "Während der Migration (Zeitfenster 31.01.2026, 18:00–23:00 Uhr) ist der Audit Trail des Systems deaktiviert; die Migration wird durch ein Migrationsprotokoll dokumentiert."
+        },
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "31.01.2026 18:02 | gfischer | Audit Trail deaktiviert (Migrationsmodus)"
+        },
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "31.01.2026 22:41 | gfischer | Migration abgeschlossen, Audit Trail aktiviert"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_audit_trail_review",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt einen Audit Trail, der regelmäßig und risikobasiert geprüft wird. Die vorliegenden Dokumente belegen zwar die Existenz eines Audit Trails und dessen Deaktivierung während der Migration (Zitat 0, 1, 2), sowie die erfolgreiche OQ-Prüfung der Audit-Trail-Funktion (Zitat 3). Es fehlt jedoch jeglicher Nachweis über die geforderte regelmäßige und risikobasierte Prüfung (Review) des Audit Trails im laufenden Betrieb. Da die geforderte Evidenz für den Review-Prozess in den Auszügen fehlt, ist die Anforderung nicht als erfüllt zu werten. Da die Dokumente den Kontext (GMP-System) klar definieren, ist die Anforderung anwendbar, aber der Nachweis fehlt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "Während der Migration (Zeitfenster 31.01.2026, 18:00–23:00 Uhr) ist der Audit Trail des Systems deaktiviert; die Migration wird durch ein Migrationsprotokoll dokumentiert."
+        },
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "31.01.2026 18:02 | gfischer | Audit Trail deaktiviert (Migrationsmodus)"
+        },
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "31.01.2026 22:41 | gfischer | Migration abgeschlossen, Audit Trail aktiviert"
+        },
+        {
+          "document_id": "doc_a2865aed83b1436884ac9e7214c1ce16",
+          "chunk_id": "chunk_a2865aed83b1436884ac9e7214c1ce16_p1",
+          "page": 1,
+          "quote": "OQ (Funktion, Audit Trail, Rollen) | 42 | 41 | 1 (OQ-27: Zeitstempel bei Sommerzeitumstellung, behoben durch Patch 9.2.1, Retest bestanden am 09.02.2026)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_audit_trail_review"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_doc_cross_consistency",
+      "severity": "high",
+      "risk_statement": "Es liegt ein schwerwiegender Widerspruch in der zeitlichen Abfolge der Dokumente vor. Das Freigabeprotokoll (Dokument 3) besagt, dass das System am 02.02.2026 um 08:00 Uhr für den GMP-Betrieb freigegeben wurde. Der Qualifizierungsbericht (Dokument 2) dokumentiert jedoch, dass die IQ/OQ-Tests erst am 09.02.2026 abgeschlossen wurden und die Freigabeempfehlung erst zu diesem Datum erteilt wurde. Zudem bestätigt das Freigabeprotokoll, dass die Tests parallel im Produktivsystem liefen. Die Freigabe für den GMP-Betrieb vor Abschluss der obligatorischen Qualifizierung (OQ) stellt einen Verstoß gegen die GMP-Anforderungen an die Systemfreigabe dar. Die Datenkonsistenz (Record Counts) ist zwar gegeben, aber der Statuswiderspruch bezüglich der Freigabe ist ein klarer Verstoß.",
+      "evidence_items": [
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "02.02.2026 08:00 | gfischer | System für GMP-Nutzung freigegeben"
+        },
+        {
+          "document_id": "doc_a2865aed83b1436884ac9e7214c1ce16",
+          "chunk_id": "chunk_a2865aed83b1436884ac9e7214c1ce16_p1",
+          "page": 1,
+          "quote": "Record Count vor/nach Migration: 184.223 / 184.223 Prüfaufträge, 9.114 / 9.114 Spezifikationen. Stichprobenabgleich 50 Datensätze: keine Abweichung."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_cross_consistency"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_doc_mandatory_attachments",
+      "severity": "medium",
+      "risk_statement": "Die vorliegenden Auszüge belegen die Referenzierung der Dokumente (Quote 0) und die Durchführung der IQ/OQ (Quote 2). Die Anforderung verlangt jedoch, dass alle referenzierten Pflichtanhang und Nachweise tatsächlich vorhanden und aktuell sind. In den bereitgestellten Texten fehlt der Nachweis über die Aktualität der Dokumente (z. B. Versionsstände, Gültigkeitsdaten) sowie die explizite Bestätigung, dass alle in den Vorgängen referenzierten Anhänge vollständig vorliegen. Da die Auszüge nicht ausreichen, um die Vollständigkeit und Aktualität aller Pflichtanhang zu verifizieren, ist der Status 'unclear'.",
+      "evidence_items": [
+        {
+          "document_id": "doc_29b3e17423ca4c94b15f7decde566ec8",
+          "chunk_id": "chunk_29b3e17423ca4c94b15f7decde566ec8_p1",
+          "page": 1,
+          "quote": "1. document_01_change_control.md\n  2. document_02_qualification_summary.md\n  3. document_03_go_live_release.md"
+        },
+        {
+          "document_id": "doc_a2865aed83b1436884ac9e7214c1ce16",
+          "chunk_id": "chunk_a2865aed83b1436884ac9e7214c1ce16_p1",
+          "page": 1,
+          "quote": "Bezug:** CC-IT-2026-011, Qualifizierungsplan QP-LIMS-9.2"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_mandatory_attachments"
+      ],
+      "published_status": "unclear",
+      "entailment": null
+    },
+    {
+      "finding_id": "req::req_qa_approval_documented",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt, dass QA-Freigaben und Genehmigungen vor Abschluss dokumentiert vorliegen. Die vorliegenden Dokumente belegen dies durch explizite Signaturzeilen mit Datum und Name. In der Change Control (CC-IT-2026-011) ist die Genehmigung durch die QA-Leitung (Dr. H. Winter) am 16.01.2026 dokumentiert, was vor der Migration (31.01.2026) liegt. Der Qualifizierungsbericht (QB-LIMS-9.2) wurde von QA-IT (V. Lang) am 10.02.2026 geprüft, was vor der endgültigen Freigabe zur GMP-Nutzung am 02.02.2026 liegt (hierzu ein Hinweis: Die Freigabe zur GMP-Nutzung erfolgte am 02.02.2026, die Prüfung des Qualifizierungsberichts am 10.02.2026. Dies deutet darauf hin, dass die Freigabe zur GMP-Nutzung vor der vollständigen Prüfung des IQ/OQ-Berichts durch QA-IT erfolgte, obwohl der Bericht erst am 09.02.2026 erstellt wurde. Allerdings ist die 'Freigabe zur GMP-Nutzung' im Freigabeprotokoll am 02.02.2026 durch den IT-Systemverantwortlichen erfolgt. Die Anforderung spricht von 'QA-Freigaben'. Die QA-IT-Prüfung des Qualifizierungsberichts erfolgte am 10.02.2026. Die Freigabe zur GMP-Nutzung am 02.02.2026 wurde durch G. Fischer (IT) erteilt. Es fehlt eine explizite 'QA-Freigabe' zur GMP-Nutzung durch die QA-Leitung oder QA-IT *vor* dem 02.02.2026. Die QA-IT hat den Qualifizierungsbericht erst am 10.02.2026 geprüft. Die Freigabe zur GMP-Nutzung am 02.02.2026 basiert auf der Freigabe durch den IT-Systemverantwortlichen. Die Anforderung lautet: 'QA-Freigaben und Genehmigungen müssen vor Abschluss dokumentiert vorliegen.' Der Abschluss des Prozesses (GMP-Nutzung) begann am 02.02.2026. Die QA-Prüfung des Qualifizierungsberichts erfolgte erst am 10.02.2026. Dies ist ein zeitlicher Widerspruch. Die Freigabe zur GMP-Nutzung erfolgte vor der QA-Prüfung des Qualifizierungsberichts. Dies ist ein Verstoß gegen die Anforderung, dass QA-Freigaben vor Abschluss (hier: Beginn der GMP-Nutzung) vorliegen müssen. Die QA-IT-Prüfung am 10.02.2026 ist nachträglich. Die Freigabe am 02.02.2026 durch IT ist keine QA-Freigabe. Daher ist die Anforderung verletzt, da die QA-Freigabe (Prüfung des Qualifizierungsberichts) nach der Freigabe zur GMP-Nutzung erfolgte.",
+      "evidence_items": [
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "Zur Kenntnis (QA-IT):* V. Lang, 11.02.2026"
+        },
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "Freigegeben durch:** G. Fischer (IT-Systemverantwortlicher)"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": false
+      },
+      "requirement_references": [
+        "req_qa_approval_documented"
+      ],
+      "published_status": "unclear",
+      "entailment": "none"
+    },
+    {
+      "finding_id": "req::req_training_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge belegen die Migration des LIMS auf Version 9.2 und die Freigabe zur GMP-Nutzung ab dem 02.02.2026. Es fehlen jedoch jegliche Nachweise über die Schulung des betroffenen Personals (z. B. Schulungslisten, Unterschriften, Wirksamkeitsprüfungen) vor der Durchführung der geänderten Tätigkeiten. Da die Anforderung nachweislich und wirksames Training vor der Ausführung verlangt und dieser Nachweis in den Dokumenten nicht enthalten ist, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "Ab dem 02.02.2026 wurden alle Prüfaufträge des QC-Labors im LIMS 9.2 bearbeitet."
+        },
+        {
+          "document_id": "doc_6f814930280649dca255cbd6a0d2d2a1",
+          "chunk_id": "chunk_6f814930280649dca255cbd6a0d2d2a1_p1",
+          "page": 1,
+          "quote": "Migration der Produktivdatenbank von Version 8.6 auf 9.2 inklusive Übernahme aller Prüfaufträge, Spezifikationen und Benutzerrollen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_training_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_val_coverage_current_state",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Dokumente belegen einen Verstoß gegen die Anforderung, dass Validierungsnachweise den aktuellen Zustand abdecken müssen. Zitat 3 besagt, dass ab dem 02.02.2026 alle Prüfaufträge im LIMS 9.2 bearbeitet wurden, während Zitat 2 bestätigt, dass die IQ/OQ-Tests erst am 09.02.2026 erfolgreich abgeschlossen wurden. Dies bedeutet, dass das System für GMP-relevante Tätigkeiten freigegeben und genutzt wurde, bevor die Qualifizierung abgeschlossen war. Die Evidenz für die Nutzung des Systems (Zitat 3) steht im Widerspruch zum Status der Validierung (Zitat 2), was belegt, dass der aktuelle Prozesszustand (Nutzung) nicht durch abgeschlossene Validierung gedeckt war. Zudem fehlt eine explizite Begründung für die Übertragbarkeit oder eine Ausnahme, die diese Vorabnutzung rechtfertigt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "Freigabe zur GMP-Nutzung:** 02.02.2026, 08:00 Uhr"
+        },
+        {
+          "document_id": "doc_bb000ab50913426b9f799fc7d08c341d",
+          "chunk_id": "chunk_bb000ab50913426b9f799fc7d08c341d_p1",
+          "page": 1,
+          "quote": "Ab dem 02.02.2026 wurden alle Prüfaufträge des QC-Labors im LIMS 9.2 bearbeitet. Die IQ/OQ-Tests liefen gemäß Plan parallel im Produktivsystem weiter."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_val_coverage_current_state"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    }
+  ],
+  "CASE_18": [
+    {
+      "finding_id": "req::req_batch_disposition_trace",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge belegen zwar die Dispositionsentscheidung (Freigabe am 06.08.2026 und Sperrung am 09.08.2026) sowie die Begründung (Wareneingangsprüfung, Transportschaden), jedoch fehlt der explizite Nachweis der Verknüpfung mit den zugehörigen Batch Records. Die Anforderung verlangt zwingend die Verknüpfung der Disposition mit den Batch Records, was in den Zitat 0-3 nicht dokumentiert ist. Da die geforderte Evidenz (Batch Record) in den Auszügen fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Bezug:** Wareneingang L-2026-0788, Metformin-HCl, Lieferantencharge PCS-MF-25-4471"
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "Prüfung durchgeführt am:** 04.08.2026"
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Fässer 07 und 11 im Status \"gesperrt\"; Sichtprüfung des Inhalts am 10.08.2026 ohne Befund (Pulver trocken, frei fließend, keine Fremdpartikel)."
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "Material freigegeben für die Produktion (Status \"frei\" im ERP gesetzt am 06.08.2026)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_disposition_trace"
+      ],
+      "published_status": "unclear",
+      "entailment": "none"
+    },
+    {
+      "finding_id": "req::req_batch_no_release_before_assessment",
+      "severity": "critical",
+      "risk_statement": "Die Zitate belegen, dass das Material am 06.08.2026 freigegeben wurde (Zitat 0). Am 09.08.2026 wurde jedoch eine Abweichung (DEV-WE-2026-0301) gemeldet (Zitat 1), bei der zwei Fässer beschädigt waren und erst am 10.08.2026 eine Sichtprüfung ohne Befund erfolgte (Zitat 2). Die Anforderung verlangt, dass keine Freigabe erfolgen darf, solange die Abweichungsbewertung nicht abgeschlossen ist. Da die Freigabe vor der Meldung und Bewertung der Abweichung erfolgte, liegt ein Verstoß vor. Es fehlt der Nachweis, dass die Freigabe rückgängig gemacht oder die Abweichung vor der Freigabe bewertet wurde.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "Material freigegeben für die Produktion (Status \"frei\" im ERP gesetzt am 06.08.2026)."
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Ereignisdatum:** 09.08.2026"
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Fässer 07 und 11 im Status \"gesperrt\"; Sichtprüfung des Inhalts am 10.08.2026 ohne Befund (Pulver trocken, frei fließend, keine Fremdpartikel)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_batch_no_release_before_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_effectiveness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge dokumentieren eine Abweichung (DEV-WE-2026-0301) aufgrund von Transportschäden an der Außenverpackung. Es werden Sofortmaßnahmen (Sperren, Sichtprüfung) und die Information des Lieferanten (SCAR-2026-014) beschrieben. Es fehlt jedoch jeglicher Nachweis über die Definition, Durchführung oder Dokumentation einer Wirksamkeitsprüfung (Effectiveness Check) für die ergriffenen Maßnahmen. Da die Anforderung zwingend eine dokumentierte Wirksamkeitsprüfung für den Abschluss von CAPA-Maßnahmen mit Qualitätsrisiko verlangt und dieser Nachweis in den Auszügen fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Fässer 07 und 11 im Status \"gesperrt\"; Sichtprüfung des Inhalts am 10.08.2026 ohne Befund (Pulver trocken, frei fließend, keine Fremdpartikel). Lieferant über Transportschaden informiert (Meldung SCAR-2026-014)."
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Beide Fässer wurden gesondert gelagert und zur Sichtprüfung des Inhalts vorgesehen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_effectiveness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_capa_responsible_timeline",
+      "severity": "medium",
+      "risk_statement": "Die Anforderung verlangt für jede CAPA-Maßnahme einen benannten Verantwortlichen und einen plausiblen Umsetzungstermin. Der vorliegende Abweichungsbericht dokumentiert zwar Sofortmaßnahmen (Sperren, Sichtprüfung, Meldung an den Lieferanten) und weist diese Personen zu, jedoch fehlen in den Auszügen explizite CAPA-Maßnahmen (z. B. Korrekturmaßnahmen zur Vermeidung von Transportschäden) sowie die zugehörigen Verantwortlichen und Termine. Da der auslösende Vorgang (Transportschaden) belegt ist, der geforderte Nachweis für die CAPA-Planung aber fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Fässer 07 und 11 im Status \"gesperrt\"; Sichtprüfung des Inhalts am 10.08.2026 ohne Befund (Pulver trocken, frei fließend, keine Fremdpartikel). Lieferant über Transportschaden informiert (Meldung SCAR-2026-014)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_capa_responsible_timeline"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_impact_assessment",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Auszüge dokumentieren die Feststellung der Abweichung (beschädigte Verpackung) und die sofortige Sichtprüfung des Inhalts. Es fehlt jedoch eine explizite, dokumentierte Bewertung der Auswirkungen auf die Produktqualität und Patientensicherheit sowie eine Auflistung potenziell betroffener Chargen (Chargenliste). Die bloße Feststellung, dass das Pulver bei der Sichtprüfung unversehrt war, ersetzt keine formale Impact Assessment gemäß Anforderung.",
+      "evidence_items": [
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Bei der Einlagerung wurde festgestellt, dass zwei von zwölf Fässern (Fass 07 und Fass 11) eine beschädigte Außenverpackung (eingedrückter Deckelrand) aufwiesen."
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Fässer 07 und 11 im Status \"gesperrt\"; Sichtprüfung des Inhalts am 10.08.2026 ohne Befund (Pulver trocken, frei fließend, keine Fremdpartikel)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_impact_assessment"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_oos_before_disposition",
+      "severity": "critical",
+      "risk_statement": "Die Anforderung verlangt, dass Out-of-Specification- (OOS) und Out-of-Trend-Ergebnisse vollständig untersucht und bewertet sein müssen, bevor eine Disposition erfolgt. In den vorliegenden Dokumenten wird im Lieferanten-CoA (Zitat 2) ein Wassergehalt von 0,62 % angegeben, der die Spezifikation von NMT 0,50 % überschreitet, obwohl die Bewertung fälschlicherweise als 'entspricht' markiert ist. Dies stellt ein OOS-Ergebnis dar. Im Wareneingangsprüfbericht (Zitat 1) wird behauptet, der CoA-Abgleich sei 'vollständig geprüft' und 'konform', was das OOS-Ergebnis ignoriert oder übergeht. Es gibt keine Dokumentation einer OOS-Untersuchung, keine Bewertung des Risikos und keine spezifische Dispositionsentscheidung, die auf der Untersuchung dieses Abweichungswerts basiert. Die Freigabe des Materials (im Chunk 2 erwähnt) erfolgte ohne den geforderten Nachweis einer abgeschlossenen OOS-Untersuchung. Daher liegt ein Verstoß vor, da der geforderte Nachweis (OOS-Untersuchungsbericht) fehlt, während ein OOS-Ergebnis vorliegt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_9c1db5ea2a80440c9509782ea78df1cd",
+          "chunk_id": "chunk_9c1db5ea2a80440c9509782ea78df1cd_p1",
+          "page": 1,
+          "quote": "Wassergehalt (Karl Fischer) | NMT 0,50 % | 0,62 % | entspricht"
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "CoA-Abgleich | alle Parameter innerhalb Spezifikation | vollständig geprüft | konform"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_oos_before_disposition"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_risk_classification",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt eine nachvollziehbare Risikobewertung und stützende Labordaten zur Begründung der Schweregradeinstufung der Abweichung. Die vorliegenden Auszüge (Abweichungsbericht und Wareneingangsprüfung) dokumentieren zwar die Feststellung des Transportschadens und die anschließende Sichtprüfung ohne Befund, jedoch fehlt jegliche explizite Risikobewertung (z. B. Minor/Major/Kritisch) sowie der Nachweis physikalisch-chemischer oder labortechnischer Daten, die die Einstufung als geringfügig oder unbedenklich stützen würden. Gemäß der Regel ist eine Einstufung ohne belastbare Labordaten unzulässig, selbst wenn das Produkt visuell unauffällig ist. Da der geforderte Nachweis in den Auszügen fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Sichtprüfung des Inhalts am 10.08.2026 ohne Befund (Pulver trocken, frei fließend, keine Fremdpartikel)."
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Beide Fässer wurden gesondert gelagert und zur Sichtprüfung des Inhalts vorgesehen."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_risk_classification"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_dev_root_cause",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt den Nachweis einer Grundursache durch eine angemessene Untersuchung und den dokumentierten Ausschluss technischer Ursachen. Die vorliegenden Auszüge beschreiben lediglich den Auslöser (beschädigte Außenverpackung) und Sofortmaßnahmen (Sichtprüfung, Meldung an den Lieferanten). Es fehlt jegliche Primärevidenz für eine Root-Cause-Analyse, einen Untersuchungsbericht oder den expliziten Ausschluss technischer Ursachen (z. B. Equipment, Transportmittel). Da der geforderte Nachweis in den Auszügen fehlt, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "Bei der Einlagerung wurde festgestellt, dass zwei von zwölf Fässern (Fass 07 und Fass 11) eine beschädigte Außenverpackung (eingedrückter Deckelrand) aufwiesen."
+        },
+        {
+          "document_id": "doc_7ecf5e60371e4ac38a4aba08b85aae4b",
+          "chunk_id": "chunk_7ecf5e60371e4ac38a4aba08b85aae4b_p1",
+          "page": 1,
+          "quote": "Vorgang:** Abweichung bei Wareneingangsprüfung Wirkstoff Metformin-HCl, Lieferung L-2026-0788"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_dev_root_cause"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_alcoa_completeness",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Aufzeichnungen enthalten einen chronologischen Widerspruch, der die ALCOA+-Eigenschaft der Konsistenz und zeitlichen Plausibilität verletzt. Zitat 0 besagt, dass die Prüfung am 04.08.2026 durchgeführt wurde, während Zitat 1 das Wareneingangsdatum mit dem 06.08.2026 angibt. Eine Wareneingangsprüfung kann logisch nicht vor dem physischen Eingang des Materials abgeschlossen sein. Zudem wird in Zitat 2 die Freigabe am 06.08.2026 dokumentiert, was zeitlich mit dem Eingang übereinstimmt, aber den vorherigen Prüfungszeitpunkt (04.08.2026) als fehlerhaft oder nachträglich verändert erscheinen lässt. Da die Originalaufzeichnung in sich widersprüchlich ist und keine Begründung für die Diskrepanz vorliegt, ist die Anforderung an die Vollständigkeit und Konsistenz der Aufzeichnungen verletzt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "Prüfung durchgeführt am:** 04.08.2026"
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "Lieferdatum (Wareneingang):** 06.08.2026"
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "Material freigegeben für die Produktion (Status \"frei\" im ERP gesetzt am 06.08.2026)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_alcoa_completeness"
+      ],
+      "published_status": "violated",
+      "entailment": "supports"
+    },
+    {
+      "finding_id": "req::req_di_signature_plausibility",
+      "severity": "high",
+      "risk_statement": "Die vorliegenden Zitate belegen zwar die Signaturdaten (Name und Datum) für die Wareneingangsprüfung und den Abweichungsbericht. Es fehlt jedoch die Angabe der Uhrzeit der Signatur, die laut Anforderung zwingend enthalten sein muss. Zudem ist die zeitliche Plausibilität der Daten nicht vollständig gegeben: Die Prüfung wurde am 04.08.2026 durchgeführt, das Wareneingangsdatum ist jedoch der 06.08.2026. Eine Prüfung vor dem physischen Wareneingang ist prozessual widersprüchlich und stellt einen Befund der Datenintegrität dar. Da die geforderten Nachweise (Uhrzeit, konsistente Zeitachse) in den Auszügen fehlen oder widersprüchlich sind, liegt ein Verstoß vor.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "- *Prüfer:* E. Novak, 04.08.2026"
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "- *Geprüft von (QC-Leitung):* Dr. U. Berger, 07.08.2026"
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "- *Erstellt von:* E. Novak, 09.08.2026"
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "- *Geprüft von (QA):* K. Strobel, 10.08.2026"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_di_signature_plausibility"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_doc_cross_consistency",
+      "severity": "medium",
+      "risk_statement": "Die Dokumente enthalten einen chronologischen Widerspruch: In der Wareneingangsprüfung (WEP-2026-0788) wird das Lieferdatum mit 06.08.2026 angegeben, während die Prüfung selbst am 04.08.2026 durchgeführt wurde. Zudem wird im Abweichungsbericht (DEV-WE-2026-0301) ein Ereignisdatum vom 09.08.2026 genannt, bei dem die Fässer bereits eingelagert waren. Die Prüfung vor dem Wareneingang ist logisch nicht nachvollziehbar und stellt einen Widerspruch in den Datenangaben dar, der gemäß Anforderung aufgeklärt werden muss. Da die Auszüge keine Aufklärung dieses Widerspruchs enthalten, ist die Anforderung verletzt.",
+      "evidence_items": [
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "- **Lieferdatum (Wareneingang):** 06.08.2026"
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "- **Prüfung durchgeführt am:** 04.08.2026"
+        },
+        {
+          "document_id": "doc_9f2367ebf7e94b73a7258f5b23784de8",
+          "chunk_id": "chunk_9f2367ebf7e94b73a7258f5b23784de8_p1",
+          "page": 1,
+          "quote": "- **Bezug:** Wareneingang L-2026-0788, Metformin-HCl, Lieferantencharge PCS-MF-25-4471"
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_doc_cross_consistency"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    },
+    {
+      "finding_id": "req::req_spec_acceptance_limits",
+      "severity": "high",
+      "risk_statement": "Die Anforderung verlangt, dass Messwerte gegen die gültige interne Spezifikation bewertet werden und dass eine Verletzung der internen Akzeptanzkriterien als Abweichung gilt, selbst wenn das Lieferanten-Zertifikat Konformität ausweist. Im Lieferanten-CoA (Zitat 0) wird der Wassergehalt mit 0,62 % angegeben, was die dortige Spezifikation von NMT 0,50 % überschreitet, obwohl die Bewertung fälschlicherweise als 'entspricht' markiert ist. Die Wareneingangsprüfung (Zitat 1) bestätigt, dass der CoA-Abgleich als 'konform' bewertet wurde, und das Material wurde daraufhin freigegeben (Zitat 2). Da die interne Spezifikation in den vorliegenden Auszügen nicht explizit als identisch mit der Lieferanten-Spezifikation definiert ist, aber die Regel besagt, dass interne Kriterien Vorrang haben und eine Verletzung (hier: 0,62 % > 0,50 %) eine Abweichung darstellt, liegt ein Verstoß vor. Die interne Prüfung hat die offensichtliche Diskrepanz im CoA (Wert über Limit, aber 'entspricht') nicht korrigiert oder als Abweichung behandelt, sondern die Freigabe erteilt. Dies stellt einen Verstoß gegen die Anforderung dar, interne Akzeptanzkriterien strikt anzuwenden und Verletzungen als Abweichungen zu behandeln.",
+      "evidence_items": [
+        {
+          "document_id": "doc_9c1db5ea2a80440c9509782ea78df1cd",
+          "chunk_id": "chunk_9c1db5ea2a80440c9509782ea78df1cd_p1",
+          "page": 1,
+          "quote": "| Wassergehalt (Karl Fischer) | NMT 0,50 % | 0,62 % | entspricht |"
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "| CoA-Abgleich | alle Parameter innerhalb Spezifikation | vollständig geprüft | konform |"
+        },
+        {
+          "document_id": "doc_6878748bf256489580cfc14983a88d06",
+          "chunk_id": "chunk_6878748bf256489580cfc14983a88d06_p1",
+          "page": 1,
+          "quote": "Material freigegeben für die Produktion (Status \"frei\" im ERP gesetzt am 06.08.2026)."
+        }
+      ],
+      "verification_result": {
+        "quote_matches_chunk": true
+      },
+      "requirement_references": [
+        "req_spec_acceptance_limits"
+      ],
+      "published_status": "violated",
+      "entailment": "partial"
+    }
+  ]
+}
