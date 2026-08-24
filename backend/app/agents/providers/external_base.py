@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from threading import Thread
 from typing import Any
 
 import httpx
@@ -67,7 +68,9 @@ class ExternalProviderBase(BaseModelProvider):
     ) -> dict[str, Any]:
         try:
             with httpx.Client(timeout=self.runtime_options.timeout_seconds) as client:
-                response = client.post(url, headers=headers, json=json_body)
+                response = self._post_with_hard_deadline(
+                    client, url=url, headers=headers, json_body=json_body
+                )
                 response.raise_for_status()
                 payload = response.json()
         except httpx.HTTPStatusError as exc:
@@ -113,6 +116,51 @@ class ExternalProviderBase(BaseModelProvider):
                 f"{self.provider_name} provider returned invalid JSON payload"
             )
         return payload
+
+    def _post_with_hard_deadline(
+        self,
+        client: httpx.Client,
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, Any],
+    ) -> httpx.Response:
+        """POST with a wall-clock cap that a trickling server cannot reset.
+
+        httpx's read timeout is per received chunk: a gateway that keeps the
+        connection open and dribbles bytes resets it forever. One such
+        connection held a blind benchmark run on a single requirement for
+        eleven hours -- 0% CPU, one ESTABLISHED socket, no timeout ever
+        firing. The request runs on a helper thread; if it outlives the cap,
+        the client is closed (which aborts the socket) and the call fails as
+        retryable, exactly like an ordinary timeout.
+        """
+        hard_deadline = self.runtime_options.timeout_seconds * 1.25 + 15.0
+        outcome: dict[str, Any] = {}
+
+        def _do_post() -> None:
+            try:
+                outcome["response"] = client.post(url, headers=headers, json=json_body)
+            except BaseException as exc:  # noqa: BLE001 - re-raised on the caller's thread
+                outcome["error"] = exc
+
+        worker = Thread(target=_do_post, daemon=True, name=f"{self.provider_name}-post")
+        worker.start()
+        worker.join(hard_deadline)
+        if worker.is_alive():
+            try:
+                client.close()
+            except Exception:  # noqa: BLE001 - closing is best effort
+                pass
+            worker.join(5.0)
+            raise ProviderCallError(
+                f"{self.provider_name} provider call exceeded the hard deadline "
+                f"of {hard_deadline:.0f}s",
+                retryable=True,
+            )
+        if "error" in outcome:
+            raise outcome["error"]
+        return outcome["response"]
 
     def _json_user_content(
         self,
