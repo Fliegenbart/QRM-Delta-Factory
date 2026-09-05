@@ -1140,6 +1140,7 @@ def _provider_for_name(
     if provider_name == "hetzner":
         return HetznerProvider(
             configured_model_id=settings.hetzner_model_id,
+            endpoint=settings.hetzner_endpoint,
             runtime_options=hetzner_runtime_options(
                 runtime_options,
                 timeout_seconds=settings.hetzner_model_provider_timeout_seconds,

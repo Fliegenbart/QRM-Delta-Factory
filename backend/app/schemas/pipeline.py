@@ -36,6 +36,22 @@ class PipelineModelManifestItem(StrictSchema):
     error_summary: str | None = None
 
 
+class PipelineProgress(StrictSchema):
+    """Where a running pipeline is, for the reviewer waiting on it.
+
+    A run on a local 27B model takes 20-30 minutes; a spinner and a
+    five-minute heuristic cannot carry that wait. The step is persisted with
+    the run; the detail ("Anforderung 12 von 26 beurteilt") is reported by the
+    engine in-process and merged in when the run is read.
+    """
+
+    step: str = Field(min_length=1)
+    step_index: int = Field(ge=1)
+    step_count: int = Field(ge=1)
+    detail: str | None = None
+    updated_at: datetime
+
+
 class PipelineRun(StrictSchema):
     pipeline_run_id: PipelineRunId
     document_set_id: DocumentSetId
@@ -46,3 +62,4 @@ class PipelineRun(StrictSchema):
     error_summary: str | None = Field(default=None)
     config_version: str = Field(min_length=1)
     model_manifest: list[PipelineModelManifestItem] = Field(default_factory=list)
+    progress: PipelineProgress | None = None

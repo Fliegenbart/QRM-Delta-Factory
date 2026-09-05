@@ -4,12 +4,13 @@ from datetime import UTC, datetime
 from hashlib import sha256
 from typing import Any
 
-from app.agents.providers import MockProvider, ProviderCallError
+from app.agents.providers import BaseModelProvider, MockProvider, ProviderCallError
 from app.audit.events import audit_log
 from app.db.in_memory import repository
 from app.schemas.domain import Document, DocumentChunk, DocumentSet, RequirementSet
 from app.schemas.requirement_review import (
     EntailmentSupport,
+    RequirementVerdict,
     RequirementVerdictStatus,
 )
 from app.services.requirement_review import (
@@ -29,6 +30,11 @@ CHUNK_TEXT = (
 def _setup(*, process_area: str = "aseptic_filling") -> None:
     repository.reset()
     audit_log.clear()
+    # Breaker state is class-level and survives between tests: two failing
+    # tests in a row would otherwise open the mock provider's circuit for
+    # every test after them.
+    BaseModelProvider._provider_failure_counts.clear()
+    BaseModelProvider._provider_opened_at.clear()
     repository.create_requirement_set(
         RequirementSet(
             requirement_set_id="rset_req_review_2026",
@@ -269,6 +275,59 @@ def test_failed_assessor_group_fails_secure_to_unclear() -> None:
     assert failed and failed[0].error_type == "ProviderCallError"
 
 
+def test_failed_rows_are_flagged_and_can_be_rerun_on_their_own() -> None:
+    """A host that answered 5xx for one call must not cost a 25-minute rerun."""
+    _setup()
+    quote = "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei."
+    attempts = {"count": 0}
+
+    def _flaky(*_: Any) -> dict:
+        attempts["count"] += 1
+        if attempts["count"] <= 2:  # both first-run samples die
+            raise ProviderCallError("provider unavailable")
+        return {"verdicts": [_violated_verdict(quote)]}
+
+    engine = _engine(MockProvider(output_factory=_flaky), _entailment("supports"))
+    first = engine.run("ds_req_review_demo")
+    repository.replace_requirement_report(
+        document_set_id="ds_req_review_demo", report=first
+    )
+    placeholder = next(
+        v for v in first.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert placeholder.needs_retry is True
+    assert placeholder.published_status == RequirementVerdictStatus.UNCLEAR
+    untouched = [v for v in first.verdicts if v.requirement_id != "req_threshold_validation"]
+    assert all(v.needs_retry is False for v in untouched)
+
+    progress: list[str] = []
+    retried = engine.rerun_failed("ds_req_review_demo", progress=progress.append)
+
+    verdict = next(
+        v for v in retried.verdicts if v.requirement_id == "req_threshold_validation"
+    )
+    assert verdict.needs_retry is False
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.evidence[0].quote == quote
+    assert verdict.evidence[0].document_name == "change-control.md"
+    # The rows that were fine are exactly as they were; the call log keeps
+    # the failed attempts and adds the successful one.
+    assert [v.requirement_id for v in retried.verdicts] == [v.requirement_id for v in first.verdicts]
+    assert retried.failed_model_call_count == first.failed_model_call_count == 2
+    assert len(retried.model_calls) > len(first.model_calls)
+    assert retried.status_counts["violated"] == first.status_counts.get("violated", 0) + 1
+    assert any("Erneute Prüfung" in line for line in progress)
+    assert repository.get_requirement_report("ds_req_review_demo") == retried
+    assert any(
+        event.event_type == "requirement_review_retried"
+        and event.payload["retried_requirement_ids"] == ["req_threshold_validation"]
+        and event.payload["still_failed"] == []
+        for event in audit_log.list_events()
+    )
+    # Nothing left to retry: the report is returned unchanged.
+    assert engine.rerun_failed("ds_req_review_demo") == retried
+
+
 def test_missing_verdict_for_a_requirement_becomes_unclear() -> None:
     """The model answering only half the group must not silently clear the rest."""
     _setup()
@@ -474,6 +533,10 @@ def test_presentation_variant_quote_is_repaired_not_dropped() -> None:
     assert verdict.published_status == RequirementVerdictStatus.VIOLATED
     assert verdict.dropped_evidence_count == 0
     assert verdict.evidence[0].quote == "Change Control CC-2026-014 senkt den AVI-Schwellwert."
+    # The reviewer sees the file, not an id -- filled server-side, never by
+    # the model (the field is absent from the schema it answers).
+    assert verdict.evidence[0].document_name == "change-control.md"
+    assert "document_name" not in str(RequirementVerdict.model_json_schema())
 
 
 def test_ellipsis_quote_grounds_as_one_item_per_fragment() -> None:
@@ -1595,7 +1658,9 @@ def test_narrow_assessor_answers_without_quotes_on_the_server() -> None:
     provider, seen = _narrow_provider(applicability="cannot_tell", quotes=[])
     report = _narrow_engine(provider).run("ds_req_review_demo")
     verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
-    assert [kind for kind, _ in seen] == ["locate"]
+    # cannot_tell without quotes gets the locator's one second chance, then
+    # stands; the judge is never called.
+    assert [kind for kind, _ in seen] == ["locate", "locate"]
     assert verdict.published_status == RequirementVerdictStatus.UNCLEAR
     assert verdict.server_authored is True
 
@@ -1698,3 +1763,133 @@ def test_grounding_forgives_markup_and_latex_but_not_content() -> None:
     assert grounded is not None and grounded[0] in source and "92,4" in grounded[0]
     assert _ground_quote("Reale Netto-Ausbeute = 462.000 / 500.000 × 100 = 93,4%", source) is None
     assert _ground_quote("Spezifizierter Toleranzbereich laut Validierung: 95.0% bis 103.0%", source) is None
+
+
+def test_rule_escalation_rewrites_a_failed_verdicts_rationale() -> None:
+    """A rule finding that lifts a row to violated is the row's reason.
+
+    The CAPA-effectiveness rule fired on case_07 of the 2026-08-23 Qwen run,
+    but the judge call had died on a 503, so the published row read
+    "Beurteilung fehlgeschlagen" above a correct finding -- and the eval
+    matcher, reading the rationale, scored a miss.
+    """
+    from app.schemas.structured_evidence import ValidatorFinding
+    from app.services.requirement_review import _server_verdict
+
+    _setup()
+    requirement = repository.get_requirement_set("rset_req_review_2026").requirements[0]
+    failed = _server_verdict(
+        requirement,
+        status=RequirementVerdictStatus.UNCLEAR,
+        rationale="Beurteilung für diese Anforderung fehlgeschlagen.",
+    )
+    engine = _engine(_assessor([]), _entailment("supports"))
+    finding = ValidatorFinding(
+        validator_id="capa_effectiveness_check_missing",
+        requirement_ids=[requirement.requirement_id],
+        severity="high",
+        statement="Die CAPA enthält 1 Maßnahme, aber keine Wirksamkeitsprüfung.",
+        locations=[],
+    )
+
+    class _Outcome:
+        evidence = None
+        succeeded_document_ids: list[str] = []
+        failures: list[Any] = []
+
+        def report_payload(self) -> dict[str, Any]:
+            return {}
+
+    class _Extractor:
+        def __init__(self, *, provider: Any) -> None:
+            pass
+
+        def extract(self, **_: Any) -> _Outcome:
+            return _Outcome()
+
+    import app.services.deterministic_validators as validators
+    import app.services.evidence_extraction as extraction
+
+    saved = (validators.run_validators, extraction.EvidenceExtractor)
+    validators.run_validators = lambda *_a, **_k: [finding]
+    extraction.EvidenceExtractor = _Extractor
+    try:
+        engine.extraction_provider = _assessor([])
+        merged, findings, _ = engine._apply_validators(
+            verdicts=[failed],
+            applicable=[requirement],
+            chunk_payload=[],
+            chunks=[],
+            model_calls=[],
+            document_set=repository.get_document_set("ds_req_review_demo"),
+        )
+    finally:
+        validators.run_validators, extraction.EvidenceExtractor = saved
+
+    assert merged[0].published_status == RequirementVerdictStatus.VIOLATED
+    assert merged[0].rationale == finding.statement
+    assert findings[0]["validator_id"] == "capa_effectiveness_check_missing"
+
+
+def test_locator_that_describes_without_quoting_is_asked_once_more() -> None:
+    """'Die QS-Notiz dokumentiert, dass ...' with an empty quote list sat
+    behind three rows of the two judgment misses on 2026-08-23. One more
+    ask, naming the breach; a second empty answer stands."""
+    from app.schemas.requirement_review import EvidenceLocation, NarrowVerdict
+    from app.services.requirement_review import LOCATE_REASK_NOTE
+
+    _setup()
+    quote = "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei."
+    prompts: list[str] = []
+
+    def _factory(prompt: str, input_schema: dict[str, Any], output_schema: Any) -> dict:
+        if output_schema is EvidenceLocation:
+            prompts.append(prompt)
+            if len(prompts) == 1:
+                return {"applicability": "applies", "reason": "Die Notiz dokumentiert, dass der Nachweis fehlt.", "quotes": []}
+            return {"applicability": "applies", "reason": "Zitiert.", "quotes": [{"chunk_id": "chunk_req_change_p1", "quote": quote}]}
+        assert output_schema is NarrowVerdict
+        return {"status": "violated", "severity": "high", "rationale": "Fehlt.", "supporting_quote_indices": [0]}
+
+    report = _narrow_engine(MockProvider(output_factory=_factory)).run("ds_req_review_demo")
+    verdict = next(v for v in report.verdicts if v.requirement_id == "req_threshold_validation")
+
+    assert len(prompts) == 2 and prompts[1].endswith(LOCATE_REASK_NOTE)
+    assert verdict.published_status == RequirementVerdictStatus.VIOLATED
+    assert verdict.evidence[0].quote == quote
+    assert [c.purpose for c in report.model_calls if c.status == "succeeded"][:3] == ["locate", "locate", "judge"]
+
+    # does_not_apply with no quotes is an answer, not a breach: no second ask.
+    _setup()
+    provider, seen = _narrow_provider(applicability="does_not_apply", quotes=[])
+    _narrow_engine(provider).run("ds_req_review_demo")
+    assert [kind for kind, _ in seen] == ["locate"]
+
+
+def test_locator_sees_the_chunks_that_share_the_requirements_vocabulary() -> None:
+    from app.schemas.domain import Requirement
+    from app.services.requirement_review import _candidate_chunks
+
+    requirement = repository.get_requirement_set("rset_req_review_2026").requirements[0] if repository.get_requirement_set("rset_req_review_2026") else None
+    if requirement is None:
+        _setup()
+        requirement = repository.get_requirement_set("rset_req_review_2026").requirements[0]
+    # req_threshold_validation: Schwellwert, Validierungsevidenz, Validierungsnachweis
+    chunks = [
+        {"chunk_id": f"c{i}", "text": text}
+        for i, text in enumerate(
+            [
+                "Verteilerliste: QA, QC, Produktion.",
+                "Der Schwellwert wurde von 0,5 auf 0,3 gesenkt.",
+                "Lagertemperatur 2-8 °C, Protokoll anbei.",
+                "Ein Validierungsnachweis für den neuen Schwellwert liegt nicht bei.",
+                "Reinigungsprotokoll Charge R-1183.",
+            ]
+        )
+    ]
+    picked = _candidate_chunks(requirement, chunks, limit=2)
+    assert [c["chunk_id"] for c in picked] == ["c1", "c3"]
+    # At or under the limit nothing is filtered; all-zero overlap keeps document order.
+    assert _candidate_chunks(requirement, chunks, limit=5) == chunks
+    unrelated = [{"chunk_id": "x", "text": "lorem"}, {"chunk_id": "y", "text": "ipsum"}, {"chunk_id": "z", "text": "dolor"}]
+    assert [c["chunk_id"] for c in _candidate_chunks(requirement, unrelated, limit=2)] == ["x", "y"]

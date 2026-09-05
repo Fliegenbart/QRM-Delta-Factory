@@ -15,6 +15,7 @@ from enum import StrEnum
 from typing import Any
 
 from pydantic import Field
+from pydantic.json_schema import SkipJsonSchema
 
 from app.schemas.domain import Severity, StrictSchema
 
@@ -44,6 +45,10 @@ class RequirementReviewEvidence(StrictSchema):
     chunk_id: str = Field(min_length=1)
     page: int = Field(ge=1)
     quote: str = Field(min_length=1)
+    #: Filled server-side when the report is assembled. Kept out of the JSON
+    #: schema the assessor sees: a reviewer needs "Abweichungsbericht, Seite 3",
+    #: the model only knows document ids, and the prompt must not change for it.
+    document_name: SkipJsonSchema[str] = ""
 
 
 class EvidenceSufficiency(StrEnum):
@@ -188,6 +193,12 @@ class VerifiedRequirementVerdict(StrictSchema):
     #: True when the verdict was authored by the server (inapplicable
     #: requirement, failed model group), not by a model.
     server_authored: bool = False
+    #: True when a model call behind this row failed (assessment, evidence
+    #: search, entailment or challenge) and the row is a placeholder rather
+    #: than a judgement. These rows can be re-run on their own -- on a host
+    #: that answers 5xx for an afternoon, that is the difference between a
+    #: two-minute fix and a 25-minute rerun.
+    needs_retry: bool = False
 
 
 class RequirementReviewModelCall(StrictSchema):

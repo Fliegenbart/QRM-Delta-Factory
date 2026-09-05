@@ -1,0 +1,1349 @@
+{
+  "id": "case_08",
+  "slug": "ibuprofen-werkzeugbruch",
+  "title": "Werkzeugbruch an der Tablettenpresse, Wiederholungsfehler und CAPA-Termin fraglich",
+  "area": "Tablettierung / Pressen",
+  "trigger": "Abweichung mit CAPA",
+  "product": "Ibuprofen 400mg Akut Tabletten",
+  "dosage_form": "Filmtabletten",
+  "batch": "IBU-2026-P03",
+  "documents": [
+    {
+      "file_name": "case_summary.md",
+      "label": "Fall-Zusammenfassung"
+    },
+    {
+      "file_name": "document_01_deviation_report.md",
+      "label": "Abweichungsbericht"
+    },
+    {
+      "file_name": "document_02_batch_record_excerpt.md",
+      "label": "Chargenprotokoll (Auszug)"
+    },
+    {
+      "file_name": "document_03_capa_plan.md",
+      "label": "CAPA-Plan"
+    }
+  ],
+  "run": {
+    "started_at": "2026-08-23T11:23:40+00:00",
+    "stack": "hetzner",
+    "assessor_mode": "narrow",
+    "model": "Qwen3.8-27B",
+    "engine_version": "requirement-review-v0.2",
+    "pipeline_status": "completed_with_model_failures",
+    "model_calls": 80,
+    "failed_model_calls": 2,
+    "input_tokens": 170292,
+    "output_tokens": 17962
+  },
+  "gold": {
+    "planted": 3,
+    "found": 3,
+    "decoys": 1,
+    "decoys_passed": 1
+  },
+  "report": {
+    "document_set_id": "ds_23c590fe20d948e3849cad9087e5fadb",
+    "engine_version": "requirement-review-v0.2",
+    "created_at": "2026-08-23T14:31:38.600251Z",
+    "verdicts": [
+      {
+        "requirement_id": "req_batch_affected_completeness",
+        "requirement_title": "Vollständige Erfassung betroffener Chargen",
+        "requirement_text": "Batch-Impact-Bewertungen müssen alle potenziell betroffenen Chargen einschließlich Vorgänger- und Folgechargen erfassen.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.x",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt die vollständige Erfassung aller potenziell betroffenen Chargen, einschließlich Vorgänger- und Folgechargen. Das Abweichungsbericht (Zitat 0) behauptet, dass ein Einfluss auf andere Chargen 'absolut ausgeschlossen' ist, und klassifiziert das Ereignis als isoliert. Das Logbuch (Zitate 1 und 2) belegt jedoch, dass es in den Monaten März und April 2026 bereits zwei weitere Vorfälle mit Werkzeugschäden an derselben Presse (TAB-02) bei den Vorgängerchargen IBU-2026-P01 und IBU-2026-P02 gab. Diese wiederkehrenden Vorfälle an derselben Anlage deuten auf ein systematisches Problem hin, was die Behauptung der Isolation und den Ausschluss von Auswirkungen auf andere Chargen in Frage stellt. Es fehlt eine belastbare Begründung oder eine Chargenliste, die nachweist, dass die Vorgängerchargen tatsächlich nicht betroffen sind oder dass die wiederkehrenden Vorfälle keine systematische Ursache haben. Daher ist die Anforderung nicht erfüllt.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Ein Einfluss auf andere Chargen oder vorangegangene Produktionsschritte ist absolut ausgeschlossen.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "14.03.2026:** Stopp wegen Oberstempel-Beschädigung bei Charge IBU-2026-P01. Werkzeug getauscht. (DEV-IBU-2026-042)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "18.04.2026:** Mikrorisse an Unterstempel Station 5 bei Charge IBU-2026-P02 detektiert. Werkzeugset komplett gereinigt. (DEV-IBU-2026-081)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 0 belegt die Behauptung im Abweichungsbericht, dass ein Einfluss auf andere Chargen 'absolut ausgeschlossen' sei. Zitat 1 und Zitat 2 belegen die im Rationale genannten Vorfälle an derselben Anlage (Werkzeugschäden) bei den Vorgängerchargen IBU-2026-P01 und IBU-2026-P02 im März und April 2026. Da die Zitate sowohl die isolierende Aussage als auch die widerlegenden Fakten aus dem Logbuch enthalten, tragen sie die Argumentation, dass die Behauptung der Isolation durch die wiederkehrenden Vorfälle in Frage gestellt wird und die Anforderung nicht erfüllt ist.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_batch_disposition_trace",
+        "requirement_title": "Nachvollziehbare Disposition mit Batch-Record-Verknüpfung",
+        "requirement_text": "Die Freigabe- bzw. Dispositionsentscheidung jeder betroffenen Charge muss begründet und mit den zugehörigen Batch Records verknüpft sein.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt, dass die Dispositionsentscheidung begründet und mit den zugehörigen Batch Records verknüpft ist. Zitat 0 belegt zwar eine Disposition (Freigabe nach visueller Stichprobe), liefert aber keine inhaltliche Begründung (z. B. Ergebnis der Prüfung) und keinen expliziten Verweis auf das Batch Record. Zitat 1 belegt den Vorfall im Logbuch, aber nicht die Verknüpfung der Freigabe mit dem Batch Record. Da die geforderte Begründung und die explizite Verknüpfung in den Auszügen fehlen, ist die Anforderung nicht erfüllt.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Die betroffene Charge IBU-2026-P03 wird nach einer zusätzlichen visuellen Stichprobenprüfung freigegeben.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "10.05.2026:** Aktueller Vorfall: Werkzeugbruch Oberstempel Station 12 bei Charge IBU-2026-P03. (DEV-IBU-2026-112)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den Vorfall (Zitat 1) und die Disposition (Zitat 0), enthalten jedoch weder die inhaltliche Begründung der Freigabe noch den expliziten Verweis auf das Batch Record. Damit tragen sie die Kernbehauptung der fehlenden Begründung und Verknüpfung.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_batch_no_release_before_assessment",
+        "requirement_title": "Keine Freigabe vor abgeschlossener Bewertung",
+        "requirement_text": "Eine Charge darf nicht freigegeben werden, solange Abweichungsbewertung, Impact Assessment oder erforderliche QA-Freigabe nicht abgeschlossen sind.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Belegsuche für diese Anforderung fehlgeschlagen; sie bleibt unbeurteilt und gehört zur menschlichen Prüfung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_capa_effectiveness",
+        "requirement_title": "Wirksamkeitsprüfung der CAPA",
+        "requirement_text": "CAPA-Maßnahmen, die mit einem Qualitätsrisiko verknüpft sind, duerfen nur mit definierter und dokumentierter Wirksamkeitsprüfung (Effectiveness Check) abgeschlossen werden.",
+        "source_name": "ICH Q10",
+        "section": "3.2.2",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Auszüge belegen die Definition der CAPA-Maßnahme (Nachrüstung eines Metallsuchgeräts) und die Festlegung einer Deadline für den Abschluss der Validierung. Es fehlt jedoch jeglicher Nachweis über die Durchführung einer spezifischen Wirksamkeitsprüfung (Effectiveness Check) oder deren dokumentierte Ergebnisse. Da die Anforderung zwingend eine definierte und dokumentierte Wirksamkeitsprüfung für den Abschluss verlangt und diese in den Zitatfragmenten nicht enthalten ist, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Um das Risiko metallischer Mikrofragmente im Endprodukt vollständig zu eliminieren, wird ein automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachgerüstet.",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Terminierte Deadline:* 11.05.2026 (Abschluss der gesamten Validierung)",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Die Beschaffung, Qualifizierung und Softwareintegration im Steuerungsnetzwerk wird priorisiert vorangetrieben.",
+            "document_name": "document_03_capa_plan.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen die Definition der Maßnahme (Nachrüstung) und die Deadline, enthalten jedoch keine Informationen über die Durchführung oder Ergebnisse einer Wirksamkeitsprüfung. Da die Behauptung (Rationale) explizit auf das Fehlen dieses Nachweises als Grund für den Verstoß stützt, tragen die Zitate die Behauptung vollständig, da sie den Kontext (Maßnahme) zeigen, aber den geforderten spezifischen Nachweis (Wirksamkeitsprüfung) nicht enthalten.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [
+          "capa_effectiveness_check_missing"
+        ],
+        "validator_statements": [
+          "Die CAPA enthält 4 Maßnahme(n) (z. B. 'Automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachrüsten'), aber keine Wirksamkeitsprüfung -- weder als Schritt, noch als Maßnahme, noch als Erwähnung in den Unterlagen."
+        ],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_capa_responsible_timeline",
+        "requirement_title": "Verantwortlicher und realistischer Termin der CAPA",
+        "requirement_text": "Jede CAPA-Maßnahme muss einen benannten Maßnahmenverantwortlichen und einen plausiblen, realisierbaren Umsetzungstermin haben.",
+        "source_name": "ICH Q10",
+        "section": "3",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt einen plausiblen und realisierbaren Umsetzungstermin. Der Vorfall ereignete sich am 10.05.2026 (Zitat 0). Die CAPA sieht vor, ein automatisches Metallsuchgerät zu beschaffen, zu qualifizieren und in das Steuerungsnetzwerk zu integrieren, mit einer Deadline für den Abschluss der gesamten Validierung am 11.05.2026 (Zitat 1). Ein Zeitraum von 24 Stunden für die Beschaffung, Installation, Softwareintegration und vollständige Validierung einer solchen Anlage ist technisch und organisatorisch nicht realisierbar. Der Termin ist daher nicht plausibel, was einen Verstoß gegen die Anforderung darstellt.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "- **Datum des Vorfalls:** 10.05.2026  ",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "- *Terminierte Deadline:* 11.05.2026 (Abschluss der gesamten Validierung)",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Um das Risiko metallischer Mikrofragmente im Endprodukt vollständig zu eliminieren, wird ein automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachgerüstet.",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Die Beschaffung, Qualifizierung und Softwareintegration im Steuerungsnetzwerk wird priorisiert vorangetrieben.",
+            "document_name": "document_03_capa_plan.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen exakt die in der Behauptung genannten Fakten: Das Datum des Vorfalls (10.05.2026) und die Deadline für den Abschluss der Validierung (11.05.2026). Die Schlussfolgerung, dass der Zeitraum von 24 Stunden für die beschriebenen Maßnahmen (Beschaffung, Installation, Integration, Validierung) nicht realisierbar ist, ist eine logische und fachlich korrekte Ableitung aus diesen Datenpunkten im Kontext der GMP-Anforderungen an plausibler Umsetzungstermine. Die Zitate tragen die Behauptung vollständig.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": true,
+        "validator_flags": [
+          "capa_effectiveness_check_missing"
+        ],
+        "validator_statements": [
+          "Die CAPA enthält 4 Maßnahme(n) (z. B. 'Automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachrüsten'), aber keine Wirksamkeitsprüfung -- weder als Schritt, noch als Maßnahme, noch als Erwähnung in den Unterlagen."
+        ],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_cc_impact_and_validation",
+        "requirement_title": "Change mit Auswirkungsbewertung und Validierungsabdeckung",
+        "requirement_text": "Änderungen müssen einer dokumentierten Auswirkungsbewertung unterzogen werden; betroffene Validierungen sind zu prüfen und gegebenenfalls zu aktualisieren. Eine 'no impact'-Bewertung muss begründet sein.",
+        "source_name": "ICH Q10",
+        "section": "3.2.3",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Auszüge belegen die Durchführung einer Änderung (Nachrüstung eines Metallsuchgeräts) und die Einleitung einer Validierung. Es fehlt jedoch der explizite Nachweis einer dokumentierten Auswirkungsbewertung (Change-Impact-Assessment) auf das Produkt oder die Prozessparameter. Die Aussage, dass ein Einfluss auf andere Chargen 'absolut ausgeschlossen' ist, ist eine Behauptung ohne die geforderte dokumentierte Begründung oder Analyse. Da die Primärevidenz für die Auswirkungsbewertung fehlt, ist die Anforderung nicht erfüllt.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Ein Einfluss auf andere Chargen oder vorangegangene Produktionsschritte ist absolut ausgeschlossen.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Es handelt sich um ein **isoliertes Einzelereignis** ohne systematischen Charakter.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Um das Risiko metallischer Mikrofragmente im Endprodukt vollständig zu eliminieren, wird ein automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachgerüstet.",
+            "document_name": "document_03_capa_plan.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen die Durchführung der Maßnahme (Nachrüstung) und die Charakterisierung des Ereignisses als isoliert. Sie stützen jedoch nicht die zentrale Behauptung der Lücke, da sie keine dokumentierte Auswirkungsbewertung (Change-Impact-Assessment) enthalten. Die Aussage, dass ein Einfluss 'absolut ausgeschlossen' ist, ist eine Behauptung ohne den geforderten analytischen Nachweis, was die Behauptung der fehlenden Primärevidenz stützt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_impact_assessment",
+        "requirement_title": "Dokumentierte Auswirkungsbewertung der Abweichung",
+        "requirement_text": "Jede Abweichung erfordert eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen.",
+        "source_name": "ICH Q9(R1)",
+        "section": "5",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt eine dokumentierte Bewertung der Auswirkung auf Produktqualität und Patientensicherheit, einschließlich aller potenziell betroffenen Chargen. Das Zitat 0 behauptet zwar, dass es sich um ein isoliertes Einzelereignis handelt und der Einfluss auf andere Chargen 'absolut ausgeschlossen' sei, und erwähnt eine visuelle Stichprobenprüfung. Es fehlen jedoch die eigentlichen Primärevidenzen (z. B. Prüfprotokolle, Daten der Stichprobe) und eine explizite, begründete Bewertung der Patientensicherheit. Zudem widerspricht das Zitat 1 (und 2) der Behauptung der Isolation, da es dokumentiert, dass es in den Monaten März und April 2026 bereits zwei weitere Vorfälle mit Werkzeugschäden an derselben Presse (TAB-02) gab. Dies deutet auf ein systematisches Problem hin, das die Aussage 'ohne systematischen Charakter' in Frage stellt. Da die geforderte detaillierte Auswirkungsbewertung und die Belege für die Patientensicherheit in den Auszügen fehlen, ist die Anforderung nicht erfüllt.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Es handelt sich um ein **isoliertes Einzelereignis** ohne systematischen Charakter. Ein Einfluss auf andere Chargen oder vorangegangene Produktionsschritte ist absolut ausgeschlossen. Die betroffene Charge IBU-2026-P03 wird nach einer zusätzlichen visuellen Stichprobenprüfung freigegeben.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "14.03.2026:** Stopp wegen Oberstempel-Beschädigung bei Charge IBU-2026-P01. Werkzeug getauscht. (DEV-IBU-2026-042)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "18.04.2026:** Mikrorisse an Unterstempel Station 5 bei Charge IBU-2026-P02 detektiert. Werkzeugset komplett gereinigt. (DEV-IBU-2026-081)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 0 enthält die Aussage, dass es sich um ein isoliertes Ereignis handle und der Einfluss auf andere Chargen ausgeschlossen sei, was die im Rationale behauptete Lücke (Fehlen einer expliziten, begründeten Bewertung) belegt. Zitat 1 und 2 dokumentieren weitere Vorfälle an derselben Presse in den Monaten März und April 2026, was die im Rationale aufgestellte Behauptung stützt, dass die Aussage der Isolation durch die dokumentierten Fakten widerlegt wird und auf ein systematisches Problem hindeutet. Somit belegen die Zitate sowohl die behauptete Lücke in der Dokumentation als auch den Widerspruch zur Behauptung der Isolation.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_oos_before_disposition",
+        "requirement_title": "OOS/OOT-Untersuchung vor Disposition",
+        "requirement_text": "Out-of-Specification- und Out-of-Trend-Ergebnisse müssen vollständig untersucht und bewertet sein, bevor eine Chargen- oder Marktware-Disposition erfolgt; Folgemaßnahmen duerfen nicht unzulässig aufgeschoben werden.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6.35",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "critical",
+        "rationale": "Die Anforderung verlangt, dass OOS- und OOT-Ergebnisse vollständig untersucht und bewertet sein müssen, bevor eine Disposition erfolgt. Das Zitat 0 belegt, dass die Charge IBU-2026-P03 nach einer 'zusätzlichen visuellen Stichprobenprüfung' freigegeben wurde. Es liegt jedoch kein Nachweis vor, dass eine vollständige OOS-Untersuchung (z. B. Root Cause Analysis, Bewertung der Auswirkungen auf die Qualität) abgeschlossen war, bevor diese Disposition getroffen wurde. Die Behauptung in Zitat 1, es handle sich um ein isoliertes Ereignis, ist eine Schlussfolgerung, die durch die fehlende vollständige Untersuchung nicht primär belegt ist. Zudem zeigt Zitat 2 und 3, dass es in den letzten Monaten wiederholt zu Werkzeugproblemen an derselben Presse kam, was auf ein systematisches Problem hindeutet und die Notwendigkeit einer tiefgreifenden OOS/OOT-Untersuchung vor der Freigabe unterstreicht. Da die vollständige Untersuchung vor der Disposition nicht nachgewiesen ist, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Die betroffene Charge IBU-2026-P03 wird nach einer zusätzlichen visuellen Stichprobenprüfung freigegeben.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Es handelt sich um ein **isoliertes Einzelereignis** ohne systematischen Charakter.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "14.03.2026:** Stopp wegen Oberstempel-Beschädigung bei Charge IBU-2026-P01. Werkzeug getauscht. (DEV-IBU-2026-042)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "18.04.2026:** Mikrorisse an Unterstempel Station 5 bei Charge IBU-2026-P02 detektiert. Werkzeugset komplett gereinigt. (DEV-IBU-2026-081)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 0 belegt die Freigabe nach einer Stichprobenprüfung, was die in der Rationale behauptete Lücke (Fehlen eines Nachweises für eine vollständige OOS-Untersuchung vor der Disposition) durch Abwesenheit des entsprechenden Belegs in den Zitaten bestätigt. Zitat 1 belegt die Schlussfolgerung des isolierten Ereignisses. Zitate 2 und 3 belegen die wiederholten Werkzeugprobleme, die die Behauptung eines systematischen Charakters und der Notwendigkeit einer tieferen Untersuchung untermauern. Da die Zitate den auslösenden Vorgang belegen und keines den geforderten Nachweis der vollständigen Untersuchung zeigt, wird die Behauptung der Verletzung der Anforderung gestützt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_risk_classification",
+        "requirement_title": "Begründete Risiko- und Schweregradeinstufung",
+        "requirement_text": "Die Einstufung einer Abweichung (z.B. Minor/Major/Kritisch) muss durch eine nachvollziehbare Risikobewertung belegt sein. Eine Einstufung als geringfuegig ohne belastbare physikalisch-chemische oder labortechnische Daten ist unzulässig, auch wenn das Produkt visuell unauffaellig ist.",
+        "source_name": "ICH Q9(R1)",
+        "section": "5.1",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt eine nachvollziehbare Risikobewertung, die durch belastbare physikalisch-chemische oder labortechnische Daten gestützt wird. Die vorliegenden Zitate (0, 1, 2) belegen lediglich eine qualitative Einschätzung als 'isoliertes Einzelereignis' und die Freigabe nach einer rein 'visuellen Stichprobenprüfung'. Es fehlen jegliche Referenzen auf Labordaten, physikalisch-chemische Analysen oder quantitative Messwerte, die die Einstufung als geringfügig (implizit durch die schnelle Freigabe) stützen würden. Zudem widerspricht das Logbuch (Zitate 3, 4) der Behauptung des isolierten Charakters, da es wiederkehrende Werkzeugprobleme an derselben Anlage dokumentiert. Da der geforderte Nachweis (Labordaten) in den Auszügen fehlt, während der auslösende Vorgang (Einstufung/Freigabe) belegt ist, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Es handelt sich um ein **isoliertes Einzelereignis** ohne systematischen Charakter.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Ein Einfluss auf andere Chargen oder vorangegangene Produktionsschritte ist absolut ausgeschlossen.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "14.03.2026:** Stopp wegen Oberstempel-Beschädigung bei Charge IBU-2026-P01.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "18.04.2026:** Mikrorisse an Unterstempel Station 5 bei Charge IBU-2026-P02 detektiert.",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 1,
+        "dropped_evidence_reasons": [
+          "Zitat verworfen (chunk_4b0bd725fbaa4012a309925f62f898d3_p1): nicht im Chunk auffindbar, auch nicht nach Reparatur: „Die betroffene Charge IBU-2026-P03 wird nach einer zusäzlichen visuellen Stichprobenprüfung freigegeben.“"
+        ],
+        "provenance_ok": false,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate stützen die Behauptung vollständig. Zitat 0 und 1 belegen die qualitative Einschätzung als 'isoliertes Einzelereignis' und die Freigabe nach visueller Prüfung, was die im Rationale beschriebene Lücke an quantitativen Labordaten widerspiegelt. Zitat 2 und 3 dokumentieren wiederkehrende Werkzeugprobleme an derselben Anlage, was die im Rationale genannte Widersprüchlichkeit zur Behauptung des isolierten Charakters belegt. Somit tragen die Zitate sowohl den Nachweis des auslösenden Vorgangs als auch die belegte Lücke und den Widerspruch.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_dev_root_cause",
+        "requirement_title": "Belegte Grundursache",
+        "requirement_text": "Die Grundursache einer Abweichung muss durch eine angemessene Untersuchung belegt sein. Eine Zuschreibung als 'Bedienerfehler' ist nur zulaessig, wenn technische Ursachen (z.B. Equipment, Kalibrierung, Alarme) dokumentiert ausgeschlossen wurden.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4(xiv)",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt den Nachweis einer angemessenen Untersuchung zur Grundursache sowie den dokumentierten Ausschluss technischer Ursachen. Die vorliegenden Auszüge belegen lediglich den Vorfall (Haarriss am Oberstempel) und die Behauptung, es handle sich um ein isoliertes Einzelereignis. Es fehlt jedoch jegliche Primärevidenz für eine durchgeführte Root-Cause-Analyse (z. B. 5-Why, Ishikawa) oder für den expliziten Ausschluss technischer Ursachen wie Materialermüdung, falsche Montage oder Kalibrierungsfehler. Die bloße Feststellung des Bruchs und die Freigabe nach Stichprobenprüfung ersetzen keinen dokumentierten Ursachenbeleg. Da der geforderte Nachweis in den Auszügen fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Es handelt sich um ein **isoliertes Einzelereignis** ohne systematischen Charakter.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Ursache war ein Haarriss am Oberstempel von Station 12.",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den Vorfall (Haarriss) und die Einstufung als isoliertes Ereignis. Die Behauptung (Rationale) argumentiert jedoch, dass der Nachweis einer Root-Cause-Analyse und der Ausschluss technischer Ursachen fehlt. Da die Zitate genau diese fehlenden Nachweise nicht enthalten, stützen sie die Schlussfolgerung der Rationale, dass ein Verstoß vorliegt, da der geforderte Beleg in den vorliegenden Dokumenten nicht zu finden ist.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_di_access_override_control",
+        "requirement_title": "Zugriffskontrolle und manuelle Overrides",
+        "requirement_text": "Zugriffsrechte müssen rollenbasiert vergeben sein; manuelle Override- oder Admin-Eingriffe in GxP-Systeme müssen begründet, autorisiert und im Audit Trail nachvollziehbar sein.",
+        "source_name": "EU GMP Annex 11",
+        "section": "12",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Laut Belegsuche nicht einschlägig: Die vorliegenden Dokumente beschreiben einen mechanischen Werkzeugbruch und die physische Nachrüstung eines Metalldetektors, enthalten jedoch keine Informationen zu IT-Systemen, rollenbasierten Zugriffsrechten oder manuellen Overrides in GxP-Systemen, weshalb die Anforderung für diesen spezifischen Vorgang nicht zutreffend ist.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_di_alcoa_completeness",
+        "requirement_title": "ALCOA+ Vollständigkeit der Aufzeichnungen",
+        "requirement_text": "Aufzeichnungen müssen zurechenbar, lesbar, zeitgleich, original und korrekt sowie vollständig, konsistent, dauerhaft und verfuegbar sein (ALCOA+). Fehlende oder nachtraeglich veraenderte Originaldaten sind zu begründen.",
+        "source_name": "PIC/S PI 041 (Data Integrity)",
+        "section": "8",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Belegsuche für diese Anforderung fehlgeschlagen; sie bleibt unbeurteilt und gehört zur menschlichen Prüfung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_di_audit_trail_review",
+        "requirement_title": "Audit-Trail-Review",
+        "requirement_text": "GxP-relevante elektronische Daten müssen einen Audit Trail besitzen, der regelmäßig und risikobasiert geprüft wird; sicherheits- oder qualitätsrelevante Eintraege duerfen dabei nicht ausgeschlossen werden.",
+        "source_name": "EU GMP Annex 11",
+        "section": "9",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Keine einschlägige Stelle in den Auszügen gefunden: Die vorliegenden Dokumentauszüge enthalten keine Informationen über elektronische Daten, Audit Trails oder deren Prüfung, sodass die Anwendbarkeit der Anforderung nicht beurteilt werden kann.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_di_signature_plausibility",
+        "requirement_title": "Plausibilitaet von Signatur und Datum",
+        "requirement_text": "Elektronische Unterschriften müssen Name, Datum und Zeit der Signatur sowie deren Bedeutung enthalten; Datums- und Zeitangaben müssen zeitlich plausibel und konsistent mit dem Vorgang sein. In der Zukunft liegende oder widerspruechliche Signaturdaten sind Datenintegritaetsbefunde.",
+        "source_name": "21 CFR Part 11",
+        "section": "11.50",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "high",
+        "rationale": "Keine einschlägige Stelle in den Auszügen gefunden: Die vorliegenden Dokumentauszüge enthalten keine Informationen zu elektronischen Unterschriften, Signaturdaten oder Audit-Trails, sodass die Plausibilität der Signaturdaten nicht bewertet werden kann.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": false,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_doc_cross_consistency",
+        "requirement_title": "Konsistenz ueber alle Dokumente eines Vorgangs",
+        "requirement_text": "Angaben zu Chargen, Daten, Mengen, Temperaturen, Ergebnissen und Status müssen ueber alle Dokumente eines Vorgangs (Bericht, Batch Record, Anhaenge, Freigabenotiz) konsistent sein; Widersprueche müssen aufgeklaert werden.",
+        "source_name": "EU GMP Kapitel 4",
+        "section": "4.1",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt die Konsistenz der Angaben über alle Dokumente. Der Abweichungsbericht (Zitat 0) behauptet, es handle sich um ein „isoliertes Einzelereignis ohne systematischen Charakter“. Das Batch-Record (Zitate 1, 2, 3) belegt jedoch, dass an derselben Anlage (TAB-02) innerhalb von zwei Monaten bereits zwei weitere Vorfälle mit Werkzeugschäden (Oberstempel-Beschädigung am 14.03.2026 und Mikrorisse am 18.04.2026) auftraten. Dies widerspricht der Aussage des Berichts, da eine Häufung von Vorfällen an derselben Anlage auf einen systematischen Charakter hindeutet. Die Dokumente sind in sich nicht konsistent.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Es handelt sich um ein **isoliertes Einzelereignis** ohne systematischen Charakter.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "14.03.2026:** Stopp wegen Oberstempel-Beschädigung bei Charge IBU-2026-P01. Werkzeug getauscht. (DEV-IBU-2026-042)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "18.04.2026:** Mikrorisse an Unterstempel Station 5 bei Charge IBU-2026-P02 detektiert. Werkzeugset komplett gereinigt. (DEV-IBU-2026-081)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "10.05.2026:** Aktueller Vorfall: Werkzeugbruch Oberstempel Station 12 bei Charge IBU-2026-P03. (DEV-IBU-2026-112)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen die im Rationale genannten Fakten: Zitat 0 enthält die Behauptung des isolierten Einzelereignisses, während die Zitate 1, 2 und 3 konkrete Vorfälle an derselben Anlage innerhalb eines kurzen Zeitraums dokumentieren. Dies stützt die Schlussfolgerung, dass die Dokumente in sich nicht konsistent sind, da die Häufung der Vorfälle dem Charakter eines isolierten Ereignisses widerspricht.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": true,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_doc_mandatory_attachments",
+        "requirement_title": "Vollständigkeit der Pflichtanhaenge",
+        "requirement_text": "Alle in einem Vorgang referenzierten Pflichtanhaenge und Nachweise müssen tatsaechlich vorhanden und aktuell sein.",
+        "source_name": "EU GMP Kapitel 4",
+        "section": "4.x",
+        "model_status": "unclear",
+        "published_status": "unclear",
+        "severity": "medium",
+        "rationale": "Die Zitate belegen lediglich die Nennung der Dokumente in der Fallzusammenfassung. Es fehlt jedoch der Nachweis, dass diese Anhänge tatsächlich vorhanden und aktuell sind. Da die Auszüge keine Bestätigung der Existenz oder Aktualität der referenzierten Dateien enthalten, kann die Erfüllung der Anforderung nicht bestätigt werden.",
+        "evidence": [
+          {
+            "document_id": "doc_f0837cd7c8954a2cbd705ad21c43f0ba",
+            "chunk_id": "chunk_f0837cd7c8954a2cbd705ad21c43f0ba_p1",
+            "page": 1,
+            "quote": "1. document_01_deviation_report.md",
+            "document_name": "case_summary.md"
+          },
+          {
+            "document_id": "doc_f0837cd7c8954a2cbd705ad21c43f0ba",
+            "chunk_id": "chunk_f0837cd7c8954a2cbd705ad21c43f0ba_p1",
+            "page": 1,
+            "quote": "2. document_02_batch_record_excerpt.md",
+            "document_name": "case_summary.md"
+          },
+          {
+            "document_id": "doc_f0837cd7c8954a2cbd705ad21c43f0ba",
+            "chunk_id": "chunk_f0837cd7c8954a2cbd705ad21c43f0ba_p1",
+            "page": 1,
+            "quote": "3. document_03_capa_plan.md",
+            "document_name": "case_summary.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_process_parameter_limits",
+        "requirement_title": "Einhaltung von Prozessparametern",
+        "requirement_text": "Kritische Prozessparameter müssen innerhalb der spezifizierten Grenzen liegen. Eine Ueber- oder Unterschreitung ist als Abweichung zu bewerten, auch wenn das Produkt visuell unauffaellig erscheint.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.x",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt den Nachweis, dass kritische Prozessparameter innerhalb der spezifizierten Grenzen lagen. Die vorliegenden Zitate und Chunks beschreiben ausschließlich mechanische Störungen (Werkzeugbruch, Haarrisse) und deren behandelnde Maßnahmen (Werkzeugtausch, Reinigung). Es fehlen jegliche Daten zu den Prozessparametern (z. B. Kompressionskraft, Geschwindigkeit) sowie die entsprechenden Spezifikationsgrenzen. Da der auslösende Vorgang (Produktion) dokumentiert ist, aber der geforderte Nachweis der Parameterkonformität in den Auszügen fehlt, ist die Anforderung als verletzt einzustufen, da die Abweichung nicht als unbedenklich bewertet werden kann, ohne die Parameter zu prüfen.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Bei der Tablettenkompression der Charge IBU-2026-P03 an der Rundläuferpresse TAB-02 trat nach 4 Stunden Laufzeit ein mechanischer Stopp auf.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+            "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+            "page": 1,
+            "quote": "10.05.2026:** Aktueller Vorfall: Werkzeugbruch Oberstempel Station 12 bei Charge IBU-2026-P03. (DEV-IBU-2026-112)",
+            "document_name": "document_02_batch_record_excerpt.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (mechanischer Stopp/Werkzeugbruch bei der Produktion der Charge IBU-2026-P03). Die Behauptung (Rationale) stützt sich darauf, dass in den vorliegenden Auszügen keine Daten zu den kritischen Prozessparametern oder deren Spezifikationsgrenzen enthalten sind. Da die Zitate ausschließlich den Stopp und den Vorfall beschreiben und keine Parameterdaten zeigen, tragen sie die Behauptung einer fehlenden Nachweislücke, da der auslösende Vorgang belegt ist und der geforderte Nachweis in den Zitaten nicht sichtbar ist.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_qa_approval_documented",
+        "requirement_title": "Dokumentierte QA-Freigabe",
+        "requirement_text": "QA-Freigaben und Genehmigungen müssen vor Abschluss dokumentiert vorliegen. Eine geplante, aber nicht dokumentierte Freigabe ist nicht ausreichend.",
+        "source_name": "EU GMP Kapitel 1",
+        "section": "1.4(xv)",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt, dass QA-Freigaben vor Abschluss dokumentiert vorliegen. Das Zitat 0 besagt, dass die Charge 'nach einer zusätzlichen visuellen Stichprobenprüfung freigegeben' wird. Dies ist eine Ankündigung einer zukünftigen oder bedingten Maßnahme, aber es liegt in den vorliegenden Auszügen kein dokumentierter Nachweis (z. B. signiertes Freigabeprotokoll, QA-Unterschrift) vor, dass diese Freigabe tatsächlich erfolgt ist. Gemäß den Regeln ist eine geplante, aber nicht dokumentierte Freigabe nicht ausreichend. Da der auslösende Vorgang (Freigabe der Charge) im Zitat erwähnt wird, der geforderte Nachweis (dokumentierte Freigabe) aber fehlt, ist dies ein Verstoß.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Die betroffene Charge IBU-2026-P03 wird nach einer zusätzlichen visuellen Stichprobenprüfung freigegeben.",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Das Zitat belegt den auslösenden Vorgang (die Freigabe der Charge) und die Bedingung (zusätzliche Prüfung). Es zeigt jedoch keinen dokumentierten Nachweis (wie ein signiertes Protokoll), was die Behauptung stützt, dass der geforderte Nachweis fehlt und es sich somit um einen Verstoß handelt.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_qc_affected_batch_scope_includes_retests",
+        "requirement_title": "Betroffene Chargen inklusive Retests und Rückstellmuster",
+        "requirement_text": "Die Batch-Impact-Bewertung eines QC-Change-Control-Pakets muss alle betroffenen Chargen, Retests und Rückstellmuster enthalten. Eine Charge oder ein Retest im Execution Record darf nicht als ausserhalb des Scopes behandelt werden, wenn neuer Grenzwert, neues Berechnungssheet oder geänderte Spezifikation verwendet werden.",
+        "source_name": "GMP Change-Control Batch-Impact Checklist",
+        "section": "affected-batch-scope",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_equipment_site_bridge_for_comparator_evidence",
+        "requirement_title": "Geraete- und Standort-Bridging für Vergleichsevidenz",
+        "requirement_text": "Vergleichsdaten von anderem Standort oder anderer Geraeteplattform duerfen eine QC-Methodenentscheidung nur stuetzen, wenn eine dokumentierte Geraeteaequivalenz, ein Transfer- oder Bridging-Nachweis oder eine genehmigte fachliche Begründung vorliegt.",
+        "source_name": "EU GMP Kapitel 6 / ICH Q2(R2)",
+        "section": "method-transfer-bridging",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_limit_fitness_at_tightened_limit",
+        "requirement_title": "Methodenfitness am verschaerften quantitativen Grenzwert",
+        "requirement_text": "Wenn ein quantitativer QC-Grenzwert verschaerft wird, muss die Methodenfitness für die Entscheidung am neuen Grenzwert belegt sein. Historische Validierung für einen weniger strengen Grenzwert reicht nur aus, wenn Genauigkeit, Präzision, Linearitaet und Reporting Capability am neuen Grenzwert oder darunter nachvollziehbar abgedeckt sind.",
+        "source_name": "ICH Q2(R2) / EU GMP Kapitel 6",
+        "section": "fitness-for-intended-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_qa_approval_before_first_gmp_use",
+        "requirement_title": "QA-Freigabe vor erster GMP-Anwendung",
+        "requirement_text": "Eine geänderte QC-Spezifikation oder Methode darf für GMP-Freigabeentscheidungen erst verwendet werden, wenn die erforderliche QA-Genehmigung dokumentiert ist. Geplante oder ausstehende Freigaben reichen vor der ersten Chargenfreigabe nicht aus.",
+        "source_name": "EU GMP Kapitel 1 und 4",
+        "section": "change-approval-before-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_qc_training_before_effective_sop_use",
+        "requirement_title": "Training vor wirksamer SOP- oder Spezifikationsanwendung",
+        "requirement_text": "Wenn eine SOP-Version oder Spezifikationsanweisung für eine QC-Freigabeentscheidung verbindlich ist, muss das betroffene Personal vor der Anwendung geschult sein. Eine Einstufung als nicht trainingsrelevant ist zu begründen und darf nicht im Widerspruch zur gueltigen SOP oder zum Batch Record stehen.",
+        "source_name": "EU GMP Kapitel 2 und 4",
+        "section": "training-before-effective-use",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Vom Server als nicht anwendbar eingestuft: Dokumenttyp 'deviation' oder Prozessbereich 'drug_product_manufacturing' liegt außerhalb des Geltungsbereichs dieser Anforderung.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_spec_acceptance_limits",
+        "requirement_title": "Einhaltung von Spezifikationen und Akzeptanzkriterien",
+        "requirement_text": "Mess- und Prüfergebnisse müssen gegen die gueltige interne Spezifikation bewertet werden. Eine Verletzung interner Akzeptanzkriterien ist auch dann als Abweichung zu behandeln, wenn ein Lieferanten-Zertifikat Konformitaet ausweist.",
+        "source_name": "EU GMP Kapitel 6",
+        "section": "6",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt, dass Mess- und Prüfergebnisse gegen die gültige interne Spezifikation bewertet werden. Die vorliegenden Zitate belegen lediglich die Freigabe der Charge nach einer 'zusätzlichen visuellen Stichprobenprüfung' (Zitat 0) und die Nachrüstung eines Metallsuchgeräts (Zitat 1). Es fehlen jedoch die eigentlichen Messwerte, die Referenz auf die spezifische interne Spezifikation sowie der explizite Abgleich der Ergebnisse mit den definierten Akzeptanzgrenzen. Da der Nachweis der Bewertung gegen die interne Spezifikation in den Auszügen fehlt, ist die Anforderung nicht erfüllt.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Die betroffene Charge IBU-2026-P03 wird nach einer zusätzlichen visuellen Stichprobenprüfung freigegeben.",
+            "document_name": "document_01_deviation_report.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "partial",
+        "entailment_reason": "Die Behauptung (Rationale) stützt sich auf zwei Zitate: Zitat 0 (Freigabe nach visueller Prüfung) und Zitat 1 (Nachrüstung eines Metallsuchgeräts). Die bereitgestellten Eingabedaten enthalten jedoch nur Zitat 0 in der Liste 'quotes'. Zitat 1 fehlt in den wörtlichen Belegen. Da die Rationale explizit auf Zitat 1 verweist, um die Lücke im Nachweis der Messwerte zu belegen, und dieses Zitat in den vorliegenden Belegen nicht enthalten ist, tragen die verfügbaren Zitate die Behauptung nur teilweise. Zitat 0 belegt zwar den Vorgang der Freigabe, aber der Bezug auf das Metallsuchgerät (Zitat 1) kann nicht verifiziert werden, da es nicht in den Inputs steht.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_supplier_change_impact",
+        "requirement_title": "Bewertung von Lieferanten- und Materialänderungen",
+        "requirement_text": "Änderungen an Lieferant, Material, Spezifikation, Methode oder Quelle duerfen nicht ohne Begründung als 'no impact' gewertet werden; die Auswirkung auf Qualität und Validierung ist zu bewerten.",
+        "source_name": "EU GMP Kapitel 5",
+        "section": "5.27",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Die Anforderung verlangt eine Bewertung der Auswirkungen von Änderungen an Lieferanten, Materialien, Spezifikationen oder Methoden. Die vorliegenden Dokumente beschreiben einen Werkzeugbruch (DEV-IBU-2026-112) und die daraus resultierende CAPA zur Installation eines Inline-Metalldetektors. Es handelt sich dabei um eine Änderung der Ausrüstung/Prozesskontrolle, nicht um eine Änderung des Lieferanten, des Materials oder der Spezifikation im Sinne der Anforderung. Zudem fehlt jegliche Dokumentation einer Lieferanten- oder Materialänderung. Da der Vorgang erkennbar nicht die in der Anforderung genannten Änderungstypen betrifft, ist die Anforderung nicht anwendbar.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_training_effectiveness",
+        "requirement_title": "Wirksames Training nach SOP-Änderung",
+        "requirement_text": "Wird eine SOP aktualisiert, muss das betroffene Personal nachweislich und wirksam geschult sein, bevor die geänderte Taetigkeit ausgeführt wird.",
+        "source_name": "EU GMP Kapitel 2",
+        "section": "2.x",
+        "model_status": "not_applicable",
+        "published_status": "not_applicable",
+        "severity": null,
+        "rationale": "Laut Belegsuche nicht einschlägig: Die vorliegenden Dokumente beschreiben einen mechanischen Vorfall und die Installation eines neuen Geräts, enthalten jedoch keine Hinweise auf eine Änderung einer SOP oder die damit verbundene Schulungspflicht für das Personal, sodass die Anforderung nicht greift.",
+        "evidence": [],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": null,
+        "entailment_reason": null,
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": true
+      },
+      {
+        "requirement_id": "req_val_cleaning_sterility",
+        "requirement_title": "Reinigungsvalidierung und Sterilitaetssicherung",
+        "requirement_text": "Reinigungs- und Sterilitaetsrisiken müssen explizit adressiert und durch geeignete Validierung und Kontaminationskontrollstrategie belegt sein; eine nur indirekte Erwaehnung ist nicht ausreichend.",
+        "source_name": "EU GMP Annex 1",
+        "section": "Kontaminationskontrolle",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die vorliegenden Auszüge behandeln einen Werkzeugbruch und die Installation eines Metallsuchgeräts. Es fehlen jedoch jegliche Informationen, Protokolle oder Validierungsnachweise zu Reinigungs- und Sterilitätsrisiken. Da die Anforderung explizite Belege für diese spezifischen Validierungen verlangt und diese in den Dokumenten nicht vorhanden sind, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+            "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+            "page": 1,
+            "quote": "Die betroffene Charge IBU-2026-P03 wird nach einer zusätzlichen visuellen Stichprobenprüfung freigegeben.",
+            "document_name": "document_01_deviation_report.md"
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Um das Risiko metallischer Mikrofragmente im Endprodukt vollständig zu eliminieren, wird ein automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachgerüstet.",
+            "document_name": "document_03_capa_plan.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Zitate belegen den auslösenden Vorgang (Werkzeugbruch und die nachträgliche Freigabe der Charge) sowie die Installation eines Metallsuchgeräts. Sie enthalten jedoch keine Informationen zu Reinigungs- oder Sterilitätsvalidierungen. Da die Behauptung (Rationale) explizit darauf beruht, dass diese spezifischen Nachweise in den Dokumenten fehlen, tragen die Zitate die Behauptung, indem sie den Kontext bestätigen, in dem die geforderten Belege nicht vorhanden sind.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      },
+      {
+        "requirement_id": "req_val_coverage_current_state",
+        "requirement_title": "Validierungsabdeckung des aktuellen Zustands",
+        "requirement_text": "Validierungs-, Reinigungsvalidierungs- und Sterilisationsnachweise müssen den aktuellen Prozess-, Equipment- und Standortzustand abdecken. Veraltete oder nicht übertragbare Evidenz (anderes Equipment, anderer Standort, abgelaufene Version) ist kein gueltiger Nachweis.",
+        "source_name": "EU GMP Annex 15",
+        "section": "Validierung",
+        "model_status": "violated",
+        "published_status": "violated",
+        "severity": "high",
+        "rationale": "Die Anforderung verlangt einen aktuellen Validierungsbericht und eine Übertragbarkeitsbegründung, die den aktuellen Zustand des Equipments und des Prozesses abdecken. Die vorliegenden Zitate belegen lediglich die Planung und den Zeitplan (Deadline 11.05.2026) für die Installation und Validierung eines neuen Metallsuchgeräts sowie die Freigabe der betroffenen Charge nach visueller Prüfung. Es fehlt jegliche Primärevidenz (Validierungsbericht, IQ/OQ/PQ-Daten) für die geforderte Validierung. Da der auslösende Vorgang (Werkzeugbruch und geplante Modifikation) belegt ist, der geforderte Nachweis aber in den Auszügen fehlt, liegt ein Verstoß vor.",
+        "evidence": [
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Die Beschaffung, Qualifizierung und Softwareintegration im Steuerungsnetzwerk wird priorisiert vorangetrieben.",
+            "document_name": "document_03_capa_plan.md"
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Terminierte Deadline:* 11.05.2026 (Abschluss der gesamten Validierung)",
+            "document_name": "document_03_capa_plan.md"
+          }
+        ],
+        "dropped_evidence_count": 0,
+        "dropped_evidence_reasons": [],
+        "provenance_ok": true,
+        "entailment": "supports",
+        "entailment_reason": "Die Behauptung (Rationale) stützt sich darauf, dass die Zitate lediglich die Planung und den Zeitplan (Deadline) belegen, während der geforderte Nachweis (Validierungsbericht) fehlt. Das erste Zitat bestätigt die Priorisierung der Beschaffung und Integration, was den Planungsaspekt stützt. Das zweite Zitat bestätigt die Deadline. Da die Rationale explizit darauf abzielt, dass die Zitate den auslösenden Vorgang/Plan belegen, aber den fehlenden Nachweis nicht enthalten, tragen die Zitate die Behauptung vollständig.",
+        "evidence_type": null,
+        "evidence_reference": null,
+        "evidence_sufficiency": null,
+        "independent_support": null,
+        "challenge_sustained": null,
+        "challenge_reason": null,
+        "sample_disagreement": false,
+        "validator_flags": [],
+        "validator_statements": [],
+        "server_authored": false
+      }
+    ],
+    "status_counts": {
+      "violated": 15,
+      "unclear": 5,
+      "not_applicable": 8
+    },
+    "failed_model_call_count": 2,
+    "validator_findings": [
+      {
+        "validator_id": "capa_effectiveness_check_missing",
+        "requirement_ids": [
+          "req_capa_effectiveness",
+          "req_capa_responsible_timeline"
+        ],
+        "severity": "high",
+        "statement": "Die CAPA enthält 4 Maßnahme(n) (z. B. 'Automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachrüsten'), aber keine Wirksamkeitsprüfung -- weder als Schritt, noch als Maßnahme, noch als Erwähnung in den Unterlagen.",
+        "locations": [
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Um das Risiko metallischer Mikrofragmente im Endprodukt vollständig zu eliminieren, wird ein automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachgerüstet."
+          },
+          {
+            "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+            "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+            "page": 1,
+            "quote": "Die Beschaffung, Qualifizierung und Softwareintegration im Steuerungsnetzwerk wird priorisiert vorangetrieben."
+          }
+        ]
+      }
+    ],
+    "extracted_evidence": {
+      "counts": {
+        "signatures": 0,
+        "measurements": 1,
+        "specifications": 0,
+        "action_items": 4,
+        "events": 5
+      },
+      "dropped_unverifiable": {},
+      "rows": {
+        "signatures": [],
+        "measurements": [
+          {
+            "parameter": "Laufzeit",
+            "value": "4",
+            "unit": "Stunden",
+            "requirement_ids": [],
+            "location": {
+              "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+              "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+              "page": 1,
+              "quote": "nach 4 Stunden Laufzeit"
+            }
+          }
+        ],
+        "specifications": [],
+        "action_items": [
+          {
+            "list_label": "Maßnahmen",
+            "item_label": "Automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachrüsten",
+            "responsible": "Dr. Hans Meier",
+            "due_date": "11.05.2026",
+            "requirement_ids": [
+              "req_capa_responsible_timeline"
+            ],
+            "location": {
+              "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+              "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+              "page": 1,
+              "quote": "Um das Risiko metallischer Mikrofragmente im Endprodukt vollständig zu eliminieren, wird ein automatisches Metallsuchgerät (Inline-Metalldetektor) am Auslauf der Tablettenpresse nachgerüstet."
+            }
+          },
+          {
+            "list_label": "Maßnahmen",
+            "item_label": "Beschaffung des Metallsuchgeräts",
+            "responsible": "Dr. Hans Meier",
+            "due_date": "11.05.2026",
+            "requirement_ids": [
+              "req_capa_responsible_timeline"
+            ],
+            "location": {
+              "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+              "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+              "page": 1,
+              "quote": "Die Beschaffung, Qualifizierung und Softwareintegration im Steuerungsnetzwerk wird priorisiert vorangetrieben."
+            }
+          },
+          {
+            "list_label": "Maßnahmen",
+            "item_label": "Qualifizierung des Metallsuchgeräts",
+            "responsible": "Dr. Hans Meier",
+            "due_date": "11.05.2026",
+            "requirement_ids": [
+              "req_capa_responsible_timeline"
+            ],
+            "location": {
+              "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+              "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+              "page": 1,
+              "quote": "Die Beschaffung, Qualifizierung und Softwareintegration im Steuerungsnetzwerk wird priorisiert vorangetrieben."
+            }
+          },
+          {
+            "list_label": "Maßnahmen",
+            "item_label": "Softwareintegration im Steuerungsnetzwerk",
+            "responsible": "Dr. Hans Meier",
+            "due_date": "11.05.2026",
+            "requirement_ids": [
+              "req_capa_responsible_timeline"
+            ],
+            "location": {
+              "document_id": "doc_25cb1bb548ff4467b8e78760aa6a31ef",
+              "chunk_id": "chunk_25cb1bb548ff4467b8e78760aa6a31ef_p1",
+              "page": 1,
+              "quote": "Die Beschaffung, Qualifizierung und Softwareintegration im Steuerungsnetzwerk wird priorisiert vorangetrieben."
+            }
+          }
+        ],
+        "events": [
+          {
+            "description": "Mechanischer Stopp an der Rundläuferpresse TAB-02 nach 4 Stunden Laufzeit",
+            "timestamp": "10.05.2026",
+            "actor": null,
+            "role": "event",
+            "refers_to": "DEV-IBU-2026-112",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_impact_assessment",
+              "req_dev_root_cause"
+            ],
+            "location": {
+              "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+              "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+              "page": 1,
+              "quote": "Bei der Tablettenkompression der Charge IBU-2026-P03 an der Rundläuferpresse TAB-02 trat nach 4 Stunden Laufzeit ein mechanischer Stopp auf."
+            }
+          },
+          {
+            "description": "Tausch des betroffenen Werkzeugsegments",
+            "timestamp": null,
+            "actor": null,
+            "role": "implementation",
+            "refers_to": "DEV-IBU-2026-112",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_root_cause"
+            ],
+            "location": {
+              "document_id": "doc_4b0bd725fbaa4012a309925f62f898d3",
+              "chunk_id": "chunk_4b0bd725fbaa4012a309925f62f898d3_p1",
+              "page": 1,
+              "quote": "Das betroffene Werkzeugsegment wurde getauscht."
+            }
+          },
+          {
+            "description": "Stopp wegen Oberstempel-Beschädigung bei Charge IBU-2026-P01. Werkzeug getauscht.",
+            "timestamp": "14.03.2026",
+            "actor": null,
+            "role": "event",
+            "refers_to": "DEV-IBU-2026-042",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_impact_assessment",
+              "req_dev_root_cause"
+            ],
+            "location": {
+              "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+              "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+              "page": 1,
+              "quote": "14.03.2026:** Stopp wegen Oberstempel-Beschädigung bei Charge IBU-2026-P01. Werkzeug getauscht. (DEV-IBU-2026-042)"
+            }
+          },
+          {
+            "description": "Mikrorisse an Unterstempel Station 5 bei Charge IBU-2026-P02 detektiert. Werkzeugset komplett gereinigt.",
+            "timestamp": "18.04.2026",
+            "actor": null,
+            "role": "event",
+            "refers_to": "DEV-IBU-2026-081",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_impact_assessment",
+              "req_dev_root_cause"
+            ],
+            "location": {
+              "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+              "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+              "page": 1,
+              "quote": "18.04.2026:** Mikrorisse an Unterstempel Station 5 bei Charge IBU-2026-P02 detektiert. Werkzeugset komplett gereinigt. (DEV-IBU-2026-081)"
+            }
+          },
+          {
+            "description": "Werkzeugbruch Oberstempel Station 12 bei Charge IBU-2026-P03.",
+            "timestamp": "10.05.2026",
+            "actor": null,
+            "role": "event",
+            "refers_to": "DEV-IBU-2026-112",
+            "activity_key": null,
+            "requirement_ids": [
+              "req_dev_impact_assessment",
+              "req_dev_root_cause"
+            ],
+            "location": {
+              "document_id": "doc_a4e567da84fa4f7fb93f1888c49f766b",
+              "chunk_id": "chunk_a4e567da84fa4f7fb93f1888c49f766b_p1",
+              "page": 1,
+              "quote": "10.05.2026:** Aktueller Vorfall: Werkzeugbruch Oberstempel Station 12 bei Charge IBU-2026-P03. (DEV-IBU-2026-112)"
+            }
+          }
+        ]
+      }
+    },
+    "model_calls": []
+  }
+}

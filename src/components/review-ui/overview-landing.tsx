@@ -34,6 +34,8 @@ const fallbackProofStats: LandingProofStats = {
   citationValue: "–",
   standLabel: "Noch kein veröffentlichter Ringversuch",
   measuredOnFormerStack: false,
+  corpusKind: "regression",
+  corpusLabel: "noch kein Korpus",
 };
 
 export function OverviewLanding({ proofStats }: { proofStats?: LandingProofStats }) {
@@ -74,11 +76,20 @@ export function OverviewLanding({ proofStats }: { proofStats?: LandingProofStats
               Geprüft an präparierten Fällen, deren Fehler vorab dokumentiert und
               versiegelt waren.
             </h2>
-            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--text-secondary)]">
-              Das System sah die Fälle zum ersten Mal im Lauf. Erst danach wurde der
-              Umschlag geöffnet. So lässt sich nachvollziehen, was es fand, was es übersah
-              und wie es auf fehlerfreie Unterlagen reagierte.
-            </p>
+            {stats.corpusKind === "blind" ? (
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--text-secondary)]">
+                Das System sah die Fälle zum ersten Mal im Lauf. Erst danach wurde der
+                Umschlag geöffnet. So lässt sich nachvollziehen, was es fand, was es übersah
+                und wie es auf fehlerfreie Unterlagen reagierte.
+              </p>
+            ) : (
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--text-secondary)]">
+                Die Zahlen unten stammen aus einem Regressionslauf: Der Korpus ist dem
+                Entwicklungsteam bekannt und zeigt, dass die Prüfkette nach jedem Umbau
+                nichts verlernt hat. Der nächste Lauf auf Fällen, die das System nie
+                gesehen hat, wird hier veröffentlicht wie jeder Lauf zuvor.
+              </p>
+            )}
             {stats.measuredOnFormerStack ? (
               <p className="mt-8 rounded-xl border border-[var(--border-default)] px-4 py-3 text-[13px] leading-6 text-[var(--text-secondary)]">
                 <strong className="font-semibold text-[var(--text-primary)]">
@@ -105,8 +116,9 @@ export function OverviewLanding({ proofStats }: { proofStats?: LandingProofStats
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               <p className="max-w-md text-[12px] leading-5 text-[var(--text-tertiary)]">
-                {stats.standLabel}, jüngster abgeschlossener Lauf — nicht der beste
-                ausgewählte. Vollständig einsehbar im Qualifizierungsnachweis.
+                {stats.standLabel}, {stats.corpusLabel} — jüngster abgeschlossener
+                Lauf, nicht der beste ausgewählte. Vollständig einsehbar im
+                Qualifizierungsnachweis.
               </p>
             </div>
           </div>

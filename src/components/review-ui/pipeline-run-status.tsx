@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Clock3, Loader2 } from "lucide-react";
-import type { PipelineRun } from "@/src/lib/review-ui";
+import { pipelineStepLabel, type PipelineRun } from "@/src/lib/review-ui";
 
 const TYPICAL_DURATION_SECONDS = 5 * 60;
 const LONGER_THAN_USUAL_SECONDS = 6 * 60;
@@ -97,7 +97,12 @@ export function PipelineRunStatus({
           <div className="font-semibold text-[var(--text-primary)]">{copy.title}</div>
           <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">{copy.description}</p>
 
-          {isRunning && timing ? (
+          {isRunning && pipelineRun.progress ? (
+            <StepProgress
+              progress={pipelineRun.progress}
+              elapsedSeconds={timing?.elapsedSeconds ?? 0}
+            />
+          ) : isRunning && timing ? (
             <div className="mt-3">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
                 <span className="inline-flex items-center gap-1.5">
@@ -136,6 +141,68 @@ export function PipelineRunStatus({
       </div>
     </section>
   );
+}
+
+/**
+ * Real progress from the server: which of the steps the run is on and, inside
+ * the long one, how many requirements are judged. No time estimate -- on a
+ * local model a run takes 20-30 minutes and a guess would be wrong for most
+ * of them; the step count is something the reviewer can trust.
+ */
+function StepProgress({
+  progress,
+  elapsedSeconds
+}: {
+  progress: NonNullable<PipelineRun["progress"]>;
+  elapsedSeconds: number;
+}) {
+  const percent = describeStepProgress(progress).percent;
+  return (
+    <div className="mt-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--text-secondary)]">
+        <span className="inline-flex items-center gap-1.5">
+          <Clock3 className="h-3.5 w-3.5" aria-hidden />
+          Läuft seit {formatDuration(elapsedSeconds)}
+        </span>
+        <span>
+          Schritt {progress.step_index} von {progress.step_count}:{" "}
+          <span className="font-medium text-[var(--text-primary)]">{pipelineStepLabel(progress.step)}</span>
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/70" aria-label="Fortschritt der Analyse nach Schritten">
+        <div
+          className="h-full rounded-full bg-[var(--brand)] transition-[width] duration-1000"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      {progress.detail ? (
+        <p className="mt-2 text-xs leading-5 text-[var(--text-secondary)]" aria-live="polite">
+          {progress.detail}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Steps are not equal in length -- the requirement review is most of a run --
+ * so the bar reads the detail's "n von m" when there is one and spreads the
+ * remaining steps evenly otherwise. Never 100 % while the run is running.
+ */
+export function describeStepProgress(progress: {
+  step_index: number;
+  step_count: number;
+  detail?: string | null;
+}): { percent: number } {
+  const perStep = 100 / progress.step_count;
+  let percent = (progress.step_index - 1) * perStep;
+  const fraction = progress.detail?.match(/(\d+) von (\d+)/);
+  if (fraction) {
+    const done = Number(fraction[1]);
+    const total = Number(fraction[2]);
+    if (total > 0) percent += perStep * Math.min(done / total, 1);
+  }
+  return { percent: Math.min(97, Math.max(3, Math.round(percent))) };
 }
 
 export function describePipelineTiming(startedAt: string, now: number) {

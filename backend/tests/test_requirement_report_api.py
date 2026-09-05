@@ -199,3 +199,88 @@ def test_the_review_can_be_switched_off(monkeypatch: pytest.MonkeyPatch) -> None
     assert repository.get_requirement_report(document_set_id) is None
     latest = client.get(f"/document-sets/{document_set_id}/pipeline-runs/latest")
     assert latest.json()["failed_step"] is None
+
+
+def test_failed_rows_can_be_retried_over_the_api() -> None:
+    """The retry runs in the background, reports progress, and leaves the
+    report standing when there is nothing to retry."""
+    client = TestClient(app)
+    document_set_id = _run_pipeline(client)
+
+    idle = client.get(f"/document-sets/{document_set_id}/requirement-report/retry")
+    assert idle.status_code == 200
+    assert idle.json() == {"retryable": 0, "active": False, "detail": None}
+
+    # Nothing failed in the mock run: the POST is a no-op that says so.
+    nothing = client.post(f"/document-sets/{document_set_id}/requirement-report/retry")
+    assert nothing.status_code == 202
+    assert nothing.json()["active"] is False
+
+    # Mark a row as a placeholder the way a dead model call would.
+    report = repository.get_requirement_report(document_set_id)
+    assert report is not None
+    marked = report.model_copy(
+        update={
+            "verdicts": [
+                v.model_copy(update={"needs_retry": True})
+                if v.requirement_id == "req_report_threshold"
+                else v
+                for v in report.verdicts
+            ]
+        }
+    )
+    repository.replace_requirement_report(document_set_id=document_set_id, report=marked)
+
+    accepted = client.post(f"/document-sets/{document_set_id}/requirement-report/retry")
+    assert accepted.status_code == 202
+    assert accepted.json()["retryable"] == 1
+    assert accepted.json()["active"] is True
+
+    # TestClient runs background tasks before returning: the retry is done.
+    after = client.get(f"/document-sets/{document_set_id}/requirement-report/retry")
+    assert after.json() == {"retryable": 0, "active": False, "detail": None}
+    refreshed = client.get(f"/document-sets/{document_set_id}/requirement-report").json()
+    threshold = next(
+        v for v in refreshed["verdicts"] if v["requirement_id"] == "req_report_threshold"
+    )
+    assert threshold["needs_retry"] is False
+    assert any(
+        event.event_type == "requirement_review_retried"
+        for event in audit_log.list_events()
+    )
+
+
+def test_retry_without_a_report_is_a_conflict() -> None:
+    client = TestClient(app)
+    repository.create_requirement_set(_requirement_set())
+    created = client.post(
+        "/document-sets",
+        json={
+            "tenant_id": "tenant_demo_pharma",
+            "requirement_set_id": "rset_report_demo",
+            "declared_document_type": "change_control",
+            "declared_process_area": "aseptic_filling",
+            "uploaded_by": "user_qrm_author",
+        },
+    )
+    document_set_id = created.json()["document_set_id"]
+
+    response = client.post(f"/document-sets/{document_set_id}/requirement-report/retry")
+
+    assert response.status_code == 409
+
+
+def test_retry_is_refused_while_the_pipeline_is_running() -> None:
+    from app.schemas.pipeline import PipelineRunStatus
+
+    client = TestClient(app)
+    document_set_id = _run_pipeline(client)
+    run = max(repository.pipeline_runs.values(), key=lambda r: r.started_at)
+    repository.update_pipeline_run(
+        run.model_copy(update={"status": PipelineRunStatus.RUNNING, "completed_at": None})
+    )
+
+    response = client.post(f"/document-sets/{document_set_id}/requirement-report/retry")
+
+    assert response.status_code == 409
+    assert "läuft gerade" in response.json()["detail"]

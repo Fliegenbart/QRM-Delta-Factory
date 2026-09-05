@@ -40,6 +40,13 @@ REPO_ROOT = BACKEND_DIR.parent
 DEFAULT_CASES_DIR = REPO_ROOT / "goldstandard_pharmaqrm"
 DEFAULT_OUTPUT_DIR = DEFAULT_CASES_DIR / "runs"
 
+#: Benchmark stack names -> production presets (app.core.config.MODEL_STACK_PRESETS).
+STACK_PRESET_BY_NAME = {
+    "mixed": "cloud",
+    "hetzner": "local",
+    "hetzner-cascade": "cascade",
+}
+
 # The ten suite cases predate per-package declarations and their answer keys
 # carry no metadata. Real packages must still declare their own; see
 # _package_metadata.
@@ -175,30 +182,45 @@ def _configure_environment(
         os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "anthropic,openai,hetzner,mock"
         os.environ["QRM_ANTHROPIC_MODEL_ID"] = anthropic_model
         os.environ["QRM_OPENAI_MODEL_ID"] = openai_model
-        os.environ.pop("QRM_CRITIC_PROVIDERS", None)
+        # Explicitly empty, not unset: the local/cascade presets would
+        # otherwise add a critic the earlier benchmark runs never had.
+        os.environ["QRM_CRITIC_PROVIDERS"] = ""
         # The single-provider stacks are the ablation: run the same corpus with
         # one family doing both the assessing and the checking, and the drop
         # against `mixed` is what the second, independent provider is buying.
         # Note this also collapses assessor and entailment onto one provider,
         # so the cross-family verification is deliberately disabled here.
-        if stack in ("anthropic", "openai", "hetzner"):
+        for variable in (
+            "QRM_REVIEWER_PROVIDER_OVERRIDE",
+            "QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER",
+            "QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER",
+            "QRM_REQUIREMENT_REVIEW_ASSESSOR_MODE",
+        ):
+            os.environ.pop(variable, None)
+        if stack in ("anthropic", "openai"):
+            os.environ["QRM_MODEL_STACK"] = "cloud"
             os.environ["QRM_REVIEWER_PROVIDER_OVERRIDE"] = stack
             os.environ["QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER"] = stack
             os.environ["QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER"] = stack
-        elif stack == "hetzner-cascade":
-            # The EU-residency shape: the documents are read in Germany, and
-            # only the verdicts that matter (quote + rationale, not the
-            # document) are cross-checked by a different model family.
-            os.environ["QRM_REVIEWER_PROVIDER_OVERRIDE"] = "hetzner"
-            os.environ["QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER"] = "hetzner"
-            os.environ["QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER"] = "anthropic"
         else:
-            os.environ.pop("QRM_REVIEWER_PROVIDER_OVERRIDE", None)
-            os.environ.pop("QRM_REQUIREMENT_REVIEW_ASSESSOR_PROVIDER", None)
-            os.environ.pop("QRM_REQUIREMENT_REVIEW_ENTAILMENT_PROVIDER", None)
+            # The two EU shapes are the production presets themselves, so the
+            # benchmark cannot drift from what a deployment actually runs.
+            # "hetzner" is the local preset measured with the provider alone;
+            # "hetzner-cascade" reads on the EU endpoint and cross-checks the
+            # verdicts (quote + rationale, never the document) elsewhere.
+            os.environ["QRM_MODEL_STACK"] = STACK_PRESET_BY_NAME[stack]
     else:
         os.environ["QRM_EXTERNAL_MODEL_CALLS_ENABLED"] = "false"
         os.environ["QRM_ALLOWED_MODEL_PROVIDERS"] = "mock"
+
+
+def _corpus_name(cases_dir: Path, *, package_dir: str | None) -> str:
+    if package_dir:
+        return f"package:{Path(package_dir).name}"
+    resolved = cases_dir.resolve()
+    if resolved == DEFAULT_CASES_DIR.resolve():
+        return "goldstandard"
+    return resolved.name
 
 
 def _requirement_set() -> dict[str, Any]:
@@ -990,7 +1012,12 @@ def _run_requirement_engine_case(
             {
                 "finding_id": f"req::{verdict.requirement_id}",
                 "severity": verdict.severity.value if verdict.severity else "medium",
-                "risk_statement": verdict.rationale,
+                # A rule finding is part of what the reviewer reads on the row;
+                # scoring only the model's rationale scored a miss on the CAPA
+                # breach the rule had found and stated.
+                "risk_statement": " ".join(
+                    [verdict.rationale, *verdict.validator_statements]
+                ),
                 "evidence_items": [
                     {
                         "document_id": item.document_id,
@@ -1682,11 +1709,16 @@ def main(argv: list[str] | None = None) -> int:
         "mode": args.mode,
         "engine": args.engine,
         "stack": args.stack if live else None,
+        # Which case set the numbers are about. The default corpus has been
+        # looked at while the engine was built, so a run on it is a regression
+        # check; a blind corpus is only blind until someone tunes on it.
+        "corpus": _corpus_name(cases_dir, package_dir=args.package_dir),
         "started_at": started_at.isoformat(timespec="seconds"),
         "anthropic_model": args.anthropic_model if uses_anthropic else None,
         "openai_model": args.openai_model if uses_openai else None,
         "hetzner_model": args.hetzner_model if uses_hetzner else None,
-        "assessor_mode": args.assessor_mode or "grouped",
+        # The preset may have chosen the mode; record what actually ran.
+        "assessor_mode": get_settings().requirement_review_assessor_mode,
         "case_count": len(case_dirs),
     }
 
@@ -1741,7 +1773,7 @@ def main(argv: list[str] | None = None) -> int:
     aggregate = _aggregate(case_results)
     package_release_gate = _package_release_gate(case_results) if args.package_dir else None
     run_label = args.mode if args.mode == "mock" else f"{args.mode}_{args.stack}"
-    if args.assessor_mode == "narrow":
+    if run_meta["assessor_mode"] == "narrow":
         run_label += "_narrow"
     if args.engine != "finding":
         run_label = f"{run_label}_{args.engine}"

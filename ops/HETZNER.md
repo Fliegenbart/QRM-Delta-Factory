@@ -77,6 +77,14 @@ statt stillschweigend jeden Prüfer auf Mock-Ausgaben zu setzen.
 
 Der Compose-Healthcheck ruft im App-Container `/health` auf. Er bestätigt die
 laufende FastAPI-App, nicht die fachliche Verfügbarkeit externer Modellanbieter.
+Die Antwort enthält `model_roles` — welcher Anbieter liest, nachprüft und
+kritisiert, und ob der Stack `cloud`, `local` oder `cascade` ist. Nach jedem
+Deploy einmal ansehen; ein falsch gesetzter Stack fällt sonst erst beim
+ersten Kundendokument auf.
+
+Lokaler Modell-Stack (Qwen auf Hetzner Inference oder eigener GPU-Server):
+siehe [LOCAL-STACK.md](LOCAL-STACK.md) — eine Variable (`QRM_MODEL_STACK=local`)
+plus das Overlay `docker-compose.local-stack.yml`.
 
 ## Backup & Restore
 

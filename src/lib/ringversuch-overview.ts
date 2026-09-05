@@ -12,7 +12,45 @@ export type LandingProofStats = {
    * say which of the two it is.
    */
   measuredOnFormerStack: boolean;
+  /**
+   * Whether the cases were unseen when the engine that ran them was built.
+   * The default corpus has been looked at during development since the
+   * August 2026 rebuild, so a run on it is a regression check and the
+   * landing page must not describe it as a sealed envelope.
+   */
+  corpusKind: CorpusKind;
+  corpusLabel: string;
 };
+
+export type CorpusKind = "blind" | "regression";
+
+type RunRef = { run: { mode?: string; stack?: string | null; corpus?: string | null; case_count?: number } };
+
+/**
+ * Runs written before the corpus was recorded all came from the default
+ * goldstandard directory.
+ */
+export function corpusOf(run: RunRef): string {
+  return run.run.corpus ?? "goldstandard";
+}
+
+export function corpusKindOf(run: RunRef): CorpusKind {
+  return corpusOf(run).startsWith("blind") ? "blind" : "regression";
+}
+
+const CORPUS_LABELS: Record<string, string> = {
+  goldstandard: "Goldstandard-Korpus",
+  blind3: "Blindkorpus 3"
+};
+
+export function corpusLabelOf(run: RunRef): string {
+  const corpus = corpusOf(run);
+  const base = CORPUS_LABELS[corpus] ?? corpus;
+  const count = run.run.case_count;
+  const cases = count ? `${count} Fälle` : null;
+  const kind = corpusKindOf(run) === "blind" ? "beim Bau der Engine nie gesehen" : "Regressionskorpus";
+  return [base, cases, kind].filter(Boolean).join(", ");
+}
 
 /** Stacks the shipped system can still run. Mirrors the Ringversuch dashboard. */
 const CURRENT_STACKS = new Set(["mixed", "anthropic", "openai", "hetzner", "hetzner-cascade"]);
@@ -26,21 +64,28 @@ const CURRENT_STACKS = new Set(["mixed", "anthropic", "openai", "hetzner", "hetz
  */
 export const PRODUCTION_STACK = "mixed";
 
-export function isProductionRun(run: { run: { mode?: string; stack?: string | null } }): boolean {
+export function isProductionRun(run: RunRef): boolean {
   return run.run.mode === "live" && (run.run.stack ?? "") === PRODUCTION_STACK;
 }
 
-/** Newest production run; failing that, the newest live run of any stack. */
-export function pickHeadlineRun<T extends { run: { mode?: string; stack?: string | null } }>(
-  runs: T[] | null | undefined
-): T | undefined {
+/**
+ * Newest production run on a blind corpus; failing that, the newest
+ * production run; failing that, the newest live run of any stack. A blind
+ * measurement outranks a newer regression check because it is the stricter
+ * one -- the rule is about the kind of evidence, never about the score.
+ */
+export function pickHeadlineRun<T extends RunRef>(runs: T[] | null | undefined): T | undefined {
   if (!runs?.length) return undefined;
-  return runs.find(isProductionRun) ?? runs.find((run) => run.run.mode === "live");
+  return (
+    runs.find((run) => isProductionRun(run) && corpusKindOf(run) === "blind") ??
+    runs.find(isProductionRun) ??
+    runs.find((run) => run.run.mode === "live")
+  );
 }
 
 type RingversuchRun = {
   id: string;
-  run: { mode?: string; stack?: string | null };
+  run: { mode?: string; stack?: string | null; corpus?: string | null; case_count?: number };
   aggregate: {
     sensitivity?: { found: number; total: number; rate: number | null };
     specificity_decoys?: { passed: number; total: number; rate: number | null };
@@ -64,6 +109,8 @@ export function deriveLandingProofStats(runs?: RingversuchRun[]): LandingProofSt
     standLabel: dateMatch
       ? `Stand ${dateMatch[3]}.${dateMatch[2]}.${dateMatch[1]}`
       : "Jüngster veröffentlichter Lauf",
-    measuredOnFormerStack: !CURRENT_STACKS.has(latestLive.run.stack ?? "")
+    measuredOnFormerStack: !CURRENT_STACKS.has(latestLive.run.stack ?? ""),
+    corpusKind: corpusKindOf(latestLive),
+    corpusLabel: corpusLabelOf(latestLive)
   };
 }

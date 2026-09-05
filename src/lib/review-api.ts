@@ -1,7 +1,9 @@
 import "server-only";
 
 import type {
+  BackendHealth,
   DocumentSet,
+  RequirementReportRetry,
   DocumentSummary,
   CalibrationExample,
   CalibrationRegressionGateReport,
@@ -13,7 +15,8 @@ import type {
   RequirementSet,
   RequirementCoverageReport,
   ReviewDecisionValue,
-  ReviewPack
+  ReviewPack,
+  RuleDescription
 } from "@/src/lib/review-ui";
 import { normalizeReviewDecisionPayload } from "@/src/lib/review-ui";
 import { getReviewBackendConfig } from "@/src/lib/review-runtime-config";
@@ -130,6 +133,31 @@ export async function getRequirementLibraryOverview(): Promise<RequirementLibrar
     await ensureRequirementSet({ requirementSetId, tenantId });
     return fetchRequirementLibraryOverview(requirementSetId);
   }
+}
+
+export async function listRuleCatalogue(): Promise<RuleDescription[]> {
+  return backendFetch<RuleDescription[]>("/validators");
+}
+
+export async function getBackendHealth(): Promise<BackendHealth> {
+  return backendFetch<BackendHealth>("/health");
+}
+
+export async function getRequirementReportRetry(
+  documentSetId: string
+): Promise<RequirementReportRetry> {
+  return backendFetch<RequirementReportRetry>(
+    `/document-sets/${encodeURIComponent(documentSetId)}/requirement-report/retry`
+  );
+}
+
+export async function retryFailedRequirements(
+  documentSetId: string
+): Promise<RequirementReportRetry> {
+  return backendFetch<RequirementReportRetry>(
+    `/document-sets/${encodeURIComponent(documentSetId)}/requirement-report/retry`,
+    { method: "POST" }
+  );
 }
 
 export async function getHumanFeedbackRegistry(): Promise<HumanFeedbackRegistryReport> {

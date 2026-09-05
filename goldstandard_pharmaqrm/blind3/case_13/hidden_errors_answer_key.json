@@ -1,0 +1,43 @@
+{
+  "case_id": "CASE_13",
+  "document_type": "change_control_package",
+  "process_area": "qc_lab",
+  "errors": [
+    {
+      "document_name": "document_03_analysis_report.md",
+      "error_id": "ERR_13_01",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "high",
+      "exact_evidence_text": "Datum der Analyse:** 20.04.2026",
+      "why_it_is_a_problem": "Die Charge AML-2026-B112 wurde am 20.04.2026 mit der geänderten Methode Rev. 5 geprüft — vor der Schulung der Analytiker (22.04.2026) und vor der QA-Freigabe der Methode (24.04.2026). Die erste GMP-Anwendung erfolgte mit einer nicht freigegebenen Methode durch einen nicht geschulten Analytiker.",
+      "expected_reviewer_finding": "Erste GMP-Anwendung der geänderten Methode vor QA-Freigabe und vor Schulung der Analytiker.",
+      "expected_action": "Gültigkeit des Prüfergebnisses bewerten, Wiederholung mit freigegebener Methode oder formale Bewertung, Abweichung eröffnen, Change-Control-Prozess auf Wirksamwerden-Kontrolle prüfen.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_01_change_control.md",
+      "error_id": "ERR_13_02",
+      "error_type": "Datenintegrität",
+      "severity": "high",
+      "exact_evidence_text": "Ein Audit-Trail-Review des Chromatographie-Datensystems wurde durchgeführt; es ergaben sich keine Auffälligkeiten.",
+      "why_it_is_a_problem": "Der Audit-Trail-Review wird nur behauptet. Es fehlen Datum, Reviewer, Umfang und ein Auszug oder Protokoll des Reviews; die Aussage ist als Nachweis nicht prüfbar.",
+      "expected_reviewer_finding": "Audit-Trail-Review nur als Selbstauskunft dokumentiert, ohne prüfbaren Nachweis.",
+      "expected_action": "Review-Protokoll mit Datum, Reviewer, geprüftem Zeitraum und Ergebnis nachfordern; andernfalls Review nachholen und dokumentieren.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_13_01",
+      "document_name": "document_03_analysis_report.md",
+      "evidence_text": "RSD der Standardinjektionen (n=6): 0,8 % (Kriterium ≤ 2,0 %) — erfüllt",
+      "why_it_is_harmless": "Die Systemeignung ist erfüllt und korrekt bewertet."
+    },
+    {
+      "decoy_id": "DEC_13_02",
+      "document_name": "document_02_training_record.md",
+      "evidence_text": "Wirksamkeit der Schulung: Verständnisfragen mündlich, alle Teilnehmer bestanden",
+      "why_it_is_harmless": "Die Wirksamkeit der Schulung wurde geprüft und dokumentiert."
+    }
+  ]
+}

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from threading import Thread
 from typing import Any
 
 import httpx
@@ -16,6 +17,37 @@ from app.agents.providers.base import (
 
 _RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 529}
 _MAX_RETRY_AFTER_SECONDS = 30.0
+
+
+_SAFE_ERROR_KIND = re.compile(r"^[a-z0-9_.-]{1,64}$")
+
+#: Body substrings that identify an exhausted quota rather than a bad request.
+#: Checked against a bounded prefix of the body only when the error type alone
+#: is ambiguous (Anthropic reports its monthly usage limit as a plain
+#: invalid_request_error with HTTP 400).
+_USAGE_LIMIT_MARKERS = ("usage limit", "credit balance", "quota")
+
+
+def _error_kind(response: httpx.Response) -> str | None:
+    """A short, safe classifier for a provider error body, or None."""
+    try:
+        payload = response.json()
+    except ValueError:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    error = payload.get("error")
+    if not isinstance(error, dict):
+        return None
+    kind = error.get("type") or error.get("code")
+    message = error.get("message")
+    if isinstance(message, str) and any(
+        marker in message[:300].lower() for marker in _USAGE_LIMIT_MARKERS
+    ):
+        return "usage_limit_reached"
+    if isinstance(kind, str) and _SAFE_ERROR_KIND.match(kind):
+        return kind
+    return None
 
 
 class ExternalProviderBase(BaseModelProvider):
@@ -36,14 +68,23 @@ class ExternalProviderBase(BaseModelProvider):
     ) -> dict[str, Any]:
         try:
             with httpx.Client(timeout=self.runtime_options.timeout_seconds) as client:
-                response = client.post(url, headers=headers, json=json_body)
+                response = self._post_with_hard_deadline(
+                    client, url=url, headers=headers, json_body=json_body
+                )
                 response.raise_for_status()
                 payload = response.json()
         except httpx.HTTPStatusError as exc:
             status_code = exc.response.status_code
             retry_after_seconds = _capped_retry_after(exc.response.headers.get("retry-after"))
+            # The body's error *type* is a controlled vocabulary and safe to
+            # surface; the message text is not (it can quote the payload).
+            # Without it, "HTTP 400" hid an exhausted monthly usage limit
+            # behind the same three words as a malformed request -- an
+            # outage that reads like a bug costs the diagnosis an extra hop.
+            error_kind = _error_kind(exc.response)
+            suffix = f" ({error_kind})" if error_kind else ""
             raise ProviderCallError(
-                f"{self.provider_name} provider call failed with HTTP {status_code}",
+                f"{self.provider_name} provider call failed with HTTP {status_code}{suffix}",
                 retryable=status_code in _RETRYABLE_STATUS_CODES,
                 retry_after_seconds=retry_after_seconds,
             ) from exc
@@ -75,6 +116,51 @@ class ExternalProviderBase(BaseModelProvider):
                 f"{self.provider_name} provider returned invalid JSON payload"
             )
         return payload
+
+    def _post_with_hard_deadline(
+        self,
+        client: httpx.Client,
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, Any],
+    ) -> httpx.Response:
+        """POST with a wall-clock cap that a trickling server cannot reset.
+
+        httpx's read timeout is per received chunk: a gateway that keeps the
+        connection open and dribbles bytes resets it forever. One such
+        connection held a blind benchmark run on a single requirement for
+        eleven hours -- 0% CPU, one ESTABLISHED socket, no timeout ever
+        firing. The request runs on a helper thread; if it outlives the cap,
+        the client is closed (which aborts the socket) and the call fails as
+        retryable, exactly like an ordinary timeout.
+        """
+        hard_deadline = self.runtime_options.timeout_seconds * 1.25 + 15.0
+        outcome: dict[str, Any] = {}
+
+        def _do_post() -> None:
+            try:
+                outcome["response"] = client.post(url, headers=headers, json=json_body)
+            except BaseException as exc:  # noqa: BLE001 - re-raised on the caller's thread
+                outcome["error"] = exc
+
+        worker = Thread(target=_do_post, daemon=True, name=f"{self.provider_name}-post")
+        worker.start()
+        worker.join(hard_deadline)
+        if worker.is_alive():
+            try:
+                client.close()
+            except Exception:  # noqa: BLE001 - closing is best effort
+                pass
+            worker.join(5.0)
+            raise ProviderCallError(
+                f"{self.provider_name} provider call exceeded the hard deadline "
+                f"of {hard_deadline:.0f}s",
+                retryable=True,
+            )
+        if "error" in outcome:
+            raise outcome["error"]
+        return outcome["response"]
 
     def _json_user_content(
         self,

@@ -5,7 +5,8 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from app.audit.events import audit_log
 from app.core.security import require_document_set_for_tenant
 from app.db.in_memory import repository
-from app.schemas.pipeline import PipelineRun
+from app.schemas.pipeline import PipelineRun, PipelineRunStatus
+from app.services import progress
 from app.services.pipeline import (
     PipelineDocumentSetNotFoundError,
     PipelineRunNotFoundError,
@@ -92,7 +93,7 @@ def get_latest_pipeline_run(document_set_id: str, request: Request) -> PipelineR
         request=request,
     )
     try:
-        return get_pipeline_service().get_latest_pipeline_run(document_set_id)
+        return _with_live_detail(get_pipeline_service().get_latest_pipeline_run(document_set_id))
     except PipelineDocumentSetNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except PipelineRunNotFoundError as exc:
@@ -110,4 +111,16 @@ def get_pipeline_run(pipeline_run_id: str, request: Request) -> PipelineRun:
         document_set_id=pipeline_run.document_set_id,
         request=request,
     )
-    return pipeline_run
+    return _with_live_detail(pipeline_run)
+
+
+def _with_live_detail(pipeline_run: PipelineRun) -> PipelineRun:
+    """Merge the engine's in-process progress detail into a running run."""
+    if pipeline_run.status != PipelineRunStatus.RUNNING or pipeline_run.progress is None:
+        return pipeline_run
+    detail = progress.detail_for(pipeline_run.document_set_id)
+    if detail is None:
+        return pipeline_run
+    return pipeline_run.model_copy(
+        update={"progress": pipeline_run.progress.model_copy(update={"detail": detail})}
+    )

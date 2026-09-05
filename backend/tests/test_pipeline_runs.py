@@ -536,3 +536,75 @@ def _chunk() -> DocumentChunk:
         bbox=None,
         source_hash=sha256(text.encode()).hexdigest(),
     )
+
+
+def test_pipeline_reports_its_step_while_running_and_clears_it_when_done(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A reviewer waiting 25 minutes on a local model is told where the run is."""
+    from app.services import progress
+
+    repository.create_requirement_set(_requirement_set())
+    repository.create_document_set(_document_set(document_set_id="ds_pipeline_progress"))
+    service = PipelineService(repository=repository, audit_log=audit_log)
+    seen: list[tuple[str, int, int, str | None]] = []
+
+    original = service._parse_document_set
+
+    def observing_parse(document_set_id: str) -> Any:
+        run = service.get_latest_pipeline_run(document_set_id)
+        assert run.progress is not None
+        # The engine's detail is merged in by the API, not stored with the run.
+        progress.report(document_set_id, "Anforderung 3 von 26 beurteilt")
+        seen.append(
+            (
+                run.progress.step,
+                run.progress.step_index,
+                run.progress.step_count,
+                progress.detail_for(document_set_id),
+            )
+        )
+        return original(document_set_id)
+
+    monkeypatch.setattr(service, "_parse_document_set", observing_parse)
+    pipeline_run = service.start_or_get_pipeline_run("ds_pipeline_progress")
+    completed = service.execute_pipeline("ds_pipeline_progress", pipeline_run)
+
+    assert seen == [("parse_document_set", 1, 13, "Anforderung 3 von 26 beurteilt")]
+    # Terminal either way (this set has no documents, so the run fails at
+    # parsing): the progress and its detail are gone once the run has ended.
+    assert completed.status == PipelineRunStatus.FAILED
+    assert completed.progress is None
+    assert progress.detail_for("ds_pipeline_progress") is None
+
+
+def test_latest_run_endpoint_merges_the_live_progress_detail() -> None:
+    from app.api.pipeline_runs import _with_live_detail
+    from app.schemas.pipeline import PipelineProgress
+    from app.services import progress
+
+    running = PipelineRun(
+        pipeline_run_id="prun_live_detail",
+        document_set_id="ds_live_detail",
+        status=PipelineRunStatus.RUNNING,
+        started_at=datetime.now(UTC),
+        config_version="pipeline-config-v0.1",
+        progress=PipelineProgress(
+            step="requirement_coverage_review",
+            step_index=12,
+            step_count=13,
+            updated_at=datetime.now(UTC),
+        ),
+    )
+    progress.report("ds_live_detail", "Anforderung 12 von 26 beurteilt")
+    try:
+        merged = _with_live_detail(running)
+        assert merged.progress is not None
+        assert merged.progress.detail == "Anforderung 12 von 26 beurteilt"
+        # The stored record is untouched; the detail is read-time only.
+        assert running.progress is not None and running.progress.detail is None
+        finished = running.model_copy(update={"status": PipelineRunStatus.COMPLETED})
+        assert _with_live_detail(finished).progress is not None
+        assert _with_live_detail(finished).progress.detail is None
+    finally:
+        progress.clear("ds_live_detail")

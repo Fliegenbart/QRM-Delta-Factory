@@ -14,4 +14,5 @@ def health() -> HealthResponse:
         app_name=settings.app_name,
         app_version=settings.app_version,
         environment=settings.environment,
+        model_roles=settings.effective_model_roles(),
     )

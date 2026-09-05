@@ -1,0 +1,43 @@
+{
+  "case_id": "CASE_18",
+  "document_type": "deviation",
+  "process_area": "supplier_quality",
+  "errors": [
+    {
+      "document_name": "document_01_supplier_coa.md",
+      "error_id": "ERR_18_01",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "high",
+      "exact_evidence_text": "| Wassergehalt (Karl Fischer) | NMT 0,50 % | 0,62 % | entspricht |",
+      "why_it_is_a_problem": "Der Wassergehalt von 0,62 % überschreitet die Spezifikation von NMT 0,50 %, ist im CoA aber als 'entspricht' bewertet. Der CoA-Abgleich der Wareneingangsprüfung hat dies nicht erkannt und das Material wurde freigegeben.",
+      "expected_reviewer_finding": "Wassergehalt im Lieferanten-CoA außerhalb der Spezifikation, aber als konform bewertet und bei der Wareneingangsprüfung übernommen.",
+      "expected_action": "Material sperren, eigene Wassergehaltsbestimmung durchführen, Lieferantenreklamation, Lieferantenstatus 'qualifiziert' und reduzierte Prüfung überprüfen.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_02_incoming_inspection.md",
+      "error_id": "ERR_18_02",
+      "error_type": "Datenintegrität",
+      "severity": "high",
+      "exact_evidence_text": "Prüfung durchgeführt am:** 04.08.2026",
+      "why_it_is_a_problem": "Die Wareneingangsprüfung ist auf den 04.08.2026 datiert, die Ware ist aber erst am 06.08.2026 eingegangen. Eine Prüfung kann nicht vor Eingang der Ware stattgefunden haben; die Prüfung wurde entweder nicht durchgeführt oder falsch datiert.",
+      "expected_reviewer_finding": "Wareneingangsprüfung vor dem Wareneingang datiert; Zeitangabe nicht plausibel.",
+      "expected_action": "Prüfdatum klären, Prüfung ggf. nachholen, Freigabe bis zur Klärung aussetzen.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_18_01",
+      "document_name": "document_03_deviation_report.md",
+      "evidence_text": "Die Innenbeutel waren intakt und versiegelt; die Siegelnummern stimmten mit dem Lieferschein überein.",
+      "why_it_is_harmless": "Ein Transportschaden an der Außenverpackung mit intakter Innenverpackung ist eine korrekt behandelte Abweichung."
+    },
+    {
+      "decoy_id": "DEC_18_02",
+      "document_name": "document_01_supplier_coa.md",
+      "evidence_text": "| Gehalt (Titration) | 98,5–101,0 % | 99,7 % | entspricht |",
+      "why_it_is_harmless": "Der Gehalt liegt innerhalb der Spezifikation."
+    }
+  ]
+}

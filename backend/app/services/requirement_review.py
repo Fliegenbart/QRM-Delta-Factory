@@ -29,6 +29,10 @@ verdicts for its whole group, which in a QA process means human review.
 
 from __future__ import annotations
 
+import copy
+import re
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from typing import Any
 
@@ -46,6 +50,7 @@ from app.audit.events import InMemoryAuditLog
 from app.core.config import Settings, get_settings
 from app.db.in_memory import InMemoryDocumentRepository
 from app.schemas.domain import DocumentChunk, DocumentSet, Requirement, Severity
+from app.schemas.structured_evidence import ValidatorFinding
 from app.schemas.requirement_review import (
     EntailmentCheck,
     EntailmentSupport,
@@ -204,6 +209,14 @@ JUDGE_PROMPT = (
     "fulfilled mit insufficient ist keins: dann unclear."
 )
 
+LOCATE_REASK_NOTE = (
+    "\n\nHINWEIS ZUR WIEDERHOLUNG: Die vorige Antwort hat eine relevante Stelle "
+    "beschrieben, aber nicht zitiert. Beschreibungen zählen nicht. Kopiere die "
+    "Stelle(n), die du meinst, WÖRTLICH in quotes, jede mit ihrer chunk_id. "
+    "Gibt es wirklich keine relevante Stelle, lass quotes leer und setze "
+    "applicability auf does_not_apply oder cannot_tell."
+)
+
 JUDGE_REASK_NOTE = (
     "\n\nHINWEIS ZUR WIEDERHOLUNG: Die vorige Antwort war fulfilled oder "
     "violated ohne eine einzige Zitatnummer in supporting_quote_indices. "
@@ -230,6 +243,10 @@ class RequirementReviewDocumentSetNotFoundError(Exception):
     pass
 
 
+class RequirementReviewReportNotFoundError(Exception):
+    pass
+
+
 class RequirementReviewEngine:
     def __init__(
         self,
@@ -242,6 +259,7 @@ class RequirementReviewEngine:
         group_size: int = REQUIREMENT_GROUP_SIZE,
         assessor_samples: int = 2,
         assessor_mode: str = "grouped",
+        locate_chunk_limit: int = 12,
     ) -> None:
         self.repository = repository
         self.audit_log = audit_log
@@ -258,8 +276,21 @@ class RequirementReviewEngine:
         #: requirement, locate the evidence first, then judge over those quotes
         #: alone -- the shape a local 27B model handles. See _assess_narrow.
         self.assessor_mode = assessor_mode
+        #: How many chunks the locator sees per requirement. Every requirement
+        #: used to get every chunk -- 26 copies of the whole case per case,
+        #: 1.67M tokens for ten small cases. Fine on a rented endpoint, the
+        #: bottleneck on a customer's own GPU. See _candidate_chunks.
+        self.locate_chunk_limit = max(1, locate_chunk_limit)
 
-    def run(self, document_set_id: str) -> RequirementCoverageReport:
+    def run(
+        self,
+        document_set_id: str,
+        *,
+        progress: Callable[[str], None] | None = None,
+    ) -> RequirementCoverageReport:
+        # A run on a local model takes 20-30 minutes; the reviewer waiting on
+        # it gets told where it is. Reporting never affects the result.
+        tell = progress or (lambda _detail: None)
         document_set = self.repository.get_document_set(document_set_id)
         if document_set is None:
             raise RequirementReviewDocumentSetNotFoundError(
@@ -288,37 +319,16 @@ class RequirementReviewEngine:
         model_calls: list[RequirementReviewModelCall] = []
 
         chunk_payload = _chunk_payload(chunks, self.repository)
-        if self.assessor_mode == "narrow":
-            for requirement in applicable:
-                verdict, calls = self._assess_narrow(
-                    requirement=requirement, chunk_payload=chunk_payload, chunks=chunks
-                )
-                verdicts.append(verdict)
-                model_calls.extend(calls)
-        else:
-            for group in _grouped(applicable, self.group_size):
-                group_verdicts, group_calls = self._assess_group(
-                    group=group, chunk_payload=chunk_payload, chunks=chunks
-                )
-                verdicts.extend(group_verdicts)
-                model_calls.extend(group_calls)
+        assessed, assess_calls = self._assess(applicable, chunk_payload, chunks, tell)
+        verdicts.extend(assessed)
+        model_calls.extend(assess_calls)
 
-        criticality_by_id = {
-            requirement.requirement_id: requirement.criticality.value
-            for requirement in requirements
-        }
-        verdicts = [self._verify_entailment(verdict, model_calls) for verdict in verdicts]
-        verdicts = [
-            self._challenge_fulfilled(
-                verdict,
-                model_calls,
-                criticality=criticality_by_id.get(verdict.requirement_id, "medium"),
-            )
-            for verdict in verdicts
-        ]
+        verdicts, check_calls = self._verify_all(verdicts, requirements, tell)
+        model_calls.extend(check_calls)
 
         validator_findings: list[dict[str, Any]] = []
         extracted_evidence: dict[str, Any] | None = None
+        tell("Fakten werden erfasst und Regeln geprüft")
         if self.extraction_provider is not None:
             verdicts, validator_findings, extracted_evidence = self._apply_validators(
                 verdicts=verdicts,
@@ -326,6 +336,7 @@ class RequirementReviewEngine:
                 chunk_payload=chunk_payload,
                 chunks=chunks,
                 model_calls=model_calls,
+                document_set=document_set,
             )
         # Arithmetic runs on chunk text and needs no extraction, so it must not
         # sit behind the extraction provider: surviving a truncated extraction
@@ -338,6 +349,7 @@ class RequirementReviewEngine:
         validator_findings = [*validator_findings, *arithmetic_findings]
 
         verdicts.sort(key=lambda v: v.requirement_id)
+        _name_cited_documents(verdicts, self.repository)
         status_counts: dict[str, int] = {}
         for verdict in verdicts:
             status_counts[verdict.published_status.value] = (
@@ -366,6 +378,200 @@ class RequirementReviewEngine:
         )
         return report
 
+    def _verify_all(
+        self,
+        verdicts: list[VerifiedRequirementVerdict],
+        requirements: list[Requirement],
+        tell: Callable[[str], None],
+    ) -> tuple[list[VerifiedRequirementVerdict], list[RequirementReviewModelCall]]:
+        """Entailment-check every verdict and challenge the fulfilled ones.
+
+        The checks are per verdict and independent; same pool discipline as
+        the narrow assessor, with a provider copy per task.
+        """
+        criticality_by_id = {
+            requirement.requirement_id: requirement.criticality.value
+            for requirement in requirements
+        }
+        workers = max(1, self.entailment_provider.runtime_options.max_concurrent_calls)
+
+        def _check(
+            verdict: VerifiedRequirementVerdict,
+        ) -> tuple[VerifiedRequirementVerdict, list[RequirementReviewModelCall]]:
+            provider = copy.copy(self.entailment_provider)
+            local_calls: list[RequirementReviewModelCall] = []
+            checked = self._verify_entailment(verdict, local_calls, provider=provider)
+            checked = self._challenge_fulfilled(
+                checked,
+                local_calls,
+                criticality=criticality_by_id.get(verdict.requirement_id, "medium"),
+                provider=provider,
+            )
+            return checked, local_calls
+
+        tell(f"Urteile werden nachgeprüft (0 von {len(verdicts)})")
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            check_futures = [pool.submit(_check, verdict) for verdict in verdicts]
+            for done, _future in enumerate(as_completed(check_futures), start=1):
+                tell(f"Urteile werden nachgeprüft ({done} von {len(verdicts)})")
+            checked_results = [future.result() for future in check_futures]
+        model_calls: list[RequirementReviewModelCall] = []
+        for _, local_calls in checked_results:
+            model_calls.extend(local_calls)
+        return [checked for checked, _ in checked_results], model_calls
+
+    def _assess(
+        self,
+        applicable: list[Requirement],
+        chunk_payload: list[dict[str, Any]],
+        chunks: list[DocumentChunk],
+        tell: Callable[[str], None],
+        *,
+        phrase: str = "Anforderung {done} von {total} beurteilt",
+    ) -> tuple[list[VerifiedRequirementVerdict], list[RequirementReviewModelCall]]:
+        """Judge the given requirements in the configured assessor shape."""
+        total = len(applicable)
+        verdicts: list[VerifiedRequirementVerdict] = []
+        model_calls: list[RequirementReviewModelCall] = []
+        if self.assessor_mode == "narrow":
+            # Requirements are independent of one another, so they run on a
+            # small pool. Each worker gets its own shallow copy of the provider:
+            # breaker state and the per-provider semaphore are class-level and
+            # locked, but last_run_metadata -- which the call record reads --
+            # is per instance, and two workers sharing one instance would book
+            # each other's tokens. The semaphore still bounds real concurrent
+            # HTTP calls at max_concurrent_calls, so this is ordering, not load.
+            workers = max(1, self.assessor_provider.runtime_options.max_concurrent_calls)
+            tell(phrase.format(done=0, total=total))
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                futures = [
+                    pool.submit(
+                        self._assess_narrow,
+                        requirement=requirement,
+                        chunk_payload=chunk_payload,
+                        chunks=chunks,
+                        provider=copy.copy(self.assessor_provider),
+                    )
+                    for requirement in applicable
+                ]
+                for done, _future in enumerate(as_completed(futures), start=1):
+                    tell(phrase.format(done=done, total=total))
+                # Collected in submission order: the report's call list stays
+                # deterministic regardless of which worker finished first.
+                results = [future.result() for future in futures]
+            for verdict, calls in results:
+                verdicts.append(verdict)
+                model_calls.extend(calls)
+        else:
+            done = 0
+            for group in _grouped(applicable, self.group_size):
+                group_verdicts, group_calls = self._assess_group(
+                    group=group, chunk_payload=chunk_payload, chunks=chunks
+                )
+                verdicts.extend(group_verdicts)
+                model_calls.extend(group_calls)
+                done += len(group)
+                tell(phrase.format(done=done, total=total))
+        return verdicts, model_calls
+
+    def rerun_failed(
+        self,
+        document_set_id: str,
+        *,
+        progress: Callable[[str], None] | None = None,
+    ) -> RequirementCoverageReport:
+        """Re-judge only the rows a failed model call left as placeholders.
+
+        The report's other rows, its extracted facts and its rule findings are
+        untouched: the facts did not change, and a rule that fired still
+        fires. The fresh verdicts go through the same verification and the
+        same rule escalation as in a full run, so a retried row is held to
+        exactly the standard of a first-run row.
+        """
+        tell = progress or (lambda _detail: None)
+        report = self.repository.get_requirement_report(document_set_id)
+        if report is None:
+            raise RequirementReviewReportNotFoundError(
+                f"No requirement report for DocumentSet {document_set_id}"
+            )
+        failed_ids = [v.requirement_id for v in report.verdicts if v.needs_retry]
+        if not failed_ids:
+            return report
+        document_set = self.repository.get_document_set(document_set_id)
+        if document_set is None:
+            raise RequirementReviewDocumentSetNotFoundError(
+                f"DocumentSet {document_set_id} not found"
+            )
+        chunks = self.repository.list_chunks_for_document_set(document_set_id)
+        requirement_set = self.repository.get_requirement_set(
+            document_set.requirement_set_id
+        )
+        requirements = [
+            requirement
+            for requirement in (requirement_set.requirements if requirement_set else [])
+            if requirement.requirement_id in set(failed_ids)
+        ]
+        applicable, _inapplicable = _split_by_applicability(requirements, document_set)
+        chunk_payload = _chunk_payload(chunks, self.repository)
+
+        fresh, model_calls = self._assess(
+            applicable,
+            chunk_payload,
+            chunks,
+            tell,
+            phrase="Erneute Prüfung: Anforderung {done} von {total} beurteilt",
+        )
+        fresh, check_calls = self._verify_all(fresh, applicable, tell)
+        model_calls.extend(check_calls)
+
+        stored_findings = [
+            ValidatorFinding.model_validate(finding) for finding in report.validator_findings
+        ]
+        applicable_ids = {requirement.requirement_id for requirement in applicable}
+        fresh = _escalate_with_findings(fresh, stored_findings, applicable_ids)
+        fresh, _arithmetic = _apply_arithmetic_validators(
+            verdicts=fresh, applicable=applicable, chunks=chunks
+        )
+        _name_cited_documents(fresh, self.repository)
+
+        fresh_by_id = {verdict.requirement_id: verdict for verdict in fresh}
+        verdicts = [fresh_by_id.get(v.requirement_id, v) for v in report.verdicts]
+        all_calls = [*report.model_calls, *model_calls]
+        status_counts: dict[str, int] = {}
+        for verdict in verdicts:
+            status_counts[verdict.published_status.value] = (
+                status_counts.get(verdict.published_status.value, 0) + 1
+            )
+        updated = report.model_copy(
+            update={
+                "created_at": datetime.now(UTC),
+                "verdicts": verdicts,
+                "status_counts": status_counts,
+                "model_calls": all_calls,
+                "failed_model_call_count": sum(
+                    1 for call in all_calls if call.status != "succeeded"
+                ),
+            }
+        )
+        self.repository.replace_requirement_report(
+            document_set_id=document_set_id, report=updated
+        )
+        self.audit_log.append(
+            event_type="requirement_review_retried",
+            actor_id="service_requirement_review",
+            actor_type="service",
+            entity_type="DocumentSet",
+            entity_id=document_set_id,
+            payload={
+                "retried_requirement_ids": sorted(applicable_ids),
+                "still_failed": sorted(
+                    v.requirement_id for v in fresh if v.needs_retry
+                ),
+                **updated.summary(),
+            },
+        )
+        return updated
+
     def _apply_validators(
         self,
         *,
@@ -374,6 +580,7 @@ class RequirementReviewEngine:
         chunk_payload: list[dict[str, Any]],
         chunks: list[DocumentChunk],
         model_calls: list[RequirementReviewModelCall],
+        document_set: DocumentSet,
     ) -> tuple[list[VerifiedRequirementVerdict], list[dict[str, Any]], dict[str, Any]]:
         """Run structured extraction plus deterministic checks, then merge.
 
@@ -384,7 +591,7 @@ class RequirementReviewEngine:
         validators are additive, and a dead extraction call must not take the
         assessed verdicts down with it.
         """
-        from app.services.deterministic_validators import run_validators
+        from app.services.deterministic_validators import ValidationContext, run_validators
         from app.services.evidence_extraction import EvidenceExtractor
 
         requirement_index = [
@@ -421,28 +628,15 @@ class RequirementReviewEngine:
                 )
             )
 
-        findings = run_validators(outcome.evidence)
+        findings = run_validators(
+            outcome.evidence,
+            ValidationContext(
+                declared_document_type=document_set.declared_document_type,
+                chunk_texts=tuple(chunk.text for chunk in chunks),
+            ),
+        )
         applicable_ids = {requirement.requirement_id for requirement in applicable}
-        verdicts_by_id = {verdict.requirement_id: verdict for verdict in verdicts}
-        for finding in findings:
-            for requirement_id in finding.requirement_ids:
-                verdict = verdicts_by_id.get(requirement_id)
-                if verdict is None or requirement_id not in applicable_ids:
-                    continue
-                update: dict[str, Any] = {
-                    "validator_flags": [*verdict.validator_flags, finding.validator_id],
-                    "validator_statements": [
-                        *verdict.validator_statements,
-                        finding.statement,
-                    ],
-                    "evidence": _merge_evidence(verdict.evidence, finding.locations),
-                }
-                if verdict.published_status != RequirementVerdictStatus.VIOLATED:
-                    update["published_status"] = RequirementVerdictStatus.VIOLATED
-                    if verdict.severity is None:
-                        update["severity"] = Severity(finding.severity)
-                verdicts_by_id[requirement_id] = verdict.model_copy(update=update)
-        merged = [verdicts_by_id[v.requirement_id] for v in verdicts]
+        merged = _escalate_with_findings(verdicts, findings, applicable_ids)
         return (
             merged,
             [finding.model_dump(mode="json") for finding in findings],
@@ -599,6 +793,7 @@ class RequirementReviewEngine:
                         "die Anforderung bleibt unbeurteilt und gehört zur "
                         "menschlichen Prüfung."
                     ),
+                    needs_retry=True,
                 )
                 for requirement in group
             ], calls
@@ -635,6 +830,7 @@ class RequirementReviewEngine:
         requirement: Requirement,
         chunk_payload: list[dict[str, Any]],
         chunks: list[DocumentChunk],
+        provider: BaseModelProvider | None = None,
     ) -> tuple[VerifiedRequirementVerdict, list[RequirementReviewModelCall]]:
         """Two small calls per requirement: locate the evidence, then judge it.
 
@@ -661,14 +857,16 @@ class RequirementReviewEngine:
         }
         calls: list[RequirementReviewModelCall] = []
         rid = [requirement.requirement_id]
+        provider = provider or self.assessor_provider
 
         # --- call 1: locate -------------------------------------------------
+        candidate_chunks = _candidate_chunks(requirement, chunk_payload, self.locate_chunk_limit)
         discarded: list[Any] = []
         try:
             raw = _run_with_one_reask(
-                self.assessor_provider,
+                provider,
                 LOCATE_PROMPT,
-                {"requirement": requirement_payload, "chunks": chunk_payload},
+                {"requirement": requirement_payload, "chunks": candidate_chunks},
                 EvidenceLocation,
                 discarded_usage=discarded,
             )
@@ -676,7 +874,7 @@ class RequirementReviewEngine:
         except Exception as exc:  # noqa: BLE001 - fail-secure per requirement
             calls.append(
                 _model_call(
-                    self.assessor_provider,
+                    provider,
                     purpose="locate",
                     requirement_ids=rid,
                     status="failed",
@@ -692,12 +890,13 @@ class RequirementReviewEngine:
                         "Belegsuche für diese Anforderung fehlgeschlagen; sie "
                         "bleibt unbeurteilt und gehört zur menschlichen Prüfung."
                     ),
+                    needs_retry=True,
                 ),
                 calls,
             )
         calls.append(
             _model_call(
-                self.assessor_provider,
+                provider,
                 purpose="locate",
                 requirement_ids=rid,
                 status="succeeded",
@@ -707,6 +906,15 @@ class RequirementReviewEngine:
 
         chunk_by_id = {chunk["chunk_id"]: chunk for chunk in chunk_payload}
         located = [q for q in location.quotes if q.chunk_id in chunk_by_id]
+        if not located and location.applicability != RequirementApplicability.DOES_NOT_APPLY:
+            # The locator described the passage instead of quoting it -- "Die
+            # QS-Notiz dokumentiert, dass ..." with an empty list -- on three of
+            # the rows behind the two judgment misses of the 2026-08-23 run. It
+            # knows where the evidence is; it is told once that descriptions
+            # do not count. A second empty answer stands.
+            location, located = self._locate_again(
+                provider, requirement_payload, candidate_chunks, chunk_by_id, location, calls, rid
+            )
         if not located:
             if location.applicability == RequirementApplicability.DOES_NOT_APPLY:
                 return (
@@ -748,11 +956,11 @@ class RequirementReviewEngine:
             }
             discarded = []
             try:
-                judged = self._judge_once(input_schema, discarded_usage=discarded)
+                judged = self._judge_once(input_schema, discarded_usage=discarded, provider=provider)
             except Exception as exc:  # noqa: BLE001 - fail-secure per sample
                 calls.append(
                     _model_call(
-                        self.assessor_provider,
+                        provider,
                         purpose="judge",
                         requirement_ids=rid,
                         status="failed",
@@ -763,7 +971,7 @@ class RequirementReviewEngine:
                 continue
             calls.append(
                 _model_call(
-                    self.assessor_provider,
+                    provider,
                     purpose="judge",
                     requirement_ids=rid,
                     status="succeeded",
@@ -781,6 +989,7 @@ class RequirementReviewEngine:
                         "Beurteilung für diese Anforderung fehlgeschlagen; sie "
                         "bleibt unbeurteilt und gehört zur menschlichen Prüfung."
                     ),
+                    needs_retry=True,
                 ),
                 calls,
             )
@@ -790,12 +999,45 @@ class RequirementReviewEngine:
             checked = checked.model_copy(update={"sample_disagreement": True})
         return checked, calls
 
+    def _locate_again(
+        self,
+        provider: BaseModelProvider,
+        requirement_payload: dict[str, Any],
+        chunk_payload: list[dict[str, Any]],
+        chunk_by_id: dict[str, dict[str, Any]],
+        first: EvidenceLocation,
+        calls: list[RequirementReviewModelCall],
+        rid: list[str],
+    ) -> tuple[EvidenceLocation, list[Any]]:
+        try:
+            raw = provider.run_structured(
+                LOCATE_PROMPT + LOCATE_REASK_NOTE,
+                {"requirement": requirement_payload, "chunks": chunk_payload},
+                EvidenceLocation,
+            )
+            second = EvidenceLocation.model_validate(raw)
+        except Exception as exc:  # noqa: BLE001 - the first answer stands
+            calls.append(
+                _model_call(provider, purpose="locate", requirement_ids=rid, status="failed", error=exc)
+            )
+            return first, []
+        calls.append(
+            _model_call(provider, purpose="locate", requirement_ids=rid, status="succeeded")
+        )
+        located = [q for q in second.quotes if q.chunk_id in chunk_by_id]
+        return (second, located) if located else (first, [])
+
     def _judge_once(
-        self, input_schema: dict[str, Any], *, discarded_usage: list[Any]
+        self,
+        input_schema: dict[str, Any],
+        *,
+        discarded_usage: list[Any],
+        provider: BaseModelProvider | None = None,
     ) -> NarrowVerdict:
         """One judge sample, with one explicit second chance to point at a quote."""
+        provider = provider or self.assessor_provider
         raw = _run_with_one_reask(
-            self.assessor_provider,
+            provider,
             JUDGE_PROMPT,
             input_schema,
             NarrowVerdict,
@@ -804,9 +1046,9 @@ class RequirementReviewEngine:
         judged = NarrowVerdict.model_validate(raw)
         if not _decided_without_indices(judged):
             return judged
-        first_metadata = self.assessor_provider.last_run_metadata
+        first_metadata = provider.last_run_metadata
         try:
-            raw = self.assessor_provider.run_structured(
+            raw = provider.run_structured(
                 JUDGE_PROMPT + JUDGE_REASK_NOTE, input_schema, NarrowVerdict
             )
             second = NarrowVerdict.model_validate(raw)
@@ -816,16 +1058,17 @@ class RequirementReviewEngine:
             if first_metadata and first_metadata.token_usage:
                 discarded_usage.append(first_metadata.token_usage)
             return second
-        second_metadata = self.assessor_provider.last_run_metadata
+        second_metadata = provider.last_run_metadata
         if second_metadata and second_metadata.token_usage:
             discarded_usage.append(second_metadata.token_usage)
-        self.assessor_provider.last_run_metadata = first_metadata
+        provider.last_run_metadata = first_metadata
         return judged
 
     def _verify_entailment(
         self,
         verdict: VerifiedRequirementVerdict,
         model_calls: list[RequirementReviewModelCall],
+        provider: BaseModelProvider | None = None,
     ) -> VerifiedRequirementVerdict:
         """Ask a second model whether the evidence carries the claim.
 
@@ -840,19 +1083,20 @@ class RequirementReviewEngine:
             return verdict
         if not verdict.evidence:
             return verdict
+        provider = provider or self.entailment_provider
         input_schema = {
             "rationale": verdict.rationale,
             "quotes": [item.quote for item in verdict.evidence],
         }
         try:
             raw = _run_with_one_reask(
-                self.entailment_provider, ENTAILMENT_PROMPT, input_schema, EntailmentCheck
+                provider, ENTAILMENT_PROMPT, input_schema, EntailmentCheck
             )
             check = EntailmentCheck.model_validate(raw)
         except Exception as exc:  # noqa: BLE001 - fail-secure per verdict
             model_calls.append(
                 _model_call(
-                    self.entailment_provider,
+                    provider,
                     purpose="entailment",
                     requirement_ids=[verdict.requirement_id],
                     status="failed",
@@ -867,11 +1111,12 @@ class RequirementReviewEngine:
                         "Entailment-Prüfung fehlgeschlagen; Verdict vorsorglich "
                         "auf unclear gestuft."
                     ),
+                    "needs_retry": True,
                 }
             )
         model_calls.append(
             _model_call(
-                self.entailment_provider,
+                provider,
                 purpose="entailment",
                 requirement_ids=[verdict.requirement_id],
                 status="succeeded",
@@ -891,6 +1136,7 @@ class RequirementReviewEngine:
         model_calls: list[RequirementReviewModelCall],
         *,
         criticality: str,
+        provider: BaseModelProvider | None = None,
     ) -> VerifiedRequirementVerdict:
         """Adversarial second look at FULFILLED verdicts of critical scope.
 
@@ -909,6 +1155,7 @@ class RequirementReviewEngine:
             return verdict
         if verdict.server_authored:
             return verdict
+        provider = provider or self.entailment_provider
         if verdict.independent_support is True:
             # The challenge exists to catch fulfilled-by-self-attestation. Where
             # the assessor already names support beyond the document's own
@@ -927,13 +1174,13 @@ class RequirementReviewEngine:
         }
         try:
             raw = _run_with_one_reask(
-                self.entailment_provider, CHALLENGE_PROMPT, input_schema, FulfilledChallenge
+                provider, CHALLENGE_PROMPT, input_schema, FulfilledChallenge
             )
             challenge = FulfilledChallenge.model_validate(raw)
         except Exception as exc:  # noqa: BLE001 - fail-secure per verdict
             model_calls.append(
                 _model_call(
-                    self.entailment_provider,
+                    provider,
                     purpose="challenge",
                     requirement_ids=[verdict.requirement_id],
                     status="failed",
@@ -948,11 +1195,12 @@ class RequirementReviewEngine:
                         "Zweitprüfung fehlgeschlagen; fulfilled vorsorglich auf "
                         "unclear gestuft."
                     ),
+                    "needs_retry": True,
                 }
             )
         model_calls.append(
             _model_call(
-                self.entailment_provider,
+                provider,
                 purpose="challenge",
                 requirement_ids=[verdict.requirement_id],
                 status="succeeded",
@@ -1009,6 +1257,51 @@ REASK_CONTRACT_NOTE = (
     "zusammenhängenden quote aus genau diesem Chunk. Kannst du keinen Beleg "
     "zitieren, ist der Status unclear."
 )
+
+
+_TERM_RE = re.compile(r"[a-zäöüß0-9][a-zäöüß0-9\-]{2,}")
+_STOP_TERMS = frozenset(
+    "und oder der die das den dem des ein eine einer eines für mit von zur zum bei auf "
+    "aus nach vor über unter durch ist sind wird werden muss müssen soll sollen kann "
+    "nicht sein haben hat als auch wie wenn dass nur alle jede jeder jedes sich "
+    "the and for with from that this are not".split()
+)
+
+
+def _terms(text: str) -> set[str]:
+    """Lower-cased content words, cut to a crude stem so 'Freigabe' meets
+    'freigegeben' and 'Validierung' meets 'Validierungsnachweis'."""
+    return {
+        term[:6]
+        for term in _TERM_RE.findall(text.casefold().replace("**", " "))
+        if term not in _STOP_TERMS
+    }
+
+
+def _candidate_chunks(
+    requirement: Requirement, chunk_payload: list[dict[str, Any]], limit: int
+) -> list[dict[str, Any]]:
+    """The chunks worth showing the locator for one requirement.
+
+    Lexical overlap between the requirement (title, text, required evidence)
+    and each chunk, top ``limit`` in document order. A small case passes
+    through untouched -- on the ten-case goldstandard corpus no case has more
+    than five chunks, so this changes nothing there and everything on a real
+    thirty-page deviation package. Ties and all-zero scores fall back to
+    document order, so a requirement whose vocabulary matches nothing still
+    sees the first ``limit`` chunks rather than none.
+    """
+    if len(chunk_payload) <= limit:
+        return chunk_payload
+    wanted = _terms(
+        " ".join([requirement.title or "", requirement.requirement_text, *requirement.required_evidence])
+    )
+    scored = []
+    for index, chunk in enumerate(chunk_payload):
+        overlap = len(wanted & _terms(str(chunk.get("text", ""))))
+        scored.append((-overlap, index))
+    keep = sorted(index for _, index in sorted(scored)[:limit])
+    return [chunk_payload[index] for index in keep]
 
 
 def _decided_without_indices(judged: NarrowVerdict) -> bool:
@@ -1117,6 +1410,23 @@ def _split_by_applicability(
         )
         (applicable if matches else inapplicable).append(requirement)
     return applicable, inapplicable
+
+
+def _name_cited_documents(
+    verdicts: list[VerifiedRequirementVerdict], repository: InMemoryDocumentRepository
+) -> None:
+    """Put the file name next to every surviving quote.
+
+    A citation that reads "Seite 1" is not checkable in a four-document case;
+    "document_03_capa_plan.md, Seite 1" is. The id stays for the machines.
+    """
+    names: dict[str, str] = {}
+    for verdict in verdicts:
+        for item in verdict.evidence:
+            if item.document_id not in names:
+                document = repository.get_document(item.document_id)
+                names[item.document_id] = document.filename if document else ""
+            item.document_name = names[item.document_id]
 
 
 def _grouped(requirements: list[Requirement], size: int) -> list[list[Requirement]]:
@@ -1272,6 +1582,45 @@ def _check_provenance(
         evidence_sufficiency=verdict.evidence_sufficiency,
         independent_support=verdict.independent_support,
     )
+
+
+def _escalate_with_findings(
+    verdicts: list[VerifiedRequirementVerdict],
+    findings: list[ValidatorFinding],
+    applicable_ids: set[str],
+) -> list[VerifiedRequirementVerdict]:
+    """Let deterministic findings raise the verdicts they are mapped to."""
+    verdicts_by_id = {verdict.requirement_id: verdict for verdict in verdicts}
+    for finding in findings:
+        for requirement_id in finding.requirement_ids:
+            verdict = verdicts_by_id.get(requirement_id)
+            if verdict is None or requirement_id not in applicable_ids:
+                continue
+            update: dict[str, Any] = {
+                "validator_flags": [*verdict.validator_flags, finding.validator_id],
+                "validator_statements": [
+                    *verdict.validator_statements,
+                    finding.statement,
+                ],
+                "evidence": _merge_evidence(verdict.evidence, finding.locations),
+            }
+            if verdict.published_status != RequirementVerdictStatus.VIOLATED:
+                update["published_status"] = RequirementVerdictStatus.VIOLATED
+                if verdict.severity is None:
+                    update["severity"] = Severity(finding.severity)
+                # The rule is now the reason the row is violated, so the
+                # row must say so. Left alone, a verdict whose model call
+                # had failed kept "Beurteilung fehlgeschlagen" as its
+                # rationale above a perfectly good rule finding -- the
+                # reviewer read a failure, and the eval matcher scored a
+                # miss on a breach the system had in fact found.
+                update["rationale"] = (
+                    finding.statement
+                    if verdict.server_authored
+                    else f"{finding.statement} {verdict.rationale}"
+                )
+            verdicts_by_id[requirement_id] = verdict.model_copy(update=update)
+    return [verdicts_by_id[v.requirement_id] for v in verdicts]
 
 
 def _apply_arithmetic_validators(
@@ -1466,6 +1815,7 @@ def _server_verdict(
     *,
     status: RequirementVerdictStatus,
     rationale: str,
+    needs_retry: bool = False,
 ) -> VerifiedRequirementVerdict:
     severity = None
     if status == RequirementVerdictStatus.UNCLEAR:
@@ -1488,6 +1838,7 @@ def _server_verdict(
         dropped_evidence_count=0,
         provenance_ok=status == RequirementVerdictStatus.NOT_APPLICABLE,
         server_authored=True,
+        needs_retry=needs_retry,
     )
 
 
@@ -1551,6 +1902,7 @@ def default_requirement_review_engine(
             extraction_provider=MockProvider(output_factory=_mock_extraction_output),
             assessor_samples=settings.requirement_review_assessor_samples,
             assessor_mode=settings.requirement_review_assessor_mode,
+            locate_chunk_limit=settings.requirement_review_locate_chunk_limit,
         )
     runtime_options = _runtime_options(settings)
     return RequirementReviewEngine(
@@ -1569,6 +1921,7 @@ def default_requirement_review_engine(
         ),
         assessor_samples=settings.requirement_review_assessor_samples,
         assessor_mode=settings.requirement_review_assessor_mode,
+        locate_chunk_limit=settings.requirement_review_locate_chunk_limit,
     )
 
 
@@ -1588,6 +1941,7 @@ def _provider(
     if name == "hetzner":
         return HetznerProvider(
             configured_model_id=settings.hetzner_model_id,
+            endpoint=settings.hetzner_endpoint,
             runtime_options=hetzner_runtime_options(
                 runtime_options,
                 timeout_seconds=settings.hetzner_model_provider_timeout_seconds,

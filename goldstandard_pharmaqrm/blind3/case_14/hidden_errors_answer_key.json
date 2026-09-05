@@ -1,0 +1,43 @@
+{
+  "case_id": "CASE_14",
+  "document_type": "deviation",
+  "process_area": "packaging",
+  "errors": [
+    {
+      "document_name": "document_03_qa_assessment.md",
+      "error_id": "ERR_14_01",
+      "error_type": "Dokumentenwidersprüche",
+      "severity": "high",
+      "exact_evidence_text": "Insgesamt wurden 1.400 Faltschachteln aussortiert und vernichtet.",
+      "why_it_is_a_problem": "Der Abweichungsbericht belegt 2.400 fehlerhaft bedruckte und aussortierte Faltschachteln (Zählerstand), die QA-Bewertung nennt 1.400. Die Differenz von 1.000 Faltschachteln ist nicht erklärt; der Verbleib ist unklar.",
+      "expected_reviewer_finding": "Widersprüchliche Mengenangaben zu den aussortierten Faltschachteln zwischen Abweichungsbericht und QA-Bewertung.",
+      "expected_action": "Mengen abgleichen, Verbleib der Differenz klären, Freigabe bis zur Klärung zurückstellen.",
+      "requires_cross_document_comparison": true
+    },
+    {
+      "document_name": "document_02_capa_plan.md",
+      "error_id": "ERR_14_02",
+      "error_type": "CAPA",
+      "severity": "high",
+      "exact_evidence_text": "Durchgeführt am:** 10.07.2026",
+      "why_it_is_a_problem": "Die Wirksamkeitsprüfung ist auf den 10.07.2026 datiert und bewertet die Maßnahmen als wirksam, obwohl die Hauptmaßnahme (MES-Kopplung) erst zum 25.07.2026 umgesetzt werden soll. Eine Wirksamkeitsprüfung vor Umsetzung der Maßnahme kann deren Wirksamkeit nicht belegen.",
+      "expected_reviewer_finding": "Wirksamkeitsprüfung vor Umsetzung der Korrekturmaßnahme datiert; Wirksamkeitsnachweis nicht tragfähig.",
+      "expected_action": "Wirksamkeitsprüfung nach Umsetzung der MES-Kopplung neu planen und durchführen, CAPA offen halten.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_14_01",
+      "document_name": "document_01_deviation_report.md",
+      "evidence_text": "Die Line Clearance vor Produktionsbeginn wurde gemäß SOP-VP-003 durchgeführt und von R. Dietrich und M. Kaya unterzeichnet",
+      "why_it_is_harmless": "Eine ordnungsgemäß durchgeführte und von zwei Personen unterzeichnete Line Clearance ist kein Befund."
+    },
+    {
+      "decoy_id": "DEC_14_02",
+      "document_name": "document_01_deviation_report.md",
+      "evidence_text": "Das Verfalldatum (05/2028) war korrekt.",
+      "why_it_is_harmless": "Ein korrektes Verfalldatum ist eine Entlastung, kein Befund."
+    }
+  ]
+}

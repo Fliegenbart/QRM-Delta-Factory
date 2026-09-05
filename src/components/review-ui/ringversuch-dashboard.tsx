@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { pickHeadlineRun } from "@/src/lib/ringversuch-overview";
+import { corpusLabelOf, pickHeadlineRun } from "@/src/lib/ringversuch-overview";
 import {
   Activity,
   CheckCircle2,
@@ -51,6 +51,11 @@ type RunMeta = {
   mode?: string;
   stack?: string | null;
   engine?: string;
+  /** grouped (six requirements per call) or narrow (locate, then judge, per requirement). */
+  assessor_mode?: string | null;
+  /** Which case set was run; absent on runs older than 2026-08-23 (all goldstandard). */
+  corpus?: string | null;
+  case_count?: number;
   started_at?: string;
   anthropic_model?: string | null;
   openai_model?: string | null;
@@ -107,14 +112,22 @@ const engineLabels: Record<string, string> = {
   requirement: "Anforderungsweg",
 };
 
+const assessorModeLabels: Record<string, string> = {
+  grouped: "gruppiert",
+  narrow: "pro Anforderung",
+};
+
 function stackLabel(run: RunMeta): string {
   if (run.mode === "mock") return "Baseline ohne KI (Regex)";
   const label = stackLabels[run.stack ?? ""] ?? run.stack ?? "Früher KI-Lauf";
   // The two review paths score on one ruler but are different products;
   // a 22/25 on the requirement path next to a 25/25 on the finding path
-  // must say which is which.
+  // must say which is which. The assessor shape is named for the same
+  // reason: the same Qwen stood at 12/25 grouped and 22/25 per requirement.
   const engine = engineLabels[run.engine ?? ""];
-  const named = engine ? `${label} · ${engine}` : label;
+  const mode = run.engine === "requirement" ? assessorModeLabels[run.assessor_mode ?? ""] : undefined;
+  const parts = [label, engine, mode].filter(Boolean);
+  const named = parts.join(" · ");
   return isCurrentStack(run) ? named : `${named} — historisch`;
 }
 
@@ -252,7 +265,7 @@ export function RingversuchDashboard({ initialRuns }: { initialRuns?: Ringversuc
                 ? `Letzter abgeschlossener Lauf · ${formatTimestamp(selected.id)}`
                 : `Ausgewählter Lauf · ${formatTimestamp(selected.id)}`
             }
-            description={`System-Aufbau: ${stackLabel(selected.run)}.`}
+            description={`System-Aufbau: ${stackLabel(selected.run)}. Korpus: ${corpusLabelOf(selected)}.`}
           />
           {isCurrentStack(selected.run) ? null : <HistoricalStackNotice />}
           <KpiRow run={selected} />
@@ -521,6 +534,9 @@ function RunHistoryTable({
                     }`}
                   >
                     {stackLabel(run.run)}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-[var(--text-tertiary)]">
+                    {corpusLabelOf(run)}
                   </span>
                 </td>
                 <td className="px-4 py-2.5">

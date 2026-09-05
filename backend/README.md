@@ -444,6 +444,55 @@ The example requirement library covers Deviation Management, CAPA, Batch Impact 
 QA Approval, Data Integrity, and Change Control. It is for development and validation exercises,
 not a production-controlled customer library.
 
+## Requirement Coverage Review
+
+The pipeline's last substantive step answers the question a QA reviewer actually asks: is
+every obligation of the active requirement set met, and where is the proof. One verdict per
+requirement (`fulfilled`, `violated`, `unclear`, `not_applicable`), every decided verdict
+carrying a verbatim quote that was grounded character by character against the stored chunks.
+`GET /document-sets/{id}/requirement-report` returns it; the UI renders it as
+"Anforderungsabdeckung".
+
+The engine is evidence-first, in three layers:
+
+1. **Facts** — `app/services/evidence_extraction.py` has the model transcribe measurements,
+   limits, dates, signature fields and action items as typed rows, each with the quote it came
+   from. A row whose quote is not found in the source is dropped and counted.
+2. **Rules** — `app/services/deterministic_validators.py` decides what rules can decide without
+   a model: a value against its limit, a step dated before the event it concerns, four-eyes on one
+   activity, a CAPA without an effectiveness check, an empty required field. Each rule names its
+   regulatory basis; `GET /validators` publishes the catalogue. A rule finding only ever raises a
+   requirement to `violated`, never lowers one.
+3. **Judgement** — `app/services/requirement_review.py` asks the model only what is left. Two
+   shapes, selected by `QRM_REQUIREMENT_REVIEW_ASSESSOR_MODE`:
+   - `grouped`: six requirements per call with all chunks — the shape a frontier model handles.
+   - `narrow`: per requirement, first *locate* the evidence (flat answer: applicability plus
+     quotes), then *judge* over those quotes alone. This is what lets a local 27B model carry the
+     reading work: the same Qwen3.8-27B measured 12/25 grouped and 22/25 narrow on the
+     goldstandard corpus (regression figures; the first blind measurement is Blindkorpus 3).
+
+A second provider verifies that each quote actually supports its rationale (entailment) and
+challenges `fulfilled` verdicts on high-criticality requirements; nothing is ever upgraded by
+verification. The engine reports progress ("Anforderung 12 von 26 beurteilt") through
+`app/services/progress.py`, which the pipeline run endpoints merge in while a run is active.
+
+## Model Stacks
+
+`QRM_MODEL_STACK` selects the whole topology in one variable; explicit per-role `QRM_*`
+settings override the preset.
+
+| Preset | Reads documents | Verifies verdicts | Critics | Assessor |
+|---|---|---|---|---|
+| `cloud` (default) | Claude + GPT, split by role | GPT | both | grouped |
+| `local` | `hetzner` provider only | `hetzner` | `hetzner` | narrow |
+| `cascade` | `hetzner` | Anthropic (quote + rationale only, never the document) | `hetzner` | narrow |
+
+The `hetzner` provider speaks the OpenAI chat-completions format with vLLM's extras
+(`json_schema` response format with `strict`, `chat_template_kwargs.enable_thinking=false`).
+`QRM_HETZNER_ENDPOINT` points it at Hetzner Inference (default) or at a vLLM server on the
+customer's own hardware. `GET /health` reports the effective roles as `model_roles`. Deployment
+walkthrough: `ops/LOCAL-STACK.md`.
+
 ## Local Development
 
 ```bash
@@ -527,6 +576,7 @@ Provider adapter modules are prepared under `app/agents/providers/`:
 - `base.py`
 - `openai_provider.py`
 - `anthropic_provider.py`
+- `hetzner_provider.py` (OpenAI-compatible endpoint: Hetzner Inference or a vLLM server)
 - `gemini_provider.py`
 - `mock_provider.py`
 

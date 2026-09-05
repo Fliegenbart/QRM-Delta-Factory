@@ -2,10 +2,10 @@ import Link from "next/link";
 import { listDocumentSets } from "@/src/lib/review-api";
 import { DeleteDocumentSetButton } from "@/src/components/review-ui/delete-document-set-button";
 import { EmptyState, ReviewPanel, ReviewShell, StatusBadge } from "@/src/components/review-ui/review-shell";
-import { ReviewCalibrationPanel } from "@/src/components/review-ui/review-calibration-panel";
+import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
+import { demoCaseHref, demoCaseScoreline, demoCases } from "@/src/lib/demo-cases";
 import {
   consultantReviewCopy,
-  demoReviewCases,
   displayReviewValue,
   isVisibleReviewDocumentSet,
   userFacingReviewLoadError,
@@ -28,6 +28,18 @@ export default async function ReviewUiDocumentSetsPage() {
 
   return (
     <ReviewShell>
+      {/* The one door into the work: upload first, the list of cases below.
+          "Change, CAPA, Abweichung oder Audit-Finding hochladen. Mehrere
+          Dokumente sind möglich — die Originaldateien bleiben die Quelle." */}
+      <div id="new-case" />
+      <ReviewPanel title="Neuen Prüffall anlegen">
+        <p className="mb-4 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
+          Change, CAPA, Abweichung oder Audit-Finding hochladen. Mehrere Dokumente sind
+          möglich — die Originaldateien bleiben die Quelle. Zurück kommt eine Prüfmappe mit
+          Belegen, offenen Nachweisen und der Anforderungsabdeckung.
+        </p>
+        <IntakeUploader />
+      </ReviewPanel>
       <ReviewPanel title={consultantReviewCopy.list.title}>
         {error ? (
           <EmptyState
@@ -35,15 +47,15 @@ export default async function ReviewUiDocumentSetsPage() {
             message={loadState?.message ?? error}
             action={
               <>
-                <Link
+                <a
                   className="rounded-md bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
-                  href="/"
+                  href="#new-case"
                 >
                   Neuen Prüffall vorbereiten
-                </Link>
+                </a>
                 <Link
                   className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)] hover:bg-[var(--surface-secondary)]"
-                  href={demoReviewCases[0].href}
+                  href={demoCaseHref(demoCases[0])}
                 >
                   Demo-Prüfmappe ansehen
                 </Link>
@@ -55,12 +67,12 @@ export default async function ReviewUiDocumentSetsPage() {
             title="Noch kein echter Prüffall"
             message={consultantReviewCopy.list.empty}
             action={
-              <Link
+              <a
                 className="rounded-md bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
-                href="/"
+                href="#new-case"
               >
                 Prüffall anlegen
-              </Link>
+              </a>
             }
           />
         ) : (
@@ -106,11 +118,30 @@ export default async function ReviewUiDocumentSetsPage() {
           </div>
         )}
       </ReviewPanel>
-      {!error ? (
-        <ReviewPanel title="Setup: Qualität der Prüfhinweise">
-          <ReviewCalibrationPanel />
-        </ReviewPanel>
-      ) : null}
+      <ReviewPanel title={consultantReviewCopy.list.examplesTitle}>
+        <p className="mb-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)]">
+          {consultantReviewCopy.list.examplesDescription}
+        </p>
+        <ul className="grid gap-2 md:grid-cols-3">
+          {demoCases.map((demo) => (
+            <li key={demo.id}>
+              <Link
+                href={demoCaseHref(demo)}
+                className="block h-full rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] px-3 py-3 text-sm hover:border-[var(--brand)]"
+              >
+                <div className="font-mono text-xs text-[var(--text-tertiary)]">
+                  {demo.id.toUpperCase()} · {demo.trigger}
+                </div>
+                <div className="mt-1 font-medium text-[var(--text-primary)]">{demo.title}</div>
+                <div className="mt-1 text-xs text-[var(--text-secondary)]">
+                  {demo.area} · {demo.report.status_counts.violated ?? 0} verletzt
+                </div>
+                <div className="mt-2 text-xs text-[var(--brand-strong)]">{demoCaseScoreline(demo)}</div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </ReviewPanel>
     </ReviewShell>
   );
 }

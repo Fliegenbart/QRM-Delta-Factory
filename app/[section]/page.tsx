@@ -4,7 +4,7 @@ import { loadPublicRingversuchRuns } from "@/src/lib/ringversuch-server";
 
 export default async function SectionPage({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
-  if (section === "case-workspace") {
+  if (section === "case-workspace" || section === "prueffaelle" || section === "dashboard") {
     redirect("/review-ui");
   }
   // Ringversuch and the pitch landing render from server data — no client fetch waterfall.

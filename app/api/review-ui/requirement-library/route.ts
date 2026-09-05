@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import {
   getRequirementLibraryOverview,
-  importRequirementLibrary
+  importRequirementLibrary,
+  listRuleCatalogue
 } from "@/src/lib/review-api";
 import { authorizeReviewApiRequest } from "@/utils/supabase/actor";
 
@@ -9,8 +10,13 @@ export async function GET() {
   const authorization = await authorizeReviewApiRequest("read");
   if ("response" in authorization) return authorization.response;
   try {
-    const overview = await getRequirementLibraryOverview();
-    return NextResponse.json({ overview });
+    const [overview, rules] = await Promise.all([
+      getRequirementLibraryOverview(),
+      // Additive: an older backend without the catalogue costs the page the
+      // rule list, not the library.
+      listRuleCatalogue().catch(() => [])
+    ]);
+    return NextResponse.json({ overview, rules });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Risikobibliothek konnte nicht geladen werden.";
     return NextResponse.json({ error: message }, { status: 502 });

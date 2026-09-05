@@ -4,12 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   AlertCircle,
-  ArrowRight,
   Brain,
   CheckCircle2,
-  Compass,
   Crosshair,
-  FileCheck2,
   Gauge,
   Library,
   Menu,
@@ -19,11 +16,9 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useI18n, type TranslationKey } from "@/src/lib/i18n";
-import { IntakeUploader } from "@/src/components/review-ui/intake-uploader";
-import { aiArchitectureConcept, demoReviewCases, productHomeCopy } from "@/src/lib/review-ui";
+import { aiArchitectureConcept } from "@/src/lib/review-ui";
 import type { RingversuchRun } from "@/src/components/review-ui/ringversuch-dashboard";
 import { deriveLandingProofStats } from "@/src/lib/ringversuch-overview";
-import { CaseCard } from "@/src/components/triage/case-card";
 import { SignOutButton } from "@/src/components/auth/sign-out-button";
 import type { LucideIcon } from "lucide-react";
 
@@ -46,6 +41,14 @@ const RingversuchDashboard = dynamic(
   () => import("@/src/components/review-ui/ringversuch-dashboard").then((m) => m.RingversuchDashboard),
   { loading: () => <SectionSkeleton /> }
 );
+const ModelStackPanel = dynamic(
+  () => import("@/src/components/review-ui/model-stack-panel").then((m) => m.ModelStackPanel),
+  { ssr: false }
+);
+const ReviewCalibrationPanel = dynamic(
+  () => import("@/src/components/review-ui/review-calibration-panel").then((m) => m.ReviewCalibrationPanel),
+  { loading: () => <SectionSkeleton /> }
+);
 const OverviewLanding = dynamic(
   () => import("@/src/components/review-ui/overview-landing").then((m) => m.OverviewLanding),
   { loading: () => <SectionSkeleton /> }
@@ -54,44 +57,33 @@ const OverviewLanding = dynamic(
 type NavItem = [slug: string, labelKey: TranslationKey, icon: LucideIcon];
 type NavCategory = { nameKey: TranslationKey; items: NavItem[] };
 
-const navCategories: NavCategory[] = [
-  {
-    nameKey: "nav.category.workspace",
-    items: [
-      ["ueberblick", "nav.ueberblick", Compass],
-      ["dashboard", "nav.dashboard", Gauge],
-      ["prueffaelle", "nav.backendReview", ShieldCheck],
-      ["ringversuch", "nav.ringversuch", Crosshair],
-    ],
-  },
-  {
-    nameKey: "nav.category.admin",
-    items: [["risk-library", "nav.riskLibrary", Library]],
-  },
-  {
-    nameKey: "nav.category.howItWorks",
-    items: [["ai-architecture", "nav.aiArchitecture", Brain]],
-  },
+// Two jobs in the signed-in navigation, nothing else: do the work
+// (Prüffälle, Regelwerk) and understand the system (Ringversuch,
+// Funktionsweise, Kalibrierung). The pitch pages live outside this frame --
+// /ueberblick is its own landing and "/" redirects into the tool -- because
+// six equal entries for selling, working and proving read as a muddle to
+// anyone who already signed in.
+const primaryNavItems: NavItem[] = [
+  ["prueffaelle", "nav.backendReview", ShieldCheck],
+  ["risk-library", "nav.riskLibrary", Library],
+];
+const secondaryNavItems: NavItem[] = [
+  ["ringversuch", "nav.ringversuch", Crosshair],
+  ["ai-architecture", "nav.aiArchitecture", Brain],
+  ["kalibrierung", "nav.calibration", Gauge],
 ];
 
-const navItems = navCategories.flatMap((category) => category.items);
+const navItems = [...primaryNavItems, ...secondaryNavItems];
 
-export const sectionSlugs = navItems.map(([slug]) => slug);
+// Routes the [section] page answers. "dashboard" and "ueberblick" stay
+// routable (home redirects, the landing renders standalone) but are no
+// longer navigation entries.
+export const sectionSlugs = [...navItems.map(([slug]) => slug), "dashboard", "ueberblick"];
 
-const pageTitleKeys = Object.fromEntries(
-  navItems.map(([slug, labelKey]) => [slug, labelKey])
-) as Record<string, TranslationKey>;
-
-const homeDecisionActions = ["Bestätigen", "Nachfordern", "Eskalieren"] as const;
-
-function pageTitle(slug: string, t: (key: TranslationKey) => string) {
-  if (slug === "dashboard") return "QA-Prüfung vorbereiten";
-  return t(pageTitleKeys[slug] ?? "nav.dashboard");
-}
 
 function normalizePublicSection(section: string) {
   if (section === "review-ui") return "prueffaelle";
-  return sectionSlugs.includes(section) ? section : "dashboard";
+  return sectionSlugs.includes(section) ? section : "prueffaelle";
 }
 
 export function AppShell({
@@ -114,6 +106,7 @@ function NavLink({
   labelKey,
   Icon,
   block,
+  muted,
   active,
   t,
   onNavigate,
@@ -122,6 +115,7 @@ function NavLink({
   labelKey: TranslationKey;
   Icon: LucideIcon;
   block?: boolean;
+  muted?: boolean;
   active: string;
   t: (key: TranslationKey) => string;
   onNavigate: () => void;
@@ -129,13 +123,15 @@ function NavLink({
   const isActive = active === slug;
   return (
     <Link
-      href={slug === "dashboard" ? "/" : `/${slug}`}
+      href={slug === "prueffaelle" ? "/review-ui" : `/${slug}`}
       onClick={onNavigate}
       aria-current={isActive ? "page" : undefined}
       className={`${block ? "flex" : "inline-flex"} items-center gap-2 rounded-md px-3 py-2 text-[13px] transition-colors ${
         isActive
           ? "bg-[var(--brand-soft)] text-[var(--brand-strong)] font-medium"
-          : "text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
+          : muted
+            ? "text-[var(--text-tertiary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
+            : "text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)]"
       }`}
     >
       <Icon className="h-4 w-4 shrink-0" aria-hidden />
@@ -165,8 +161,12 @@ export function AppFrame({
               <BrandMark />
             </Link>
             <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Hauptnavigation">
-              {navItems.map(([slug, labelKey, Icon]) => (
+              {primaryNavItems.map(([slug, labelKey, Icon]) => (
                 <NavLink key={slug} slug={slug} labelKey={labelKey} Icon={Icon} active={active} t={t} onNavigate={closeMobileNav} />
+              ))}
+              <span className="mx-2 h-5 w-px bg-[var(--border-default)]" aria-hidden />
+              {secondaryNavItems.map(([slug, labelKey, Icon]) => (
+                <NavLink key={slug} slug={slug} labelKey={labelKey} Icon={Icon} active={active} t={t} onNavigate={closeMobileNav} muted />
               ))}
             </nav>
           </div>
@@ -233,51 +233,28 @@ function renderSection(section: string, ringversuchRuns?: RingversuchRun[]) {
       return <RequirementLibraryManager />;
     case "ringversuch":
       return <RingversuchDashboard initialRuns={ringversuchRuns} />;
+    case "kalibrierung":
+      return <CalibrationSection />;
     default:
-      return <DashboardSection />;
+      return <ReviewEntrySection />;
   }
 }
 
-/* ----- Triage dashboard ----- */
-
-function DashboardSection() {
+function CalibrationSection() {
   return (
-    <div className="space-y-10">
-      <ProductHero />
-      <WorkflowSteps />
-
-      <section id="new-case">
-        <SectionIntro
-          title={productHomeCopy.primaryAction}
-          description="Change, CAPA, Abweichung oder Audit-Finding hochladen. Mehrere Dokumente sind möglich — die Originaldateien bleiben die Quelle."
-          meta="4 Schritte bis zur Prüfmappe"
-        />
-        <IntakeUploader />
-      </section>
-
-      <section>
-        <SectionIntro
-          title={productHomeCopy.exampleTitle}
-          description={productHomeCopy.exampleDescription}
-          meta={
-            <div className="hidden gap-4 text-[11px] text-[var(--text-tertiary)] sm:flex">
-              <span>3 Beispiele</span>
-              <span className="mono" suppressHydrationWarning>
-                {new Date().toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" })}
-              </span>
-            </div>
-          }
-        />
-
-        <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)] px-4">
-          {demoReviewCases.map((c) => (
-            <CaseCard key={c.id} data={c} />
-          ))}
-        </div>
-      </section>
+    <div className="space-y-4">
+      <SectionIntro
+        title="Kalibrierung"
+        description="Freigegebene QA-Entscheidungen aus echten Fällen werden zu Beispielen, gegen die jede neue Version des Prüfwerks bestehen muss. Nur Beispiele mit bestandenem Regressionstest sind aktiv."
+      />
+      <Panel title="Qualität der Prüfhinweise aus geprüften Fällen">
+        <ReviewCalibrationPanel />
+      </Panel>
     </div>
   );
 }
+
+/* ----- Triage dashboard ----- */
 
 function SectionIntro({
   title,
@@ -301,148 +278,18 @@ function SectionIntro({
   );
 }
 
-function ProductHero() {
-  return (
-    <section className="relative overflow-hidden border-b border-[var(--border-default)] pb-10">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-stretch">
-        <div className="flex min-h-[420px] flex-col justify-between border-l-4 border-[var(--brand)] pl-5 md:pl-7">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-default)] bg-[var(--surface-primary)] px-3 py-1 text-[11px] font-medium text-[var(--text-secondary)]">
-              <FileCheck2 className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden />
-              QA-Mappe mit Quellen, Lücken und Entscheidung
-            </div>
-            <h2 className="mt-6 max-w-4xl text-[40px] font-medium leading-[1.03] text-[var(--text-primary)] md:text-[62px]">
-              {productHomeCopy.title}
-            </h2>
-            <p className="mt-6 max-w-2xl text-[18px] leading-8 text-[var(--text-secondary)]">
-              {productHomeCopy.subtitle}
-            </p>
-          </div>
-
-          <div className="mt-8">
-            <a
-              href="#new-case"
-              className="inline-flex h-12 w-fit items-center gap-2 rounded-md bg-[var(--brand)] px-5 text-[14px] font-medium text-white hover:bg-[var(--brand-strong)]"
-            >
-              {productHomeCopy.primaryAction}
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </a>
-          </div>
-        </div>
-
-        <DossierPreview />
-      </div>
-    </section>
-  );
-}
-
-function DossierPreview() {
-  return (
-    <aside className="flex min-h-[420px] flex-col justify-between rounded-md border border-[var(--border-default)] bg-[var(--surface-primary)]">
-      <div className="border-b border-[var(--border-default)] px-5 py-4">
-        <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--text-tertiary)]">
-          Prüfmappe-Vorschau
-        </div>
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <div className="text-[15px] font-medium text-[var(--text-primary)]">
-            So sieht ein bearbeiteter Fall aus
-          </div>
-          <span className="rounded-full bg-[var(--severity-major-soft)] px-2.5 py-1 text-[11px] font-medium text-[var(--severity-major)]">
-            QA prüfen
-          </span>
-        </div>
-      </div>
-
-      <div className="px-5 py-5">
-        <DossierAlert
-          title="Quelle passt nicht zur Aussage"
-          description="Annex-Referenz und HEPA-Vorlauf müssen vor Freigabe abgeglichen werden."
-        />
-
-        <div className="mt-5 divide-y divide-[var(--border-muted)]">
-          {productHomeCopy.dossierPreview.map((item) => (
-            <DossierPreviewRow key={item.label} label={item.label} value={item.value} />
-          ))}
-        </div>
-      </div>
-
-      <div className="border-t border-[var(--border-default)] px-5 py-4">
-        <div className="grid grid-cols-3 gap-2">
-          {homeDecisionActions.map((action, index) => (
-            <DecisionActionPreview key={action} action={action} active={index === 0} />
-          ))}
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-function DossierAlert({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="rounded-md border border-[var(--border-default)] bg-[var(--surface-secondary)] p-4">
-      <div className="flex items-start gap-3">
-        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--severity-major)]" aria-hidden />
-        <div>
-          <div className="text-[13px] font-medium text-[var(--text-primary)]">{title}</div>
-          <p className="mt-1 text-[12px] leading-5 text-[var(--text-secondary)]">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DossierPreviewRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid gap-1 py-3 text-[13px] sm:grid-cols-[136px_1fr] sm:gap-3">
-      <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-        {label}
-      </div>
-      <div className="leading-6 text-[var(--text-primary)]">{value}</div>
-    </div>
-  );
-}
-
-function DecisionActionPreview({ action, active }: { action: string; active: boolean }) {
-  return (
-    <div
-      className={`rounded-md border px-2 py-2 text-center text-[11px] font-medium ${
-        active
-          ? "border-[var(--brand)] bg-[var(--brand)] text-white"
-          : "border-[var(--border-default)] bg-[var(--surface-secondary)] text-[var(--text-secondary)]"
-      }`}
-    >
-      {action}
-    </div>
-  );
-}
-
-function WorkflowSteps() {
-  return (
-    <ol className="grid gap-2 sm:grid-cols-4">
-      {productHomeCopy.workflow.map((step, index) => (
-        <li key={step} className="flex items-center gap-2 border-t border-[var(--border-default)] pt-3 text-[12px] leading-5 text-[var(--text-secondary)]">
-          <span className="mono grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[var(--surface-primary)] text-[11px] text-[var(--text-tertiary)]">
-            {index + 1}
-          </span>
-          <span>{step}</span>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 function ReviewEntrySection() {
   return (
     <Panel title="Prüffälle">
       <EmptyState
-        title="Noch kein echter Prüffall"
-        text="Legen Sie auf der Startseite einen Prüffall an. Danach erscheint hier der Link zur Prüfmappe."
+        title="Prüffälle"
+        text="Die Prüffälle liegen unter /review-ui."
         action={
           <Link
-            href="/"
+            href="/review-ui"
             className="inline-flex h-9 items-center rounded-md bg-[var(--brand)] px-3 text-[13px] font-medium text-white hover:bg-[var(--brand-strong)]"
           >
-            <Plus className="mr-1.5 h-3.5 w-3.5" /> Prüffall vorbereiten
+            Zu den Prüffällen
           </Link>
         }
       />
@@ -489,6 +336,8 @@ function AiArchitectureSection() {
           </ol>
         </div>
       </section>
+
+      <ModelStackPanel />
 
       <Panel title="Die Grenzen, die fest eingebaut sind:">
         <div className="grid gap-2 md:grid-cols-2">

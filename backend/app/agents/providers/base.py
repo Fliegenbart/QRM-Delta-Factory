@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import ast
 import json
+import logging
 import random
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from hashlib import sha256
 from threading import Lock, Semaphore
-from typing import Any
+from types import UnionType
+from typing import Any, Union, get_args, get_origin
 
+import httpx
 from pydantic import BaseModel, Field, ValidationError
 
 from app.core.config import get_settings
@@ -17,6 +20,46 @@ from app.core.config import get_settings
 
 class ExternalModelCallsDisabledError(Exception):
     pass
+
+
+logger = logging.getLogger("qrm.providers")
+
+
+def _alert_breaker_opened(provider_name: str, model_id: str, failures: int) -> None:
+    """Log at ERROR, and POST to the alert webhook when one is configured.
+
+    Fire-and-forget with a short timeout: an alert that could fail the call
+    it reports on would be worse than none. The webhook body is plain JSON
+    so any receiver -- Slack, a pager, a log sink -- can take it.
+    """
+    logger.error(
+        "circuit breaker opened for provider=%s model=%s after %d consecutive failures",
+        provider_name,
+        model_id,
+        failures,
+    )
+    url = get_settings().alert_webhook_url.strip()
+    if not url:
+        return
+    try:
+        httpx.post(
+            url,
+            json={
+                "event": "model_provider_circuit_open",
+                "provider": provider_name,
+                "model_id": model_id,
+                "consecutive_failures": failures,
+                "environment": get_settings().environment,
+                "text": (
+                    f"QRM: Modellanbieter {provider_name} ({model_id}) nach {failures} "
+                    "Fehlern in Folge abgeschaltet. Laufende Prüfungen werden "
+                    "fail-secure mit 'unklar' abgeschlossen."
+                ),
+            },
+            timeout=5.0,
+        )
+    except Exception as exc:  # noqa: BLE001 - alerting must never fail the caller
+        logger.warning("alert webhook failed: %s", type(exc).__name__)
 
 
 class ModelProviderNotAllowedError(Exception):
@@ -289,8 +332,17 @@ class BaseModelProvider(ABC):
     def _record_failure(self) -> None:
         with self._circuit_lock:
             key = self._provider_key()
-            self._provider_failure_counts[key] = self._provider_failure_counts.get(key, 0) + 1
+            count = self._provider_failure_counts.get(key, 0) + 1
+            self._provider_failure_counts[key] = count
             self._provider_opened_at[key] = time.monotonic()
+            just_opened = count == self.runtime_options.circuit_breaker_failure_threshold
+        if just_opened:
+            # Until 2026-08-23 a breaker opened in silence: the run completed,
+            # every affected row read "Beurteilung fehlgeschlagen", and the
+            # customer saw a thinner Prüfmappe without knowing why. The 68
+            # upstream 5xx of one afternoon were found in an eval log, not by
+            # anyone operating the system.
+            _alert_breaker_opened(self.provider_name, self.configured_model_id, count)
 
     def _clear_failures(self) -> None:
         with self._circuit_lock:
@@ -361,11 +413,58 @@ def _hash_json(payload: dict[str, Any]) -> str:
     return sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
 
 
+def _container_kinds(annotation: Any) -> set[str]:
+    """Which container(s) a field annotation accepts: {"list"}, {"dict"}, both, or none."""
+    origin = get_origin(annotation)
+    if origin in (Union, UnionType):
+        kinds: set[str] = set()
+        for arg in get_args(annotation):
+            kinds |= _container_kinds(arg)
+        return kinds
+    if origin is list or annotation is list:
+        return {"list"}
+    if origin is dict or annotation is dict:
+        return {"dict"}
+    return set()
+
+
+def _decode_stringified_fields(
+    payload: dict[str, Any], *, output_schema: type[BaseModel]
+) -> dict[str, Any]:
+    """Decode a list or object field that arrived as a JSON string.
+
+    Claude's tool-use path returned ``verdicts`` as a stringified array in 17
+    assessor calls of one mixed run -- a whole group of six requirements lost
+    each time, for a payload that was valid JSON one ``json.loads`` away. The
+    schema says which fields are containers; anything that does not parse is
+    left alone for the field-specific normalisers and the validation error.
+    """
+    decoded = dict(payload)
+    for name, field in output_schema.model_fields.items():
+        value = decoded.get(name)
+        if not isinstance(value, str):
+            continue
+        wants = _container_kinds(field.annotation)
+        text = value.strip()
+        if not wants or not text or text[0] not in "[{":
+            continue
+        try:
+            parsed = json.loads(text)
+        except ValueError:
+            continue
+        if (isinstance(parsed, list) and "list" in wants) or (
+            isinstance(parsed, dict) and "dict" in wants
+        ):
+            decoded[name] = parsed
+    return decoded
+
+
 def _normalize_structured_payload(
     payload: dict[str, Any],
     *,
     output_schema: type[BaseModel],
 ) -> dict[str, Any]:
+    payload = _decode_stringified_fields(payload, output_schema=output_schema)
     if output_schema.__name__ == "RequirementGroupOutput":
         return _normalize_requirement_group_payload(payload)
     if output_schema.__name__ == "FulfilledChallenge":

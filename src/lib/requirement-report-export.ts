@@ -1,6 +1,7 @@
 import {
   REQUIREMENT_STATUS_LABELS,
   REQUIREMENT_STATUS_ORDER,
+  evidenceLocationLabel,
   requirementConfidenceNotes,
   requirementCoverageProgress,
   type RequirementCoverageReport,
@@ -79,7 +80,7 @@ export function buildRequirementReportCsv(report: RequirementCoverageReport): st
         REQUIREMENT_STATUS_LABELS[row.published_status],
         row.severity ?? "",
         cleanExportSnippet(row.rationale),
-        item.document_id,
+        item.document_name || item.document_id,
         String(item.page),
         cleanExportSnippet(item.quote),
         notes
@@ -141,7 +142,7 @@ function writeRow(builder: PdfPageBuilder, row: RequirementVerdictRow) {
 
   for (const item of row.evidence) {
     builder.paragraph(`„${cleanExportSnippet(item.quote)}"`, 9, 12);
-    builder.text(`Seite ${item.page}`, 8, 12);
+    builder.text(evidenceLocationLabel(item), 8, 12);
   }
   if (
     row.evidence.length === 0 &&

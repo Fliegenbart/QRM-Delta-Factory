@@ -6,11 +6,9 @@ import {
   caseWorkspaceStructure,
   aiArchitectureConcept,
   consultantReviewCopy,
-  demoReviewCases,
   buildFindingReviewChecklist,
   cleanEvidenceQuote,
   decisionOptions,
-  demoDecisionStorageKey,
   displayReviewReason,
   displayReviewReasons,
   displayReviewPackSummary,
@@ -59,7 +57,9 @@ describe("review UI helpers", () => {
     expect(consultantReviewCopy.workspaceTitle).toBe("QA-Prüfung vorbereiten");
     expect(consultantReviewCopy.workspaceDescription).toBe("Unterlagen rein. Prüfmappe raus. Ein Mensch entscheidet.");
     expect(consultantReviewCopy.list.title).toBe("Prüffälle");
-    expect(consultantReviewCopy.list.empty).toContain("Startseite");
+    // The upload now lives on the cases page itself; the empty state points
+    // up, not to a separate start page.
+    expect(consultantReviewCopy.list.empty).toContain("oben");
     expect(consultantReviewCopy.finding.title).toBe("Prüfpunkt");
     expect(consultantReviewCopy.decision.savedMessage).toContain("Bearbeitungsstand");
     expect(reviewDecisionRequiresHumanRationale).toBe(true);
@@ -88,48 +88,50 @@ describe("review UI helpers", () => {
     expect(productHomeCopy.exampleDescription).toContain("Klicken Sie sich durch");
   });
 
-  it("keeps demo triage cards connected to concrete demo detail routes", () => {
-    expect(demoReviewCases).toHaveLength(3);
-    expect(demoReviewCases.map((demoCase) => demoCase.href)).toEqual([
-      "/review-ui/demo/dev-2025-014",
-      "/review-ui/demo/capa-2025-082",
-      "/review-ui/demo/cc-2025-211"
-    ]);
-    expect(demoReviewCases.map((demoCase) => demoCase.noteLabel)).toEqual([
-      "Prüfhinweis",
-      "Prüfhinweis",
-      "Prüfhinweis"
-    ]);
-    expect(demoReviewCases[0].criticNote).toContain("Für die Aussage");
-    expect(demoReviewCases[0].nextStep).toContain("Passt die zitierte Stelle wirklich");
-    expect(demoReviewCases[1].criticNote).toContain("Zu entscheiden");
-    expect(demoReviewCases[1].nextStep).toContain("muss die Wirksamkeit vor Freigabe belegt sein");
-    expect(demoReviewCases[2].criticNote).toContain("wartet auf Freigabe");
-    expect(demoReviewCases[0].whyItMatters).toContain("Warum dieser Fall wichtig ist");
-    expect(demoReviewCases[0].findings).toHaveLength(3);
-    expect(demoReviewCases[0].missingEvidence[0]).toContain("Nachweis");
-    expect(demoReviewCases[0].decisionActions).toEqual([
-      "Bestätigen",
-      "Weitere Unterlagen anfordern",
-      "An QA eskalieren"
-    ]);
-  });
-
-  it("uses a versioned, case-specific browser key for demo decisions", () => {
-    expect(demoDecisionStorageKey("DEV-2025-014")).toBe(
-      "pharmaqrm:demo-decision:v1:DEV-2025-014"
+  it("shows real engine output as the example cases, with their provenance", async () => {
+    const { demoCases, demoCaseHref, demoCaseScoreline, demoCaseProvenance } = await import(
+      "@/src/lib/demo-cases"
     );
+    expect(demoCases).toHaveLength(3);
+    expect(demoCases.map(demoCaseHref)).toEqual([
+      "/review-ui/demo/xylocortin-temperatur",
+      "/review-ui/demo/ibuprofen-werkzeugbruch",
+      "/review-ui/demo/cefuroxim-ph-drift"
+    ]);
+    for (const demoCase of demoCases) {
+      // A real report: one verdict per requirement of the active library,
+      // every violated row carrying a verbatim quote or a rule finding.
+      expect(demoCase.report.verdicts.length).toBeGreaterThanOrEqual(20);
+      const violated = demoCase.report.verdicts.filter((row) => row.published_status === "violated");
+      expect(violated.length).toBeGreaterThan(0);
+      expect(
+        violated.every((row) => row.evidence.length > 0 || row.validator_statements.length > 0)
+      ).toBe(true);
+      expect(demoCase.gold.found).toBe(demoCase.gold.planted);
+      expect(demoCase.run.model).toBe("Qwen3.8-27B");
+      expect(demoCaseScoreline(demoCase)).toMatch(/^\d von \d eingebauten Fehlern gefunden$/);
+      const provenance = demoCaseProvenance(demoCase);
+      expect(provenance).toContain("Echter Prüflauf vom");
+      expect(provenance).toContain("synthetisch");
+      expect(provenance).toContain("Nichts an diesem Bericht wurde nachbearbeitet.");
+    }
   });
 
-  it("uses reviewer-friendly upload guidance on the start form", () => {
+  it("uses reviewer-friendly upload guidance on the cases page", () => {
+    // One door into the work: the upload sits on the cases page, the
+    // signed-in navigation carries no pitch pages.
+    const casesPage = readFileSync(join(process.cwd(), "app/review-ui/page.tsx"), "utf8");
     const appShell = readFileSync(join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
     const intakeUploader = readFileSync(
       join(process.cwd(), "src/components/review-ui/intake-uploader.tsx"),
       "utf8"
     );
 
-    expect(appShell).toContain("Change, CAPA, Abweichung oder Audit-Finding hochladen.");
-    expect(appShell).toContain("Mehrere Dokumente sind möglich");
+    expect(casesPage).toContain("Change, CAPA, Abweichung oder Audit-Finding hochladen.");
+    expect(casesPage).toContain("Mehrere Dokumente sind");
+    expect(casesPage).toContain("<IntakeUploader />");
+    expect(appShell).not.toContain('"nav.ueberblick"');
+    expect(appShell).not.toContain('["dashboard", "nav.dashboard"');
     expect(intakeUploader).toContain("Was ist der Auslöser?");
     expect(intakeUploader).toContain("Wo passiert es?");
     expect(intakeUploader).toContain("optional, fürs Protokoll");
@@ -503,20 +505,28 @@ describe("review UI helpers", () => {
   it("documents the AI architecture as a controlled review chain, not model voting", () => {
     const appShell = readFileSync(join(process.cwd(), "src/components/app-shell.tsx"), "utf8");
 
-    expect(aiArchitectureConcept.title).toBe("Der Weg eines Befunds — und sechs Stellen, an denen geprüft wird.");
+    expect(aiArchitectureConcept.title).toBe("Der Weg eines Befunds — und acht Stellen, an denen geprüft wird.");
     expect(aiArchitectureConcept.subtitle).toContain("wie aus einem hochgeladenen Dokument ein belegter Befund wird");
     expect(aiArchitectureConcept.subtitle).toContain("der letzte Schritt gehört immer einem Menschen");
     expect(aiArchitectureConcept.subtitle).not.toContain("Multi-Agent");
     expect(aiArchitectureConcept.subtitle).not.toContain("Regelkarten");
-    expect(aiArchitectureConcept.flow).toHaveLength(6);
+    expect(aiArchitectureConcept.flow).toHaveLength(8);
     expect(aiArchitectureConcept.flow.map((step) => step.title)).toEqual([
       "Aussagen herauslesen",
+      "Fakten erfassen",
+      "Regeln rechnen",
       "Den Fall einordnen",
-      "Fachlich prüfen",
+      "Anforderung für Anforderung urteilen",
       "Quellen abgleichen",
       "Risiken bündeln",
       "Entscheidung dokumentieren"
     ]);
+    // The rebuilt engine: facts first, deterministic rules second, the model
+    // judges per requirement over located quotes -- the page must say so.
+    const descriptions = aiArchitectureConcept.flow.map((step) => step.description).join(" ");
+    expect(descriptions).toContain("ohne Modell");
+    expect(descriptions).toContain("erst die Belegstellen");
+    expect(aiArchitectureConcept.flow.find((step) => step.id === "rules")?.safeguard).toContain("Er senkt nie.");
     expect(aiArchitectureConcept.flow.every((step) => step.safeguard.startsWith("Sicherung:"))).toBe(true);
     expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).toContain("Diese Prüfung macht fester Programmcode, keine KI");
     expect(aiArchitectureConcept.flow.map((step) => step.description).join(" ")).not.toContain("Claim Ledger");
@@ -687,3 +697,74 @@ function restoreEnv(key: string, value: string | undefined) {
   }
   process.env[key] = value;
 }
+
+
+describe("model stack description", () => {
+  it("names the local stack as one that keeps documents off the cloud", async () => {
+    const { describeModelStack } = await import("../src/lib/review-ui");
+    const described = describeModelStack({
+      stack: "local",
+      finding_reviewers: "hetzner",
+      requirement_assessor: "hetzner",
+      requirement_assessor_mode: "narrow",
+      entailment_checker: "hetzner",
+      critics: "hetzner"
+    });
+    expect(described.label).toBe("Lokaler Stack");
+    expect(described.summary).toContain("Kein Dokument erreicht Anthropic oder OpenAI");
+    expect(described.rows.map((row) => row.value)).toContain("pro Anforderung: erst Belege suchen, dann urteilen");
+    expect(described.rows.every((row) => !row.value.includes("hetzner"))).toBe(true);
+  });
+
+  it("spells out the per-role cloud mix instead of echoing the raw setting", async () => {
+    const { describeModelStack } = await import("../src/lib/review-ui");
+    const described = describeModelStack({
+      stack: "cloud",
+      finding_reviewers: "per-role mix (anthropic/openai)",
+      requirement_assessor: "anthropic",
+      requirement_assessor_mode: "grouped",
+      entailment_checker: "openai",
+      critics: "anthropic,openai"
+    });
+    expect(described.label).toBe("Cloud-Stack");
+    expect(described.rows.find((row) => row.label === "Fachprüfer (Befundsicht)")?.value).toBe(
+      "Claude und GPT, nach Rolle verteilt"
+    );
+    expect(described.rows.find((row) => row.label === "Gegenprüfer")?.value).toBe("Claude (Anthropic), GPT (OpenAI)");
+  });
+});
+
+
+describe("requirementConfidenceNotes", () => {
+  it("states a rule finding once even when it fired in several places", async () => {
+    const { requirementConfidenceNotes } = await import("../src/lib/review-ui");
+    const notes = requirementConfidenceNotes({
+      requirement_id: "req_x",
+      requirement_title: null,
+      requirement_text: "t",
+      source_name: "s",
+      section: "1",
+      model_status: "violated",
+      published_status: "violated",
+      severity: "high",
+      rationale: "r",
+      evidence: [],
+      dropped_evidence_count: 0,
+      dropped_evidence_reasons: [],
+      provenance_ok: true,
+      evidence_type: null,
+      evidence_reference: null,
+      evidence_sufficiency: null,
+      entailment: null,
+      entailment_reason: null,
+      independent_support: null,
+      challenge_sustained: null,
+      challenge_reason: null,
+      sample_disagreement: false,
+      validator_flags: ["measurement_outside_specification", "measurement_outside_specification"],
+      validator_statements: ["Der Messwert 34,2 °C liegt außerhalb 40–45.", "Der Messwert 34,2 °C liegt außerhalb 40–45."],
+      server_authored: false
+    });
+    expect(notes.filter((note) => note.startsWith("Deterministische Prüfung"))).toHaveLength(1);
+  });
+});

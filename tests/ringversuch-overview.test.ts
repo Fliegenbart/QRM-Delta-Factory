@@ -15,8 +15,27 @@ describe("landing Ringversuch stats", () => {
       falseAlarmLabel: "Fehlalarme bei 11 harmlosen Kontrollstellen",
       citationValue: "93 %",
       standLabel: "Stand 20.07.2026",
-      measuredOnFormerStack: false
+      measuredOnFormerStack: false,
+      corpusKind: "regression",
+      corpusLabel: "Goldstandard-Korpus, Regressionskorpus"
     });
+  });
+
+  it("headlines a blind-corpus production run over a newer regression run", () => {
+    // The rule is about the kind of evidence: a sealed-envelope measurement
+    // outranks a regression check on a corpus the team has looked at, even
+    // when the regression run is newer -- and regardless of which scored
+    // higher.
+    const stats = deriveLandingProofStats([
+      run("20260824_090000_live_mixed", "live", 24, 25, "mixed", { corpus: "goldstandard", case_count: 10 }),
+      run("20260823_220000_live_mixed", "live", 11, 16, "mixed", { corpus: "blind3", case_count: 8 }),
+      run("20260823_210000_live_hetzner", "live", 12, 16, "hetzner", { corpus: "blind3", case_count: 8 })
+    ]);
+
+    expect(stats?.foundValue).toBe("11 / 16");
+    expect(stats?.corpusKind).toBe("blind");
+    expect(stats?.corpusLabel).toBe("Blindkorpus 3, 8 Fälle, beim Bau der Engine nie gesehen");
+    expect(stats?.standLabel).toBe("Stand 23.08.2026");
   });
 
   it("flags figures measured on a stack the product no longer ships", () => {
@@ -53,10 +72,17 @@ describe("landing Ringversuch stats", () => {
   });
 });
 
-function run(id: string, mode: string, found: number, total: number, stack: string) {
+function run(
+  id: string,
+  mode: string,
+  found: number,
+  total: number,
+  stack: string,
+  extra: { corpus?: string; case_count?: number } = {}
+) {
   return {
     id,
-    run: { mode, stack },
+    run: { mode, stack, ...extra },
     aggregate: {
       sensitivity: { found, total, rate: found / total },
       specificity_decoys: { passed: 11, total: 11, rate: 1 },

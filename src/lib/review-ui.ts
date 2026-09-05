@@ -60,174 +60,6 @@ export const productHomeCopy = {
     "Der Fall, die Quellen, die Lücken — und der nächste Entscheidungsschritt. Klicken Sie sich durch, bevor Sie eigene Unterlagen hochladen."
 } as const;
 
-export type DemoReviewCase = {
-  id: string;
-  severity: "critical" | "major" | "minor" | "ready";
-  severityLabel: string;
-  area: string;
-  title: string;
-  noteLabel: string;
-  criticNote: string;
-  ageLabel: string;
-  sources: string;
-  regulation: string;
-  primaryAction: "open" | "approve";
-  href: string;
-  summary: string;
-  whyItMatters: string;
-  nextStep: string;
-  findings: string[];
-  evidence: string[];
-  missingEvidence: string[];
-  openQuestions: string[];
-  decisionActions: string[];
-};
-
-export const demoReviewCases: DemoReviewCase[] = [
-  {
-    id: "DEV-2025-014",
-    severity: "critical",
-    severityLabel: "Kritisch",
-    area: "Aseptische Abfüllung",
-    title: "Abweichung im Klima-Monitoring, Bezug zum Sterilfilter unklar",
-    noteLabel: "Prüfhinweis",
-    criticNote:
-      "Für die Aussage, der HEPA-Vorlauf sei entkoppelt, fehlt eine Quelle. Annex 1 §8.123 ist zitiert, aber das Zitat passt nicht zur Textstelle auf Seite 14.",
-    ageLabel: "vor 12 min",
-    sources: "3 Quellen · 1 fehlt",
-    regulation: "ICH Q9 §5.3.2",
-    primaryAction: "open",
-    href: "/review-ui/demo/dev-2025-014",
-    summary:
-      "Die Abweichung kann kritisch sein, weil ein Klima-Signal und die Sterilfilter-Bewertung noch nicht sauber zusammengeführt sind.",
-    whyItMatters:
-      "Warum dieser Fall wichtig ist: Eine unklare Quelle kann dazu führen, dass ein Sterilitätsrisiko zu früh als abgedeckt gilt.",
-    nextStep: "Passt die zitierte Stelle wirklich zur Aussage über den HEPA-Vorlauf?",
-    findings: [
-      "HEPA-Vorlauf wird als entkoppelt beschrieben, die zitierte Textstelle belegt das aber nicht klar.",
-      "Klima-Monitoring und Sterilfilter-Bewertung sind fachlich verbunden, aber noch nicht sauber abgegrenzt.",
-      "Der Fall braucht eine menschliche QA-Entscheidung, bevor er geschlossen werden kann."
-    ],
-    evidence: [
-      "Abweichungsbericht mit Klima-Monitoring-Verlauf",
-      "Annex-1-Referenz zur Sterilfilter-Bewertung",
-      "Chargenbezug und Reinraum-Bereich"
-    ],
-    missingEvidence: [
-      "Nachweis, dass Klima-Signal und HEPA-Vorlauf fachlich getrennt bewertet wurden.",
-      "Passende Textstelle zur Aussage über den HEPA-Vorlauf.",
-      "SME-Einschätzung, ob das Gap freigaberelevant ist."
-    ],
-    openQuestions: [
-      "Ist die zitierte Textstelle fachlich passend?",
-      "Fehlt ein Nachweis zur Trennung von Klima- und Sterilfilter-Risiko?",
-      "Muss QA sofort entscheiden oder zuerst SME nachfordern?"
-    ],
-    decisionActions: [
-      "Bestätigen",
-      "Weitere Unterlagen anfordern",
-      "An QA eskalieren"
-    ]
-  },
-  {
-    id: "CAPA-2025-082",
-    severity: "major",
-    severityLabel: "Hoch",
-    area: "Reinigung",
-    title: "Wirksamkeitsprüfung Reinigungsmittel nach 30 Tagen offen",
-    noteLabel: "Prüfhinweis",
-    criticNote:
-      "Die Maßnahmen sind dokumentiert, die Wirksamkeit aber noch nicht bewertet. Zu entscheiden: blockierendes Gap für die Freigabe oder nicht?",
-    ageLabel: "vor 1 Std.",
-    sources: "5 Quellen · vollständig",
-    regulation: "SOP-CLN-04 §4.2",
-    primaryAction: "open",
-    href: "/review-ui/demo/capa-2025-082",
-    summary:
-      "Die CAPA ist formal angelegt, aber der wichtigste Wirksamkeitsnachweis ist noch offen.",
-    whyItMatters:
-      "Warum dieser Fall wichtig ist: Ohne Wirksamkeitsbewertung bleibt unklar, ob die Korrekturmaßnahme wirklich abgeschlossen ist.",
-    nextStep: "Reicht der Maßnahmenstand, oder muss die Wirksamkeit vor Freigabe belegt sein?",
-    findings: [
-      "Maßnahmen sind dokumentiert, die Wirksamkeit ist aber noch nicht bewertet.",
-      "Die Frist von 30 Tagen ist im Prüfkontext sichtbar und muss bewertet werden.",
-      "Der Fall kann ohne klare Wirksamkeitsbewertung nicht sauber freigegeben werden."
-    ],
-    evidence: [
-      "CAPA-Aktionsliste",
-      "Reinigungsprotokoll Charge R-1183",
-      "SOP-CLN-04 §4.2"
-    ],
-    missingEvidence: [
-      "Nachweis der Wirksamkeitsprüfung nach 30 Tagen.",
-      "Begründung, falls die Freigabe vor Abschluss der Bewertung möglich sein soll.",
-      "Fachliche Bestätigung durch SME oder QA."
-    ],
-    openQuestions: [
-      "Ist die 30-Tage-Frist verbindlich oder nur geplant?",
-      "Gibt es einen dokumentierten Zwischenstatus?",
-      "Wer muss die Wirksamkeit fachlich bestätigen?"
-    ],
-    decisionActions: [
-      "Bestätigen",
-      "Weitere Unterlagen anfordern",
-      "An QA eskalieren"
-    ]
-  },
-  {
-    id: "CC-2025-211",
-    severity: "ready",
-    severityLabel: "Bereit für QA",
-    area: "QC-Labor",
-    title: "Methodenänderung Gradient-Profil, SME hat abgezeichnet",
-    noteLabel: "Prüfhinweis",
-    criticNote:
-      "Quellen vollständig, Risiken belegt, keine Widersprüche. Die SME-Abzeichnung vom 18.05. wartet auf Freigabe.",
-    ageLabel: "seit gestern",
-    sources: "8 Quellen · vollständig",
-    regulation: "ICH Q2 R2",
-    primaryAction: "approve",
-    href: "/review-ui/demo/cc-2025-211",
-    summary:
-      "Der Fall ist vorbereitet: Quellen, SME-Abzeichnung und Regelwerksbezug sind sichtbar.",
-    whyItMatters:
-      "Warum dieser Fall wichtig ist: Die Prüfmappe zeigt, dass die wichtigsten Nachweise sichtbar sind und QA zur Entscheidung übergehen kann.",
-    nextStep: "Final prüfen und Entscheidung dokumentieren.",
-    findings: [
-      "SME-Abzeichnung ist vorhanden und datiert.",
-      "Regelwerksbezug zur Methodenänderung ist sichtbar.",
-      "Keine offenen Widersprüche in den angezeigten Quellen."
-    ],
-    evidence: [
-      "SME-Abzeichnung vom 18.05.",
-      "Methodenänderung Gradient-Profil",
-      "Validierungsbezug ICH Q2 R2"
-    ],
-    missingEvidence: [
-      "Keine kritische Lücke in der Demo sichtbar.",
-      "QA-Begründung muss vor Freigabe dokumentiert werden.",
-      "Betroffene Chargen müssen final bestätigt bleiben."
-    ],
-    openQuestions: [
-      "Ist die Begründung für QA ausreichend kurz dokumentiert?",
-      "Sind alle betroffenen Chargen ausgeschlossen oder bewertet?",
-      "Soll die Entscheidung als Freigabe oder als Rückfrage gespeichert werden?"
-    ],
-    decisionActions: [
-      "Bestätigen",
-      "Weitere Unterlagen anfordern",
-      "An QA eskalieren"
-    ]
-  }
-];
-
-export function findDemoReviewCase(id: string): DemoReviewCase | undefined {
-  return demoReviewCases.find((demoCase) => demoCase.href.endsWith(`/${id}`));
-}
-
-export function demoDecisionStorageKey(caseId: string): string {
-  return `pharmaqrm:demo-decision:v1:${caseId}`;
-}
 
 const technicalErrorSignals = [
   "QRM_BACKEND",
@@ -267,8 +99,7 @@ export const consultantReviewCopy = {
   },
   list: {
     title: "Prüffälle",
-    empty:
-      "Noch kein echter Prüffall vorhanden. Laden Sie auf der Startseite Unterlagen hoch, dann erscheint hier der Fall.",
+    empty: "Noch kein echter Prüffall vorhanden. Laden Sie oben Unterlagen hoch, dann erscheint hier der Fall.",
     loadErrorPrefix: "Fallliste konnte nicht geladen werden",
     columns: {
       package: "Prüffall",
@@ -277,7 +108,10 @@ export const consultantReviewCopy = {
       status: "Status",
       sources: "Unterlagen"
     },
-    open: "Öffnen"
+    open: "Öffnen",
+    examplesTitle: "Drei Beispiele: So sieht eine fertige Prüfmappe aus.",
+    examplesDescription:
+      "Echte Prüfläufe über synthetische Unterlagen aus dem Ringversuch — jedes Urteil mit Zitat, nichts nachbearbeitet. Klicken Sie sich durch, bevor Sie eigene Unterlagen hochladen.",
   },
   detail: {
     title: "Prüffall",
@@ -358,7 +192,7 @@ const riskStatementLabels: Record<string, string> = {
 };
 
 export const aiArchitectureConcept = {
-  title: "Der Weg eines Befunds — und sechs Stellen, an denen geprüft wird.",
+  title: "Der Weg eines Befunds — und acht Stellen, an denen geprüft wird.",
   subtitle:
     "Hier sehen Sie genau, wie aus einem hochgeladenen Dokument ein belegter Befund wird. Jeder Schritt ist nachvollziehbar, jeder hat eine eingebaute Sicherung, und der letzte Schritt gehört immer einem Menschen.",
   flow: [
@@ -370,6 +204,21 @@ export const aiArchitectureConcept = {
       safeguard: "Sicherung: Keine Aussage ohne Quelle. Was sich nicht belegen lässt, geht nicht weiter."
     },
     {
+      id: "facts",
+      title: "Fakten erfassen",
+      description:
+        "Messwerte, Grenzwerte, Daten, Unterschriften und Maßnahmen werden als strukturierte Fakten erfasst — jeder mit dem wörtlichen Zitat, aus dem er stammt. Das Modell schreibt ab; es bewertet hier nichts.",
+      safeguard:
+        "Sicherung: Jedes Zitat wird Zeichen für Zeichen im Quelltext gesucht. Ein Fakt, der sich dort nicht wiederfindet, wird verworfen und gezählt."
+    },
+    {
+      id: "rules",
+      title: "Regeln rechnen",
+      description:
+        "Feste Prüfregeln entscheiden ohne Modell: Messwert gegen Grenze, Datumsfolge, Vier-Augen-Prinzip, Wirksamkeitsprüfung, leere Pflichtfelder. Jede Regel nennt, was sie prüft und auf welcher regulatorischen Grundlage — der Katalog steht im Regelwerk.",
+      safeguard: "Sicherung: Ein Regelbefund hebt eine Anforderung auf „verletzt“. Er senkt nie."
+    },
+    {
       id: "scope-router",
       title: "Den Fall einordnen",
       description:
@@ -377,18 +226,18 @@ export const aiArchitectureConcept = {
       safeguard: "Sicherung: Die Prüfer bekommen nur die Regeln, die zum Fall passen — kein Streuschuss."
     },
     {
-      id: "reviewer-agents",
-      title: "Fachlich prüfen",
+      id: "requirements",
+      title: "Anforderung für Anforderung urteilen",
       description:
-        "Sieben unabhängige Prüfinstanzen gehen den Fall durch — Datenintegrität, Abweichung, CAPA, Chargenbezug, Validierung und Sterilität, regulatorische Konsistenz, Widersprüche.",
+        "Für jede Anforderung des Regelwerks sucht das Modell zuerst die Belegstellen und urteilt dann allein über diese Zitate: erfüllt, verletzt oder unklar. Zwei kleine Fragen statt einer großen — so trägt auch ein lokal laufendes Modell die Prüfung. Sieben Fachprüfer ergänzen die Befundsicht.",
       safeguard:
-        "Sicherung: Jede Instanz arbeitet mit den passenden Regeln und Quellen. Was eine übersieht, fällt einer anderen auf."
+        "Sicherung: Kein Urteil ohne Zitat. Fehlt der Beleg, wird noch einmal gesucht; bleibt er aus, steht „unklar“ statt „erfüllt“."
     },
     {
       id: "evidence-verifier",
       title: "Quellen abgleichen",
       description:
-        "Jeder Befund wird gegen seinen Beleg geprüft: Stimmt das Zitat? Passt die Seite? Trägt die Textstelle die Aussage? Diese Prüfung macht fester Programmcode, keine KI — Zeichen für Zeichen.",
+        "Jeder Befund wird gegen seinen Beleg geprüft: Stimmt das Zitat? Passt die Seite? Trägt die Textstelle die Aussage? Diese Prüfung macht fester Programmcode, keine KI — Zeichen für Zeichen. Danach prüft eine zweite Modellinstanz nur noch, ob das Zitat die Begründung wirklich trägt.",
       safeguard: "Sicherung: Schwache oder fehlende Belege bleiben offen, statt durchzurutschen."
     },
     {
@@ -413,9 +262,89 @@ export const aiArchitectureConcept = {
     "Jeder Lauf protokolliert Modell, Prüfauftrag und Regelpakete.",
     "Eigene SOPs lassen sich laden; die Prüfer ziehen daraus die passenden Regeln.",
     "Hohe und kritische Risiken werden nie automatisch geschlossen.",
-    "Fehlt ein nötiges Regelpaket, blockiert das die Freigabe."
+    "Fehlt ein nötiges Regelpaket, blockiert das die Freigabe.",
+    "Die Modelle sind austauschbar, die Prüfkette nicht: Sie läuft mit Cloud-Modellen oder komplett auf eigener Hardware."
   ]
 } as const;
+
+export type ModelRoles = {
+  stack: string;
+  finding_reviewers: string;
+  requirement_assessor: string;
+  requirement_assessor_mode: string;
+  entailment_checker: string;
+  critics: string;
+};
+
+export type BackendHealth = {
+  status: string;
+  app_name: string;
+  app_version: string;
+  environment: string;
+  model_roles?: ModelRoles;
+};
+
+const PROVIDER_LABELS: Record<string, string> = {
+  anthropic: "Claude (Anthropic)",
+  openai: "GPT (OpenAI)",
+  hetzner: "Qwen auf dem EU-/Kundenserver",
+  mock: "Offline-Stellvertreter (kein Modell)",
+  none: "keiner"
+};
+
+export function describeProvider(name: string): string {
+  const key = name.trim().toLowerCase();
+  if (key in PROVIDER_LABELS) return PROVIDER_LABELS[key];
+  if (key.startsWith("per-role mix")) return "Claude und GPT, nach Rolle verteilt";
+  return name
+    .split(",")
+    .map((part) => PROVIDER_LABELS[part.trim().toLowerCase()] ?? part.trim())
+    .join(", ");
+}
+
+export function describeModelStack(roles: ModelRoles): {
+  label: string;
+  summary: string;
+  rows: { label: string; value: string }[];
+} {
+  const stackLabel: Record<string, { label: string; summary: string }> = {
+    cloud: {
+      label: "Cloud-Stack",
+      summary:
+        "Claude liest, GPT prüft nach. Zwei Modellfamilien, damit der Prüfer nicht die blinden Flecken des Lesers teilt."
+    },
+    local: {
+      label: "Lokaler Stack",
+      summary:
+        "Jede Anfrage geht an einen Endpunkt unter eigener Kontrolle. Kein Dokument erreicht Anthropic oder OpenAI."
+    },
+    cascade: {
+      label: "Kaskade",
+      summary:
+        "Die Dokumente werden nur lokal gelesen. Nachgeprüft werden allein Zitat und Begründung — nie das Dokument — durch eine zweite Modellfamilie."
+    }
+  };
+  const described = stackLabel[roles.stack] ?? {
+    label: roles.stack,
+    summary: "Unbekannter Stack — die Rollen unten zeigen, was tatsächlich läuft."
+  };
+  return {
+    ...described,
+    rows: [
+      { label: "Dokumente lesen und urteilen", value: describeProvider(roles.requirement_assessor) },
+      {
+        label: "Prüfmodus",
+        value:
+          roles.requirement_assessor_mode === "narrow"
+            ? "pro Anforderung: erst Belege suchen, dann urteilen"
+            : "gruppiert: sechs Anforderungen je Aufruf mit allen Quellen"
+      },
+      { label: "Zitat trägt Begründung?", value: describeProvider(roles.entailment_checker) },
+      { label: "Fachprüfer (Befundsicht)", value: describeProvider(roles.finding_reviewers) },
+      { label: "Gegenprüfer", value: describeProvider(roles.critics) }
+    ]
+  };
+}
 
 export const caseWorkspaceStructure = {
   route: "/case-workspace",
@@ -553,6 +482,18 @@ export type RequirementLibraryOverview = {
   activeRequirements: Requirement[];
 };
 
+/** One deterministic rule, as the rulebook page shows it. */
+export type RuleDescription = {
+  validator_id: string;
+  title: string;
+  checks: string;
+  inputs: string;
+  severity: string;
+  regulatory_basis: string;
+  requirement_ids: string[];
+  version: string;
+};
+
 export type HumanFeedbackRecord = {
   feedback_id: string;
   review_id: string;
@@ -672,7 +613,38 @@ export type PipelineRun = {
   error_summary?: string | null;
   config_version: string;
   model_manifest?: PipelineModelManifestItem[];
+  /** Where a running pipeline is; absent on older backends and finished runs. */
+  progress?: PipelineProgress | null;
 };
+
+export type PipelineProgress = {
+  step: string;
+  step_index: number;
+  step_count: number;
+  detail?: string | null;
+  updated_at: string;
+};
+
+/** The pipeline's steps in the reviewer's words, in execution order. */
+export const PIPELINE_STEP_LABELS: Record<string, string> = {
+  parse_document_set: "Unterlagen lesen",
+  quality_gate: "Lesbarkeit prüfen",
+  requirement_retrieval: "Regelwerk zuordnen",
+  claim_ledger_extraction: "Aussagen herauslesen",
+  primary_multi_agent_review: "Fachprüfer lesen die Unterlagen",
+  evidence_verification: "Zitate gegen den Quelltext prüfen",
+  adversarial_review: "Gegenprüfung",
+  objective_red_flag_scan: "Objektive Warnsignale suchen",
+  adversarial_evidence_verification: "Zitate der Gegenprüfung prüfen",
+  risk_fusion: "Risiken bündeln",
+  review_pack_generation: "Prüfmappe zusammenstellen",
+  requirement_coverage_review: "Anforderung für Anforderung urteilen",
+  audit_trail_completion: "Audit-Trail abschließen"
+};
+
+export function pipelineStepLabel(step: string): string {
+  return PIPELINE_STEP_LABELS[step] ?? step.replaceAll("_", " ");
+}
 
 export type PipelineModelManifestItem = {
   agent_id: string;
@@ -1217,12 +1189,26 @@ export type RequirementVerdictStatus =
   | "unclear"
   | "not_applicable";
 
+export type RequirementReportRetry = {
+  /** Rows a failed model call left as placeholders. */
+  retryable: number;
+  active: boolean;
+  detail?: string | null;
+};
+
 export type RequirementReportEvidence = {
   document_id: string;
   chunk_id: string;
   page: number;
   quote: string;
+  /** File name, filled server-side; absent on reports from older engines. */
+  document_name?: string;
 };
+
+/** "Abweichungsbericht.md, Seite 3" -- where a quote can be checked. */
+export function evidenceLocationLabel(item: Pick<RequirementReportEvidence, "document_name" | "page">): string {
+  return item.document_name ? `${item.document_name}, Seite ${item.page}` : `Seite ${item.page}`;
+}
 
 export type RequirementVerdictRow = {
   requirement_id: string;
@@ -1250,6 +1236,8 @@ export type RequirementVerdictRow = {
   validator_flags: string[];
   validator_statements: string[];
   server_authored: boolean;
+  /** A model call behind this row failed; the row can be re-run on its own. */
+  needs_retry?: boolean;
 };
 
 export type RequirementCoverageReport = {
@@ -1271,7 +1259,42 @@ export type RequirementCoverageReport = {
   }[];
   failed_model_call_count: number;
   validator_findings: Record<string, unknown>[];
+  extracted_evidence?: {
+    counts: Record<string, number>;
+    dropped_unverifiable: Record<string, number>;
+    rows: Record<string, unknown[]>;
+  } | null;
 };
+
+/**
+ * What the deterministic layer did, in the reviewer's words.
+ *
+ * The model reads; rules decide what rules can decide -- a value against its
+ * limit, a step dated before the event it concerns, a CAPA with no
+ * effectiveness check. Showing the reviewer how many typed rows were
+ * extracted and how many rules fired is what makes that layer something a
+ * QA department can validate, instead of a black box with a percentage.
+ */
+export function deterministicCheckSummary(report: RequirementCoverageReport): {
+  rows: { label: string; count: number }[];
+  findings: number;
+  dropped: number;
+} | null {
+  const extracted = report.extracted_evidence;
+  if (!extracted) return null;
+  const labels: Record<string, string> = {
+    signatures: "Signaturfelder",
+    measurements: "Messwerte",
+    specifications: "Grenzwerte",
+    action_items: "Maßnahmen",
+    events: "Datierte Schritte"
+  };
+  const rows = Object.entries(labels)
+    .map(([key, label]) => ({ label, count: extracted.counts[key] ?? 0 }))
+    .filter((row) => row.count > 0);
+  const dropped = Object.values(extracted.dropped_unverifiable ?? {}).reduce((a, b) => a + b, 0);
+  return { rows, findings: report.validator_findings.length, dropped };
+}
 
 export const REQUIREMENT_STATUS_LABELS: Record<RequirementVerdictStatus, string> = {
   violated: "Verletzt",
@@ -1327,7 +1350,11 @@ export function requirementConfidenceNotes(row: RequirementVerdictRow): string[]
   if (row.evidence_sufficiency === "partial") {
     notes.push("Nachweis nur teilweise ausreichend");
   }
-  for (const statement of row.validator_statements) {
+  // The same breach is often found in several places -- a value quoted in
+  // the deviation report, the batch record and the summary fires the rule
+  // three times with one statement. Say it once; the evidence list carries
+  // every location.
+  for (const statement of new Set(row.validator_statements)) {
     notes.push(`Deterministische Prüfung: ${statement}`);
   }
   return notes;

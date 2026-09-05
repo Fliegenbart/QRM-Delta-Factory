@@ -18,10 +18,11 @@ export const translations = {
   "nav.category.admin": { de: "Setup", en: "Setup" },
   "nav.category.howItWorks": { de: "Funktionsweise", en: "How it works" },
   "nav.dashboard": { de: "Start", en: "Start" },
-  "nav.aiArchitecture": { de: "Wie die Prüfmappe entsteht", en: "How the review pack is built" },
+  "nav.aiArchitecture": { de: "Funktionsweise", en: "How it works" },
   "nav.backendReview": { de: "Prüffälle", en: "Review cases" },
   "nav.riskLibrary": { de: "Regelwerk", en: "Rule set" },
   "nav.ringversuch": { de: "Ringversuch", en: "Proficiency test" },
+  "nav.calibration": { de: "Kalibrierung", en: "Calibration" },
   "nav.ueberblick": { de: "Überblick", en: "Overview" },
 } as const;
 

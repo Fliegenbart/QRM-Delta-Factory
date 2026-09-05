@@ -1,0 +1,43 @@
+{
+  "case_id": "CASE_16",
+  "document_type": "deviation",
+  "process_area": "cleaning_validation",
+  "errors": [
+    {
+      "document_name": "document_02_cleaning_verification.md",
+      "error_id": "ERR_16_01",
+      "error_type": "Regulatory / GMP Consistency",
+      "severity": "critical",
+      "exact_evidence_text": "| P3 | Rührwelle, Dichtungsbereich | 4,8 | innerhalb |",
+      "why_it_is_a_problem": "Der Rückstandswert an P3 beträgt 4,8 µg/cm² und überschreitet das Akzeptanzkriterium von NMT 4,2 µg/cm². Er wurde dennoch als 'innerhalb' bewertet und die Anlage freigegeben; die Folgecharge wurde auf einer nicht ausreichend gereinigten Anlage begonnen.",
+      "expected_reviewer_finding": "Rückstandswert über dem Akzeptanzkriterium als innerhalb bewertet; Anlage zu Unrecht freigegeben.",
+      "expected_action": "Freigabe der Anlage zurücknehmen, Charge MET-2026-G014 sperren und auf Kreuzkontamination bewerten, erneute Beprobung nach Nachreinigung vor Freigabe.",
+      "requires_cross_document_comparison": false
+    },
+    {
+      "document_name": "document_02_cleaning_verification.md",
+      "error_id": "ERR_16_02",
+      "error_type": "Datenintegrität",
+      "severity": "high",
+      "exact_evidence_text": "Geprüft durch (QA):* ________ Datum: 14.05.2026",
+      "why_it_is_a_problem": "Das QA-Prüffeld der Reinigungsverifizierung trägt nur ein Datum, aber keinen Unterzeichner. Die Anlagenfreigabe ist damit nicht durch QA gezeichnet, obwohl der QA-Vermerk sich auf diese Verifizierung stützt.",
+      "expected_reviewer_finding": "QA-Prüffeld der Reinigungsverifizierung leer (nur Datum, kein Unterzeichner).",
+      "expected_action": "Unterschrift nachholen bzw. QA-Prüfung tatsächlich durchführen; Freigabe bis dahin ungültig.",
+      "requires_cross_document_comparison": false
+    }
+  ],
+  "non_error_decoys": [
+    {
+      "decoy_id": "DEC_16_01",
+      "document_name": "document_02_cleaning_verification.md",
+      "evidence_text": "Finales Spülwasser TOC: 120 ppb (NMT 500 ppb) — innerhalb.",
+      "why_it_is_harmless": "Der TOC-Wert liegt innerhalb des Kriteriums."
+    },
+    {
+      "decoy_id": "DEC_16_02",
+      "document_name": "document_02_cleaning_verification.md",
+      "evidence_text": "Swab-Methode PM-CLN-011 (validiert, Wiederfindung 92 %)",
+      "why_it_is_harmless": "Eine validierte Swab-Methode mit dokumentierter Wiederfindung ist korrekt."
+    }
+  ]
+}

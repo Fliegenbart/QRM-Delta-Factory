@@ -2,7 +2,7 @@ import os
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 EnvironmentName = Literal["local", "test", "staging", "production"]
@@ -12,6 +12,41 @@ def _default_local_storage_root() -> str:
     if os.getenv("VERCEL"):
         return "/tmp/qrm-local-storage"
     return "./.local-storage"
+
+
+#: One switch for the whole model topology. Each preset fills the per-role
+#: settings below that the operator has NOT set explicitly; an explicit
+#: QRM_* value always wins over its preset entry, so a deployment can start
+#: from "local" and still route one role elsewhere. "cloud" is deliberately
+#: empty: it is the historical per-role mix (Claude reads, GPT checks, both
+#: critique), and the individual defaults already describe it.
+MODEL_STACK_PRESETS: dict[str, dict[str, str]] = {
+    "cloud": {},
+    # Every call stays on the one OpenAI-compatible endpoint -- Hetzner
+    # Inference today, a vLLM box on the customer's own hardware tomorrow
+    # (QRM_HETZNER_ENDPOINT). The narrow assessor is what makes a 27B model
+    # carry the reading work; the grouped shape was measured at 32% on it.
+    "local": {
+        "reviewer_provider_override": "hetzner",
+        "requirement_review_assessor_provider": "hetzner",
+        "requirement_review_entailment_provider": "hetzner",
+        "requirement_review_assessor_mode": "narrow",
+        "critic_providers": "hetzner",
+        "allowed_model_providers": "hetzner,mock",
+    },
+    # The documents are read on the EU endpoint only; the verdicts that
+    # matter (quote plus rationale, never the document) are cross-checked by
+    # a second model family so the checker does not share the reader's
+    # blind spots.
+    "cascade": {
+        "reviewer_provider_override": "hetzner",
+        "requirement_review_assessor_provider": "hetzner",
+        "requirement_review_entailment_provider": "anthropic",
+        "requirement_review_assessor_mode": "narrow",
+        "critic_providers": "hetzner",
+        "allowed_model_providers": "hetzner,anthropic,mock",
+    },
+}
 
 
 class Settings(BaseSettings):
@@ -62,6 +97,20 @@ class Settings(BaseSettings):
     openai_model_id: str = Field(default="")
     anthropic_model_id: str = Field(default="")
     gemini_model_id: str = Field(default="")
+    model_stack: str = Field(
+        default="cloud",
+        description="Preset for the whole model topology: cloud (Claude reads, GPT"
+        " checks), local (every call on the OpenAI-compatible endpoint configured"
+        " below, narrow assessor) or cascade (local reading, Anthropic checking)."
+        " See MODEL_STACK_PRESETS; explicit per-role settings override the preset.",
+    )
+    hetzner_endpoint: str = Field(
+        default="https://inference.hetzner.com/api/v1/chat/completions",
+        description="Chat-completions URL of the OpenAI-compatible endpoint behind"
+        " the 'hetzner' provider. Point it at a vLLM server on your own hardware"
+        " to run the local stack without any third party; the request shape"
+        " (json_schema response_format, chat_template_kwargs) is vLLM's.",
+    )
     hetzner_model_id: str = Field(
         default="Qwen3.8-27B",
         description="Model on the Hetzner Inference API -- the EU-residency option."
@@ -114,6 +163,13 @@ class Settings(BaseSettings):
         " alone -- the shape a local 27B model handles. Measured 2026-08-23 on the"
         " goldstandard corpus before being made selectable.",
     )
+    requirement_review_locate_chunk_limit: int = Field(
+        default=12,
+        ge=1,
+        description="Chunks the narrow assessor's locator sees per requirement,"
+        " chosen by lexical overlap with the requirement. Caps token volume on"
+        " large packages; small cases pass through untouched.",
+    )
     requirement_review_assessor_samples: int = Field(
         default=2,
         ge=1,
@@ -149,6 +205,9 @@ class Settings(BaseSettings):
     # Anthropic call, so a 1,600 cap truncated nearly every reviewer.
     model_provider_max_output_tokens: int = Field(default=8192, ge=256, le=8192)
     model_provider_circuit_breaker_threshold: int = Field(default=3, gt=0)
+    # Where to POST when a provider's circuit breaker opens. Empty disables
+    # the webhook; the ERROR log line is written either way.
+    alert_webhook_url: str = Field(default="")
     # How long an open breaker stays open before one probe call is admitted.
     model_provider_circuit_breaker_cooldown_seconds: float = Field(default=60.0, gt=0)
     reviewer_max_claims_per_agent: int = Field(default=20, ge=8, le=200)
@@ -162,6 +221,35 @@ class Settings(BaseSettings):
     pipeline_run_lease_seconds: int = Field(default=900, gt=0)
     retain_raw_model_outputs: bool = Field(default=False)
     max_upload_bytes: int = Field(default=20 * 1024 * 1024, gt=0)
+
+    @model_validator(mode="after")
+    def _apply_model_stack(self) -> "Settings":
+        stack = self.model_stack.strip().lower()
+        if stack not in MODEL_STACK_PRESETS:
+            raise ValueError(
+                f"QRM_MODEL_STACK={self.model_stack!r} is not one of "
+                f"{', '.join(sorted(MODEL_STACK_PRESETS))}"
+            )
+        self.model_stack = stack
+        # model_fields_set holds every field that came from the environment
+        # or the .env file, so the preset only ever fills what the operator
+        # left unsaid.
+        for field_name, value in MODEL_STACK_PRESETS[stack].items():
+            if field_name not in self.model_fields_set:
+                setattr(self, field_name, value)
+        return self
+
+    def effective_model_roles(self) -> dict[str, str]:
+        """Which provider answers which question -- the operator's health view."""
+        override = self.reviewer_provider_override.strip().lower()
+        return {
+            "stack": self.model_stack,
+            "finding_reviewers": override or "per-role mix (anthropic/openai)",
+            "requirement_assessor": self.requirement_review_assessor_provider,
+            "requirement_assessor_mode": self.requirement_review_assessor_mode,
+            "entailment_checker": self.requirement_review_entailment_provider,
+            "critics": self.critic_providers or "none",
+        }
 
     def api_key_to_tenant_id(self) -> dict[str, str]:
         key_map: dict[str, str] = {}
