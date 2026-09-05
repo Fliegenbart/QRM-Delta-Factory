@@ -20,4 +20,16 @@ describe("public ringversuch API", () => {
     expect(JSON.stringify(payload)).not.toContain("risk_statement");
     expect(JSON.stringify(payload)).not.toContain("expected_reviewer_finding");
   });
+
+  it("keeps the corpus and assessor shape in the published run meta", async () => {
+    const response = await GET();
+    const payload = await response.json();
+    const blind = payload.runs.find((run: { id: string }) => run.id.startsWith("20260824_072027"));
+
+    // Without these fields the landing page cannot tell a blind measurement
+    // from a regression check -- and called the blind result a regression.
+    expect(blind.run.corpus).toBe("blind3");
+    expect(blind.run.assessor_mode).toBe("narrow");
+    expect(blind.run.case_count).toBe(8);
+  });
 });

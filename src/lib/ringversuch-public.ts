@@ -11,6 +11,9 @@ type RawRingversuchRun = {
     mode?: unknown;
     stack?: unknown;
     engine?: unknown;
+    assessor_mode?: unknown;
+    corpus?: unknown;
+    case_count?: unknown;
     started_at?: unknown;
     anthropic_model?: unknown;
     openai_model?: unknown;
@@ -45,6 +48,11 @@ export type PublicRingversuchRun = {
     mode?: string;
     stack?: string | null;
     engine?: string;
+    /** grouped or narrow -- the same Qwen stood at 12/25 and 22/25 by shape. */
+    assessor_mode?: string | null;
+    /** Which case set was measured; the landing must not call a blind run a regression. */
+    corpus?: string | null;
+    case_count?: number;
     started_at?: string;
   };
   aggregate: {
@@ -61,6 +69,9 @@ export function toPublicRingversuchRun(run: RawRingversuchRun): PublicRingversuc
       mode: readString(run.run?.mode),
       stack: readNullableString(run.run?.stack),
       engine: readString(run.run?.engine),
+      assessor_mode: readNullableString(run.run?.assessor_mode),
+      corpus: readNullableString(run.run?.corpus),
+      case_count: readNumber(run.run?.case_count) ?? undefined,
       started_at: readString(run.run?.started_at),
     },
     aggregate: {
